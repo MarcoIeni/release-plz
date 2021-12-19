@@ -76,7 +76,7 @@ jobs:
           cd target/${{ matrix.job.target }}/release
 
           ####### reduce binary size by removing debug symbols #######
-          BINARY_NAME=release-pls${{ matrix.job.binary-postfix }}
+          BINARY_NAME=release-plz${{ matrix.job.binary-postfix }}
           if [[ ${{ matrix.job.target }} == aarch64-unknown-linux-gnu ]]; then
             GCC_PREFIX="aarch64-linux-gnu-"
           else
@@ -85,7 +85,7 @@ jobs:
           "$GCC_PREFIX"strip $BINARY_NAME
 
           ########## create tar.gz ##########
-          RELEASE_NAME=release-pls-${GITHUB_REF/refs\/tags\//}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}
+          RELEASE_NAME=release-plz-${GITHUB_REF/refs\/tags\//}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}
           tar czvf $RELEASE_NAME.tar.gz $BINARY_NAME
 
           ########## create sha256 ##########
@@ -98,8 +98,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            target/${{ matrix.job.target }}/release/release-pls-*.tar.gz
-            target/${{ matrix.job.target }}/release/release-pls-*.sha256
+            target/${{ matrix.job.target }}/release/release-plz-*.tar.gz
+            target/${{ matrix.job.target }}/release/release-plz-*.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

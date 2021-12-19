@@ -1,11 +1,15 @@
 [package]
-name = "release-pls"
+name = "release-plz"
 version = "0.1.0"
 edition = "2021"
 description = "Release to GitHub and crates.io"
-repository = "https://github.com/MarcoIeni/release-pls"
+repository = "https://github.com/MarcoIeni/release-plz"
 license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+crates_io_api = "0.7"
+anyhow = "1"
+chrono = "0.4"
+tokio = { version = "1", features = ["macros"] }
