@@ -1,8 +1,24 @@
 use std::{
+    collections::HashMap,
     env,
     path::{Path, PathBuf},
     process::Command,
 };
+
+use semver::Version;
+
+struct LocalPackage {
+    version: Version,
+    next_version: Option<Version>,
+    hash: String,
+}
+
+fn calculate_local_crates(crates: impl Iterator<Item = PathBuf>) -> HashMap<PathBuf, LocalPackage> {
+    for c in crates {
+        let hash = hash_dir(c);
+    }
+    todo!()
+}
 
 fn main() -> anyhow::Result<()> {
     install_dependencies()?;
@@ -30,17 +46,10 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Calculate the hash of every file in the crate directory
-fn crate_hash(crate_dir: &Path) {}
-
 fn install_dependencies() -> anyhow::Result<()> {
-    Command::new("cargo")
-        .args(["install", "cargo-workspaces"])
-        .output()?;
-
-    Command::new("cargo")
-        .args(["install", "cargo-clone"])
-        .output()?;
+    for program in ["cargo-workspaces", "cargo-clone", "sha1dir"] {
+        Command::new("cargo").args(["install", program]).output()?;
+    }
     Ok(())
 }
 
@@ -66,4 +75,16 @@ fn list_crates(directory: &Path) -> anyhow::Result<Vec<PathBuf>> {
 fn download_crate(crate_name: &str) -> anyhow::Result<()> {
     Command::new("cargo").args(["clone", crate_name]).output()?;
     Ok(())
+}
+
+fn hash_dir(dir: impl AsRef<Path>) -> anyhow::Result<String> {
+    let output = Command::new("sha1dir").arg(dir.as_ref()).output()?;
+    let output = String::from_utf8(output.stdout)?;
+    let sha1 = output
+        .split(' ')
+        .into_iter()
+        .next()
+        .expect("cannot calculate hash");
+
+    Ok(sha1.to_string())
 }
