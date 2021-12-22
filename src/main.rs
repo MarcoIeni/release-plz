@@ -5,29 +5,73 @@ use std::{
     process::Command,
 };
 
+use cargo_metadata::Package;
 use semver::Version;
 
+#[derive(Debug)]
 struct LocalPackage {
-    version: Version,
+    package: Package,
     next_version: Option<Version>,
+    hash: String,
+    done: bool,
+}
+
+#[derive(Debug)]
+struct RemotePackage {
+    package: Package,
     hash: String,
 }
 
-fn calculate_local_crates(crates: impl Iterator<Item = PathBuf>) -> HashMap<PathBuf, LocalPackage> {
-    for c in crates {
-        let hash = hash_dir(c);
-    }
-    todo!()
+fn calculate_local_crates(
+    crates: impl Iterator<Item = Package>,
+) -> anyhow::Result<HashMap<PathBuf, LocalPackage>> {
+    crates
+        .map(|c| {
+            let mut manifest_path = c.manifest_path.clone();
+            manifest_path.pop();
+            let crate_path: PathBuf = manifest_path.into_std_path_buf();
+            let hash = hash_dir(&crate_path)?;
+            let local_package = LocalPackage {
+                package: c,
+                next_version: None,
+                hash,
+                done: false,
+            };
+            Ok((crate_path, local_package))
+        })
+        .collect()
+}
+
+fn calculate_remote_crates(
+    crates: impl Iterator<Item = Package>,
+) -> anyhow::Result<HashMap<PathBuf, RemotePackage>> {
+    crates
+        .map(|c| {
+            let mut manifest_path = c.manifest_path.clone();
+            manifest_path.pop();
+            let crate_path: PathBuf = manifest_path.into_std_path_buf();
+            let hash = hash_dir(&crate_path)?;
+            let remote_package = RemotePackage { package: c, hash };
+            Ok((crate_path, remote_package))
+        })
+        .collect()
 }
 
 fn main() -> anyhow::Result<()> {
     install_dependencies()?;
     // TODO download in tmp directory
-    download_crate("rust-gh-example")?;
-    let local_crates = list_crates(&PathBuf::from("."))?;
-    let remote_crates = list_crates(&PathBuf::from("rust-gh-example"))?;
-    println!("crates: {:?}", remote_crates);
-
+    //download_crate("rust-gh-example")?;
+    let local_crates = list_crates(&PathBuf::from(
+        "/home/marco/me/proj/rust-gh-example2/Cargo.toml",
+    ));
+    let remote_crates = list_crates(&PathBuf::from(
+        "/home/marco/me/proj/rust-gh-example/Cargo.toml",
+    ));
+    dbg!(&remote_crates);
+    let local_crates = calculate_local_crates(local_crates.into_iter())?;
+    let remote_crates = calculate_remote_crates(remote_crates.into_iter())?;
+    dbg!(&local_crates);
+    dbg!(&remote_crates);
     // pr command:
     // - go back commit by commit and for every local crate:
     //   - If the local crate was edited in that commit:
@@ -53,23 +97,8 @@ fn install_dependencies() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn list_crates(directory: &Path) -> anyhow::Result<Vec<PathBuf>> {
-    let prev_dir = env::current_dir()?;
-    env::set_current_dir(directory)?;
-    let output = Command::new("cargo")
-        .args(["workspaces", "list", "--long"])
-        .output();
-    env::set_current_dir(prev_dir)?;
-    let output = output?.stdout;
-
-    let output = String::from_utf8(output)?;
-    let paths = output.lines().map(|l| {
-        l.rsplit(' ')
-            .next()
-            .expect("no new line in cargo workspaces output")
-    });
-
-    Ok(paths.map(PathBuf::from).collect())
+fn list_crates(directory: &Path) -> Vec<Package> {
+    cargo_edit::workspace_members(Some(directory)).unwrap()
 }
 
 fn download_crate(crate_name: &str) -> anyhow::Result<()> {

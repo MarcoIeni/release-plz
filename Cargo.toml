@@ -12,3 +12,5 @@ license = "MIT OR Apache-2.0"
 anyhow = "1"
 semver = "1"
 tokio = { version = "1", features = ["macros"] }
+cargo-edit = "0.8"
+cargo_metadata = "0.14"
