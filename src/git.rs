@@ -1,5 +1,5 @@
 use std::{
-    io,
+    fs, io,
     path::PathBuf,
     process::{Command, Output},
 };
@@ -38,10 +38,11 @@ impl Repo {
         Ok(())
     }
 
-    pub fn get_edited_file(&self, commit: &str) -> anyhow::Result<Vec<String>> {
+    /// Return the list of edited files of that commit. Absolute Path.
+    pub fn get_edited_file(&self, commit: &str) -> anyhow::Result<Vec<PathBuf>> {
         let output = self.git(&["diff-tree", "--no-commit-id", "--name-only", "-r", commit])?;
         let files = String::from_utf8(output.stdout)?;
-        let files = files.lines().map(String::from).collect();
-        Ok(files)
+        let files: Result<Vec<PathBuf>, io::Error> = files.lines().map(fs::canonicalize).collect();
+        Ok(files?)
     }
 }
