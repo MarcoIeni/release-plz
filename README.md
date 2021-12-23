@@ -4,6 +4,14 @@
 [![Docs.rs](https://docs.rs/release-plz/badge.svg)](https://docs.rs/release-plz)
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
 
+Release-plz will open a PR against your repository and based on Cargo.toml and cargo registry, where it will:
+- update your Cargo.toml
+- update your Changelog (TODO)
+
+If you run it again, it will also crate tags.
+
+Once you have merged it, you can then use a command like `cargo workspaces publish` to publish the changes.
+
 ## Installation
 
 ### Cargo
