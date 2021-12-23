@@ -1,19 +1,38 @@
+mod git;
+
 use std::{
     collections::HashMap,
-    env,
+    fs,
     path::{Path, PathBuf},
     process::Command,
 };
 
+use anyhow::Context;
+use cargo_edit::VersionExt;
 use cargo_metadata::Package;
-use semver::Version;
+
+use crate::git::Repo;
 
 #[derive(Debug)]
 struct LocalPackage {
     package: Package,
-    next_version: Option<Version>,
+    commits: Vec<String>,
     hash: String,
     done: bool,
+}
+
+enum SemVer {
+    Major,
+    Minor,
+    Patch,
+}
+
+impl LocalPackage {
+    /// Analyze commits and determine which part of version to increment based on
+    /// [conventional commits](https://www.conventionalcommits.org/)
+    fn version_increment(&self) -> Option<SemVer> {
+        Some(SemVer::Minor)
+    }
 }
 
 #[derive(Debug)]
@@ -33,7 +52,7 @@ fn calculate_local_crates(
             let hash = hash_dir(&crate_path)?;
             let local_package = LocalPackage {
                 package: c,
-                next_version: None,
+                commits: vec![],
                 hash,
                 done: false,
             };
@@ -61,17 +80,46 @@ fn main() -> anyhow::Result<()> {
     install_dependencies()?;
     // TODO download in tmp directory
     //download_crate("rust-gh-example")?;
-    let local_crates = list_crates(&PathBuf::from(
-        "/home/marco/me/proj/rust-gh-example2/Cargo.toml",
-    ));
+    let local_path = "/home/marco/me/proj/rust-gh-example2/Cargo.toml";
+    let local_path = fs::canonicalize(local_path).context("local_path doesn't exist")?;
+    let local_crates = list_crates(&local_path);
     let remote_crates = list_crates(&PathBuf::from(
         "/home/marco/me/proj/rust-gh-example/Cargo.toml",
     ));
     dbg!(&remote_crates);
-    let local_crates = calculate_local_crates(local_crates.into_iter())?;
+    let mut local_crates = calculate_local_crates(local_crates.into_iter())?;
     let remote_crates = calculate_remote_crates(remote_crates.into_iter())?;
     dbg!(&local_crates);
     dbg!(&remote_crates);
+    let repository = Repo::new(&local_path);
+
+    loop {
+        let mut should_exit = false;
+        let current_commit_message = repository.get_current_commit_message()?;
+        for (package_path, package) in &mut local_crates {
+            let files = repository.edited_file_in_current_commit()?;
+            let crate_is_modified = files.iter().any(|f| f.starts_with(package_path));
+            if crate_is_modified {
+                package.commits.push(current_commit_message.clone());
+            }
+            // compare hash.
+        }
+        if should_exit {
+            break;
+        }
+    }
+
+    for (_, package) in &mut local_crates {
+        let version_increment = package.version_increment();
+        if let Some(increment) = version_increment {
+            match increment {
+                SemVer::Major => todo!(),
+                SemVer::Minor => package.package.version.increment_minor(),
+                SemVer::Patch => todo!(),
+            }
+        }
+    }
+
     // pr command:
     // - go back commit by commit and for every local crate:
     //   - If the local crate was edited in that commit:
