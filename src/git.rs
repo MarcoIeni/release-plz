@@ -187,6 +187,14 @@ mod tests {
     }
 
     #[test]
+    fn inexistent_previous_commit_detected() {
+        let repository_dir = tempdir().unwrap();
+        let repo = Repo::init(&repository_dir);
+        let file1 = repository_dir.as_ref().join("file1.txt");
+        repo.checkout_previous_commit_at_path(&file1).unwrap_err();
+    }
+
+    #[test]
     fn previous_commit_is_retrieved() {
         let repository_dir = tempdir().unwrap();
         let repo = Repo::init(&repository_dir);
