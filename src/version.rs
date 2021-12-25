@@ -11,14 +11,19 @@ pub trait NextVersion {
 }
 
 impl NextVersion for Version {
-    fn next(mut self, diff: &Diff) -> Self {
+    fn next(self, diff: &Diff) -> Self {
         if !diff.remote_crate_exists {
             self
         } else {
-            let increment = get_increment_from_commits(&self, &diff.commits);
-            increment.bump(&self)
+            next_version_from_commits(&self, &diff.commits)
         }
     }
+}
+
+// TODO to be published as next_semver::from_commits()
+fn next_version_from_commits(current_version: &Version, commits: &[String]) -> Version {
+    let increment = get_increment_from_commits(current_version, commits);
+    increment.bump(current_version)
 }
 
 fn get_increment_from_commits(current_version: &Version, commits: &[String]) -> VersionIncrement {
