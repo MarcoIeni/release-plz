@@ -1,7 +1,7 @@
 mod git;
 
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     fs,
     path::{Path, PathBuf},
     process::Command,
@@ -17,7 +17,6 @@ use crate::git::Repo;
 struct LocalPackage {
     package: Package,
     commits: Vec<String>,
-    hash: String,
     done: bool,
 }
 
@@ -43,17 +42,15 @@ struct RemotePackage {
 
 fn calculate_local_crates(
     crates: impl Iterator<Item = Package>,
-) -> anyhow::Result<HashMap<PathBuf, LocalPackage>> {
+) -> anyhow::Result<BTreeMap<PathBuf, LocalPackage>> {
     crates
         .map(|c| {
             let mut manifest_path = c.manifest_path.clone();
             manifest_path.pop();
             let crate_path: PathBuf = manifest_path.into_std_path_buf();
-            let hash = hash_dir(&crate_path)?;
             let local_package = LocalPackage {
                 package: c,
                 commits: vec![],
-                hash,
                 done: false,
             };
             Ok((crate_path, local_package))
@@ -61,9 +58,10 @@ fn calculate_local_crates(
         .collect()
 }
 
+/// Return BTreeMap with "package name" as key
 fn calculate_remote_crates(
     crates: impl Iterator<Item = Package>,
-) -> anyhow::Result<HashMap<PathBuf, RemotePackage>> {
+) -> anyhow::Result<BTreeMap<String, RemotePackage>> {
     crates
         .map(|c| {
             let mut manifest_path = c.manifest_path.clone();
@@ -71,9 +69,14 @@ fn calculate_remote_crates(
             let crate_path: PathBuf = manifest_path.into_std_path_buf();
             let hash = hash_dir(&crate_path)?;
             let remote_package = RemotePackage { package: c, hash };
-            Ok((crate_path, remote_package))
+            let package_name = remote_package.package.name.clone();
+            Ok((package_name, remote_package))
         })
         .collect()
+}
+
+fn are_all_done<'a>(mut crates: impl Iterator<Item = &'a LocalPackage>) -> bool {
+    !crates.any(|c| !c.done)
 }
 
 fn main() -> anyhow::Result<()> {
@@ -94,19 +97,28 @@ fn main() -> anyhow::Result<()> {
     let repository = Repo::new(&local_path);
 
     loop {
-        let mut should_exit = false;
         let current_commit_message = repository.get_current_commit_message()?;
         for (package_path, package) in &mut local_crates {
             let files = repository.edited_file_in_current_commit()?;
             let crate_is_modified = files.iter().any(|f| f.starts_with(package_path));
             if crate_is_modified {
+                if let Some(remote_crate) = remote_crates.get(&package.package.name) {
+                    let crate_hash = hash_dir(package_path)?;
+                    let same_hash = remote_crate.hash == crate_hash;
+                    if same_hash {
+                        package.done = true;
+                    } else {
+                        package.commits.push(current_commit_message.clone());
+                    }
+                }
                 package.commits.push(current_commit_message.clone());
             }
             // compare hash.
         }
-        if should_exit {
+        if are_all_done(local_crates.values()) {
             break;
         }
+        repository.checkout_last_commit()?;
     }
 
     for (_, package) in &mut local_crates {
