@@ -18,8 +18,6 @@ impl Repo {
     /// Returns an error if the directory doesn't contain any commit
     pub fn new(directory: impl AsRef<Path>) -> anyhow::Result<Self> {
         let current_branch = Self::get_current_branch(&directory)?;
-        // TODO move this in main
-        crate::log::init();
 
         Ok(Self {
             directory: directory.as_ref().to_path_buf(),
@@ -63,7 +61,7 @@ impl Repo {
     )]
     fn nth_commit(&self, nth: usize) -> anyhow::Result<String> {
         let nth = nth.to_string();
-        let output = self.git(&["--format=\"%H\"", "-n", &nth])?;
+        let output = self.git(&["--format=%H", "-n", &nth])?;
         let commit_list = stdout(output)?;
         let last_commit = commit_list
             .lines()

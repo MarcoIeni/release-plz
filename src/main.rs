@@ -79,6 +79,7 @@ fn calculate_remote_crates(
 }
 
 fn main() -> anyhow::Result<()> {
+    log::init();
     install_dependencies()?;
     // TODO download in tmp directory
     //download_crate("rust-gh-example")?;
