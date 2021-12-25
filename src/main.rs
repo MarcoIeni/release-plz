@@ -10,11 +10,10 @@ use std::{
 };
 
 use anyhow::Context;
-use cargo_edit::VersionExt;
 use cargo_metadata::Package;
 use tracing::debug;
 
-use crate::git::Repo;
+use crate::{git::Repo, version::NextVersion};
 
 #[derive(Debug)]
 struct LocalPackage {
@@ -36,20 +35,6 @@ impl Diff {
             commits: vec![],
             remote_crate_exists,
         }
-    }
-}
-
-enum SemVer {
-    Major,
-    Minor,
-    Patch,
-}
-
-impl LocalPackage {
-    /// Analyze commits and determine which part of version to increment based on
-    /// [conventional commits](https://www.conventionalcommits.org/)
-    fn version_increment(&self) -> Option<SemVer> {
-        Some(SemVer::Minor)
     }
 }
 
@@ -135,15 +120,10 @@ fn main() -> anyhow::Result<()> {
     }
     debug!("local packages calculated");
 
-    for (_, package) in &mut local_crates {
-        let version_increment = package.version_increment();
-        if let Some(increment) = version_increment {
-            match increment {
-                SemVer::Major => todo!(),
-                SemVer::Minor => package.package.version.increment_minor(),
-                SemVer::Patch => todo!(),
-            }
-        }
+    for package in &mut local_crates.values() {
+        let current_version = package.package.version.clone();
+        let next_version = current_version.next(&package.diff);
+        todo!("bump to {}", next_version);
     }
 
     // pr command:

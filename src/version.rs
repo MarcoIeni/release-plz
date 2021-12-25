@@ -3,12 +3,14 @@ use cargo_metadata::Version;
 
 use crate::Diff;
 
-trait NextVersion {
-    fn next(self, diff: Diff) -> Self;
+pub trait NextVersion {
+    /// Analyze commits and determine which part of version to increment based on
+    /// [conventional commits](https://www.conventionalcommits.org/)
+    fn next(self, diff: &Diff) -> Self;
 }
 
 impl NextVersion for Version {
-    fn next(mut self, diff: Diff) -> Self {
+    fn next(mut self, diff: &Diff) -> Self {
         if !diff.remote_crate_exists {
             self
         } else {
@@ -27,7 +29,7 @@ mod tests {
         let remote_crate_exists = false;
         let diff = Diff::new(remote_crate_exists);
         let version = Version::new(1, 2, 3);
-        assert_eq!(version.clone().next(diff), version);
+        assert_eq!(version.clone().next(&diff), version);
     }
 
     #[test]
@@ -37,6 +39,6 @@ mod tests {
             commits: vec!["my change".to_string()],
         };
         let version = Version::new(1, 2, 3);
-        assert_eq!(version.next(diff), Version::new(1, 2, 4));
+        assert_eq!(version.next(&diff), Version::new(1, 2, 4));
     }
 }
