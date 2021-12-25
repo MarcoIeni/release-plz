@@ -141,14 +141,6 @@ impl Repo {
         Ok(last_commit.to_string())
     }
 
-    /// Return the list of edited files of that commit. Absolute Path.
-    fn edited_file(&self, commit: &str) -> anyhow::Result<Vec<PathBuf>> {
-        let output = self.git(&["diff-tree", "--no-commit-id", "--name-only", "-r", commit])?;
-        let files = stdout(output)?;
-        let files: Result<Vec<PathBuf>, io::Error> = files.lines().map(fs::canonicalize).collect();
-        Ok(files?)
-    }
-
     pub fn current_commit_message(&self) -> anyhow::Result<String> {
         let output = self.git(&["log", "-1", "--pretty=format:%s"])?;
         stdout(output)
@@ -191,10 +183,6 @@ mod tests {
             Self::git_in_dir(directory.as_ref(), &["add", "."]).unwrap();
             Self::git_in_dir(directory.as_ref(), &["commit", "-m", "add README"]).unwrap();
             Self::new(directory).unwrap()
-        }
-
-        fn git_log(&self) -> Output {
-            self.git(&["log"]).unwrap()
         }
     }
 
