@@ -17,6 +17,8 @@ use crate::git::Repo;
 struct LocalPackage {
     package: Package,
     commits: Vec<String>,
+    /// Whether the crate name exists in the remote crates or not
+    remote_crate_exists: bool,
 }
 
 enum SemVer {
@@ -50,6 +52,7 @@ fn calculate_local_crates(
             let local_package = LocalPackage {
                 package: c,
                 commits: vec![],
+                remote_crate_exists: false,
             };
             Ok((crate_path, local_package))
         })
@@ -91,15 +94,27 @@ fn main() -> anyhow::Result<()> {
     let repository = Repo::new(&local_path)?;
 
     for (package_path, package) in &mut local_crates {
-        let current_commit_message = repository.get_current_commit_message()?;
-        if let Some(remote_crate) = remote_crates.get(&package.package.name) {
-            let crate_hash = hash_dir(package_path)?;
-            let same_hash = remote_crate.hash == crate_hash;
-            if !same_hash {
+        repository.checkout_head()?;
+        loop {
+            let current_commit_message = repository.current_commit_message()?;
+            if let Some(remote_crate) = remote_crates.get(&package.package.name) {
+                package.remote_crate_exists = true;
+                let crate_hash = hash_dir(package_path)?;
+                let same_hash = remote_crate.hash == crate_hash;
+                if same_hash {
+                    // The local crate is identical to the remote one, so go to the next create
+                    break;
+                } else {
+                    package.commits.push(current_commit_message.clone());
+                }
+            } else {
                 package.commits.push(current_commit_message.clone());
             }
-        } else {
-            package.commits.push(current_commit_message.clone());
+            if let Err(_err) = repository.checkout_previous_commit_at_path(package_path) {
+                // there are no other commits.
+                // TODO validate this
+                break;
+            }
         }
     }
 
