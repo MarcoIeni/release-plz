@@ -94,7 +94,7 @@ fn main() -> anyhow::Result<()> {
     let remote_crates = calculate_remote_crates(remote_crates.into_iter())?;
     dbg!(&local_crates);
     dbg!(&remote_crates);
-    let repository = Repo::new(&local_path);
+    let repository = Repo::new(&local_path)?;
 
     loop {
         let current_commit_message = repository.get_current_commit_message()?;
