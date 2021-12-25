@@ -17,7 +17,6 @@ use crate::git::Repo;
 struct LocalPackage {
     package: Package,
     commits: Vec<String>,
-    done: bool,
 }
 
 enum SemVer {
@@ -51,7 +50,6 @@ fn calculate_local_crates(
             let local_package = LocalPackage {
                 package: c,
                 commits: vec![],
-                done: false,
             };
             Ok((crate_path, local_package))
         })
@@ -75,10 +73,6 @@ fn calculate_remote_crates(
         .collect()
 }
 
-fn are_all_done<'a>(mut crates: impl Iterator<Item = &'a LocalPackage>) -> bool {
-    !crates.any(|c| !c.done)
-}
-
 fn main() -> anyhow::Result<()> {
     install_dependencies()?;
     // TODO download in tmp directory
@@ -96,29 +90,17 @@ fn main() -> anyhow::Result<()> {
     dbg!(&remote_crates);
     let repository = Repo::new(&local_path)?;
 
-    loop {
+    for (package_path, package) in &mut local_crates {
         let current_commit_message = repository.get_current_commit_message()?;
-        for (package_path, package) in &mut local_crates {
-            let files = repository.edited_file_in_current_commit()?;
-            let crate_is_modified = files.iter().any(|f| f.starts_with(package_path));
-            if crate_is_modified {
-                if let Some(remote_crate) = remote_crates.get(&package.package.name) {
-                    let crate_hash = hash_dir(package_path)?;
-                    let same_hash = remote_crate.hash == crate_hash;
-                    if same_hash {
-                        package.done = true;
-                    } else {
-                        package.commits.push(current_commit_message.clone());
-                    }
-                }
+        if let Some(remote_crate) = remote_crates.get(&package.package.name) {
+            let crate_hash = hash_dir(package_path)?;
+            let same_hash = remote_crate.hash == crate_hash;
+            if !same_hash {
                 package.commits.push(current_commit_message.clone());
             }
-            // compare hash.
+        } else {
+            package.commits.push(current_commit_message.clone());
         }
-        if are_all_done(local_crates.values()) {
-            break;
-        }
-        repository.checkout_last_commit()?;
     }
 
     for (_, package) in &mut local_crates {

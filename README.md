@@ -12,6 +12,10 @@ If you run it again, it will also crate tags.
 
 Once you have merged it, you can then use a command like `cargo workspaces publish` to publish the changes.
 
+In this way you can have a fully automated release pipeline.
+This means you can easily release changes more frequently, without the fear of doing typo or other
+subtle manual mistakes.
+
 ## Installation
 
 ### Requirements
