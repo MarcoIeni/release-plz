@@ -1,5 +1,6 @@
 mod git;
 mod log;
+mod version;
 
 use std::{
     collections::BTreeMap,
@@ -11,15 +12,31 @@ use std::{
 use anyhow::Context;
 use cargo_edit::VersionExt;
 use cargo_metadata::Package;
+use tracing::debug;
 
 use crate::git::Repo;
 
 #[derive(Debug)]
 struct LocalPackage {
     package: Package,
+    diff: Diff,
+}
+
+/// Difference between local and remote crate
+#[derive(Debug)]
+struct Diff {
     commits: Vec<String>,
     /// Whether the crate name exists in the remote crates or not
     remote_crate_exists: bool,
+}
+
+impl Diff {
+    fn new(remote_crate_exists: bool) -> Self {
+        Self {
+            commits: vec![],
+            remote_crate_exists,
+        }
+    }
 }
 
 enum SemVer {
@@ -52,8 +69,7 @@ fn calculate_local_crates(
             let crate_path: PathBuf = manifest_path.into_std_path_buf();
             let local_package = LocalPackage {
                 package: c,
-                commits: vec![],
-                remote_crate_exists: false,
+                diff: Diff::new(false),
             };
             Ok((crate_path, local_package))
         })
@@ -99,25 +115,25 @@ fn main() -> anyhow::Result<()> {
         loop {
             let current_commit_message = repository.current_commit_message()?;
             if let Some(remote_crate) = remote_crates.get(&package.package.name) {
-                package.remote_crate_exists = true;
+                package.diff.remote_crate_exists = true;
                 let crate_hash = hash_dir(package_path)?;
                 let same_hash = remote_crate.hash == crate_hash;
                 if same_hash {
                     // The local crate is identical to the remote one, so go to the next create
                     break;
                 } else {
-                    package.commits.push(current_commit_message.clone());
+                    package.diff.commits.push(current_commit_message.clone());
                 }
             } else {
-                package.commits.push(current_commit_message.clone());
+                package.diff.commits.push(current_commit_message.clone());
             }
             if let Err(_err) = repository.checkout_previous_commit_at_path(package_path) {
                 // there are no other commits.
-                // TODO validate this
                 break;
             }
         }
     }
+    debug!("local packages calculated");
 
     for (_, package) in &mut local_crates {
         let version_increment = package.version_increment();
@@ -149,7 +165,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn install_dependencies() -> anyhow::Result<()> {
-    for program in ["cargo-workspaces", "cargo-clone", "sha1dir"] {
+    for program in ["cargo-clone", "sha1dir"] {
         Command::new("cargo").args(["install", program]).output()?;
     }
     Ok(())
