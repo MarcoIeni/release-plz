@@ -1,3 +1,4 @@
+use cargo_edit::VersionExt;
 use cargo_metadata::Version;
 
 use crate::Diff;
@@ -7,11 +8,12 @@ trait NextVersion {
 }
 
 impl NextVersion for Version {
-    fn next(self, diff: Diff) -> Self {
+    fn next(mut self, diff: Diff) -> Self {
         if !diff.remote_crate_exists {
             self
         } else {
-            todo!()
+            self.increment_patch();
+            self
         }
     }
 }
@@ -26,5 +28,15 @@ mod tests {
         let diff = Diff::new(remote_crate_exists);
         let version = Version::new(1, 2, 3);
         assert_eq!(version.clone().next(diff), version);
+    }
+
+    #[test]
+    fn commit_without_semver_prefix_increments_patch_version() {
+        let diff = Diff {
+            remote_crate_exists: true,
+            commits: vec!["my change".to_string()],
+        };
+        let version = Version::new(1, 2, 3);
+        assert_eq!(version.next(diff), Version::new(1, 2, 4));
     }
 }

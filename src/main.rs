@@ -25,9 +25,9 @@ struct LocalPackage {
 /// Difference between local and remote crate
 #[derive(Debug)]
 struct Diff {
-    commits: Vec<String>,
+    pub commits: Vec<String>,
     /// Whether the crate name exists in the remote crates or not
-    remote_crate_exists: bool,
+    pub remote_crate_exists: bool,
 }
 
 impl Diff {
