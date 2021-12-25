@@ -14,6 +14,10 @@ Once you have merged it, you can then use a command like `cargo workspaces publi
 
 ## Installation
 
+### Requirements
+
+- git
+
 ### Cargo
 
 * Install the rust toolchain in order to have cargo installed by following
