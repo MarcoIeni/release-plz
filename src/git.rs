@@ -1,10 +1,11 @@
 use std::{
-    fs, io,
+    fmt, fs, io,
     path::{Path, PathBuf},
     process::{Command, Output},
 };
 
 use anyhow::{anyhow, Context};
+use tracing::{debug, instrument, Span};
 
 /// Repository
 pub struct Repo {
@@ -14,10 +15,11 @@ pub struct Repo {
 }
 
 impl Repo {
+    /// Returns an error if the directory doesn't contain any commit
     pub fn new(directory: impl AsRef<Path>) -> anyhow::Result<Self> {
-        let current_branch =
-            Self::git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "HEAD"])?;
-        let current_branch = stdout(current_branch)?;
+        let current_branch = Self::get_current_branch(&directory)?;
+        // TODO move this in main
+        crate::log::init();
 
         Ok(Self {
             directory: directory.as_ref().to_path_buf(),
@@ -25,28 +27,51 @@ impl Repo {
         })
     }
 
+    fn get_current_branch(directory: impl AsRef<Path>) -> anyhow::Result<String> {
+        let current_branch =
+            Self::git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "HEAD"])?;
+        stdout(current_branch).map_err(|e|
+            if e.to_string().contains("fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.") {
+                anyhow!("git repository does not contain any commit.")
+            }
+            else {
+                e
+            }
+        )
+    }
+
     pub fn checkout_head(&self) -> anyhow::Result<()> {
         self.git(&["checkout", &self.current_branch])?;
         Ok(())
     }
 
+    #[instrument(skip(self))]
     fn current_commit(&self) -> anyhow::Result<String> {
         self.nth_commit(1)
     }
 
+    #[instrument(skip(self))]
     fn previous_commit(&self) -> anyhow::Result<String> {
         self.nth_commit(2)
     }
 
+    #[instrument(
+        skip(self)
+        fields(
+            nth_commit = tracing::field::Empty,
+        )
+    )]
     fn nth_commit(&self, nth: usize) -> anyhow::Result<String> {
         let nth = nth.to_string();
         let output = self.git(&["--format=\"%H\"", "-n", &nth])?;
         let commit_list = stdout(output)?;
-        let previous_commit = commit_list
+        let last_commit = commit_list
             .lines()
             .last()
             .context("repository has no commits")?;
-        Ok(previous_commit.to_string())
+        Span::current().record("nth_commit", &last_commit);
+
+        Ok(last_commit.to_string())
     }
 
     fn git_in_dir(dir: &Path, args: &[&str]) -> io::Result<Output> {
@@ -74,31 +99,46 @@ impl Repo {
         Ok(files?)
     }
 
-    fn previous_commit_at_path(&self, path: impl AsRef<Path>) -> anyhow::Result<String> {
+    fn previous_commit_at_path(&self, path: &Path) -> anyhow::Result<String> {
         self.nth_commit_at_path(2, path)
     }
 
-    pub fn checkout_previous_commit_at_path(&self, path: impl AsRef<Path>) -> anyhow::Result<()> {
+    pub fn checkout_previous_commit_at_path(&self, path: &Path) -> anyhow::Result<()> {
         let commit = self.previous_commit_at_path(path)?;
-        self.checkout(commit)?;
+        self.checkout(&commit)?;
         Ok(())
     }
 
-    fn checkout(&self, object: impl AsRef<str>) -> io::Result<()> {
-        self.git(&["checkout", object.as_ref()])?;
+    #[instrument(skip(self))]
+    fn checkout(&self, object: &str) -> io::Result<()> {
+        let output = self.git(&["checkout", object])?;
+        debug!("git checkout outcome: {:?}", output);
         Ok(())
     }
 
-    fn nth_commit_at_path(&self, nth: usize, path: impl AsRef<Path>) -> anyhow::Result<String> {
+    #[instrument(
+        skip(self)
+        fields(
+            nth_commit = tracing::field::Empty,
+        )
+    )]
+    fn nth_commit_at_path(
+        &self,
+        nth: usize,
+        path: impl AsRef<Path> + fmt::Debug,
+    ) -> anyhow::Result<String> {
         let nth = nth.to_string();
         let path = path.as_ref().to_str().ok_or(anyhow!("invalid path"))?;
-        let output = self.git(&["log", "-p", path, "--format=\"%H\"", "-n", &nth])?;
+        let output = self.git(&["log", "--format=%H", "-n", &nth, path])?;
         let commit_list = stdout(output)?;
-        let previous_commit = commit_list
+        let last_commit = commit_list
             .lines()
             .last()
             .context("repository has no commits")?;
-        Ok(previous_commit.to_string())
+
+        Span::current().record("nth_commit", &last_commit);
+        debug!("nth_commit found");
+        Ok(last_commit.to_string())
     }
 
     /// Return the list of edited files of that commit. Absolute Path.
@@ -116,7 +156,11 @@ impl Repo {
 }
 
 fn stdout(output: Output) -> anyhow::Result<String> {
-    dbg!(&output);
+    debug!("output: {:?}", output);
+    if !output.stderr.is_empty() {
+        let stderr = String::from_utf8(output.stderr)?;
+        return Err(anyhow!(stderr));
+    }
     let stdout = String::from_utf8(output.stdout)?;
     Ok(stdout)
 }
@@ -141,16 +185,23 @@ mod tests {
             self.git_commit(message);
         }
 
-        fn git_init(&self) {
-            self.git(&["init"]).unwrap();
+        fn init(directory: impl AsRef<Path>) -> Self {
+            Self::git_in_dir(directory.as_ref(), &["init"]).unwrap();
+            fs::write(directory.as_ref().join("README.md"), "# my awesome project").unwrap();
+            Self::git_in_dir(directory.as_ref(), &["add", "."]).unwrap();
+            Self::git_in_dir(directory.as_ref(), &["commit", "-m", "add README"]).unwrap();
+            Self::new(directory).unwrap()
+        }
+
+        fn git_log(&self) -> Output {
+            self.git(&["log"]).unwrap()
         }
     }
 
     #[test]
     fn previous_commit_is_retrieved() {
         let repository_dir = tempdir().unwrap();
-        let repo = Repo::new(&repository_dir).unwrap();
-        repo.git_init();
+        let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
         let file2 = repository_dir.as_ref().join("file2.txt");
         {
@@ -161,8 +212,20 @@ mod tests {
             fs::write(&file2, b"Hello, file2!-2").unwrap();
             repo.git_add_and_commit("file2-2");
         }
-        assert_eq!(repo.current_commit_message().unwrap(), "file2-2");
-        repo.checkout_previous_commit_at_path(file2).unwrap();
+        repo.checkout_previous_commit_at_path(&file2).unwrap();
         assert_eq!(repo.current_commit_message().unwrap(), "file2-1");
+    }
+
+    #[test]
+    fn current_commit_is_retrieved() {
+        let repository_dir = tempdir().unwrap();
+        let repo = Repo::init(&repository_dir);
+        let file1 = repository_dir.as_ref().join("file1.txt");
+        let commit_message = "file1 message";
+        {
+            fs::write(&file1, b"Hello, file1!").unwrap();
+            repo.git_add_and_commit(commit_message);
+        }
+        assert_eq!(repo.current_commit_message().unwrap(), commit_message);
     }
 }

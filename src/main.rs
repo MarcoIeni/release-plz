@@ -1,4 +1,5 @@
 mod git;
+mod log;
 
 use std::{
     collections::BTreeMap,
