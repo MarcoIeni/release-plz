@@ -4,7 +4,7 @@ use std::{
     process::{Command, Output},
 };
 
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 
 /// Repository
 pub struct Repo {
@@ -25,8 +25,9 @@ impl Repo {
         })
     }
 
-    fn current_branch(&self) -> &str {
-        &self.current_branch
+    pub fn checkout_head(&self) -> anyhow::Result<()> {
+        self.git(&["checkout", &self.current_branch])?;
+        Ok(())
     }
 
     fn current_commit(&self) -> anyhow::Result<String> {
@@ -60,7 +61,7 @@ impl Repo {
     /// Checkout to the latest commit. I.e. go back in history of 1 commit.
     pub fn checkout_last_commit(&self) -> anyhow::Result<()> {
         let previous_commit = self.previous_commit()?;
-        self.git(&["checkout", &previous_commit])?;
+        self.checkout(&previous_commit)?;
         Ok(())
     }
 
@@ -73,13 +74,25 @@ impl Repo {
         Ok(files?)
     }
 
-    fn previous_commit_at_path(&self, path: impl AsRef<str>) -> anyhow::Result<String> {
+    fn previous_commit_at_path(&self, path: impl AsRef<Path>) -> anyhow::Result<String> {
         self.nth_commit_at_path(2, path)
     }
 
-    fn nth_commit_at_path(&self, nth: usize, path: impl AsRef<str>) -> anyhow::Result<String> {
+    pub fn checkout_previous_commit_at_path(&self, path: impl AsRef<Path>) -> anyhow::Result<()> {
+        let commit = self.previous_commit_at_path(path)?;
+        self.checkout(commit)?;
+        Ok(())
+    }
+
+    fn checkout(&self, object: impl AsRef<str>) -> io::Result<()> {
+        self.git(&["checkout", object.as_ref()])?;
+        Ok(())
+    }
+
+    fn nth_commit_at_path(&self, nth: usize, path: impl AsRef<Path>) -> anyhow::Result<String> {
         let nth = nth.to_string();
-        let output = self.git(&["log", "-p", path.as_ref(), "--format=\"%H\"", "-n", &nth])?;
+        let path = path.as_ref().to_str().ok_or(anyhow!("invalid path"))?;
+        let output = self.git(&["log", "-p", path, "--format=\"%H\"", "-n", &nth])?;
         let commit_list = stdout(output)?;
         let previous_commit = commit_list
             .lines()
@@ -96,13 +109,60 @@ impl Repo {
         Ok(files?)
     }
 
-    pub fn get_current_commit_message(&self) -> anyhow::Result<String> {
-        let output = self.git(&["log", " -1", "--pretty=format:%s"])?;
+    pub fn current_commit_message(&self) -> anyhow::Result<String> {
+        let output = self.git(&["log", "-1", "--pretty=format:%s"])?;
         stdout(output)
     }
 }
 
 fn stdout(output: Output) -> anyhow::Result<String> {
+    dbg!(&output);
     let stdout = String::from_utf8(output.stdout)?;
     Ok(stdout)
+}
+
+#[cfg(test)]
+mod tests {
+    use tempfile::tempdir;
+
+    use super::*;
+
+    impl Repo {
+        fn git_add(&self) {
+            self.git(&["add", "."]).unwrap();
+        }
+
+        fn git_commit(&self, message: &str) {
+            self.git(&["commit", "-m", message]).unwrap();
+        }
+
+        fn git_add_and_commit(&self, message: &str) {
+            self.git_add();
+            self.git_commit(message);
+        }
+
+        fn git_init(&self) {
+            self.git(&["init"]).unwrap();
+        }
+    }
+
+    #[test]
+    fn previous_commit_is_retrieved() {
+        let repository_dir = tempdir().unwrap();
+        let repo = Repo::new(&repository_dir).unwrap();
+        repo.git_init();
+        let file1 = repository_dir.as_ref().join("file1.txt");
+        let file2 = repository_dir.as_ref().join("file2.txt");
+        {
+            fs::write(&file2, b"Hello, file2!-1").unwrap();
+            repo.git_add_and_commit("file2-1");
+            fs::write(&file1, b"Hello, file1!").unwrap();
+            repo.git_add_and_commit("file1");
+            fs::write(&file2, b"Hello, file2!-2").unwrap();
+            repo.git_add_and_commit("file2-2");
+        }
+        assert_eq!(repo.current_commit_message().unwrap(), "file2-2");
+        repo.checkout_previous_commit_at_path(file2).unwrap();
+        assert_eq!(repo.current_commit_message().unwrap(), "file2-1");
+    }
 }
