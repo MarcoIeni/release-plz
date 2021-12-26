@@ -14,14 +14,19 @@ impl VersionIncrement {
     /// [Semantic versioning](https://semver.org/).
     /// - If no commits are present, None is returned, i.e. the version should not be incremented.
     /// - If no conventional commits are present, the version is incremented as a Patch
-    pub fn from_commits(current_version: &Version, commits: &[String]) -> Option<Self> {
-        if commits.is_empty() {
+    pub fn from_commits<I>(current_version: &Version, commits: I) -> Option<Self>
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>,
+    {
+        let mut commits = commits.into_iter().peekable();
+        let are_commits_present = commits.peek().is_some();
+        if !are_commits_present {
             None
         } else {
             // Parse commits and keep only the ones that follow conventional commits specification.
             let commits: Vec<ConventionalCommit> = commits
-                .iter()
-                .filter_map(|c| conventional_commit_parser::parse(c).ok())
+                .filter_map(|c| conventional_commit_parser::parse(c.as_ref()).ok())
                 .collect();
 
             Some(VersionIncrement::from_conventional_commits(

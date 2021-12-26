@@ -8,11 +8,18 @@ pub trait NextVersion {
     /// [Semantic versioning](https://semver.org/).
     /// - If no commits are passed, the version is unchanged.
     /// - If no conventional commits are present, the version is incremented as a Patch.
-    fn next(&self, commits: &[String]) -> Self;
+    fn next<I>(&self, commits: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>;
 }
 
 impl NextVersion for Version {
-    fn next(&self, commits: &[String]) -> Self {
+    fn next<I>(&self, commits: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>,
+    {
         let increment = VersionIncrement::from_commits(self, commits);
         match increment {
             Some(increment) => increment.bump(self),
@@ -23,7 +30,7 @@ impl NextVersion for Version {
 
 #[test]
 fn commit_without_semver_prefix_increments_patch_version() {
-    let commits = vec!["my change".to_string()];
+    let commits = vec!["my change"];
     let version = Version::new(1, 2, 3);
-    assert_eq!(version.next(&commits), Version::new(1, 2, 4));
+    assert_eq!(version.next(commits), Version::new(1, 2, 4));
 }
