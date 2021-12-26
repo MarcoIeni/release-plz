@@ -135,7 +135,7 @@ impl Repo {
         let commit_list = stdout(output)?;
         let mut commits = commit_list.lines();
         // check if there are enough commits
-        for _ in 0..nth {
+        for _ in 1..nth {
             // discard previous commits
             commits.next().ok_or(anyhow!("not enough commits"))?;
         }
