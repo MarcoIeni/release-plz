@@ -21,9 +21,15 @@ impl NextVersion for Version {
 }
 
 // TODO to be published as next_semver::from_commits()
+/// If no commits are passed, the version is unchanged
+/// If no conventional commits are present, the version is incremented as a Patch
 fn next_version_from_commits(current_version: &Version, commits: &[String]) -> Version {
-    let increment = get_increment_from_commits(current_version, commits);
-    increment.bump(current_version)
+    if commits.is_empty() {
+        current_version.clone()
+    } else {
+        let increment = get_increment_from_commits(current_version, commits);
+        increment.bump(current_version)
+    }
 }
 
 fn get_increment_from_commits(current_version: &Version, commits: &[String]) -> VersionIncrement {
