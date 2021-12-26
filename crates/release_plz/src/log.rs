@@ -1,4 +1,5 @@
 use tracing::Level;
+use tracing_log::LogTracer;
 use tracing_subscriber::FmtSubscriber;
 
 pub fn init() {
@@ -7,4 +8,5 @@ pub fn init() {
         .finish();
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+    LogTracer::init().expect("Failed to initialise log tracer capturing.");
 }

@@ -46,10 +46,16 @@ pub fn update(local_manifest: &Path, remote_manifest: &Path) -> anyhow::Result<(
 
     debug!("calculating local packages");
     for (package_path, package) in &mut local_crates {
+        debug!("processing local package {}", package.package.name);
         repository.checkout_head()?;
+        if let Err(_err) = repository.checkout_last_commit_at_path(package_path) {
+            // there are no commits for this package
+            break;
+        }
         loop {
             let current_commit_message = repository.current_commit_message()?;
             if let Some(remote_crate) = remote_crates.get(&package.package.name) {
+                debug!("remote crate {} found", remote_crate.package.name);
                 package.diff.remote_crate_exists = true;
                 let crate_hash = hash_dir(package_path)?;
                 let same_hash = remote_crate.hash == crate_hash;
@@ -85,7 +91,7 @@ fn list_crates(directory: &Path) -> Vec<Package> {
     cargo_edit::workspace_members(Some(directory)).unwrap()
 }
 
-// TODO use a library, not a binary
+// TODO use dir_diff library
 fn hash_dir(dir: impl AsRef<Path>) -> anyhow::Result<String> {
     let output = Command::new("sha1dir").arg(dir.as_ref()).output()?;
     let output = String::from_utf8(output.stdout)?;

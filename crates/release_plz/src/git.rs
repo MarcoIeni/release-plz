@@ -81,9 +81,9 @@ impl Repo {
         Self::git_in_dir(&self.directory, args)
     }
 
-    /// Checkout to the latest commit. I.e. go back in history of 1 commit.
-    pub fn checkout_last_commit(&self) -> anyhow::Result<()> {
-        let previous_commit = self.previous_commit()?;
+    /// Checkout to the latest commit.
+    pub fn checkout_last_commit_at_path(&self, path: &Path) -> anyhow::Result<()> {
+        let previous_commit = self.last_commit_at_path(path)?;
         self.checkout(&previous_commit)?;
         Ok(())
     }
@@ -95,6 +95,10 @@ impl Repo {
         let files = stdout(output)?;
         let files: Result<Vec<PathBuf>, io::Error> = files.lines().map(fs::canonicalize).collect();
         Ok(files?)
+    }
+
+    fn last_commit_at_path(&self, path: &Path) -> anyhow::Result<String> {
+        self.nth_commit_at_path(1, path)
     }
 
     fn previous_commit_at_path(&self, path: &Path) -> anyhow::Result<String> {
@@ -125,14 +129,17 @@ impl Repo {
         nth: usize,
         path: impl AsRef<Path> + fmt::Debug,
     ) -> anyhow::Result<String> {
-        let nth = nth.to_string();
+        let nth_str = nth.to_string();
         let path = path.as_ref().to_str().ok_or(anyhow!("invalid path"))?;
-        let output = self.git(&["log", "--format=%H", "-n", &nth, path])?;
+        let output = self.git(&["log", "--format=%H", "-n", &nth_str, path])?;
         let commit_list = stdout(output)?;
-        let last_commit = commit_list
-            .lines()
-            .last()
-            .context("repository has no commits")?;
+        let mut commits = commit_list.lines();
+        // check if there are enough commits
+        for _ in 0..nth {
+            // discard previous commits
+            commits.next().ok_or(anyhow!("not enough commits"))?;
+        }
+        let last_commit = commits.next().context("repository has no commits")?;
 
         Span::current().record("nth_commit", &last_commit);
         debug!("nth_commit found");

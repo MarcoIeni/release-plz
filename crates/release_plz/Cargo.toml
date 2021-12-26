@@ -22,3 +22,5 @@ next_semver = { path = "../next_semver" }
 
 [dev-dependencies]
 tempfile = "3"
+fs_extra = "1"
+dir-diff = "0.3"
