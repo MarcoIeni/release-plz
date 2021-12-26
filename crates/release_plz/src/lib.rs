@@ -5,7 +5,6 @@ use crate::{git::Repo, version::NextVersionFromDiff};
 use std::{
     collections::BTreeMap,
     path::{Path, PathBuf},
-    process::Command,
 };
 
 use cargo_metadata::Package;
@@ -55,11 +54,12 @@ pub fn update(local_manifest: &Path, remote_manifest: &Path) -> anyhow::Result<(
         loop {
             let current_commit_message = repository.current_commit_message()?;
             if let Some(remote_crate) = remote_crates.get(&package.package.name) {
-                debug!("remote crate {} found", remote_crate.package.name);
+                debug!("remote crate {} found", remote_crate.name);
                 package.diff.remote_crate_exists = true;
-                let crate_hash = hash_dir(package_path)?;
-                let same_hash = remote_crate.hash == crate_hash;
-                if same_hash {
+                let mut remote_path = remote_crate.manifest_path.clone();
+                remote_path.pop();
+                let is_crate_different = dir_diff::is_different(package_path, remote_path).unwrap();
+                if is_crate_different {
                     // The local crate is identical to the remote one, so go to the next create
                     break;
                 } else {
@@ -91,25 +91,6 @@ fn list_crates(directory: &Path) -> Vec<Package> {
     cargo_edit::workspace_members(Some(directory)).unwrap()
 }
 
-// TODO use dir_diff library
-fn hash_dir(dir: impl AsRef<Path>) -> anyhow::Result<String> {
-    let output = Command::new("sha1dir").arg(dir.as_ref()).output()?;
-    let output = String::from_utf8(output.stdout)?;
-    let sha1 = output
-        .split(' ')
-        .into_iter()
-        .next()
-        .expect("cannot calculate hash");
-
-    Ok(sha1.to_string())
-}
-
-#[derive(Debug)]
-struct RemotePackage {
-    package: Package,
-    hash: String,
-}
-
 fn calculate_local_crates(
     crates: impl Iterator<Item = Package>,
 ) -> anyhow::Result<BTreeMap<PathBuf, LocalPackage>> {
@@ -132,16 +113,11 @@ fn calculate_local_crates(
 /// Return BTreeMap with "package name" as key
 fn calculate_remote_crates(
     crates: impl Iterator<Item = Package>,
-) -> anyhow::Result<BTreeMap<String, RemotePackage>> {
+) -> anyhow::Result<BTreeMap<String, Package>> {
     crates
         .map(|c| {
-            let mut manifest_path = c.manifest_path.clone();
-            manifest_path.pop();
-            let crate_path: PathBuf = manifest_path.into_std_path_buf();
-            let hash = hash_dir(&crate_path)?;
-            let remote_package = RemotePackage { package: c, hash };
-            let package_name = remote_package.package.name.clone();
-            Ok((package_name, remote_package))
+            let package_name = c.name.clone();
+            Ok((package_name, c))
         })
         .collect()
 }

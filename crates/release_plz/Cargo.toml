@@ -17,10 +17,10 @@ cargo_metadata = "0.14"
 tracing = "0.1"
 tracing-subscriber = "0.3"
 tracing-log = "0.1"
+dir-diff = "0.3"
 
 next_semver = { path = "../next_semver" }
 
 [dev-dependencies]
 tempfile = "3"
 fs_extra = "1"
-dir-diff = "0.3"

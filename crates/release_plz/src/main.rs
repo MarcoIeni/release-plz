@@ -37,7 +37,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn install_dependencies() -> anyhow::Result<()> {
-    for program in ["cargo-clone", "sha1dir"] {
+    for program in ["cargo-clone"] {
         Command::new("cargo").args(["install", program]).output()?;
     }
     Ok(())
