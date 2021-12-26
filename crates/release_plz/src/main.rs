@@ -50,8 +50,10 @@ fn calculate_local_crates(
     crates
         .map(|c| {
             let mut manifest_path = c.manifest_path.clone();
+            debug!("manifest path: {}", manifest_path);
             manifest_path.pop();
             let crate_path: PathBuf = manifest_path.into_std_path_buf();
+            debug!("crate path: {:?}", crate_path);
             let local_package = LocalPackage {
                 package: c,
                 diff: Diff::new(false),
@@ -80,22 +82,25 @@ fn calculate_remote_crates(
 
 fn main() -> anyhow::Result<()> {
     log::init();
-    install_dependencies()?;
+    debug!("installing dependencies");
+    //install_dependencies()?;
+    debug!("dependencies installed");
     // TODO download in tmp directory
     //download_crate("rust-gh-example")?;
-    let local_path = "/home/marco/me/proj/rust-gh-example2/Cargo.toml";
-    let local_path = fs::canonicalize(local_path).context("local_path doesn't exist")?;
-    let local_crates = list_crates(&local_path);
+    let local_manifest_path = "/home/marco/me/proj/rust-gh-example2/Cargo.toml";
+    let local_manifest_path =
+        fs::canonicalize(local_manifest_path).context("local_path doesn't exist")?;
+    let local_crates = list_crates(&local_manifest_path);
     let remote_crates = list_crates(&PathBuf::from(
         "/home/marco/me/proj/rust-gh-example/Cargo.toml",
     ));
-    dbg!(&remote_crates);
     let mut local_crates = calculate_local_crates(local_crates.into_iter())?;
     let remote_crates = calculate_remote_crates(remote_crates.into_iter())?;
-    dbg!(&local_crates);
-    dbg!(&remote_crates);
+    let mut local_path = local_manifest_path;
+    local_path.pop();
     let repository = Repo::new(&local_path)?;
 
+    debug!("calculating local packages");
     for (package_path, package) in &mut local_crates {
         repository.checkout_head()?;
         loop {
@@ -124,7 +129,9 @@ fn main() -> anyhow::Result<()> {
     for package in &mut local_crates.values() {
         let current_version = package.package.version.clone();
         let next_version = current_version.next_from_diff(&package.diff);
-        todo!("bump to {}", next_version);
+        if next_version != current_version {
+            todo!("bump to {}", next_version);
+        }
     }
 
     // pr command:

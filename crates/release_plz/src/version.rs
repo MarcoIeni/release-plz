@@ -6,13 +6,13 @@ use crate::Diff;
 pub(crate) trait NextVersionFromDiff {
     /// Analyze commits and determine which part of version to increment based on
     /// [conventional commits](https://www.conventionalcommits.org/)
-    fn next_from_diff(self, diff: &Diff) -> Self;
+    fn next_from_diff(&self, diff: &Diff) -> Self;
 }
 
 impl NextVersionFromDiff for Version {
-    fn next_from_diff(self, diff: &Diff) -> Self {
+    fn next_from_diff(&self, diff: &Diff) -> Self {
         if !diff.remote_crate_exists {
-            self
+            self.clone()
         } else {
             self.next(&diff.commits)
         }
