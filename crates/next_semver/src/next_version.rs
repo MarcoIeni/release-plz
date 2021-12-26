@@ -27,10 +27,3 @@ impl NextVersion for Version {
         }
     }
 }
-
-#[test]
-fn commit_without_semver_prefix_increments_patch_version() {
-    let commits = vec!["my change"];
-    let version = Version::new(1, 2, 3);
-    assert_eq!(version.next(commits), Version::new(1, 2, 4));
-}
