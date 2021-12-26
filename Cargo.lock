@@ -576,6 +576,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "next_semver"
+version = "0.1.0"
+dependencies = [
+ "cargo-edit",
+ "conventional_commit_parser",
+ "semver",
+]
+
+[[package]]
 name = "object"
 version = "0.27.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -822,7 +831,7 @@ dependencies = [
  "anyhow",
  "cargo-edit",
  "cargo_metadata",
- "conventional_commit_parser",
+ "next_semver",
  "semver",
  "tempfile",
  "tokio",
@@ -1202,9 +1211,9 @@ dependencies = [
 
 [[package]]
 name = "typenum"
-version = "1.14.0"
+version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b63708a265f51345575b27fe43f9500ad611579e764c79edbc2037b1121959ec"
+checksum = "dcf81ac59edc17cc8697ff311e8f5ef2d99fcbd9817b34cec66f90b6c3dfd987"
 
 [[package]]
 name = "ucd-trie"

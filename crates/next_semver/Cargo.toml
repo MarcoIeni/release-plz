@@ -1,0 +1,11 @@
+[package]
+name = "next_semver"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+semver = "1"
+conventional_commit_parser = "0.9"
+cargo-edit = "0.8"

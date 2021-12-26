@@ -1,0 +1,24 @@
+[package]
+name = "release-plz"
+version = "0.1.0"
+edition = "2021"
+description = "Release to GitHub and crates.io"
+repository = "https://github.com/MarcoIeni/release-plz"
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1"
+semver = "1"
+tokio = { version = "1", features = ["macros"] }
+cargo-edit = "0.8"
+cargo_metadata = "0.14"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+tracing-log = "0.1"
+
+next_semver = { path = "../next_semver" }
+
+[dev-dependencies]
+tempfile = "3"

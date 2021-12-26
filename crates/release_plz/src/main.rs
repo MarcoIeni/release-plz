@@ -13,7 +13,7 @@ use anyhow::Context;
 use cargo_metadata::Package;
 use tracing::debug;
 
-use crate::{git::Repo, version::NextVersion};
+use crate::{git::Repo, version::NextVersionFromDiff};
 
 #[derive(Debug)]
 struct LocalPackage {
@@ -123,7 +123,7 @@ fn main() -> anyhow::Result<()> {
 
     for package in &mut local_crates.values() {
         let current_version = package.package.version.clone();
-        let next_version = current_version.next(&package.diff);
+        let next_version = current_version.next_from_diff(&package.diff);
         todo!("bump to {}", next_version);
     }
 
