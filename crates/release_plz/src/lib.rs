@@ -61,9 +61,11 @@ pub fn update(local_manifest: &Path, remote_manifest: &Path) -> anyhow::Result<(
                 let mut remote_path = remote_crate.manifest_path.clone();
                 remote_path.pop();
                 if are_dir_equal(package_path, remote_path.as_ref()) {
+                    debug!("directories are equal");
                     // The local crate is identical to the remote one, so go to the next create
                     break;
                 } else {
+                    debug!("directories differ");
                     package.diff.commits.push(current_commit_message.clone());
                 }
             } else {
@@ -79,7 +81,10 @@ pub fn update(local_manifest: &Path, remote_manifest: &Path) -> anyhow::Result<(
 
     for package in &mut local_crates.values() {
         let current_version = package.package.version.clone();
+        debug!("diff: {:?}", &package.diff);
         let next_version = current_version.next_from_diff(&package.diff);
+
+        debug!("next version: {}", next_version);
         if next_version != current_version {
             todo!("bump to {}", next_version);
         }
@@ -126,5 +131,5 @@ fn calculate_remote_crates(
 fn are_dir_equal(first: &Path, second: &Path) -> bool {
     let excluded = vec![".git".to_string()];
     let result = FolderCompare::new(first, second, &excluded).unwrap();
-    result.changed_files.is_empty()
+    result.changed_files.is_empty() && result.new_files.is_empty()
 }

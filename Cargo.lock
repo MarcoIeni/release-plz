@@ -860,6 +860,7 @@ dependencies = [
  "folder_compare",
  "fs_extra",
  "next_semver",
+ "once_cell",
  "semver",
  "tempfile",
  "tokio",

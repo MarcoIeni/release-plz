@@ -1,3 +1,5 @@
+mod logs;
+
 use std::{
     fs, io,
     path::{Path, PathBuf},
@@ -31,6 +33,7 @@ fn init_project(project: &Path) {
 
 #[test]
 fn up_to_date_project_is_not_touched() {
+    logs::init_test_logs();
     let local_project_dir = tempdir().unwrap();
     let local_project = local_project_dir.as_ref().join("myproject");
     init_project(&local_project);
@@ -51,13 +54,14 @@ fn up_to_date_project_is_not_touched() {
 
     // the update should have not changed anything
     assert!(are_dir_equal(
-        &local_project_dir.as_ref().join("myproject"),
+        &local_project,
         &remote_project.as_ref().join("myproject")
     ));
 }
 
 #[test]
 fn version_is_updated_when_project_changed() {
+    logs::init_test_logs();
     let local_project_dir = tempdir().unwrap();
     let local_project = local_project_dir.as_ref().join("myproject");
     init_project(&local_project);
@@ -86,7 +90,7 @@ fn version_is_updated_when_project_changed() {
 
     // the update should have changed the version
     assert!(!are_dir_equal(
-        &local_project_dir.as_ref().join("myproject"),
+        &local_project,
         &remote_project.as_ref().join("myproject")
     ));
 }
@@ -94,5 +98,5 @@ fn version_is_updated_when_project_changed() {
 fn are_dir_equal(first: &Path, second: &Path) -> bool {
     let excluded = vec![".git".to_string()];
     let result = FolderCompare::new(first, second, &excluded).unwrap();
-    result.changed_files.is_empty()
+    result.changed_files.is_empty() && result.new_files.is_empty()
 }
