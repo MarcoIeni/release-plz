@@ -7,7 +7,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use cargo_metadata::Package;
+use cargo_edit::LocalManifest;
+use cargo_metadata::{Package, Version};
 use folder_compare::FolderCompare;
 use tracing::{debug, instrument};
 
@@ -79,18 +80,27 @@ pub fn update(local_manifest: &Path, remote_manifest: &Path) -> anyhow::Result<(
     }
     debug!("local packages calculated");
 
-    for package in &mut local_crates.values() {
+    for (package_path, package) in &mut local_crates {
         let current_version = package.package.version.clone();
         debug!("diff: {:?}", &package.diff);
         let next_version = current_version.next_from_diff(&package.diff);
 
         debug!("next version: {}", next_version);
         if next_version != current_version {
-            todo!("bump to {}", next_version);
+            set_version(package_path, &next_version);
         }
     }
 
     Ok(())
+}
+
+#[instrument]
+fn set_version(package_path: &Path, version: &Version) {
+    debug!("updating version");
+    let mut local_manifest =
+        LocalManifest::try_new(&package_path.join("Cargo.toml")).expect("cannot read manifest");
+    local_manifest.set_package_version(version);
+    local_manifest.write().expect("cannot update manifest");
 }
 
 fn list_crates(directory: &Path) -> Vec<Package> {
