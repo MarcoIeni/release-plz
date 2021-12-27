@@ -126,7 +126,7 @@ fn calculate_local_crates(
         .collect()
 }
 
-/// Return BTreeMap with "package name" as key
+/// Return [`BTreeMap`] with "package name" as key
 fn calculate_remote_crates(
     crates: impl Iterator<Item = Package>,
 ) -> anyhow::Result<BTreeMap<String, Package>> {

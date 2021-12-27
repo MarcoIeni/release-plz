@@ -88,15 +88,6 @@ impl Repo {
         Ok(())
     }
 
-    /// Return the list of edited files of that commit. Absolute Path.
-    pub fn edited_file_in_current_commit(&self) -> anyhow::Result<Vec<PathBuf>> {
-        let commit = &self.current_commit()?;
-        let output = self.git(&["diff-tree", "--no-commit-id", "--name-only", "-r", commit])?;
-        let files = stdout(output)?;
-        let files: Result<Vec<PathBuf>, io::Error> = files.lines().map(fs::canonicalize).collect();
-        Ok(files?)
-    }
-
     fn last_commit_at_path(&self, path: &Path) -> anyhow::Result<String> {
         self.nth_commit_at_path(1, path)
     }
