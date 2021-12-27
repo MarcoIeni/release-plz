@@ -1,5 +1,5 @@
 use std::{
-    fmt, fs, io,
+    fmt, io,
     path::{Path, PathBuf},
     process::{Command, Output},
 };
@@ -152,6 +152,7 @@ fn stdout(output: Output) -> anyhow::Result<String> {
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
     use tempfile::tempdir;
 
     use super::*;
