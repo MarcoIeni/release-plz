@@ -152,12 +152,9 @@ impl Repo {
     }
 }
 
+#[instrument(skip_all)]
 fn stdout(output: Output) -> anyhow::Result<String> {
     debug!("output: {:?}", output);
-    if !output.stderr.is_empty() {
-        let stderr = String::from_utf8(output.stderr)?;
-        return Err(anyhow!(stderr));
-    }
     let stdout = String::from_utf8(output.stdout)?;
     Ok(stdout)
 }

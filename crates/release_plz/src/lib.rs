@@ -8,7 +8,8 @@ use std::{
 };
 
 use cargo_metadata::Package;
-use tracing::debug;
+use folder_compare::FolderCompare;
+use tracing::{debug, instrument};
 
 #[derive(Debug)]
 struct LocalPackage {
@@ -34,6 +35,7 @@ impl Diff {
 }
 
 /// Update a local rust project
+#[instrument]
 pub fn update(local_manifest: &Path, remote_manifest: &Path) -> anyhow::Result<()> {
     let local_crates = list_crates(local_manifest);
     let remote_crates = list_crates(remote_manifest);
@@ -58,8 +60,7 @@ pub fn update(local_manifest: &Path, remote_manifest: &Path) -> anyhow::Result<(
                 package.diff.remote_crate_exists = true;
                 let mut remote_path = remote_crate.manifest_path.clone();
                 remote_path.pop();
-                let is_crate_different = dir_diff::is_different(package_path, remote_path).unwrap();
-                if is_crate_different {
+                if are_dir_equal(package_path, remote_path.as_ref()) {
                     // The local crate is identical to the remote one, so go to the next create
                     break;
                 } else {
@@ -120,4 +121,10 @@ fn calculate_remote_crates(
             Ok((package_name, c))
         })
         .collect()
+}
+
+fn are_dir_equal(first: &Path, second: &Path) -> bool {
+    let excluded = vec![".git".to_string()];
+    let result = FolderCompare::new(first, second, &excluded).unwrap();
+    result.changed_files.is_empty()
 }

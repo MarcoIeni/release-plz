@@ -4,6 +4,7 @@ use std::{
     process::{Command, Output},
 };
 
+use folder_compare::FolderCompare;
 use fs_extra::dir;
 use tempfile::tempdir;
 
@@ -48,13 +49,11 @@ fn up_to_date_project_is_not_touched() {
     )
     .unwrap();
 
-    let are_dir_different = dir_diff::is_different(
-        &local_project_dir.as_ref().join("myproject"),
-        remote_project.as_ref().join("myproject"),
-    )
-    .unwrap();
     // the update should have not changed anything
-    assert!(!are_dir_different);
+    assert!(are_dir_equal(
+        &local_project_dir.as_ref().join("myproject"),
+        &remote_project.as_ref().join("myproject")
+    ));
 }
 
 #[test]
@@ -85,11 +84,15 @@ fn version_is_updated_when_project_changed() {
     )
     .unwrap();
 
-    let are_dir_different = dir_diff::is_different(
-        &local_project_dir.as_ref().join("myproject"),
-        remote_project.as_ref().join("myproject"),
-    )
-    .unwrap();
     // the update should have changed the version
-    assert!(are_dir_different);
+    assert!(!are_dir_equal(
+        &local_project_dir.as_ref().join("myproject"),
+        &remote_project.as_ref().join("myproject")
+    ));
+}
+
+fn are_dir_equal(first: &Path, second: &Path) -> bool {
+    let excluded = vec![".git".to_string()];
+    let result = FolderCompare::new(first, second, &excluded).unwrap();
+    result.changed_files.is_empty()
 }
