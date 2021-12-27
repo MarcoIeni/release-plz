@@ -56,3 +56,40 @@ fn up_to_date_project_is_not_touched() {
     // the update should have not changed anything
     assert!(!are_dir_different);
 }
+
+#[test]
+fn version_is_updated_when_project_changed() {
+    let local_project_dir = tempdir().unwrap();
+    let local_project = local_project_dir.as_ref().join("myproject");
+    init_project(&local_project);
+
+    let remote_project = tempdir().unwrap();
+    dir::copy(
+        &local_project,
+        remote_project.as_ref(),
+        &dir::CopyOptions::default(),
+    )
+    .unwrap();
+
+    fs::write(
+        local_project.join("src").join("lib.rs"),
+        "do amazing things",
+    )
+    .unwrap();
+    git_in_dir(&local_project, &["add", "."]).unwrap();
+    git_in_dir(&local_project, &["commit", "-m", "feat: do awesome stuff"]).unwrap();
+
+    release_plz::update(
+        &join_cargo_toml(&local_project),
+        &join_cargo_toml(&remote_project.as_ref().join("myproject")),
+    )
+    .unwrap();
+
+    let are_dir_different = dir_diff::is_different(
+        &local_project_dir.as_ref().join("myproject"),
+        remote_project.as_ref().join("myproject"),
+    )
+    .unwrap();
+    // the update should have changed the version
+    assert!(are_dir_different);
+}
