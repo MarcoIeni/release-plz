@@ -38,6 +38,17 @@ impl Repo {
         )
     }
 
+    pub fn checkout_new_branch(&self, branch: &str) -> anyhow::Result<()> {
+        self.git(&["checkout", "-b", branch])?;
+        Ok(())
+    }
+
+    pub fn add_all_and_commit(&self, message: &str) -> anyhow::Result<()> {
+        self.git(&["add", "."])?;
+        self.git(&["commit", "-m", message])?;
+        Ok(())
+    }
+
     pub fn checkout_head(&self) -> anyhow::Result<()> {
         self.git(&["checkout", &self.current_branch])?;
         Ok(())

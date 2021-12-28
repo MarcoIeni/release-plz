@@ -18,6 +18,9 @@ tracing = "0.1"
 tracing-subscriber = "0.3"
 tracing-log = "0.1"
 folder_compare = "0.4"
+fake = "2"
+octocrab = "0.15"
+secrecy = "0.8"
 
 next_semver = { path = "../next_semver" }
 

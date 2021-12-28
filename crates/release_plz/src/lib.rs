@@ -7,9 +7,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use anyhow::Context;
 use cargo_edit::LocalManifest;
 use cargo_metadata::{Package, Version};
+use fake::Fake;
 use folder_compare::FolderCompare;
+use octocrab::{Octocrab, OctocrabBuilder};
+use secrecy::{ExposeSecret, SecretString};
 use tracing::{debug, instrument};
 
 #[derive(Debug)]
@@ -91,6 +95,34 @@ pub fn update(local_manifest: &Path, remote_manifest: &Path) -> anyhow::Result<(
         }
     }
 
+    // TODO think about better naming
+    let random_number: u64 = (100_000_000..999_999_999).fake();
+    let release_branch = format!("release-{}", random_number);
+    create_release_branch(&repository, &release_branch)?;
+    open_pr(&release_branch, "gh token")?;
+
+    Ok(())
+}
+
+async fn open_pr(release_branch: &str, github_token: &SecretString) -> anyhow::Result<()> {
+    let client = OctocrabBuilder::new()
+        .personal_token(github_token.expose_secret().clone())
+        .build()
+        .context("Failed to build GitHub client")?;
+
+    let pr = client
+        .pulls("owner", "repo")
+        .create("chore: release", "main", release_branch)
+        .body("release-plz automatic bot")
+        .send()
+        .await?;
+
+    Ok(())
+}
+
+fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {
+    repository.checkout_new_branch(release_branch)?;
+    repository.add_all_and_commit("chore: release")?;
     Ok(())
 }
 
