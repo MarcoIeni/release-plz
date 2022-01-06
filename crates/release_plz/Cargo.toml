@@ -2,7 +2,7 @@
 name = "release-plz"
 version = "0.1.0"
 edition = "2021"
-description = "Release to GitHub and crates.io"
+description = "Update version and release to GitHub and crates.io"
 repository = "https://github.com/MarcoIeni/release-plz"
 license = "MIT OR Apache-2.0"
 
@@ -11,7 +11,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 anyhow = "1"
 semver = "1"
-tokio = { version = "1", features = ["macros"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 cargo-edit = "0.8"
 cargo_metadata = "0.14"
 tracing = "0.1"
@@ -21,6 +21,7 @@ folder_compare = "0.4"
 fake = "2"
 octocrab = "0.15"
 secrecy = "0.8"
+clap = { version = "3", features = ["derive", "env"] }
 
 next_semver = { path = "../next_semver" }
 

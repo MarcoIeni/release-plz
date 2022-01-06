@@ -1,12 +1,18 @@
+mod args;
 mod log;
 
 use std::{path::PathBuf, process::Command};
 
-use release_plz::update;
+use clap::Parser;
+use release_plz::{update, GitHub, Request};
 use tracing::debug;
 
-fn main() -> anyhow::Result<()> {
+use crate::args::CliArgs;
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     log::init();
+    let args = CliArgs::parse();
     debug!("installing dependencies");
     //install_dependencies()?;
     debug!("dependencies installed");
@@ -16,7 +22,15 @@ fn main() -> anyhow::Result<()> {
     // let local_manifest_path =
     //     fs::canonicalize(local_manifest_path).context("local_path doesn't exist")?;
     let remote_manifest_path = PathBuf::from("/home/marco/me/proj/rust-gh-example/Cargo.toml");
-    update(&local_manifest_path, &remote_manifest_path)?;
+    let request = Request {
+        github: GitHub {
+            repo_url: args.repo_url,
+            token: args.github_token,
+        },
+        local_manifest: &local_manifest_path,
+        remote_manifest: &remote_manifest_path,
+    };
+    update(&request).await?;
 
     // pr command:
     // - go back commit by commit and for every local crate:

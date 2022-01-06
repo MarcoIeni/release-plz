@@ -39,14 +39,27 @@ impl Diff {
     }
 }
 
+#[derive(Debug)]
+pub struct Request<'a> {
+    pub github: GitHub,
+    pub local_manifest: &'a Path,
+    pub remote_manifest: &'a Path,
+}
+
+#[derive(Debug)]
+pub struct GitHub {
+    pub repo_url: String,
+    pub token: SecretString,
+}
+
 /// Update a local rust project
 #[instrument]
-pub fn update(local_manifest: &Path, remote_manifest: &Path) -> anyhow::Result<()> {
-    let local_crates = list_crates(local_manifest);
-    let remote_crates = list_crates(remote_manifest);
+pub async fn update(input: &Request<'_>) -> anyhow::Result<()> {
+    let local_crates = list_crates(input.local_manifest);
+    let remote_crates = list_crates(input.remote_manifest);
     let mut local_crates = calculate_local_crates(local_crates.into_iter())?;
     let remote_crates = calculate_remote_crates(remote_crates.into_iter())?;
-    let mut local_path = local_manifest.to_path_buf();
+    let mut local_path = input.local_manifest.to_path_buf();
     local_path.pop();
     let repository = Repo::new(&local_path)?;
 
@@ -99,7 +112,7 @@ pub fn update(local_manifest: &Path, remote_manifest: &Path) -> anyhow::Result<(
     let random_number: u64 = (100_000_000..999_999_999).fake();
     let release_branch = format!("release-{}", random_number);
     create_release_branch(&repository, &release_branch)?;
-    open_pr(&release_branch, "gh token")?;
+    open_pr(&release_branch, &input.github.token).await?;
 
     Ok(())
 }
