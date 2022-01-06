@@ -4,7 +4,7 @@ mod log;
 use std::{path::PathBuf, process::Command};
 
 use clap::Parser;
-use release_plz::{update, GitHub, Request};
+use release_plz::{update, Request};
 use tracing::debug;
 
 use crate::args::CliArgs;
