@@ -23,10 +23,7 @@ async fn main() -> anyhow::Result<()> {
     //     fs::canonicalize(local_manifest_path).context("local_path doesn't exist")?;
     let remote_manifest_path = PathBuf::from("/home/marco/me/proj/rust-gh-example/Cargo.toml");
     let request = Request {
-        github: GitHub {
-            repo_url: args.repo_url,
-            token: args.github_token,
-        },
+        github: args.github()?,
         local_manifest: &local_manifest_path,
         remote_manifest: &remote_manifest_path,
     };

@@ -12,7 +12,7 @@ use cargo_edit::LocalManifest;
 use cargo_metadata::{Package, Version};
 use fake::Fake;
 use folder_compare::FolderCompare;
-use octocrab::{Octocrab, OctocrabBuilder};
+use octocrab::OctocrabBuilder;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{debug, instrument};
 
@@ -48,7 +48,8 @@ pub struct Request<'a> {
 
 #[derive(Debug)]
 pub struct GitHub {
-    pub repo_url: String,
+    pub owner: String,
+    pub repo: String,
     pub token: SecretString,
 }
 
@@ -112,19 +113,19 @@ pub async fn update(input: &Request<'_>) -> anyhow::Result<()> {
     let random_number: u64 = (100_000_000..999_999_999).fake();
     let release_branch = format!("release-{}", random_number);
     create_release_branch(&repository, &release_branch)?;
-    open_pr(&release_branch, &input.github.token).await?;
+    open_pr(&release_branch, &input.github).await?;
 
     Ok(())
 }
 
-async fn open_pr(release_branch: &str, github_token: &SecretString) -> anyhow::Result<()> {
+async fn open_pr(release_branch: &str, github: &GitHub) -> anyhow::Result<()> {
     let client = OctocrabBuilder::new()
-        .personal_token(github_token.expose_secret().clone())
+        .personal_token(github.token.expose_secret().clone())
         .build()
         .context("Failed to build GitHub client")?;
 
     let pr = client
-        .pulls("owner", "repo")
+        .pulls(&github.owner, &github.repo)
         .create("chore: release", "main", release_branch)
         .body("release-plz automatic bot")
         .send()

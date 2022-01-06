@@ -22,6 +22,7 @@ fake = "2"
 octocrab = "0.15"
 secrecy = "0.8"
 clap = { version = "3", features = ["derive", "env"] }
+url = "2"
 
 next_semver = { path = "../next_semver" }
 
