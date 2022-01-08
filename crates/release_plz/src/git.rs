@@ -5,13 +5,19 @@ use std::{
 };
 
 use anyhow::{anyhow, Context};
-use tracing::{debug, instrument, Span};
+use tracing::{debug, instrument, trace, Span};
 
 /// Repository
 pub struct Repo {
     /// Repository root directory
     directory: PathBuf,
-    current_branch: String,
+    default_branch: String,
+}
+
+impl Drop for Repo {
+    fn drop(&mut self) {
+        let _err = self.checkout(&self.default_branch);
+    }
 }
 
 impl Repo {
@@ -21,7 +27,7 @@ impl Repo {
 
         Ok(Self {
             directory: directory.as_ref().to_path_buf(),
-            current_branch,
+            default_branch: current_branch,
         })
     }
 
@@ -49,8 +55,13 @@ impl Repo {
         Ok(())
     }
 
+    pub fn push(&self, branch: &str) -> anyhow::Result<()> {
+        self.git(&["push", "origin", branch])?;
+        Ok(())
+    }
+
     pub fn checkout_head(&self) -> anyhow::Result<()> {
-        self.git(&["checkout", &self.current_branch])?;
+        self.git(&["checkout", &self.default_branch])?;
         Ok(())
     }
 
@@ -83,8 +94,11 @@ impl Repo {
         Ok(last_commit.to_string())
     }
 
+    #[instrument]
     fn git_in_dir(dir: &Path, args: &[&str]) -> io::Result<Output> {
-        Command::new("git").arg("-C").arg(dir).args(args).output()
+        let output = Command::new("git").arg("-C").arg(dir).args(args).output();
+        trace!("git output = {:?}", output);
+        output
     }
 
     /// Run a git command in the repository git directory

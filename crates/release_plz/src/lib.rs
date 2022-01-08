@@ -14,7 +14,7 @@ use fake::Fake;
 use folder_compare::FolderCompare;
 use octocrab::OctocrabBuilder;
 use secrecy::{ExposeSecret, SecretString};
-use tracing::{debug, instrument};
+use tracing::{debug, instrument, Span};
 
 #[derive(Debug)]
 struct LocalPackage {
@@ -118,15 +118,32 @@ pub async fn update(input: &Request<'_>) -> anyhow::Result<()> {
     Ok(())
 }
 
+#[instrument(
+    fields(
+        default_branch = tracing::field::Empty,
+    )
+)]
 async fn open_pr(release_branch: &str, github: &GitHub) -> anyhow::Result<()> {
     let client = OctocrabBuilder::new()
         .personal_token(github.token.expose_secret().clone())
         .build()
         .context("Failed to build GitHub client")?;
 
-    let pr = client
+    let default_branch = client
+        .repos(&github.owner, &github.repo)
+        .get()
+        .await
+        .context(format!(
+            "failed to retrieve GitHub repository {}/{}",
+            github.owner, github.repo
+        ))?
+        .default_branch
+        .context("failed to retrieve default branch")?;
+    Span::current().record("default_branch", &default_branch.as_str());
+
+    let _pr = client
         .pulls(&github.owner, &github.repo)
-        .create("chore: release", "main", release_branch)
+        .create("chore: release", release_branch, default_branch)
         .body("release-plz automatic bot")
         .send()
         .await?;
@@ -137,6 +154,7 @@ async fn open_pr(release_branch: &str, github: &GitHub) -> anyhow::Result<()> {
 fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {
     repository.checkout_new_branch(release_branch)?;
     repository.add_all_and_commit("chore: release")?;
+    repository.push(release_branch)?;
     Ok(())
 }
 
