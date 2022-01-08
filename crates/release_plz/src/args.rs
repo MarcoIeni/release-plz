@@ -7,8 +7,10 @@ use url::Url;
 #[clap(about, version, author)]
 pub struct CliArgs {
     /// GitHub token
+    #[clap(long)]
     pub github_token: SecretString,
     /// GitHub repository url
+    #[clap(long)]
     pub repo_url: Url,
 }
 
