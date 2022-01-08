@@ -25,6 +25,3 @@ jobs:
           override: true
       - uses: Swatinem/rust-cache@v1
       - uses: EmbarkStudios/cargo-deny-action@v1
-      - uses: actions-rs/audit-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
