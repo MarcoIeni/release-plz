@@ -98,13 +98,13 @@ pub async fn update(input: &Request<'_>) -> anyhow::Result<()> {
     }
     debug!("local packages calculated");
 
-    for (package_path, package) in &mut local_crates {
-        let current_version = package.package.version.clone();
+    for (package_path, package) in &local_crates {
+        let current_version = &package.package.version;
         debug!("diff: {:?}", &package.diff);
         let next_version = current_version.next_from_diff(&package.diff);
 
         debug!("next version: {}", next_version);
-        if next_version != current_version {
+        if next_version != *current_version {
             set_version(package_path, &next_version);
         }
     }
