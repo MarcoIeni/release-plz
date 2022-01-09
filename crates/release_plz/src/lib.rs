@@ -37,6 +37,10 @@ impl Diff {
             remote_crate_exists,
         }
     }
+
+    fn should_update_version(&self) -> bool {
+        self.remote_crate_exists && !self.commits.is_empty()
+    }
 }
 
 #[derive(Debug)]
@@ -98,18 +102,25 @@ pub async fn update(input: &Request<'_>) -> anyhow::Result<()> {
     }
     debug!("local packages calculated");
 
-    update_versions(&local_crates);
+    let crates_to_update: BTreeMap<&PathBuf, &LocalPackage> = local_crates
+        .iter()
+        .filter(|c| c.1.diff.should_update_version())
+        .collect();
+    if !crates_to_update.is_empty() {
+        update_versions(&crates_to_update);
 
-    // TODO think about better naming
-    let random_number: u64 = (100_000_000..999_999_999).fake();
-    let release_branch = format!("release-{}", random_number);
-    create_release_branch(&repository, &release_branch)?;
-    open_pr(&release_branch, &input.github).await?;
+        // TODO think about better naming
+        let random_number: u64 = (100_000_000..999_999_999).fake();
+        let release_branch = format!("release-{}", random_number);
+        create_release_branch(&repository, &release_branch)?;
+        open_pr(&release_branch, &input.github).await?;
+    }
 
     Ok(())
 }
 
-fn update_versions(local_crates: &BTreeMap<PathBuf, LocalPackage>) {
+#[instrument]
+fn update_versions(local_crates: &BTreeMap<&PathBuf, &LocalPackage>) {
     for (package_path, package) in local_crates {
         let current_version = &package.package.version;
         debug!("diff: {:?}", &package.diff);

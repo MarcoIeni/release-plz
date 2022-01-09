@@ -11,7 +11,7 @@ pub(crate) trait NextVersionFromDiff {
 
 impl NextVersionFromDiff for Version {
     fn next_from_diff(&self, diff: &Diff) -> Self {
-        if !diff.remote_crate_exists {
+        if !diff.should_update_version() {
             self.clone()
         } else {
             self.next(&diff.commits)
