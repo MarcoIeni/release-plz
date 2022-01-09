@@ -98,7 +98,19 @@ pub async fn update(input: &Request<'_>) -> anyhow::Result<()> {
     }
     debug!("local packages calculated");
 
-    for (package_path, package) in &local_crates {
+    update_versions(&local_crates);
+
+    // TODO think about better naming
+    let random_number: u64 = (100_000_000..999_999_999).fake();
+    let release_branch = format!("release-{}", random_number);
+    create_release_branch(&repository, &release_branch)?;
+    open_pr(&release_branch, &input.github).await?;
+
+    Ok(())
+}
+
+fn update_versions(local_crates: &BTreeMap<PathBuf, LocalPackage>) {
+    for (package_path, package) in local_crates {
         let current_version = &package.package.version;
         debug!("diff: {:?}", &package.diff);
         let next_version = current_version.next_from_diff(&package.diff);
@@ -108,14 +120,6 @@ pub async fn update(input: &Request<'_>) -> anyhow::Result<()> {
             set_version(package_path, &next_version);
         }
     }
-
-    // TODO think about better naming
-    let random_number: u64 = (100_000_000..999_999_999).fake();
-    let release_branch = format!("release-{}", random_number);
-    create_release_branch(&repository, &release_branch)?;
-    open_pr(&release_branch, &input.github).await?;
-
-    Ok(())
 }
 
 #[instrument(
