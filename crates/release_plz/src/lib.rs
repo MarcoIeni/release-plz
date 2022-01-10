@@ -1,6 +1,7 @@
 mod git;
 mod update;
 mod version;
+mod download;
 
 pub use update::*;
 
