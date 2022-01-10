@@ -1,6 +1,9 @@
-use std::path::Path;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use cargo::core::SourceId;
 use cargo_metadata::Package;
 use tempfile::tempdir;
@@ -15,12 +18,56 @@ fn download_crate(crates: &[&str]) -> anyhow::Result<Vec<Package>> {
         .map(|c| cargo_clone::Crate::new(c.to_string(), None))
         .collect();
     let temp_dir = tempdir()?;
-    let directory = Some(temp_dir.as_ref().to_str().expect("invalid path"));
-    let clone_opts = cargo_clone::CloneOpts::new(&crates, &source_id, directory, false);
+    let directory = temp_dir.as_ref().to_str().expect("invalid path");
+    let clone_opts = cargo_clone::CloneOpts::new(&crates, &source_id, Some(directory), false);
     cargo_clone::clone(&clone_opts, &config).context("cannot download remote crates")?;
-    Ok(list_crates(temp_dir.as_ref()))
+    let crates = if crates.len() == 1 {
+        vec![read_package(directory)?]
+    } else {
+        let crates = sub_directories(directory)?;
+        let crates = crates
+            .iter()
+            .map(|p| read_package(&p))
+            .collect::<Result<Vec<Package>, _>>();
+        crates?
+    };
+    Ok(crates)
 }
 
-fn list_crates(directory: &Path) -> Vec<Package> {
-    cargo_edit::workspace_members(Some(directory)).unwrap()
+fn sub_directories(directory: impl AsRef<Path>) -> anyhow::Result<Vec<PathBuf>> {
+    let mut directories = vec![];
+    for entry in fs::read_dir(directory)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_dir() {
+            directories.push(path)
+        }
+    }
+    Ok(directories)
+}
+
+fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<Package> {
+    let manifest_path = directory.as_ref().join("Cargo.toml");
+    let metadata = cargo_metadata::MetadataCommand::new()
+        .no_deps()
+        .manifest_path(manifest_path)
+        .exec()?;
+    metadata
+        .root_package()
+        .cloned()
+        .ok_or_else(|| anyhow!("cannot find root package at {:?}", directory.as_ref()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[ignore]
+    fn rand_crate_is_downloaded() {
+        let crate_name = "rand";
+        let crates = download_crate(&[crate_name]).unwrap();
+        let rand = &crates[0];
+        assert_eq!(rand.name, crate_name);
+    }
 }
