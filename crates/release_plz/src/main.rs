@@ -1,10 +1,14 @@
 mod args;
 mod log;
 
-use std::{path::PathBuf, process::Command};
+use std::path::{Path, PathBuf};
 
+use anyhow::Context;
+use cargo::core::SourceId;
+use cargo_metadata::Package;
 use clap::Parser;
 use release_plz::{update_with_pr, Request, UpdateRequest};
+use tempfile::tempdir;
 use tracing::debug;
 
 use crate::args::CliArgs;
@@ -14,7 +18,6 @@ async fn main() -> anyhow::Result<()> {
     log::init();
     let args = CliArgs::parse();
     debug!("installing dependencies");
-    //install_dependencies()?;
     debug!("dependencies installed");
     // TODO download in tmp directory
     //download_crate("rust-gh-example")?;
@@ -34,7 +37,7 @@ async fn main() -> anyhow::Result<()> {
     // pr command:
     // - go back commit by commit and for every local crate:
     //   - If the local crate was edited in that commit:
-    //     - if the hash of that crate is the same of the remote crate, that local crate is done.
+    //     - if that crate is the same of the remote crate, that local crate is done.
     //     - otherwise:
     //       - add the entry to the changelog of that crate.
     //       - bump the version of that crate according to the semantic versioning of the commit.
@@ -49,14 +52,20 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn install_dependencies() -> anyhow::Result<()> {
-    for program in ["cargo-clone"] {
-        Command::new("cargo").args(["install", program]).output()?;
-    }
-    Ok(())
+fn download_crate(crates: &[&str]) -> anyhow::Result<Vec<Package>> {
+    let config = cargo::Config::default().expect("Unable to get cargo config.");
+    let source_id = SourceId::crates_io(&config).expect("Unable to retriece source id.");
+    let crates: Vec<cargo_clone::Crate> = crates
+        .iter()
+        .map(|c| cargo_clone::Crate::new(c.to_string(), None))
+        .collect();
+    let temp_dir = tempdir()?;
+    let directory = Some(temp_dir.as_ref().to_str().expect("invalid path"));
+    let clone_opts = cargo_clone::CloneOpts::new(&crates, &source_id, directory, false);
+    cargo_clone::clone(&clone_opts, &config).context("cannot download remote crates")?;
+    Ok(list_crates(temp_dir.as_ref()))
 }
 
-fn download_crate(crate_name: &str) -> anyhow::Result<()> {
-    Command::new("cargo").args(["clone", crate_name]).output()?;
-    Ok(())
+fn list_crates(directory: &Path) -> Vec<Package> {
+    cargo_edit::workspace_members(Some(directory)).unwrap()
 }

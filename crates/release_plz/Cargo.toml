@@ -23,10 +23,12 @@ octocrab = "0.15"
 secrecy = "0.8"
 clap = { version = "3", features = ["derive", "env"] }
 url = "2"
+cargo-clone = "1"
+cargo = "0.58"
+tempfile = "3"
 
 next_semver = { path = "../next_semver" }
 
 [dev-dependencies]
-tempfile = "3"
 fs_extra = "1"
 once_cell = "1"

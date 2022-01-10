@@ -1,4 +1,4 @@
-use crate::{git::Repo, version::NextVersionFromDiff, LocalPackage, Diff};
+use crate::{git::Repo, version::NextVersionFromDiff, Diff, LocalPackage};
 use std::{
     collections::BTreeMap,
     path::{Path, PathBuf},
@@ -47,6 +47,9 @@ pub fn update(
                     debug!("directories are equal");
                     // The local crate is identical to the remote one, so go to the next create
                     break;
+                } else if remote_crate.version != package.package.version {
+                    debug!("the local package has already a different version with respect to the remote package, so release-plz will not update it");
+                    break;
                 } else {
                     debug!("directories differ");
                     package.diff.commits.push(current_commit_message.clone());
@@ -77,10 +80,6 @@ fn are_dir_equal(first: &Path, second: &Path) -> bool {
     let excluded = vec![".git".to_string()];
     let result = FolderCompare::new(first, second, &excluded).unwrap();
     result.changed_files.is_empty() && result.new_files.is_empty()
-}
-
-fn list_crates(directory: &Path) -> Vec<Package> {
-    cargo_edit::workspace_members(Some(directory)).unwrap()
 }
 
 fn calculate_local_crates(
@@ -135,4 +134,8 @@ fn set_version(package_path: &Path, version: &Version) {
         LocalManifest::try_new(&package_path.join("Cargo.toml")).expect("cannot read manifest");
     local_manifest.set_package_version(version);
     local_manifest.write().expect("cannot update manifest");
+}
+
+fn list_crates(directory: &Path) -> Vec<Package> {
+    cargo_edit::workspace_members(Some(directory)).unwrap()
 }
