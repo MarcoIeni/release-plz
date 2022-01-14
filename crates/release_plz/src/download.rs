@@ -52,10 +52,11 @@ fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<Package> {
         .no_deps()
         .manifest_path(manifest_path)
         .exec()?;
-    metadata
-        .root_package()
-        .cloned()
-        .ok_or_else(|| anyhow!("cannot find root package at {:?}", directory.as_ref()))
+    let package = metadata
+        .packages
+        .get(0)
+        .ok_or_else(|| anyhow!("cannot retrieve package at {:?}", directory.as_ref()))?;
+    Ok(package.clone())
 }
 
 #[cfg(test)]
