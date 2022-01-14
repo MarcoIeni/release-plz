@@ -6,7 +6,6 @@ use std::path::PathBuf;
 use anyhow::Context;
 use clap::Parser;
 use release_plz::{update_with_pr, Request, UpdateRequest};
-use tracing::debug;
 
 use crate::args::CliArgs;
 
@@ -14,9 +13,6 @@ use crate::args::CliArgs;
 async fn main() -> anyhow::Result<()> {
     log::init();
     let args = CliArgs::parse();
-    debug!("installing dependencies");
-    debug!("dependencies installed");
-    // TODO download in tmp directory
     //download_crate("rust-gh-example")?;
     let local_manifest_path = PathBuf::from("/home/marco/me/proj/rust-monorepo-example/Cargo.toml");
     // let local_manifest_path =
