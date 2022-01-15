@@ -10,7 +10,7 @@ use tempfile::tempdir;
 use tracing::instrument;
 
 #[instrument]
-fn download_crate(crates: &[&str]) -> anyhow::Result<Vec<Package>> {
+pub fn download_crates(crates: &[&str]) -> anyhow::Result<Vec<Package>> {
     let config = cargo::Config::default().expect("Unable to get cargo config.");
     let source_id = SourceId::crates_io(&config).expect("Unable to retriece source id.");
     let crates: Vec<cargo_clone::Crate> = crates
@@ -67,7 +67,7 @@ mod tests {
     #[ignore]
     fn rand_crate_is_downloaded() {
         let crate_name = "rand";
-        let crates = download_crate(&[crate_name]).unwrap();
+        let crates = download_crates(&[crate_name]).unwrap();
         let rand = &crates[0];
         assert_eq!(rand.name, crate_name);
     }

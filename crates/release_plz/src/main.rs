@@ -1,11 +1,9 @@
 mod args;
 mod log;
 
-use std::path::PathBuf;
-
 use anyhow::Context;
 use clap::Parser;
-use release_plz::{update_with_pr, Request, UpdateRequest};
+use release_plz::{update_with_pr, Request};
 
 use crate::args::CliArgs;
 
@@ -13,23 +11,16 @@ use crate::args::CliArgs;
 async fn main() -> anyhow::Result<()> {
     log::init();
     let args = CliArgs::parse();
-    //download_crate("rust-gh-example")?;
-    let local_manifest_path = PathBuf::from("/home/marco/me/proj/rust-monorepo-example/Cargo.toml");
-    // let local_manifest_path =
-    //     fs::canonicalize(local_manifest_path).context("local_path doesn't exist")?;
-    let remote_manifest_path = PathBuf::from("/home/marco/me/proj/rust-gh-example/Cargo.toml");
-    let update_request = UpdateRequest {
-        local_manifest: &local_manifest_path,
-        remote_manifest: &remote_manifest_path,
-    };
 
     match args.command {
-        args::Command::Update => {
+        args::Command::Update(cmd_args) => {
+            let update_request = cmd_args.update_request();
             release_plz::update(&update_request)?;
         }
-        args::Command::UpdateWithPr(command_args) => {
+        args::Command::UpdateWithPr(cmd_args) => {
+            let update_request = cmd_args.update.update_request();
             let request = Request {
-                github: command_args.github().context("invalid github settings")?,
+                github: cmd_args.github().context("invalid github settings")?,
                 update_request,
             };
             update_with_pr(&request).await?;

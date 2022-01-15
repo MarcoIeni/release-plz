@@ -1,27 +1,32 @@
 use crate::{git::Repo, version::NextVersionFromDiff, Diff, LocalPackage};
+use anyhow::anyhow;
+use cargo_edit::LocalManifest;
+use cargo_metadata::{Package, Version};
+use folder_compare::FolderCompare;
 use std::{
     collections::BTreeMap,
     path::{Path, PathBuf},
 };
-
-use cargo_edit::LocalManifest;
-use cargo_metadata::{Package, Version};
-use folder_compare::FolderCompare;
 use tracing::{debug, instrument};
 
 #[derive(Debug)]
-pub struct UpdateRequest<'a> {
-    pub local_manifest: &'a Path,
-    pub remote_manifest: &'a Path,
+pub struct UpdateRequest {
+    pub local_manifest: PathBuf,
+    pub remote_manifest: Option<PathBuf>,
 }
 
 /// Update a local rust project
 #[instrument]
-pub fn update(
-    input: &UpdateRequest<'_>,
-) -> anyhow::Result<(BTreeMap<PathBuf, LocalPackage>, Repo)> {
-    let local_crates = list_crates(input.local_manifest);
-    let remote_crates = list_crates(input.remote_manifest);
+pub fn update(input: &UpdateRequest) -> anyhow::Result<(BTreeMap<PathBuf, LocalPackage>, Repo)> {
+    let local_crates = list_crates(&input.local_manifest)?;
+    let remote_crates = match &input.remote_manifest {
+        Some(manifest) => list_crates(manifest)?,
+        None => {
+            let local_crates_names: Vec<&str> =
+                local_crates.iter().map(|c| c.name.as_str()).collect();
+            crate::download::download_crates(&local_crates_names)?
+        }
+    };
     let mut local_crates = calculate_local_crates(local_crates.into_iter())?;
     let remote_crates = calculate_remote_crates(remote_crates.into_iter())?;
     let mut local_path = input.local_manifest.to_path_buf();
@@ -136,6 +141,7 @@ fn set_version(package_path: &Path, version: &Version) {
     local_manifest.write().expect("cannot update manifest");
 }
 
-fn list_crates(directory: &Path) -> Vec<Package> {
-    cargo_edit::workspace_members(Some(directory)).unwrap()
+fn list_crates(directory: &Path) -> anyhow::Result<Vec<Package>> {
+    cargo_edit::workspace_members(Some(directory))
+        .map_err(|e| anyhow!("cannot read workspace members: {e}"))
 }
