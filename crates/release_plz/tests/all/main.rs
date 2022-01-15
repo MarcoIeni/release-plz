@@ -49,8 +49,8 @@ fn up_to_date_project_is_not_touched() {
     .unwrap();
 
     release_plz::update(&UpdateRequest {
-        local_manifest: &join_cargo_toml(&local_project),
-        remote_manifest: &join_cargo_toml(&remote_project.as_ref().join("myproject")),
+        local_manifest: join_cargo_toml(&local_project),
+        remote_manifest: Some(join_cargo_toml(&remote_project.as_ref().join("myproject"))),
     })
     .unwrap();
 
@@ -85,8 +85,8 @@ fn version_is_updated_when_project_changed() {
     git_in_dir(&local_project, &["commit", "-m", "feat: do awesome stuff"]).unwrap();
 
     release_plz::update(&UpdateRequest {
-        local_manifest: &join_cargo_toml(&local_project),
-        remote_manifest: &join_cargo_toml(&remote_project.as_ref().join("myproject")),
+        local_manifest: join_cargo_toml(&local_project),
+        remote_manifest: Some(join_cargo_toml(&remote_project.as_ref().join("myproject"))),
     })
     .unwrap();
 

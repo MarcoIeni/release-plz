@@ -29,7 +29,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(BTreeMap<PathBuf, LocalP
     };
     let mut local_crates = calculate_local_crates(local_crates.into_iter())?;
     let remote_crates = calculate_remote_crates(remote_crates.into_iter())?;
-    let mut local_path = input.local_manifest.to_path_buf();
+    let mut local_path = input.local_manifest.clone();
     local_path.pop();
     let repository = Repo::new(&local_path)?;
 
