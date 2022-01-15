@@ -6,6 +6,18 @@ use url::Url;
 #[derive(clap::Parser, Debug)]
 #[clap(about, version, author)]
 pub struct CliArgs {
+    #[clap(subcommand)]
+    pub command: Command,
+}
+
+#[derive(clap::Subcommand, Debug)]
+pub enum Command {
+    Update,
+    UpdateWithPr(UpdateWithPr),
+}
+
+#[derive(clap::Parser, Debug)]
+pub struct UpdateWithPr {
     /// GitHub token
     #[clap(long)]
     pub github_token: SecretString,
@@ -14,7 +26,7 @@ pub struct CliArgs {
     pub repo_url: Url,
 }
 
-impl CliArgs {
+impl UpdateWithPr {
     pub fn github(&self) -> anyhow::Result<GitHub> {
         let segments = self
             .repo_url

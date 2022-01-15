@@ -18,14 +18,23 @@ async fn main() -> anyhow::Result<()> {
     // let local_manifest_path =
     //     fs::canonicalize(local_manifest_path).context("local_path doesn't exist")?;
     let remote_manifest_path = PathBuf::from("/home/marco/me/proj/rust-gh-example/Cargo.toml");
-    let request = Request {
-        github: args.github().context("invalid github settings")?,
-        update_request: UpdateRequest {
-            local_manifest: &local_manifest_path,
-            remote_manifest: &remote_manifest_path,
-        },
+    let update_request = UpdateRequest {
+        local_manifest: &local_manifest_path,
+        remote_manifest: &remote_manifest_path,
     };
-    update_with_pr(&request).await?;
+
+    match args.command {
+        args::Command::Update => {
+            release_plz::update(&update_request)?;
+        }
+        args::Command::UpdateWithPr(command_args) => {
+            let request = Request {
+                github: command_args.github().context("invalid github settings")?,
+                update_request,
+            };
+            update_with_pr(&request).await?;
+        }
+    }
 
     // pr command:
     // - go back commit by commit and for every local crate:
