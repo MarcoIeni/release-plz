@@ -184,19 +184,6 @@ mod tests {
     use super::*;
 
     impl Repo {
-        fn git_add(&self) {
-            self.git(&["add", "."]).unwrap();
-        }
-
-        fn git_commit(&self, message: &str) {
-            self.git(&["commit", "-m", message]).unwrap();
-        }
-
-        fn git_add_and_commit(&self, message: &str) {
-            self.git_add();
-            self.git_commit(message);
-        }
-
         fn init(directory: impl AsRef<Path>) -> Self {
             Self::git_in_dir(directory.as_ref(), &["init"]).unwrap();
             fs::write(directory.as_ref().join("README.md"), "# my awesome project").unwrap();
@@ -222,11 +209,11 @@ mod tests {
         let file2 = repository_dir.as_ref().join("file2.txt");
         {
             fs::write(&file2, b"Hello, file2!-1").unwrap();
-            repo.git_add_and_commit("file2-1");
+            repo.add_all_and_commit("file2-1").unwrap();
             fs::write(&file1, b"Hello, file1!").unwrap();
-            repo.git_add_and_commit("file1");
+            repo.add_all_and_commit("file1").unwrap();
             fs::write(&file2, b"Hello, file2!-2").unwrap();
-            repo.git_add_and_commit("file2-2");
+            repo.add_all_and_commit("file2-2").unwrap();
         }
         repo.checkout_previous_commit_at_path(&file2).unwrap();
         assert_eq!(repo.current_commit_message().unwrap(), "file2-1");
@@ -240,7 +227,7 @@ mod tests {
         let commit_message = "file1 message";
         {
             fs::write(&file1, b"Hello, file1!").unwrap();
-            repo.git_add_and_commit(commit_message);
+            repo.add_all_and_commit(commit_message).unwrap();
         }
         assert_eq!(repo.current_commit_message().unwrap(), commit_message);
     }
