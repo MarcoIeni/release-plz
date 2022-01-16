@@ -27,7 +27,7 @@ cargo-clone = "1"
 cargo = "0.58"
 tempfile = "3"
 
-next_semver = { path = "../next_semver" }
+next_semver = { path = "../next_semver", version = "0.1.0" }
 
 [dev-dependencies]
 fs_extra = "1"
