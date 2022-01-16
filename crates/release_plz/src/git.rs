@@ -98,7 +98,7 @@ impl Repo {
     fn git_in_dir(dir: &Path, args: &[&str]) -> io::Result<Output> {
         let args: Vec<&str> = args.iter().map(|s| s.trim()).collect();
         let output = Command::new("git").arg("-C").arg(dir).args(args).output();
-        trace!("git output = {:?}", output);
+        debug!("git output = {:?}", output);
         output
     }
 
