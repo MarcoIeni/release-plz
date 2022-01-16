@@ -24,6 +24,7 @@ pub enum Command {
 pub struct Update {
     /// Path to the Cargo.toml of the project you want to update.
     /// If not provided, release-plz will use the Cargo.toml of the current directory.
+    /// Both Cargo workspaces and single crates are supported.
     #[clap(long)]
     project_manifest: Option<PathBuf>,
     /// Path to the Cargo.toml contained in the released version of the project you want to update.
