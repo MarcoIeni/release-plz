@@ -187,6 +187,11 @@ mod tests {
         fn init(directory: impl AsRef<Path>) -> Self {
             let directory = directory.as_ref();
             Self::git_in_dir(directory, &["init"]).unwrap();
+
+            // configure author
+            Self::git_in_dir(directory, &["config", "user.name", "author_name"]).unwrap();
+            Self::git_in_dir(directory, &["config", "user.email", "author@example.com"]).unwrap();
+
             fs::write(directory.join("README.md"), "# my awesome project").unwrap();
             Self::git_in_dir(directory, &["add", "."]).unwrap();
             Self::git_in_dir(directory, &["commit", "-m", "add README"]).unwrap();
