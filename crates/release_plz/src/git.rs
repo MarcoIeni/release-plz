@@ -5,7 +5,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Context};
-use tracing::{debug, instrument, trace, Span};
+use tracing::{debug, instrument, Span};
 
 /// Repository
 pub struct Repo {
