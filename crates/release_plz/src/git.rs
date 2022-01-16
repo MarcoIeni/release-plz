@@ -130,8 +130,7 @@ impl Repo {
 
     #[instrument(skip(self))]
     fn checkout(&self, object: &str) -> io::Result<()> {
-        let output = self.git(&["checkout", object])?;
-        debug!("git checkout outcome: {:?}", output);
+        self.git(&["checkout", object])?;
         Ok(())
     }
 
