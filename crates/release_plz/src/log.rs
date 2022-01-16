@@ -4,9 +4,10 @@ use tracing_subscriber::FmtSubscriber;
 
 pub fn init() {
     let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::TRACE)
+        .with_max_level(Level::INFO)
         .finish();
 
-    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+    tracing::subscriber::set_global_default(subscriber)
+        .expect("Setting default subscriber failed.");
     LogTracer::init().expect("Failed to initialise log tracer capturing.");
 }
