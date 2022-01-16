@@ -1,5 +1,3 @@
-mod logs;
-
 use std::{
     fs, io,
     path::{Path, PathBuf},
@@ -35,7 +33,7 @@ fn init_project(project: &Path) {
 
 #[test]
 fn up_to_date_project_is_not_touched() {
-    logs::init_test_logs();
+    test_logs::init();
     let local_project_dir = tempdir().unwrap();
     let local_project = local_project_dir.as_ref().join("myproject");
     init_project(&local_project);
@@ -63,7 +61,7 @@ fn up_to_date_project_is_not_touched() {
 
 #[test]
 fn version_is_updated_when_project_changed() {
-    logs::init_test_logs();
+    test_logs::init();
     let local_project_dir = tempdir().unwrap();
     let local_project = local_project_dir.as_ref().join("myproject");
     init_project(&local_project);

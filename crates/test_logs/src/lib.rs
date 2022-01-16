@@ -3,12 +3,12 @@ use tracing::Level;
 use tracing_log::LogTracer;
 use tracing_subscriber::FmtSubscriber;
 
-pub fn init_test_logs() {
+pub fn init() {
     // Only initialize once logs once
     Lazy::force(&TEST_LOGS);
 }
 
-fn _init_test_logs() {
+fn _init() {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::DEBUG)
         .finish();
@@ -17,4 +17,4 @@ fn _init_test_logs() {
     LogTracer::init().expect("Failed to initialise log tracer capturing.");
 }
 
-static TEST_LOGS: Lazy<()> = Lazy::new(_init_test_logs);
+static TEST_LOGS: Lazy<()> = Lazy::new(_init);

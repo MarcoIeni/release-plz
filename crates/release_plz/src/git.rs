@@ -185,10 +185,12 @@ mod tests {
 
     impl Repo {
         fn init(directory: impl AsRef<Path>) -> Self {
-            Self::git_in_dir(directory.as_ref(), &["init"]).unwrap();
-            fs::write(directory.as_ref().join("README.md"), "# my awesome project").unwrap();
-            Self::git_in_dir(directory.as_ref(), &["add", "."]).unwrap();
-            Self::git_in_dir(directory.as_ref(), &["commit", "-m", "add README"]).unwrap();
+            let directory = directory.as_ref();
+            Self::git_in_dir(directory, &["init"]).unwrap();
+            fs::write(directory.join("README.md"), "# my awesome project").unwrap();
+            Self::git_in_dir(directory, &["add", "."]).unwrap();
+            Self::git_in_dir(directory, &["commit", "-m", "add README"]).unwrap();
+            debug!("repo initialized at {:?}", directory);
             Self::new(directory).unwrap()
         }
     }
@@ -203,6 +205,7 @@ mod tests {
 
     #[test]
     fn previous_commit_is_retrieved() {
+        test_logs::init();
         let repository_dir = tempdir().unwrap();
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
@@ -221,6 +224,7 @@ mod tests {
 
     #[test]
     fn current_commit_is_retrieved() {
+        test_logs::init();
         let repository_dir = tempdir().unwrap();
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
