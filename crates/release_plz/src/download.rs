@@ -65,10 +65,20 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn rand_crate_is_downloaded() {
+    fn one_crate_is_downloaded() {
         let crate_name = "rand";
         let crates = download_crates(&[crate_name]).unwrap();
         let rand = &crates[0];
         assert_eq!(rand.name, crate_name);
+    }
+
+    #[test]
+    #[ignore]
+    fn two_crates_are_downloaded() {
+        let first_crate = "rand";
+        let second_crate = "rust-gh-example";
+        let crates = download_crates(&[first_crate, second_crate]).unwrap();
+        assert_eq!(&crates[0].name, first_crate);
+        assert_eq!(&crates[1].name, second_crate);
     }
 }
