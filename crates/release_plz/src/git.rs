@@ -184,6 +184,7 @@ mod tests {
     use super::*;
 
     impl Repo {
+        #[instrument(skip(directory))]
         fn init(directory: impl AsRef<Path>) -> Self {
             let directory = directory.as_ref();
             Self::git_in_dir(directory, &["init"]).unwrap();
