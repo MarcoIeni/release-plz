@@ -32,4 +32,4 @@ next_semver = { path = "../next_semver", version = "0.1.0" }
 [dev-dependencies]
 fs_extra = "1"
 
-test_logs = { path = "../test_logs" }
+test_logs = { path = "../test_logs", version = "0.1.0" }
