@@ -17,7 +17,7 @@ pub struct UpdateRequest {
 
 /// Update a local rust project
 #[instrument]
-pub fn update(input: &UpdateRequest) -> anyhow::Result<(BTreeMap<PathBuf, LocalPackage>, Repo)> {
+pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<LocalPackage>, Repo)> {
     let local_crates = list_crates(&input.local_manifest)?;
     let remote_crates = match &input.remote_manifest {
         Some(manifest) => list_crates(manifest)?,
@@ -27,14 +27,17 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(BTreeMap<PathBuf, LocalP
             crate::download::download_crates(&local_crates_names)?
         }
     };
-    let mut local_crates = calculate_local_crates(local_crates.into_iter())?;
-    let remote_crates = calculate_remote_crates(remote_crates.into_iter())?;
-    let mut local_path = input.local_manifest.clone();
-    local_path.pop();
-    let repository = Repo::new(&local_path)?;
+    let mut local_crates = calculate_local_crates(local_crates.into_iter());
+    let remote_crates = calculate_remote_crates(remote_crates.into_iter());
+    let repository = {
+        let mut local_path = input.local_manifest.clone();
+        local_path.pop();
+        Repo::new(&local_path)?
+    };
 
     debug!("calculating local packages");
-    for (package_path, package) in &mut local_crates {
+    for package in &mut local_crates {
+        let package_path = package.package.crate_path();
         debug!("processing local package {}", package.package.name);
         repository.checkout_head()?;
         if let Err(_err) = repository.checkout_last_commit_at_path(package_path) {
@@ -70,9 +73,9 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(BTreeMap<PathBuf, LocalP
     }
     debug!("local packages calculated");
 
-    let crates_to_update: BTreeMap<PathBuf, LocalPackage> = local_crates
+    let crates_to_update: Vec<LocalPackage> = local_crates
         .into_iter()
-        .filter(|c| c.1.diff.should_update_version())
+        .filter(|c| c.diff.should_update_version())
         .collect();
 
     if !crates_to_update.is_empty() {
@@ -87,46 +90,48 @@ fn are_dir_equal(first: &Path, second: &Path) -> bool {
     result.changed_files.is_empty() && result.new_files.is_empty()
 }
 
-fn calculate_local_crates(
-    crates: impl Iterator<Item = Package>,
-) -> anyhow::Result<BTreeMap<PathBuf, LocalPackage>> {
+fn calculate_local_crates(crates: impl Iterator<Item = Package>) -> Vec<LocalPackage> {
     crates
-        .map(|c| {
-            let mut manifest_path = c.manifest_path.clone();
-            debug!("manifest path: {}", manifest_path);
-            manifest_path.pop();
-            let crate_path: PathBuf = manifest_path.into_std_path_buf();
-            debug!("crate path: {:?}", crate_path);
-            let local_package = LocalPackage {
-                package: c,
-                diff: Diff::new(false),
-            };
-            Ok((crate_path, local_package))
+        .map(|c| LocalPackage {
+            package: c,
+            diff: Diff::new(false),
         })
         .collect()
 }
 
+trait CratePath {
+    fn crate_path(&self) -> &Path;
+}
+
+impl CratePath for Package {
+    fn crate_path(&self) -> &Path {
+        self.manifest_path
+            .parent()
+            .expect("Cannot find directory containing Cargo.toml file")
+            .as_std_path()
+    }
+}
+
 /// Return [`BTreeMap`] with "package name" as key
-fn calculate_remote_crates(
-    crates: impl Iterator<Item = Package>,
-) -> anyhow::Result<BTreeMap<String, Package>> {
+fn calculate_remote_crates(crates: impl Iterator<Item = Package>) -> BTreeMap<String, Package> {
     crates
         .map(|c| {
             let package_name = c.name.clone();
-            Ok((package_name, c))
+            (package_name, c)
         })
         .collect()
 }
 
 #[instrument]
-fn update_versions(local_crates: &BTreeMap<PathBuf, LocalPackage>) {
-    for (package_path, package) in local_crates {
+fn update_versions(local_crates: &[LocalPackage]) {
+    for package in local_crates {
         let current_version = &package.package.version;
         debug!("diff: {:?}", &package.diff);
         let next_version = current_version.next_from_diff(&package.diff);
 
         debug!("next version: {}", next_version);
         if next_version != *current_version {
+            let package_path = package.package.crate_path();
             set_version(package_path, &next_version);
         }
     }
