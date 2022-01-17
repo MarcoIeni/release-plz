@@ -49,17 +49,25 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<LocalPackage>, Repo)
             if let Some(remote_crate) = remote_crates.get(&package.package.name) {
                 debug!("remote crate {} found", remote_crate.name);
                 package.diff.remote_crate_exists = true;
-                let mut remote_path = remote_crate.manifest_path.clone();
-                remote_path.pop();
-                if are_dir_equal(package_path, remote_path.as_ref()) {
-                    debug!("directories are equal");
-                    // The local crate is identical to the remote one, so go to the next create
+                let are_packages_equal = {
+                    let mut remote_path = remote_crate.manifest_path.clone();
+                    remote_path.pop();
+                    are_dir_equal(package_path, remote_path.as_ref())
+                };
+                if are_packages_equal {
+                    debug!("packages are equal");
+                    // The local crate is identical to the remote one, which means that
+                    // the crate was published at this commit, so we will not count this commit
+                    // as part of the release.
+                    // We can process the next create.
                     break;
                 } else if remote_crate.version != package.package.version {
-                    debug!("the local package has already a different version with respect to the remote package, so release-plz will not update it");
+                    debug!("the local package {} has already a different version with respect to the remote package, so release-plz will not update it", package.package.name);
                     break;
                 } else {
-                    debug!("directories differ");
+                    debug!("crates are different");
+                    // At this point of the git history, the two crates are different,
+                    // which means that this commit is not present in the published package.
                     package.diff.commits.push(current_commit_message.clone());
                 }
             } else {
