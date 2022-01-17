@@ -450,9 +450,9 @@ dependencies = [
 
 [[package]]
 name = "conventional_commit_parser"
-version = "0.9.3"
+version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "480110b54c1d894b5763a4d7be6c026af77a411b041bb3303274ddfb2bb9416a"
+checksum = "58660f9e1d5eeeeec9c33d1473ea8bba000c673a2189edaeedb4523ec7d6f7cb"
 dependencies = [
  "pest",
  "pest_derive",
