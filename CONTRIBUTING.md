@@ -78,3 +78,11 @@ cargo test
   ```shell
   cargo fmt --all
   ```
+
+## Glossary
+
+- publish: A crate can be published to crates.io or to a private cargo registry.
+- release: The release is the process that goes from updating the version through
+  release-plz to publishing the single crate(s).
+- package: For our purposes, crate and package are synonyms.
+  In the codebase, we prefer to use the word `package` instead of `crate`.
