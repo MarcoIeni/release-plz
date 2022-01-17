@@ -24,7 +24,7 @@ secrecy = "0.8"
 clap = { version = "3", features = ["derive", "env"] }
 url = "2"
 cargo-clone = "1"
-cargo = "0.58"
+cargo = "0.59"
 tempfile = "3"
 
 next_semver = { path = "../next_semver", version = "0.1.0" }

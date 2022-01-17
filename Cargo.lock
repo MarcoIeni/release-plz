@@ -254,13 +254,72 @@ dependencies = [
 ]
 
 [[package]]
+name = "cargo"
+version = "0.59.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d08705bf607eb738364863d8435e69f88dd5c131b7f9752777a7ce328085cf95"
+dependencies = [
+ "anyhow",
+ "atty",
+ "bytesize",
+ "cargo-platform",
+ "cargo-util",
+ "clap 2.34.0",
+ "crates-io",
+ "crossbeam-utils",
+ "curl",
+ "curl-sys",
+ "env_logger",
+ "filetime",
+ "flate2",
+ "fwdansi",
+ "git2",
+ "git2-curl",
+ "glob",
+ "hex 0.4.3",
+ "home",
+ "humantime",
+ "ignore",
+ "im-rc",
+ "itertools",
+ "jobserver",
+ "lazy_static",
+ "lazycell",
+ "libc",
+ "libgit2-sys",
+ "log",
+ "memchr",
+ "num_cpus",
+ "opener",
+ "os_info",
+ "percent-encoding",
+ "rustc-workspace-hack",
+ "rustfix",
+ "semver",
+ "serde",
+ "serde_ignored",
+ "serde_json",
+ "shell-escape",
+ "strip-ansi-escapes",
+ "tar",
+ "tempfile",
+ "termcolor",
+ "toml",
+ "unicode-width",
+ "unicode-xid",
+ "url",
+ "walkdir",
+ "winapi 0.3.9",
+]
+
+[[package]]
 name = "cargo-clone"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "385bb4b56daddc4a5846038dd95559ec11a3864bc49c9186df9553568ac16369"
 dependencies = [
  "anyhow",
- "cargo",
+ "cargo 0.58.0",
  "clap 2.34.0",
  "semver",
  "walkdir",
@@ -1736,7 +1795,7 @@ name = "release-plz"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "cargo",
+ "cargo 0.59.0",
  "cargo-clone",
  "cargo-edit",
  "cargo_metadata",
