@@ -85,7 +85,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --no-deps --document-private-items --all-features --workspace
+          args: --no-deps --document-private-items --all-features --workspace --examples
 
   publish-dry-run:
     name: Publish dry run
