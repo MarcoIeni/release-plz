@@ -10,26 +10,12 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1"
-semver = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-cargo-edit = "0.8"
-cargo_metadata = "0.14"
 tracing = "0.1"
 tracing-subscriber = "0.3"
 tracing-log = "0.1"
-folder_compare = "0.4"
-fake = "2"
-octocrab = "0.15"
 secrecy = "0.8"
 clap = { version = "3", features = ["derive", "env"] }
 url = "2"
-cargo-clone = "1"
-cargo = "0.58"
-tempfile = "3"
 
-next_semver = { path = "../next_semver", version = "0.1.0" }
-
-[dev-dependencies]
-fs_extra = "1"
-
-test_logs = { path = "../test_logs", version = "0.1.0" }
+release_plz_core = { path = "../release_plz_core", version = "0.1.0" }

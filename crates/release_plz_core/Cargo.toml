@@ -1,0 +1,30 @@
+[package]
+name = "release_plz_core"
+version = "0.1.0"
+edition = "2021"
+description = "Update version and release to GitHub and crates.io"
+repository = "https://github.com/MarcoIeni/release-plz/crates/release_plz_core"
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+next_semver = { path = "../next_semver", version = "0.1.0" }
+
+anyhow = "1"
+cargo = "0.58"
+cargo-clone = "1"
+cargo-edit = "0.8"
+cargo_metadata = "0.14"
+fake = "2"
+folder_compare = "0.4"
+octocrab = "0.15"
+secrecy = "0.8"
+tempfile = "3"
+tracing = "0.1"
+
+[dev-dependencies]
+fs_extra = "1"
+
+test_logs = { path = "../test_logs", version = "0.1.0" }

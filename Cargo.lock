@@ -1736,25 +1736,34 @@ name = "release-plz"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "clap 3.0.7",
+ "release_plz_core",
+ "secrecy",
+ "tokio",
+ "tracing",
+ "tracing-log",
+ "tracing-subscriber",
+ "url",
+]
+
+[[package]]
+name = "release_plz_core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
  "cargo",
  "cargo-clone",
  "cargo-edit",
  "cargo_metadata",
- "clap 3.0.7",
  "fake",
  "folder_compare",
  "fs_extra",
  "next_semver",
  "octocrab",
  "secrecy",
- "semver",
  "tempfile",
  "test_logs",
- "tokio",
  "tracing",
- "tracing-log",
- "tracing-subscriber",
- "url",
 ]
 
 [[package]]
@@ -1900,9 +1909,9 @@ dependencies = [
 
 [[package]]
 name = "security-framework"
-version = "2.4.2"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "525bc1abfda2e1998d152c45cf13e696f76d0a4972310b22fac1658b05df7c87"
+checksum = "d09d3c15d814eda1d6a836f2f2b56a6abc1446c8a34351cb3180d3db92ffe4ce"
 dependencies = [
  "bitflags",
  "core-foundation",
@@ -1913,9 +1922,9 @@ dependencies = [
 
 [[package]]
 name = "security-framework-sys"
-version = "2.4.2"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9dd14d83160b528b7bfd66439110573efcfbe281b17fc2ca9f39f550d619c7e"
+checksum = "e90dd10c41c6bfc633da6e0c659bd25d31e0791e5974ac42970267d59eba87f7"
 dependencies = [
  "core-foundation-sys",
  "libc",
@@ -1981,12 +1990,12 @@ dependencies = [
 
 [[package]]
 name = "serde_urlencoded"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edfa57a7f8d9c1d260a549e7224100f6c43d43f9103e06dd8b4095a9b2b43ce9"
+checksum = "d3491c14715ca2294c4d6a88f15e84739788c1d030eed8c110436aafdaa2f3fd"
 dependencies = [
  "form_urlencoded",
- "itoa 0.4.8",
+ "itoa 1.0.1",
  "ryu",
  "serde",
 ]

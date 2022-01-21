@@ -6,7 +6,7 @@ use std::{
 
 use folder_compare::FolderCompare;
 use fs_extra::dir;
-use release_plz::UpdateRequest;
+use release_plz_core::UpdateRequest;
 use tempfile::tempdir;
 
 fn join_cargo_toml(project: &Path) -> PathBuf {
@@ -46,7 +46,7 @@ fn up_to_date_project_is_not_touched() {
     )
     .unwrap();
 
-    release_plz::update(&UpdateRequest {
+    release_plz_core::update(&UpdateRequest {
         local_manifest: join_cargo_toml(&local_project),
         remote_manifest: Some(join_cargo_toml(&remote_project.as_ref().join("myproject"))),
     })
@@ -82,7 +82,7 @@ fn version_is_updated_when_project_changed() {
     git_in_dir(&local_project, &["add", "."]).unwrap();
     git_in_dir(&local_project, &["commit", "-m", "feat: do awesome stuff"]).unwrap();
 
-    release_plz::update(&UpdateRequest {
+    release_plz_core::update(&UpdateRequest {
         local_manifest: join_cargo_toml(&local_project),
         remote_manifest: Some(join_cargo_toml(&remote_project.as_ref().join("myproject"))),
     })

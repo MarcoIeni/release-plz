@@ -3,7 +3,7 @@ mod log;
 
 use anyhow::Context;
 use clap::Parser;
-use release_plz::{update_with_pr, Request};
+use release_plz_core::{update_with_pr, Request};
 
 use crate::args::CliArgs;
 
@@ -15,7 +15,7 @@ async fn main() -> anyhow::Result<()> {
     match args.command {
         args::Command::Update(cmd_args) => {
             let update_request = cmd_args.update_request();
-            release_plz::update(&update_request)?;
+            release_plz_core::update(&update_request)?;
         }
         args::Command::UpdateWithPr(cmd_args) => {
             let update_request = cmd_args.update.update_request();

@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::anyhow;
-use release_plz::{GitHub, UpdateRequest};
+use release_plz_core::{GitHub, UpdateRequest};
 use secrecy::SecretString;
 use url::Url;
 
