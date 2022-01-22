@@ -19,15 +19,7 @@ pub struct UpdateRequest {
 #[instrument]
 pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, Repo)> {
     let local_crates = list_crates(&input.local_manifest)?;
-    let remote_crates = match &input.remote_manifest {
-        Some(manifest) => list_crates(manifest)?,
-        None => {
-            let local_crates_names: Vec<&str> =
-                local_crates.iter().map(|c| c.name.as_str()).collect();
-            crate::download::download_crates(&local_crates_names)?
-        }
-    };
-    let remote_crates = get_remote_crates(remote_crates.into_iter());
+    let remote_crates = get_remote_crates(input.remote_manifest.as_ref(), &local_crates)?;
     let repository = {
         let mut local_path = input.local_manifest.clone();
         local_path.pop();
@@ -132,13 +124,26 @@ impl CratePath for Package {
 }
 
 /// Return [`BTreeMap`] with "package name" as key
-fn get_remote_crates(crates: impl Iterator<Item = Package>) -> BTreeMap<String, Package> {
-    crates
+fn get_remote_crates(
+    remote_manifest: Option<&PathBuf>,
+    local_crates: &[Package],
+) -> anyhow::Result<BTreeMap<String, Package>> {
+    let remote_crates = match remote_manifest {
+        Some(manifest) => list_crates(manifest)?,
+        None => {
+            let local_crates_names: Vec<&str> =
+                local_crates.iter().map(|c| c.name.as_str()).collect();
+            crate::download::download_crates(&local_crates_names)?
+        }
+    };
+    let remote_crates = remote_crates
+        .into_iter()
         .map(|c| {
             let package_name = c.name.clone();
             (package_name, c)
         })
-        .collect()
+        .collect();
+    Ok(remote_crates)
 }
 
 #[instrument]
