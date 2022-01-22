@@ -15,9 +15,9 @@ pub struct UpdateRequest {
     pub remote_manifest: Option<PathBuf>,
 }
 
-/// Update a local rust project
+/// Determine next version of packages
 #[instrument]
-pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, Repo)> {
+pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, Repo)> {
     let local_crates = list_crates(&input.local_manifest)?;
     let remote_crates = get_remote_crates(input.remote_manifest.as_ref(), &local_crates)?;
     let repository = {
@@ -30,6 +30,13 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>,
     let crates_to_update =
         packages_to_update(local_crates.into_iter(), &remote_crates, &repository)?;
     debug!("local packages calculated");
+    Ok((crates_to_update, repository))
+}
+
+/// Update a local rust project
+#[instrument]
+pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, Repo)> {
+    let (crates_to_update, repository) = next_versions(input)?;
 
     update_versions(&crates_to_update);
     Ok((crates_to_update, repository))
