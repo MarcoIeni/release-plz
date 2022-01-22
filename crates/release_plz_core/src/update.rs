@@ -39,9 +39,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<LocalPackage>, Repo)
         packages_to_update(local_crates.into_iter(), &remote_crates, &repository)?;
     debug!("local packages calculated");
 
-    if !crates_to_update.is_empty() {
-        update_versions(&crates_to_update);
-    }
+    update_versions(&crates_to_update);
     Ok((crates_to_update, repository))
 }
 
