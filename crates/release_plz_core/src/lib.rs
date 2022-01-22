@@ -8,17 +8,10 @@ pub use update::*;
 use crate::git::Repo;
 
 use anyhow::Context;
-use cargo_metadata::Package;
 use fake::Fake;
 use octocrab::OctocrabBuilder;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{instrument, Span};
-
-#[derive(Debug)]
-pub struct LocalPackage {
-    package: Package,
-    diff: Diff,
-}
 
 /// Difference between local and remote crate
 #[derive(Debug)]

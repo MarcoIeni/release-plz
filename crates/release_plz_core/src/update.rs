@@ -1,4 +1,4 @@
-use crate::{git::Repo, version::NextVersionFromDiff, Diff, LocalPackage};
+use crate::{git::Repo, version::NextVersionFromDiff, Diff};
 use anyhow::anyhow;
 use cargo_edit::LocalManifest;
 use cargo_metadata::{Package, Version};
@@ -17,7 +17,7 @@ pub struct UpdateRequest {
 
 /// Update a local rust project
 #[instrument]
-pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<LocalPackage>, Repo)> {
+pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, Repo)> {
     let local_crates = list_crates(&input.local_manifest)?;
     let remote_crates = match &input.remote_manifest {
         Some(manifest) => list_crates(manifest)?,
@@ -27,7 +27,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<LocalPackage>, Repo)
             crate::download::download_crates(&local_crates_names)?
         }
     };
-    let remote_crates = calculate_remote_crates(remote_crates.into_iter());
+    let remote_crates = get_remote_crates(remote_crates.into_iter());
     let repository = {
         let mut local_path = input.local_manifest.clone();
         local_path.pop();
@@ -35,7 +35,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<LocalPackage>, Repo)
     };
 
     debug!("calculating local packages");
-    let crates_to_update: Vec<LocalPackage> =
+    let crates_to_update =
         packages_to_update(local_crates.into_iter(), &remote_crates, &repository)?;
     debug!("local packages calculated");
 
@@ -103,12 +103,16 @@ fn packages_to_update(
     crates: impl Iterator<Item = Package>,
     remote_crates: &BTreeMap<String, Package>,
     repository: &Repo,
-) -> anyhow::Result<Vec<LocalPackage>> {
+) -> anyhow::Result<Vec<(Package, Version)>> {
     let mut packages_to_update = vec![];
     for c in crates {
         let diff = get_diff(&c, remote_crates, repository)?;
-        if diff.should_update_version() {
-            packages_to_update.push(LocalPackage { package: c, diff })
+        let current_version = &c.version;
+        let next_version = c.version.next_from_diff(&diff);
+
+        debug!("diff: {:?}, next_version: {}", &diff, next_version);
+        if next_version != *current_version {
+            packages_to_update.push((c, next_version));
         }
     }
     Ok(packages_to_update)
@@ -128,7 +132,7 @@ impl CratePath for Package {
 }
 
 /// Return [`BTreeMap`] with "package name" as key
-fn calculate_remote_crates(crates: impl Iterator<Item = Package>) -> BTreeMap<String, Package> {
+fn get_remote_crates(crates: impl Iterator<Item = Package>) -> BTreeMap<String, Package> {
     crates
         .map(|c| {
             let package_name = c.name.clone();
@@ -138,17 +142,10 @@ fn calculate_remote_crates(crates: impl Iterator<Item = Package>) -> BTreeMap<St
 }
 
 #[instrument]
-fn update_versions(local_crates: &[LocalPackage]) {
-    for package in local_crates {
-        let current_version = &package.package.version;
-        debug!("diff: {:?}", &package.diff);
-        let next_version = current_version.next_from_diff(&package.diff);
-
-        debug!("next version: {}", next_version);
-        if next_version != *current_version {
-            let package_path = package.package.crate_path();
-            set_version(package_path, &next_version);
-        }
+fn update_versions(local_crates: &[(Package, Version)]) {
+    for (package, next_version) in local_crates {
+        let package_path = package.crate_path();
+        set_version(package_path, next_version);
     }
 }
 
