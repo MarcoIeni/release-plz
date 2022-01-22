@@ -37,46 +37,9 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<LocalPackage>, Repo)
 
     debug!("calculating local packages");
     for package in &mut local_crates {
-        let package_path = package.package.crate_path();
-        debug!("processing local package {}", package.package.name);
-        repository.checkout_head()?;
-        if let Err(_err) = repository.checkout_last_commit_at_path(package_path) {
-            // there are no commits for this package
-            break;
-        }
-        loop {
-            let current_commit_message = repository.current_commit_message()?;
-            if let Some(remote_crate) = remote_crates.get(&package.package.name) {
-                debug!("remote crate {} found", remote_crate.name);
-                package.diff.remote_crate_exists = true;
-                let are_packages_equal = {
-                    let mut remote_path = remote_crate.manifest_path.clone();
-                    remote_path.pop();
-                    are_dir_equal(package_path, remote_path.as_ref())
-                };
-                if are_packages_equal {
-                    debug!("packages are equal");
-                    // The local crate is identical to the remote one, which means that
-                    // the crate was published at this commit, so we will not count this commit
-                    // as part of the release.
-                    // We can process the next create.
-                    break;
-                } else if remote_crate.version != package.package.version {
-                    debug!("the local package {} has already a different version with respect to the remote package, so release-plz will not update it", package.package.name);
-                    break;
-                } else {
-                    debug!("crates are different");
-                    // At this point of the git history, the two crates are different,
-                    // which means that this commit is not present in the published package.
-                    package.diff.commits.push(current_commit_message.clone());
-                }
-            } else {
-                package.diff.commits.push(current_commit_message.clone());
-            }
-            if let Err(_err) = repository.checkout_previous_commit_at_path(package_path) {
-                // there are no other commits.
-                break;
-            }
+        let diff = get_diff(&package.package, &remote_crates, &repository)?;
+        if let Some(diff) = diff {
+            package.diff = diff;
         }
     }
     debug!("local packages calculated");
@@ -90,6 +53,56 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<LocalPackage>, Repo)
         update_versions(&crates_to_update);
     }
     Ok((crates_to_update, repository))
+}
+
+fn get_diff(
+    package: &Package,
+    remote_crates: &BTreeMap<String, Package>,
+    repository: &Repo,
+) -> anyhow::Result<Option<Diff>> {
+    let package_path = package.crate_path();
+    debug!("processing local package {}", package.name);
+    repository.checkout_head()?;
+    let mut diff = Diff::new(false);
+    if let Err(_err) = repository.checkout_last_commit_at_path(package_path) {
+        // there are no commits for this package
+        return Ok(None);
+    }
+    loop {
+        let current_commit_message = repository.current_commit_message()?;
+        if let Some(remote_crate) = remote_crates.get(&package.name) {
+            debug!("remote crate {} found", remote_crate.name);
+            diff.remote_crate_exists = true;
+            let are_packages_equal = {
+                let mut remote_path = remote_crate.manifest_path.clone();
+                remote_path.pop();
+                are_dir_equal(package_path, remote_path.as_ref())
+            };
+            if are_packages_equal {
+                debug!("packages are equal");
+                // The local crate is identical to the remote one, which means that
+                // the crate was published at this commit, so we will not count this commit
+                // as part of the release.
+                // We can process the next create.
+                break;
+            } else if remote_crate.version != package.version {
+                debug!("the local package {} has already a different version with respect to the remote package, so release-plz will not update it", package.name);
+                break;
+            } else {
+                debug!("crates are different");
+                // At this point of the git history, the two crates are different,
+                // which means that this commit is not present in the published package.
+                diff.commits.push(current_commit_message.clone());
+            }
+        } else {
+            diff.commits.push(current_commit_message.clone());
+        }
+        if let Err(_err) = repository.checkout_previous_commit_at_path(package_path) {
+            // there are no other commits.
+            break;
+        }
+    }
+    Ok(Some(diff))
 }
 
 fn are_dir_equal(first: &Path, second: &Path) -> bool {
