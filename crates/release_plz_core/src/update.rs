@@ -27,7 +27,6 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<LocalPackage>, Repo)
             crate::download::download_crates(&local_crates_names)?
         }
     };
-    let mut local_crates = calculate_local_crates(local_crates.into_iter());
     let remote_crates = calculate_remote_crates(remote_crates.into_iter());
     let repository = {
         let mut local_path = input.local_manifest.clone();
@@ -36,15 +35,9 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<LocalPackage>, Repo)
     };
 
     debug!("calculating local packages");
-    for package in &mut local_crates {
-        package.diff = get_diff(&package.package, &remote_crates, &repository)?;
-    }
+    let crates_to_update: Vec<LocalPackage> =
+        packages_to_update(local_crates.into_iter(), &remote_crates, &repository)?;
     debug!("local packages calculated");
-
-    let crates_to_update: Vec<LocalPackage> = local_crates
-        .into_iter()
-        .filter(|c| c.diff.should_update_version())
-        .collect();
 
     if !crates_to_update.is_empty() {
         update_versions(&crates_to_update);
@@ -108,13 +101,19 @@ fn are_dir_equal(first: &Path, second: &Path) -> bool {
     result.changed_files.is_empty() && result.new_files.is_empty()
 }
 
-fn calculate_local_crates(crates: impl Iterator<Item = Package>) -> Vec<LocalPackage> {
-    crates
-        .map(|c| LocalPackage {
-            package: c,
-            diff: Diff::new(false),
-        })
-        .collect()
+fn packages_to_update(
+    crates: impl Iterator<Item = Package>,
+    remote_crates: &BTreeMap<String, Package>,
+    repository: &Repo,
+) -> anyhow::Result<Vec<LocalPackage>> {
+    let mut packages_to_update = vec![];
+    for c in crates {
+        let diff = get_diff(&c, remote_crates, repository)?;
+        if diff.should_update_version() {
+            packages_to_update.push(LocalPackage { package: c, diff })
+        }
+    }
+    Ok(packages_to_update)
 }
 
 trait CratePath {
