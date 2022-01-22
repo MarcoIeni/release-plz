@@ -33,7 +33,7 @@ impl Repo {
 
     fn get_current_branch(directory: impl AsRef<Path>) -> anyhow::Result<String> {
         let current_branch =
-            Self::git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "HEAD"])?;
+            git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "HEAD"])?;
         stdout(current_branch).map_err(|e|
             if e.to_string().contains("fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.") {
                 anyhow!("git repository does not contain any commit.")
@@ -94,17 +94,9 @@ impl Repo {
         Ok(last_commit.to_string())
     }
 
-    #[instrument]
-    fn git_in_dir(dir: &Path, args: &[&str]) -> io::Result<Output> {
-        let args: Vec<&str> = args.iter().map(|s| s.trim()).collect();
-        let output = Command::new("git").arg("-C").arg(dir).args(args).output();
-        debug!("git output = {:?}", output);
-        output
-    }
-
     /// Run a git command in the repository git directory
     fn git(&self, args: &[&str]) -> io::Result<Output> {
-        Self::git_in_dir(&self.directory, args)
+        git_in_dir(&self.directory, args)
     }
 
     /// Checkout to the latest commit.
@@ -168,6 +160,14 @@ impl Repo {
     }
 }
 
+#[instrument]
+pub fn git_in_dir(dir: &Path, args: &[&str]) -> io::Result<Output> {
+    let args: Vec<&str> = args.iter().map(|s| s.trim()).collect();
+    let output = Command::new("git").arg("-C").arg(dir).args(args).output();
+    debug!("git output = {:?}", output);
+    output
+}
+
 #[instrument(skip_all)]
 fn stdout(output: Output) -> anyhow::Result<String> {
     debug!("output: {:?}", output);
@@ -186,15 +186,15 @@ mod tests {
         #[instrument(skip(directory))]
         fn init(directory: impl AsRef<Path>) -> Self {
             let directory = directory.as_ref();
-            Self::git_in_dir(directory, &["init"]).unwrap();
+            git_in_dir(directory, &["init"]).unwrap();
 
             // configure author
-            Self::git_in_dir(directory, &["config", "user.name", "author_name"]).unwrap();
-            Self::git_in_dir(directory, &["config", "user.email", "author@example.com"]).unwrap();
+            git_in_dir(directory, &["config", "user.name", "author_name"]).unwrap();
+            git_in_dir(directory, &["config", "user.email", "author@example.com"]).unwrap();
 
             fs::write(directory.join("README.md"), "# my awesome project").unwrap();
-            Self::git_in_dir(directory, &["add", "."]).unwrap();
-            Self::git_in_dir(directory, &["commit", "-m", "add README"]).unwrap();
+            git_in_dir(directory, &["add", "."]).unwrap();
+            git_in_dir(directory, &["commit", "-m", "add README"]).unwrap();
             debug!("repo initialized at {:?}", directory);
             Self::new(directory).unwrap()
         }
