@@ -56,7 +56,7 @@ pub struct GitHub {
 
 /// Update a local rust project and raise a pull request
 #[instrument]
-pub async fn update_with_pr(input: &Request) -> anyhow::Result<()> {
+pub async fn release_pr(input: &Request) -> anyhow::Result<()> {
     let (crates_to_update, repository) = update(&input.update_request)?;
     if !crates_to_update.is_empty() {
         // TODO think about better naming

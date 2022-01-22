@@ -16,8 +16,9 @@ pub struct CliArgs {
 pub enum Command {
     /// Update crates version based on commit messages.
     Update(Update),
-    /// Update crates version based on commit messages and create a Pull Request.
-    UpdateWithPr(UpdateWithPr),
+    /// Create (TODO: or update) a Pull Request representing the next release.
+    /// The Pull request contains updated crates version based on commit messages.
+    ReleasePr(ReleasePr),
 }
 
 #[derive(clap::Parser, Debug)]
@@ -39,7 +40,7 @@ pub struct Update {
 }
 
 #[derive(clap::Parser, Debug)]
-pub struct UpdateWithPr {
+pub struct ReleasePr {
     #[clap(flatten)]
     pub update: Update,
     /// GitHub token used to create the pull request.
@@ -67,7 +68,7 @@ impl Update {
     }
 }
 
-impl UpdateWithPr {
+impl ReleasePr {
     pub fn github(&self) -> anyhow::Result<GitHub> {
         let segments = self
             .repo_url
