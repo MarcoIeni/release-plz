@@ -37,10 +37,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<LocalPackage>, Repo)
 
     debug!("calculating local packages");
     for package in &mut local_crates {
-        let diff = get_diff(&package.package, &remote_crates, &repository)?;
-        if diff.should_update_version() {
-            package.diff = diff;
-        }
+        package.diff = get_diff(&package.package, &remote_crates, &repository)?;
     }
     debug!("local packages calculated");
 
