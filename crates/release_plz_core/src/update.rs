@@ -38,7 +38,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<LocalPackage>, Repo)
     debug!("calculating local packages");
     for package in &mut local_crates {
         let diff = get_diff(&package.package, &remote_crates, &repository)?;
-        if let Some(diff) = diff {
+        if diff.should_update_version() {
             package.diff = diff;
         }
     }
@@ -59,14 +59,14 @@ fn get_diff(
     package: &Package,
     remote_crates: &BTreeMap<String, Package>,
     repository: &Repo,
-) -> anyhow::Result<Option<Diff>> {
+) -> anyhow::Result<Diff> {
     let package_path = package.crate_path();
     debug!("processing local package {}", package.name);
     repository.checkout_head()?;
     let mut diff = Diff::new(false);
     if let Err(_err) = repository.checkout_last_commit_at_path(package_path) {
         // there are no commits for this package
-        return Ok(None);
+        return Ok(diff);
     }
     loop {
         let current_commit_message = repository.current_commit_message()?;
@@ -102,7 +102,7 @@ fn get_diff(
             break;
         }
     }
-    Ok(Some(diff))
+    Ok(diff)
 }
 
 fn are_dir_equal(first: &Path, second: &Path) -> bool {
