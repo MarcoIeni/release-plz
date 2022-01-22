@@ -42,24 +42,27 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>,
     Ok((crates_to_update, repository))
 }
 
+#[instrument(
+    skip_all,
+    fields(package = %package.name)
+)]
 fn get_diff(
     package: &Package,
     remote_crates: &BTreeMap<String, Package>,
     repository: &Repo,
 ) -> anyhow::Result<Diff> {
     let package_path = package.crate_path();
-    debug!("processing local package {}", package.name);
     repository.checkout_head()?;
-    let mut diff = Diff::new(false);
+    let remote_crate = remote_crates.get(&package.name);
+    let mut diff = Diff::new(remote_crate.is_some());
     if let Err(_err) = repository.checkout_last_commit_at_path(package_path) {
         // there are no commits for this package
         return Ok(diff);
     }
     loop {
         let current_commit_message = repository.current_commit_message()?;
-        if let Some(remote_crate) = remote_crates.get(&package.name) {
+        if let Some(remote_crate) = remote_crate {
             debug!("remote crate {} found", remote_crate.name);
-            diff.remote_crate_exists = true;
             let are_packages_equal = {
                 let mut remote_path = remote_crate.manifest_path.clone();
                 remote_path.pop();
@@ -89,6 +92,7 @@ fn get_diff(
             break;
         }
     }
+    repository.checkout_head()?;
     Ok(diff)
 }
 

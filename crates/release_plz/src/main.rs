@@ -3,7 +3,7 @@ mod log;
 
 use anyhow::Context;
 use clap::Parser;
-use release_plz_core::{release_pr, Request};
+use release_plz_core::Request;
 
 use crate::args::CliArgs;
 
@@ -23,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
                 github: cmd_args.github().context("invalid github settings")?,
                 update_request,
             };
-            release_pr(&request).await?;
+            release_plz_core::release_pr(&request).await?;
         }
     }
 
