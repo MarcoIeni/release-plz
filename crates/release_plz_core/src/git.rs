@@ -7,9 +7,11 @@ use std::{
 use anyhow::{anyhow, Context};
 use tracing::{debug, instrument, Span};
 
+use crate::cmd::stdout;
+
 /// Repository
 pub struct Repo {
-    /// Repository root directory
+    /// Directory where you want to run git operations
     directory: PathBuf,
     default_branch: String,
 }
@@ -166,13 +168,6 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> io::Result<Output> {
     let output = Command::new("git").arg("-C").arg(dir).args(args).output();
     debug!("git output = {:?}", output);
     output
-}
-
-#[instrument(skip_all)]
-fn stdout(output: Output) -> anyhow::Result<String> {
-    debug!("output: {:?}", output);
-    let stdout = String::from_utf8(output.stdout)?;
-    Ok(stdout)
 }
 
 #[cfg(test)]

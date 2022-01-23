@@ -53,11 +53,15 @@ pub struct ReleasePr {
 
 impl Update {
     pub fn update_request(&self) -> UpdateRequest {
-        UpdateRequest {
-            local_manifest: self.local_manifest(),
-            remote_manifest: self.reference_project_manifest.clone(),
+        let mut update = UpdateRequest::new(self.local_manifest()).unwrap();
+        if let Some(reference_project_manifest) = &self.reference_project_manifest {
+            update = update
+                .with_remote_manifest(reference_project_manifest.clone())
+                .unwrap()
         }
+        update
     }
+
     fn local_manifest(&self) -> PathBuf {
         match &self.project_manifest {
             Some(manifest) => manifest.clone(),

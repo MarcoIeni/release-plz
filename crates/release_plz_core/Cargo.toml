@@ -9,7 +9,6 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-
 next_semver = { path = "../next_semver", version = "0.1.0" }
 
 anyhow = "1"
@@ -23,8 +22,7 @@ octocrab = "0.15"
 secrecy = "0.8"
 tempfile = "3"
 tracing = "0.1"
-
-[dev-dependencies]
 fs_extra = "1"
 
+[dev-dependencies]
 test_logs = { path = "../test_logs", version = "0.1.0" }

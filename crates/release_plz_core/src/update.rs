@@ -1,18 +1,80 @@
-use crate::{git::Repo, version::NextVersionFromDiff, Diff};
-use anyhow::anyhow;
+use crate::{
+    cmd,
+    git::{self, Repo},
+    version::NextVersionFromDiff,
+    Diff,
+};
+use anyhow::{anyhow, Context};
 use cargo_edit::LocalManifest;
 use cargo_metadata::{Package, Version};
 use folder_compare::FolderCompare;
+use fs_extra::dir;
 use std::{
     collections::BTreeMap,
+    fs, io,
     path::{Path, PathBuf},
 };
+use tempfile::tempdir;
 use tracing::{debug, instrument};
 
 #[derive(Debug)]
 pub struct UpdateRequest {
-    pub local_manifest: PathBuf,
-    pub remote_manifest: Option<PathBuf>,
+    local_manifest: PathBuf,
+    remote_manifest: Option<PathBuf>,
+}
+
+impl UpdateRequest {
+    pub fn new(local_manifest: PathBuf) -> io::Result<Self> {
+        let local_manifest = fs::canonicalize(local_manifest)?;
+        Ok(Self {
+            local_manifest,
+            remote_manifest: None,
+        })
+    }
+
+    pub fn with_remote_manifest(self, remote_manifest: PathBuf) -> io::Result<Self> {
+        let remote_manifest = fs::canonicalize(remote_manifest)?;
+        Ok(Self {
+            remote_manifest: Some(remote_manifest),
+            ..self
+        })
+    }
+}
+
+/// Copy the repository of the `local_manifest` in the given `tmp_project_root`.
+/// Return this new repo.
+fn get_repo(tmp_project_root: &Path, local_manifest: &Path) -> anyhow::Result<Repo> {
+    let manifest_dir = local_manifest.parent().ok_or_else(|| {
+        anyhow!(
+            "cannot find directory where manifest {:?} is located",
+            local_manifest
+        )
+    })?;
+    let project_root = {
+        let project_root = git::git_in_dir(manifest_dir, &["rev-parse", "--show-toplevel"])?;
+        let project_root = cmd::stdout(project_root)?;
+        PathBuf::from(project_root)
+    };
+
+    dir::copy(
+        &project_root,
+        tmp_project_root,
+        &dir::CopyOptions::default(),
+    )
+    .context(format!(
+        "cannot copy directory {project_root:?} to {:?}",
+        tmp_project_root
+    ))?;
+
+    let tmp_manifest_dir = {
+        let relative_manifest_dir = manifest_dir
+            .strip_prefix(project_root)
+            .context("cannot strip prefix for manifest dir")?;
+        tmp_project_root.join(relative_manifest_dir)
+    };
+
+    let repository = Repo::new(&tmp_manifest_dir)?;
+    Ok(repository)
 }
 
 /// Determine next version of packages
@@ -20,11 +82,10 @@ pub struct UpdateRequest {
 pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, Repo)> {
     let local_crates = list_crates(&input.local_manifest)?;
     let remote_crates = get_remote_crates(input.remote_manifest.as_ref(), &local_crates)?;
-    let repository = {
-        let mut local_path = input.local_manifest.clone();
-        local_path.pop();
-        Repo::new(&local_path)?
-    };
+
+    // copy the repository into a temporary directory, so that we are not sure we don't alter the original one
+    let tmp_project_root = tempdir().context("cannot create temporary directory")?;
+    let repository = get_repo(tmp_project_root.as_ref(), &input.local_manifest)?;
 
     debug!("calculating local packages");
     let crates_to_update =
@@ -64,8 +125,10 @@ fn get_diff(
         if let Some(remote_crate) = remote_crate {
             debug!("remote crate {} found", remote_crate.name);
             let are_packages_equal = {
-                let mut remote_path = remote_crate.manifest_path.clone();
-                remote_path.pop();
+                let remote_path = remote_crate
+                    .manifest_path
+                    .parent()
+                    .context("cannot find parent directory")?;
                 are_dir_equal(package_path, remote_path.as_ref())
             };
             if are_packages_equal {
