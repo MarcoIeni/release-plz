@@ -16,12 +16,6 @@ pub struct Repo {
     default_branch: String,
 }
 
-impl Drop for Repo {
-    fn drop(&mut self) {
-        let _err = self.checkout(&self.default_branch);
-    }
-}
-
 impl Repo {
     /// Returns an error if the directory doesn't contain any commit
     #[instrument(skip_all)]

@@ -67,7 +67,9 @@ fn get_repo(tmp_project_root: &Path, local_manifest: &Path) -> anyhow::Result<Re
     ))?;
 
     let tmp_manifest_dir = {
-        let parent_root = project_root.parent().context("cannot determine parent root")?;
+        let parent_root = project_root
+            .parent()
+            .context("cannot determine parent root")?;
         let relative_manifest_dir = manifest_dir
             .strip_prefix(parent_root)
             .context("cannot strip prefix for manifest dir")?;
@@ -93,7 +95,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Ver
     debug!("calculating local packages");
     let crates_to_update =
         packages_to_update(local_crates.into_iter(), &remote_crates, &repository)?;
-    debug!("local packages calculated");
+    debug!("crates to update: {:?}", &crates_to_update);
     Ok((crates_to_update, repository))
 }
 
