@@ -1,13 +1,13 @@
 use std::{
-    fmt, io,
+    fmt,
     path::{Path, PathBuf},
-    process::{Command, Output},
+    process::Command,
 };
 
 use anyhow::{anyhow, Context};
 use tracing::{debug, instrument, Span};
 
-use crate::cmd::stdout;
+use crate::cmd;
 
 /// Repository
 pub struct Repo {
@@ -24,7 +24,9 @@ impl Drop for Repo {
 
 impl Repo {
     /// Returns an error if the directory doesn't contain any commit
+    #[instrument(skip_all)]
     pub fn new(directory: impl AsRef<Path>) -> anyhow::Result<Self> {
+        debug!("initializing directory {:?}", directory.as_ref());
         let current_branch = Self::get_current_branch(&directory)?;
 
         Ok(Self {
@@ -34,9 +36,8 @@ impl Repo {
     }
 
     fn get_current_branch(directory: impl AsRef<Path>) -> anyhow::Result<String> {
-        let current_branch =
-            git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "HEAD"])?;
-        stdout(current_branch).map_err(|e|
+        git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "HEAD"])
+        .map_err(|e|
             if e.to_string().contains("fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.") {
                 anyhow!("git repository does not contain any commit.")
             }
@@ -85,8 +86,7 @@ impl Repo {
     )]
     fn nth_commit(&self, nth: usize) -> anyhow::Result<String> {
         let nth = nth.to_string();
-        let output = self.git(&["--format=%H", "-n", &nth])?;
-        let commit_list = stdout(output)?;
+        let commit_list = self.git(&["--format=%H", "-n", &nth])?;
         let last_commit = commit_list
             .lines()
             .last()
@@ -97,7 +97,7 @@ impl Repo {
     }
 
     /// Run a git command in the repository git directory
-    fn git(&self, args: &[&str]) -> io::Result<Output> {
+    fn git(&self, args: &[&str]) -> anyhow::Result<String> {
         git_in_dir(&self.directory, args)
     }
 
@@ -123,7 +123,7 @@ impl Repo {
     }
 
     #[instrument(skip(self))]
-    fn checkout(&self, object: &str) -> io::Result<()> {
+    fn checkout(&self, object: &str) -> anyhow::Result<()> {
         self.git(&["checkout", object])?;
         Ok(())
     }
@@ -141,8 +141,7 @@ impl Repo {
     ) -> anyhow::Result<String> {
         let nth_str = nth.to_string();
         let path = path.as_ref().to_str().ok_or(anyhow!("invalid path"))?;
-        let output = self.git(&["log", "--format=%H", "-n", &nth_str, path])?;
-        let commit_list = stdout(output)?;
+        let commit_list = self.git(&["log", "--format=%H", "-n", &nth_str, path])?;
         let mut commits = commit_list.lines();
         // check if there are enough commits
         for _ in 1..nth {
@@ -157,17 +156,20 @@ impl Repo {
     }
 
     pub fn current_commit_message(&self) -> anyhow::Result<String> {
-        let output = self.git(&["log", "-1", "--pretty=format:%s"])?;
-        stdout(output)
+        self.git(&["log", "-1", "--pretty=format:%s"])
     }
 }
 
 #[instrument]
-pub fn git_in_dir(dir: &Path, args: &[&str]) -> io::Result<Output> {
+pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
     let args: Vec<&str> = args.iter().map(|s| s.trim()).collect();
-    let output = Command::new("git").arg("-C").arg(dir).args(args).output();
+    let output = Command::new("git").arg("-C").arg(dir).args(args).output()?;
     debug!("git output = {:?}", output);
-    output
+    if output.status.success() {
+        Ok(cmd::stdout(output)?)
+    } else {
+        Err(anyhow!("error while running git: {}", cmd::stderr(output)?))
+    }
 }
 
 #[cfg(test)]

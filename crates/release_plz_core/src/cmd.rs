@@ -9,3 +9,10 @@ pub fn stdout(output: Output) -> anyhow::Result<String> {
     let stdout = stdout.trim();
     Ok(stdout.to_string())
 }
+
+#[instrument(skip_all)]
+pub fn stderr(output: Output) -> anyhow::Result<String> {
+    let stdout = String::from_utf8(output.stderr).context("cannot extract stderr")?;
+    let stdout = stdout.trim();
+    Ok(stdout.to_string())
+}

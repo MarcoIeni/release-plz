@@ -15,7 +15,9 @@ fn join_cargo_toml(project: &Path) -> PathBuf {
 
 fn git_in_dir(dir: &Path, args: &[&str]) -> io::Result<Output> {
     let args: Vec<&str> = args.iter().map(|s| s.trim()).collect();
-    Command::new("git").arg("-C").arg(dir).args(args).output()
+    let output = Command::new("git").arg("-C").arg(dir).args(args).output()?;
+    assert!(output.status.success());
+    Ok(output)
 }
 
 fn init_project(project: &Path) {

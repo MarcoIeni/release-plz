@@ -1,5 +1,4 @@
 use crate::{
-    cmd,
     git::{self, Repo},
     version::NextVersionFromDiff,
     Diff,
@@ -50,11 +49,12 @@ fn get_repo(tmp_project_root: &Path, local_manifest: &Path) -> anyhow::Result<Re
             local_manifest
         )
     })?;
+    debug!("manifest_dir: {manifest_dir:?}");
     let project_root = {
         let project_root = git::git_in_dir(manifest_dir, &["rev-parse", "--show-toplevel"])?;
-        let project_root = cmd::stdout(project_root)?;
         PathBuf::from(project_root)
     };
+    debug!("project_root: {project_root:?}");
 
     dir::copy(
         &project_root,
@@ -67,11 +67,14 @@ fn get_repo(tmp_project_root: &Path, local_manifest: &Path) -> anyhow::Result<Re
     ))?;
 
     let tmp_manifest_dir = {
+        let parent_root = project_root.parent().context("cannot determine parent root")?;
         let relative_manifest_dir = manifest_dir
-            .strip_prefix(project_root)
+            .strip_prefix(parent_root)
             .context("cannot strip prefix for manifest dir")?;
+        debug!("relative_manifest_dir: {relative_manifest_dir:?}");
         tmp_project_root.join(relative_manifest_dir)
     };
+    debug!("tmp_manifest_dir: {tmp_manifest_dir:?}");
 
     let repository = Repo::new(&tmp_manifest_dir)?;
     Ok(repository)
