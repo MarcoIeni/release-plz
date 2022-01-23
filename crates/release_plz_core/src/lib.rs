@@ -1,8 +1,8 @@
+mod cmd;
 mod download;
 mod git;
 mod update;
 mod version;
-mod cmd;
 
 pub use update::*;
 
