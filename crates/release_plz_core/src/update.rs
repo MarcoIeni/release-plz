@@ -42,7 +42,8 @@ impl UpdateRequest {
 
 /// Copy the repository of the `local_manifest` in the given `tmp_project_root`.
 /// Return this new repo.
-fn get_repo(tmp_project_root: &Path, local_manifest: &Path) -> anyhow::Result<Repo> {
+fn get_repo(tmp_project_root: &Path, local_manifest: &Path) -> anyhow::Result<(Repo, PathBuf)> {
+    // TODO instead of returning the project_root, take it as argument
     let manifest_dir = local_manifest.parent().ok_or_else(|| {
         anyhow!(
             "cannot find directory where manifest {:?} is located",
@@ -79,7 +80,7 @@ fn get_repo(tmp_project_root: &Path, local_manifest: &Path) -> anyhow::Result<Re
     debug!("tmp_manifest_dir: {tmp_manifest_dir:?}");
 
     let repository = Repo::new(&tmp_manifest_dir)?;
-    Ok(repository)
+    Ok((repository, project_root))
 }
 
 /// Determine next version of packages
@@ -90,11 +91,15 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Ver
 
     // copy the repository into a temporary directory, so that we are not sure we don't alter the original one
     let tmp_project_root = tempdir().context("cannot create temporary directory")?;
-    let repository = get_repo(tmp_project_root.as_ref(), &input.local_manifest)?;
+    let (repository, project_root) = get_repo(tmp_project_root.as_ref(), &input.local_manifest)?;
 
     debug!("calculating local packages");
-    let crates_to_update =
-        packages_to_update(local_crates.into_iter(), &remote_crates, &repository)?;
+    let crates_to_update = packages_to_update(
+        local_crates.into_iter(),
+        &remote_crates,
+        &repository,
+        &project_root,
+    )?;
     debug!("crates to update: {:?}", &crates_to_update);
     Ok((crates_to_update, repository))
 }
@@ -116,12 +121,16 @@ fn get_diff(
     package: &Package,
     remote_crates: &BTreeMap<String, Package>,
     repository: &Repo,
+    project_root: &Path,
 ) -> anyhow::Result<Diff> {
-    let package_path = package.crate_path();
+    let package_path = {
+        let relative_path = package.crate_path().strip_prefix(project_root).unwrap();
+        repository.directory().join(relative_path)
+    };
     repository.checkout_head()?;
     let remote_crate = remote_crates.get(&package.name);
     let mut diff = Diff::new(remote_crate.is_some());
-    if let Err(_err) = repository.checkout_last_commit_at_path(package_path) {
+    if let Err(_err) = repository.checkout_last_commit_at_path(&package_path) {
         // there are no commits for this package
         return Ok(diff);
     }
@@ -134,7 +143,7 @@ fn get_diff(
                     .manifest_path
                     .parent()
                     .context("cannot find parent directory")?;
-                are_dir_equal(package_path, remote_path.as_ref())
+                are_dir_equal(&package_path, remote_path.as_ref())
             };
             if are_packages_equal {
                 debug!("packages are equal");
@@ -155,7 +164,7 @@ fn get_diff(
         } else {
             diff.commits.push(current_commit_message.clone());
         }
-        if let Err(_err) = repository.checkout_previous_commit_at_path(package_path) {
+        if let Err(_err) = repository.checkout_previous_commit_at_path(&package_path) {
             // there are no other commits.
             break;
         }
@@ -174,10 +183,11 @@ fn packages_to_update(
     crates: impl Iterator<Item = Package>,
     remote_crates: &BTreeMap<String, Package>,
     repository: &Repo,
+    project_root: &Path,
 ) -> anyhow::Result<Vec<(Package, Version)>> {
     let mut packages_to_update = vec![];
     for c in crates {
-        let diff = get_diff(&c, remote_crates, repository)?;
+        let diff = get_diff(&c, remote_crates, repository, project_root)?;
         let current_version = &c.version;
         let next_version = c.version.next_from_diff(&diff);
 

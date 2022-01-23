@@ -29,6 +29,10 @@ impl Repo {
         })
     }
 
+    pub fn directory(&self) -> &Path {
+        &self.directory
+    }
+
     fn get_current_branch(directory: impl AsRef<Path>) -> anyhow::Result<String> {
         git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "HEAD"])
         .map_err(|e|
