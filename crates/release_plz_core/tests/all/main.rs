@@ -28,6 +28,11 @@ fn init_project(project: &Path) {
         .unwrap();
 
     git_in_dir(project, &["init"]).unwrap();
+
+    // configure author
+    git_in_dir(project, &["config", "user.name", "author_name"]).unwrap();
+    git_in_dir(project, &["config", "user.email", "author@example.com"]).unwrap();
+
     fs::write(project.join("README.md"), "# my awesome project").unwrap();
     git_in_dir(project, &["add", "."]).unwrap();
     git_in_dir(project, &["commit", "-m", "add README"]).unwrap();
