@@ -139,7 +139,7 @@ impl Repo {
     ) -> anyhow::Result<String> {
         let nth_str = nth.to_string();
         let path = path.as_ref().to_str().ok_or(anyhow!("invalid path"))?;
-        let commit_list = self.git(&["log", "--format=%H", "-n", &nth_str, path])?;
+        let commit_list = self.git(&["log", "--format=%H", "-n", &nth_str, "--", path])?;
         let mut commits = commit_list.lines();
         // check if there are enough commits
         for _ in 1..nth {
