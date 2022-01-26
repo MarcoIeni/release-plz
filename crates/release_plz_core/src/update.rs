@@ -1,13 +1,10 @@
-use crate::{
-    git::{self, Repo},
-    version::NextVersionFromDiff,
-    Diff,
-};
+use crate::{version::NextVersionFromDiff, Diff};
 use anyhow::{anyhow, Context};
 use cargo_edit::LocalManifest;
 use cargo_metadata::{Package, Version};
 use folder_compare::FolderCompare;
 use fs_extra::dir;
+use git_cmd::{self, Repo};
 use std::{
     collections::BTreeMap,
     fs, io,
@@ -61,7 +58,8 @@ impl Project {
             .to_path_buf();
         debug!("manifest_dir: {manifest_dir:?}");
         let root = {
-            let project_root = git::git_in_dir(&manifest_dir, &["rev-parse", "--show-toplevel"])?;
+            let project_root =
+                git_cmd::git_in_dir(&manifest_dir, &["rev-parse", "--show-toplevel"])?;
             PathBuf::from(project_root)
         };
         debug!("project_root: {root:?}");

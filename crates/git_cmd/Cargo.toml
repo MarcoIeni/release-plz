@@ -1,0 +1,22 @@
+[package]
+name = "git_cmd"
+version = "0.1.0"
+edition = "2021"
+description = "Wrapper around git cli"
+repository = "https://github.com/MarcoIeni/release-plz/crates/git_cmd"
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+test_fixture = []
+
+[dependencies]
+tracing = "0.1"
+anyhow = "1"
+
+[dev-dependencies]
+tempfile = "3"
+
+test_logs = { path = "../test_logs", version = "0.1.0" }
+git_cmd = { path = ".", version = "0.1.0", features = ["test_fixture"]}

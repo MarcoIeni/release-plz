@@ -1,3 +1,7 @@
+mod cmd;
+#[cfg(feature = "test_fixture")]
+pub mod test_fixture;
+
 use std::{
     fmt,
     path::{Path, PathBuf},
@@ -7,7 +11,6 @@ use std::{
 use anyhow::{anyhow, Context};
 use tracing::{debug, instrument, Span};
 
-use crate::cmd;
 
 /// Repository
 pub struct Repo {
@@ -177,23 +180,6 @@ mod tests {
 
     use super::*;
 
-    impl Repo {
-        #[instrument(skip(directory))]
-        fn init(directory: impl AsRef<Path>) -> Self {
-            let directory = directory.as_ref();
-            git_in_dir(directory, &["init"]).unwrap();
-
-            // configure author
-            git_in_dir(directory, &["config", "user.name", "author_name"]).unwrap();
-            git_in_dir(directory, &["config", "user.email", "author@example.com"]).unwrap();
-
-            fs::write(directory.join("README.md"), "# my awesome project").unwrap();
-            git_in_dir(directory, &["add", "."]).unwrap();
-            git_in_dir(directory, &["commit", "-m", "add README"]).unwrap();
-            debug!("repo initialized at {:?}", directory);
-            Self::new(directory).unwrap()
-        }
-    }
 
     #[test]
     fn inexistent_previous_commit_detected() {

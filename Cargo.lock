@@ -867,6 +867,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "git_cmd"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "git_cmd",
+ "tempfile",
+ "test_logs",
+ "tracing",
+]
+
+[[package]]
 name = "glob"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1758,6 +1769,7 @@ dependencies = [
  "fake",
  "folder_compare",
  "fs_extra",
+ "git_cmd",
  "next_semver",
  "octocrab",
  "secrecy",

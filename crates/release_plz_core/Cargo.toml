@@ -10,6 +10,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 next_semver = { path = "../next_semver", version = "0.1.0" }
+git_cmd = { path = "../git_cmd", version = "0.1.0" }
 
 anyhow = "1"
 cargo = "0.58"
@@ -26,3 +27,4 @@ fs_extra = "1"
 
 [dev-dependencies]
 test_logs = { path = "../test_logs", version = "0.1.0" }
+git_cmd = { path = "../git_cmd", version = "0.1.0", features = ["test_fixture"] }

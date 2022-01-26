@@ -1,23 +1,17 @@
 use std::{
-    fs, io,
+    fs,
     path::{Path, PathBuf},
-    process::{Command, Output},
+    process::Command,
 };
 
 use folder_compare::FolderCompare;
 use fs_extra::dir;
+use git_cmd::{git_in_dir, Repo};
 use release_plz_core::UpdateRequest;
 use tempfile::tempdir;
 
 fn join_cargo_toml(project: &Path) -> PathBuf {
     project.join("Cargo.toml")
-}
-
-fn git_in_dir(dir: &Path, args: &[&str]) -> io::Result<Output> {
-    let args: Vec<&str> = args.iter().map(|s| s.trim()).collect();
-    let output = Command::new("git").arg("-C").arg(dir).args(args).output()?;
-    assert!(output.status.success());
-    Ok(output)
 }
 
 fn init_project(project: &Path) {
@@ -27,15 +21,7 @@ fn init_project(project: &Path) {
         .output()
         .unwrap();
 
-    git_in_dir(project, &["init"]).unwrap();
-
-    // configure author
-    git_in_dir(project, &["config", "user.name", "author_name"]).unwrap();
-    git_in_dir(project, &["config", "user.email", "author@example.com"]).unwrap();
-
-    fs::write(project.join("README.md"), "# my awesome project").unwrap();
-    git_in_dir(project, &["add", "."]).unwrap();
-    git_in_dir(project, &["commit", "-m", "add README"]).unwrap();
+    Repo::init(project);
 }
 
 #[test]

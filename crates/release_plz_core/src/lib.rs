@@ -1,12 +1,10 @@
-mod cmd;
 mod download;
-mod git;
 mod update;
 mod version;
 
 pub use update::*;
 
-use crate::git::Repo;
+use git_cmd::Repo;
 
 use anyhow::Context;
 use fake::Fake;
