@@ -4,17 +4,23 @@
 [![Docs.rs](https://docs.rs/release-plz/badge.svg)](https://docs.rs/release-plz)
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
 
-Release-plz will open a PR against your repository and based on Cargo.toml and cargo registry, where it will:
-- update your Cargo.toml
-- update your Changelog (TODO)
+Release-plz updates the versions of your rust packages, by analyzing you git history,
+based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
+Release-plz can update your `Cargo.toml` files locally, or by opening a GitHub Pull Request.
 
-If you run it again, it will also crate tags.
-
-Once you have merged it, you can then use a command like `cargo workspaces publish` to publish the changes.
+Once you update the versions, you can then use a command like
+[cargo workspaces](https://crates.io/crates/cargo-workspaces) `publish` to publish the changes.
 
 In this way you can have a fully automated release pipeline.
 This means you can easily release changes more frequently, without the fear of doing typo or other
 subtle manual mistakes.
+
+## Similar projects
+
+Release-plz is inspired by [release-please](https://github.com/googleapis/release-please),
+but instead of determining the next versions based on git tags, release-plz compares local packages with
+the ones published in the cargo registry.
+Furthermore, release-plz doesn't need any configuration.
 
 ## Installation
 
