@@ -34,12 +34,6 @@ Furthermore, release-plz doesn't need any configuration.
   [this](https://www.rust-lang.org/tools/install) guide.
 * run `cargo install release-plz`
 
-## Flow
-
-1. Start a repository -> release-plz figures out the repository is not published, so it opens a PR where it doesn't change Cargo.toml, but it changes CHANGELOG based on your commits.
-2. After you have published 0.1.0, you do other changes -> release-plz opens a PR with both CHANGELOG and Cargo.toml changes.
-3. After you just published something, release-plz will not open PRs, because it sees that local project is the same as crates.io.
-
 ## License
 
 Licensed under either of
