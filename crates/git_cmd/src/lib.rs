@@ -1,3 +1,5 @@
+//! Run git shell and parse its result
+
 mod cmd;
 #[cfg(feature = "test_fixture")]
 pub mod test_fixture;
@@ -10,7 +12,6 @@ use std::{
 
 use anyhow::{anyhow, Context};
 use tracing::{debug, instrument, Span};
-
 
 /// Repository
 pub struct Repo {
@@ -179,7 +180,6 @@ mod tests {
     use tempfile::tempdir;
 
     use super::*;
-
 
     #[test]
     fn inexistent_previous_commit_detected() {

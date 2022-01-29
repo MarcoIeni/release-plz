@@ -1,9 +1,8 @@
-use std::{path::Path, fs};
+use std::{fs, path::Path};
 
-use tracing::{instrument, debug};
+use tracing::{debug, instrument};
 
-use crate::{Repo, git_in_dir};
-
+use crate::{git_in_dir, Repo};
 
 impl Repo {
     #[instrument(skip(directory))]
