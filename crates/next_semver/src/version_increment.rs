@@ -12,8 +12,11 @@ impl VersionIncrement {
     /// Analyze commits and determine which part of version to increment based on
     /// [conventional commits](https://www.conventionalcommits.org/) and
     /// [Semantic versioning](https://semver.org/).
-    /// - If no commits are present, None is returned, i.e. the version should not be incremented.
-    /// - If no conventional commits are present, the version is incremented as a Patch
+    /// - If no commits are present, [`Option::None`] is returned, because the version should not be incremented.
+    /// - If some commits are present, but none of them match conventional commits specification,
+    ///   the version increment is [`VersionIncrement::Patch`].
+    /// - If some commits match conventional commits, then the next version is calculated by using
+    ///   [these](https://www.conventionalcommits.org/en/v1.0.0/#how-does-this-relate-to-semverare) rules.
     pub fn from_commits<I>(current_version: &Version, commits: I) -> Option<Self>
     where
         I: IntoIterator,
