@@ -1,4 +1,4 @@
-//! Run git shell and parse its result
+//! Run git as shell shell and parse its stdout.
 
 mod cmd;
 #[cfg(feature = "test_fixture")]
