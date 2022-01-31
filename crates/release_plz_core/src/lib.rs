@@ -34,7 +34,7 @@ impl Diff {
 }
 
 #[derive(Debug)]
-pub struct Request {
+pub struct ReleasePrRequest {
     pub github: GitHub,
     pub update_request: UpdateRequest,
 }
@@ -48,7 +48,7 @@ pub struct GitHub {
 
 /// Update a local rust project and raise a pull request
 #[instrument]
-pub async fn release_pr(input: &Request) -> anyhow::Result<()> {
+pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let (packages_to_update, repository) = next_versions(&input.update_request)?;
     if !packages_to_update.is_empty() {
         // TODO think about better naming

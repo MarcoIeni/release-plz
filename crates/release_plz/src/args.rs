@@ -16,7 +16,7 @@ pub struct CliArgs {
 pub enum Command {
     /// Update packages version based on commit messages.
     Update(Update),
-    /// Create (TODO: or update) a Pull Request representing the next release.
+    /// Create a Pull Request representing the next release.
     /// The Pull request contains updated packages version based on commit messages.
     ReleasePr(ReleasePr),
 }
@@ -57,7 +57,7 @@ impl Update {
         if let Some(reference_project_manifest) = &self.reference_project_manifest {
             update = update
                 .with_remote_manifest(reference_project_manifest.clone())
-                .unwrap()
+                .unwrap();
         }
         update
     }
