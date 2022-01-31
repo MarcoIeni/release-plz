@@ -32,10 +32,7 @@ impl VersionIncrement {
                 .filter_map(|c| conventional_commit_parser::parse(c.as_ref()).ok())
                 .collect();
 
-            Some(VersionIncrement::from_conventional_commits(
-                current_version,
-                &commits,
-            ))
+            Some(Self::from_conventional_commits(current_version, &commits))
         }
     }
 
