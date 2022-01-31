@@ -25,8 +25,8 @@ mod tests {
 
     #[test]
     fn next_version_of_new_package_is_unchanged() {
-        let remote_crate_exists = false;
-        let diff = Diff::new(remote_crate_exists);
+        let remote_package_exists = false;
+        let diff = Diff::new(remote_package_exists);
         let version = Version::new(1, 2, 3);
         assert_eq!(version.clone().next_from_diff(&diff), version);
     }
