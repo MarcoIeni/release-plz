@@ -36,7 +36,7 @@ Furthermore, release-plz doesn't need any configuration.
 
 * Install the rust toolchain in order to have cargo installed by following
   [this](https://www.rust-lang.org/tools/install) guide.
-* run `cargo install release-plz`
+* run `cargo install release-plz --locked`
 
 ## License
 
