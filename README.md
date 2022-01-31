@@ -9,11 +9,15 @@ based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
 Release-plz can update your `Cargo.toml` files locally, or by opening a GitHub Pull Request.
 
 Once you update the versions, you can then use a command like
-[cargo workspaces](https://crates.io/crates/cargo-workspaces) `publish` to publish the changes.
+[cargo workspaces](https://crates.io/crates/cargo-workspaces) `publish` to publish the changes:
 
-In this way you can have a fully automated release pipeline.
+```shell
+cargo workspaces publish --from-git --token "${TOKEN}" --yes
+```
+
+The goal is to create a fully automated release pipeline.
 This means you can easily release changes more frequently, without the fear of doing typo or other
-subtle manual mistakes.
+subtle manual mistakes you can make when releasing from your terminal.
 
 ## Similar projects
 

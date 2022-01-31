@@ -36,11 +36,5 @@ async fn main() -> anyhow::Result<()> {
     //       - bump the version of that crate according to the semantic versioning of the commit.
     // - raise PR
 
-    // release command (probably this is already done in ):
-    // - for every local_crate with a version != remote one:
-    //   - publish crate
-    //   - create a new tag with format `local_crate v*new_version*`
-    // // Maybe the same or similar is done by :
-    // // cargo workspaces publish  --from-git --token "${TOKEN}" --yes
     Ok(())
 }
