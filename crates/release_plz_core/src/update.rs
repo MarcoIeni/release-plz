@@ -1,4 +1,4 @@
-use crate::{version::NextVersionFromDiff, Diff};
+use crate::{version::NextVersionFromDiff, Diff, download};
 use anyhow::{anyhow, Context};
 use cargo_edit::LocalManifest;
 use cargo_metadata::{Package, Version};
@@ -130,7 +130,7 @@ fn get_diff(
     project_root: &Path,
 ) -> anyhow::Result<Diff> {
     let package_path = {
-        let relative_path = package.crate_path().strip_prefix(project_root).unwrap();
+        let relative_path = package.package_path().strip_prefix(project_root).unwrap();
         repository.directory().join(relative_path)
     };
     repository.checkout_head()?;
@@ -163,7 +163,7 @@ fn get_diff(
                 break;
             } else {
                 debug!("packages are different");
-                // At this point of the git history, the two crates are different,
+                // At this point of the git history, the two packages are different,
                 // which means that this commit is not present in the published package.
                 diff.commits.push(current_commit_message.clone());
             }
@@ -187,12 +187,12 @@ fn are_dir_equal(first: &Path, second: &Path) -> bool {
 
 fn packages_to_update(
     project: Project,
-    remote_crates: &BTreeMap<String, Package>,
+    remote_packages: &BTreeMap<String, Package>,
     repository: &Repo,
 ) -> anyhow::Result<Vec<(Package, Version)>> {
     let mut packages_to_update = vec![];
     for c in project.packages {
-        let diff = get_diff(&c, remote_crates, repository, &project.root)?;
+        let diff = get_diff(&c, remote_packages, repository, &project.root)?;
         let current_version = &c.version;
         let next_version = c.version.next_from_diff(&diff);
 
@@ -204,12 +204,12 @@ fn packages_to_update(
     Ok(packages_to_update)
 }
 
-trait CratePath {
-    fn crate_path(&self) -> &Path;
+trait PackagePath {
+    fn package_path(&self) -> &Path;
 }
 
-impl CratePath for Package {
-    fn crate_path(&self) -> &Path {
+impl PackagePath for Package {
+    fn package_path(&self) -> &Path {
         self.manifest_path
             .parent()
             .expect("Cannot find directory containing Cargo.toml file")
@@ -220,30 +220,30 @@ impl CratePath for Package {
 /// Return [`BTreeMap`] with "package name" as key
 fn get_remote_packages(
     remote_manifest: Option<&PathBuf>,
-    local_crates: &[Package],
+    local_packages: &[Package],
 ) -> anyhow::Result<BTreeMap<String, Package>> {
-    let remote_crates = match remote_manifest {
+    let remote_packages = match remote_manifest {
         Some(manifest) => list_packages(manifest)?,
         None => {
-            let local_crates_names: Vec<&str> =
-                local_crates.iter().map(|c| c.name.as_str()).collect();
-            crate::download::download_packages(&local_crates_names)?
+            let local_packages_names: Vec<&str> =
+                local_packages.iter().map(|c| c.name.as_str()).collect();
+            download::download_packages(&local_packages_names)?
         }
     };
-    let remote_crates = remote_crates
+    let remote_packages = remote_packages
         .into_iter()
         .map(|c| {
             let package_name = c.name.clone();
             (package_name, c)
         })
         .collect();
-    Ok(remote_crates)
+    Ok(remote_packages)
 }
 
 #[instrument]
-fn update_versions(local_crates: &[(Package, Version)]) {
-    for (package, next_version) in local_crates {
-        let package_path = package.crate_path();
+fn update_versions(local_packages: &[(Package, Version)]) {
+    for (package, next_version) in local_packages {
+        let package_path = package.package_path();
         set_version(package_path, next_version);
     }
 }
