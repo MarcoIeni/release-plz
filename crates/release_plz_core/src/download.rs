@@ -12,28 +12,28 @@ use tempfile::tempdir;
 use tracing::instrument;
 
 #[instrument]
-pub fn download_crates(crates: &[&str]) -> anyhow::Result<Vec<Package>> {
+pub fn download_packages(packages: &[&str]) -> anyhow::Result<Vec<Package>> {
     let config = cargo::Config::default().expect("Unable to get cargo config.");
     let source_id = SourceId::crates_io(&config).expect("Unable to retrieve source id.");
-    let crates: Vec<cargo_clone::Crate> = crates
+    let packages: Vec<cargo_clone::Crate> = packages
         .iter()
         .map(|c| cargo_clone::Crate::new(c.to_string(), None))
         .collect();
     let temp_dir = tempdir()?;
     let directory = temp_dir.as_ref().to_str().expect("invalid path");
-    let clone_opts = cargo_clone::CloneOpts::new(&crates, &source_id, Some(directory), false);
-    cargo_clone::clone(&clone_opts, &config).context("cannot download remote crates")?;
-    let crates = if crates.len() == 1 {
+    let clone_opts = cargo_clone::CloneOpts::new(&packages, &source_id, Some(directory), false);
+    cargo_clone::clone(&clone_opts, &config).context("cannot download remote packages")?;
+    let packages = if packages.len() == 1 {
         vec![read_package(directory)?]
     } else {
-        let crates = sub_directories(directory)?;
-        let crates = crates
+        let packages = sub_directories(directory)?;
+        let packages = packages
             .iter()
             .map(|p| read_package(&p))
             .collect::<Result<Vec<Package>, _>>();
-        crates?
+        packages?
     };
-    Ok(crates)
+    Ok(packages)
 }
 
 fn sub_directories(directory: impl AsRef<Path>) -> anyhow::Result<Vec<PathBuf>> {
@@ -67,20 +67,20 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn one_crate_is_downloaded() {
-        let crate_name = "rand";
-        let crates = download_crates(&[crate_name]).unwrap();
-        let rand = &crates[0];
-        assert_eq!(rand.name, crate_name);
+    fn one_package_is_downloaded() {
+        let package_name = "rand";
+        let packages = download_packages(&[package_name]).unwrap();
+        let rand = &packages[0];
+        assert_eq!(rand.name, package_name);
     }
 
     #[test]
     #[ignore]
-    fn two_crates_are_downloaded() {
-        let first_crate = "rand";
-        let second_crate = "rust-gh-example";
-        let crates = download_crates(&[first_crate, second_crate]).unwrap();
-        assert_eq!(&crates[0].name, first_crate);
-        assert_eq!(&crates[1].name, second_crate);
+    fn two_packages_are_downloaded() {
+        let first_package = "rand";
+        let second_package = "rust-gh-example";
+        let packages = download_packages(&[first_package, second_package]).unwrap();
+        assert_eq!(&packages[0].name, first_package);
+        assert_eq!(&packages[1].name, second_package);
     }
 }

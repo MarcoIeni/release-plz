@@ -226,7 +226,7 @@ fn get_remote_crates(
         None => {
             let local_crates_names: Vec<&str> =
                 local_crates.iter().map(|c| c.name.as_str()).collect();
-            crate::download::download_crates(&local_crates_names)?
+            crate::download::download_packages(&local_crates_names)?
         }
     };
     let remote_crates = remote_crates
