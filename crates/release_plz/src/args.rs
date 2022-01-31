@@ -14,10 +14,10 @@ pub struct CliArgs {
 
 #[derive(clap::Subcommand, Debug)]
 pub enum Command {
-    /// Update crates version based on commit messages.
+    /// Update packages version based on commit messages.
     Update(Update),
     /// Create (TODO: or update) a Pull Request representing the next release.
-    /// The Pull request contains updated crates version based on commit messages.
+    /// The Pull request contains updated packages version based on commit messages.
     ReleasePr(ReleasePr),
 }
 
@@ -25,11 +25,11 @@ pub enum Command {
 pub struct Update {
     /// Path to the Cargo.toml of the project you want to update.
     /// If not provided, release-plz will use the Cargo.toml of the current directory.
-    /// Both Cargo workspaces and single crates are supported.
+    /// Both Cargo workspaces and single packages are supported.
     #[clap(long)]
     project_manifest: Option<PathBuf>,
     /// Path to the Cargo.toml contained in the released version of the project you want to update.
-    /// If not provided, the crates of your project will be compared with the
+    /// If not provided, the packages of your project will be compared with the
     /// ones published in the cargo registry (only crates.io at the moment).
     /// Normally, this parameter is used only if the published version of
     /// your project is already available locally.

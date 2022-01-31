@@ -12,24 +12,24 @@ use octocrab::OctocrabBuilder;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{instrument, Span};
 
-/// Difference between local and remote crate
+/// Difference between local and remote package
 #[derive(Debug)]
 struct Diff {
     pub commits: Vec<String>,
-    /// Whether the crate name exists in the remote crates or not
-    pub remote_crate_exists: bool,
+    /// Whether the package name exists in the remote package or not
+    pub remote_package_exists: bool,
 }
 
 impl Diff {
-    fn new(remote_crate_exists: bool) -> Self {
+    fn new(remote_package_exists: bool) -> Self {
         Self {
             commits: vec![],
-            remote_crate_exists,
+            remote_package_exists,
         }
     }
 
     fn should_update_version(&self) -> bool {
-        self.remote_crate_exists && !self.commits.is_empty()
+        self.remote_package_exists && !self.commits.is_empty()
     }
 }
 
@@ -49,8 +49,8 @@ pub struct GitHub {
 /// Update a local rust project and raise a pull request
 #[instrument]
 pub async fn release_pr(input: &Request) -> anyhow::Result<()> {
-    let (crates_to_update, repository) = next_versions(&input.update_request)?;
-    if !crates_to_update.is_empty() {
+    let (packages_to_update, repository) = next_versions(&input.update_request)?;
+    if !packages_to_update.is_empty() {
         // TODO think about better naming
         let random_number: u64 = (100_000_000..999_999_999).fake();
         let release_branch = format!("release-{}", random_number);

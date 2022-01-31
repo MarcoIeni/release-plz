@@ -34,7 +34,7 @@ mod tests {
     #[test]
     fn next_version_of_existing_package_is_updated() {
         let diff = Diff {
-            remote_crate_exists: true,
+            remote_package_exists: true,
             commits: vec!["my change".to_string()],
         };
         let version = Version::new(1, 2, 3);
