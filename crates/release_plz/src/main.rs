@@ -29,14 +29,5 @@ async fn main() -> anyhow::Result<()> {
         }
     }
 
-    // pr command:
-    // - go back commit by commit and for every local crate:
-    //   - If the local crate was edited in that commit:
-    //     - if that crate is the same of the remote crate, that local crate is done.
-    //     - otherwise:
-    //       - add the entry to the changelog of that crate.
-    //       - bump the version of that crate according to the semantic versioning of the commit.
-    // - raise PR
-
     Ok(())
 }
