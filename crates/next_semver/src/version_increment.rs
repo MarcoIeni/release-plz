@@ -57,11 +57,11 @@ impl VersionIncrement {
         };
 
         if is_major_bump() {
-            VersionIncrement::Major
+            Self::Major
         } else if is_minor_bump() {
-            VersionIncrement::Minor
+            Self::Minor
         } else {
-            VersionIncrement::Patch
+            Self::Patch
         }
     }
 }
@@ -70,9 +70,9 @@ impl VersionIncrement {
     pub fn bump(&self, version: &Version) -> Version {
         let mut new_version = version.clone();
         match self {
-            VersionIncrement::Major => new_version.increment_major(),
-            VersionIncrement::Minor => new_version.increment_minor(),
-            VersionIncrement::Patch => new_version.increment_patch(),
+            Self::Major => new_version.increment_major(),
+            Self::Minor => new_version.increment_minor(),
+            Self::Patch => new_version.increment_patch(),
         }
         new_version
     }
