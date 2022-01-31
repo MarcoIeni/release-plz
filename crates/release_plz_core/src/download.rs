@@ -1,3 +1,5 @@
+//! Download packages from cargo registry, similar to the `git clone` behavior.
+
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -12,7 +14,7 @@ use tracing::instrument;
 #[instrument]
 pub fn download_crates(crates: &[&str]) -> anyhow::Result<Vec<Package>> {
     let config = cargo::Config::default().expect("Unable to get cargo config.");
-    let source_id = SourceId::crates_io(&config).expect("Unable to retriece source id.");
+    let source_id = SourceId::crates_io(&config).expect("Unable to retrieve source id.");
     let crates: Vec<cargo_clone::Crate> = crates
         .iter()
         .map(|c| cargo_clone::Crate::new(c.to_string(), None))
