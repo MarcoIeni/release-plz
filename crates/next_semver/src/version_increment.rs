@@ -44,13 +44,16 @@ impl VersionIncrement {
         current_version: &Version,
         commits: &[ConventionalCommit],
     ) -> Self {
-        let is_major_bump =
-            || current_version.major != 0 && commits.iter().any(|commit| commit.is_breaking_change);
+        let is_there_a_breaking_change = commits.iter().any(|commit| commit.is_breaking_change);
+
+        let is_major_bump = || current_version.major != 0 && is_there_a_breaking_change;
 
         let is_minor_bump = || {
-            commits
-                .iter()
-                .any(|commit| commit.commit_type == CommitType::Feature)
+            current_version.major != 0
+                && commits
+                    .iter()
+                    .any(|commit| commit.commit_type == CommitType::Feature)
+                || current_version.major == 0 && is_there_a_breaking_change
         };
 
         if is_major_bump() {

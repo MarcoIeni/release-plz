@@ -28,3 +28,10 @@ fn commit_with_breaking_change_increments_major_version() {
     let version = Version::new(1, 2, 3);
     assert_eq!(version.next(commits), Version::new(2, 0, 0));
 }
+
+#[test]
+fn commit_with_breaking_change_increments_minor_version_when_major_is_zero() {
+    let commits = vec!["feat!: break user"];
+    let version = Version::new(0, 2, 3);
+    assert_eq!(version.next(commits), Version::new(0, 3, 0));
+}
