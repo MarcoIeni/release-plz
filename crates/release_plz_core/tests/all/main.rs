@@ -4,10 +4,9 @@ use std::{
     process::Command,
 };
 
-use folder_compare::FolderCompare;
 use fs_extra::dir;
 use git_cmd::{git_in_dir, Repo};
-use release_plz_core::UpdateRequest;
+use release_plz_core::{are_packages_equal, UpdateRequest};
 use tempfile::tempdir;
 
 fn join_cargo_toml(project: &Path) -> PathBuf {
@@ -46,7 +45,7 @@ fn up_to_date_project_is_not_touched() {
     release_plz_core::update(&update_request).unwrap();
 
     // the update should have not changed anything
-    assert!(are_dir_equal(
+    assert!(are_packages_equal(
         &local_project,
         &remote_project.as_ref().join("myproject")
     ));
@@ -82,14 +81,8 @@ fn version_is_updated_when_project_changed() {
     release_plz_core::update(&update_request).unwrap();
 
     // the update should have changed the version
-    assert!(!are_dir_equal(
+    assert!(!are_packages_equal(
         &local_project,
         &remote_project.as_ref().join("myproject")
     ));
-}
-
-fn are_dir_equal(first: &Path, second: &Path) -> bool {
-    let excluded = vec![".git".to_string()];
-    let result = FolderCompare::new(first, second, &excluded).unwrap();
-    result.changed_files.is_empty() && result.new_files.is_empty()
 }

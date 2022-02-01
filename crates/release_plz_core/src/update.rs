@@ -104,7 +104,6 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Ver
     let tmp_project_root = tempdir().context("cannot create temporary directory")?;
     let repository = local_project.get_repo(tmp_project_root.as_ref())?;
 
-    debug!("calculating local packages");
     let packages_to_update = packages_to_update(local_project, &remote_packages, &repository)?;
     debug!("packages to update: {:?}", &packages_to_update);
     Ok((packages_to_update, repository))
@@ -114,7 +113,6 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Ver
 #[instrument]
 pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, Repo)> {
     let (packages_to_update, repository) = next_versions(input)?;
-
     update_versions(&packages_to_update);
     Ok((packages_to_update, repository))
 }
@@ -130,7 +128,10 @@ fn get_diff(
     project_root: &Path,
 ) -> anyhow::Result<Diff> {
     let package_path = {
-        let relative_path = package.package_path().strip_prefix(project_root).unwrap();
+        let relative_path = package
+            .package_path()
+            .strip_prefix(project_root)
+            .context("error while retrieving package_path")?;
         repository.directory().join(relative_path)
     };
     repository.checkout_head()?;
@@ -149,7 +150,7 @@ fn get_diff(
                     .manifest_path
                     .parent()
                     .context("cannot find parent directory")?;
-                are_dir_equal(&package_path, remote_path.as_ref())
+                are_packages_equal(&package_path, remote_path.as_ref())
             };
             if are_packages_equal {
                 debug!("packages are equal");
@@ -179,17 +180,19 @@ fn get_diff(
     Ok(diff)
 }
 
-fn are_dir_equal(first: &Path, second: &Path) -> bool {
+pub fn are_packages_equal(first: &Path, second: &Path) -> bool {
     let excluded = vec![".git".to_string()];
     let result = FolderCompare::new(first, second, &excluded).unwrap();
     result.changed_files.is_empty() && result.new_files.is_empty()
 }
 
+#[instrument(skip_all)]
 fn packages_to_update(
     project: Project,
     remote_packages: &BTreeMap<String, Package>,
     repository: &Repo,
 ) -> anyhow::Result<Vec<(Package, Version)>> {
+    debug!("calculating local packages");
     let mut packages_to_update = vec![];
     for c in project.packages {
         let diff = get_diff(&c, remote_packages, repository, &project.root)?;
