@@ -6,6 +6,7 @@ description = "Update version and release to GitHub and crates.io based on seman
 repository = "https://github.com/MarcoIeni/release-plz/crates/release_plz_core"
 license = "MIT OR Apache-2.0"
 keywords = ["release", "please", "semver", "conventional", "commits"]
+categories = ["development-tools"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

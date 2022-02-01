@@ -6,6 +6,7 @@ description = "Wrapper around git cli"
 repository = "https://github.com/MarcoIeni/release-plz/crates/git_cmd"
 license = "MIT OR Apache-2.0"
 keywords = ["git", "command", "cli", "wrapper", "shell"]
+categories = ["development-tools", "filesystem"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

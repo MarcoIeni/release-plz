@@ -6,6 +6,7 @@ description = "Library to see logs in tests"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/MarcoIeni/release-plz/crates/test_logs"
 keywords = ["test", "logs", "tracing"]
+categories = ["development-tools", "development-tools::testing"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
