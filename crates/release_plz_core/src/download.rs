@@ -20,18 +20,19 @@ pub fn download_packages(packages: &[&str]) -> anyhow::Result<Vec<Package>> {
         .map(|c| cargo_clone::Crate::new(c.to_string(), None))
         .collect();
     let temp_dir = tempdir()?;
-    let directory = temp_dir.as_ref().to_str().expect("invalid path");
+    let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
     let clone_opts = cargo_clone::CloneOpts::new(&packages, &source_id, Some(directory), false);
     cargo_clone::clone(&clone_opts, &config).context("cannot download remote packages")?;
-    let packages = if packages.len() == 1 {
-        vec![read_package(directory)?]
-    } else {
-        let packages = sub_directories(directory)?;
-        let packages = packages
-            .iter()
-            .map(|p| read_package(&p))
-            .collect::<Result<Vec<Package>, _>>();
-        packages?
+    let packages = match packages.len() {
+        1 => vec![read_package(directory)?],
+        _ => {
+            let packages = sub_directories(directory)?;
+            let packages = packages
+                .iter()
+                .map(|p| read_package(&p))
+                .collect::<Result<Vec<Package>, _>>();
+            packages?
+        }
     };
     Ok(packages)
 }
