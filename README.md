@@ -1,7 +1,6 @@
 # release-plz
 
 [![Crates.io](https://img.shields.io/crates/v/release-plz.svg)](https://crates.io/crates/release-plz)
-[![Docs.rs](https://docs.rs/release-plz/badge.svg)](https://docs.rs/release-plz)
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
 
 Release-plz updates the versions of your rust packages, by analyzing you git history,
