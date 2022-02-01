@@ -21,4 +21,4 @@ anyhow = "1"
 tempfile = "3"
 
 test_logs = { path = "../test_logs", version = "0.1.0" }
-git_cmd = { path = ".", version = "0.1.0", features = ["test_fixture"]}
+git_cmd = { path = ".", features = ["test_fixture"]}
