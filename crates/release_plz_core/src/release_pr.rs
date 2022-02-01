@@ -21,12 +21,11 @@ pub struct GitHub {
     pub token: SecretString,
 }
 
-/// Update a local rust project and raise a pull request
+/// Open a pull request with the next packages versions of a local rust project
 #[instrument]
 pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let (packages_to_update, repository) = next_versions(&input.update_request)?;
     if !packages_to_update.is_empty() {
-        // TODO think about better naming
         let random_number: u64 = (100_000_000..999_999_999).fake();
         let release_branch = format!("release-{}", random_number);
         create_release_branch(&repository, &release_branch)?;
