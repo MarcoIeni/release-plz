@@ -49,7 +49,8 @@ fn sub_directories(directory: impl AsRef<Path>) -> anyhow::Result<Vec<PathBuf>> 
     Ok(directories)
 }
 
-fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<Package> {
+/// Read a package from file system
+pub fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<Package> {
     let manifest_path = directory.as_ref().join("Cargo.toml");
     let metadata = cargo_metadata::MetadataCommand::new()
         .no_deps()

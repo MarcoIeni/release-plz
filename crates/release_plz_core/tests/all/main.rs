@@ -4,9 +4,10 @@ use std::{
     process::Command,
 };
 
+use cargo_metadata::Version;
 use fs_extra::dir;
 use git_cmd::{git_in_dir, Repo};
-use release_plz_core::{are_packages_equal, UpdateRequest};
+use release_plz_core::{are_packages_equal, read_package, UpdateRequest};
 use tempfile::tempdir;
 
 fn join_cargo_toml(project: &Path) -> PathBuf {
@@ -85,4 +86,7 @@ fn version_is_updated_when_project_changed() {
         &local_project,
         &remote_project.as_ref().join("myproject")
     ));
+
+    let local_package = read_package(local_project).unwrap();
+    assert_eq!(local_package.version, Version::new(0, 1, 1));
 }
