@@ -2,9 +2,10 @@
 name = "release_plz_core"
 version = "0.1.0"
 edition = "2021"
-description = "Update version and release to GitHub and crates.io"
+description = "Update version and release to GitHub and crates.io based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz/crates/release_plz_core"
 license = "MIT OR Apache-2.0"
+keywords = ["release", "please", "semver", "conventional", "commits"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
