@@ -1,7 +1,7 @@
 use cargo_metadata::Version;
 use next_semver::NextVersion;
 
-use crate::Diff;
+use crate::diff::Diff;
 
 pub(crate) trait NextVersionFromDiff {
     /// Analyze commits and determine which part of version to increment based on

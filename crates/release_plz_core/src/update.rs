@@ -1,4 +1,4 @@
-use crate::{download, version::NextVersionFromDiff, Diff};
+use crate::{download, version::NextVersionFromDiff, diff::Diff};
 use anyhow::{anyhow, Context};
 use cargo_edit::LocalManifest;
 use cargo_metadata::{Package, Version};
