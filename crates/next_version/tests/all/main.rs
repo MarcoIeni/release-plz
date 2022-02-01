@@ -1,4 +1,4 @@
-use next_semver::NextVersion;
+use next_version::NextVersion;
 use semver::Version;
 
 #[test]

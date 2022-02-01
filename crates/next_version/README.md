@@ -1,4 +1,4 @@
-# next_semver
+# next_version
 
 Library to calculate next semantic version based on
 [conventional commits](https://www.conventionalcommits.org/).

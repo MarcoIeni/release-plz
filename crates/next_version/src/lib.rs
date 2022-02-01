@@ -9,7 +9,7 @@
 //!
 //! ```rust
 //! use semver::Version;
-//! use next_semver::NextVersion;
+//! use next_version::NextVersion;
 //!
 //! let commits = vec!["my change"];
 //! assert_eq!(Version::new(1, 2, 3).next(commits), Version::new(1, 2, 4));
@@ -20,7 +20,7 @@
 //!
 //! ```rust
 //! use semver::Version;
-//! use next_semver::NextVersion;
+//! use next_version::NextVersion;
 //!
 //! let commits = vec!["my change", "feat: make coffe"];
 //! assert_eq!(Version::new(1, 2, 4).next(&commits), Version::new(1, 3, 0));
@@ -34,7 +34,7 @@
 //!
 //! ```rust
 //! use semver::Version;
-//! use next_semver::NextVersion;
+//! use next_version::NextVersion;
 //!
 //! let commits = vec!["feat!: break user"];
 //! assert_eq!(Version::new(1, 2, 4).next(&commits), Version::new(2, 0, 0));
@@ -45,5 +45,4 @@
 mod next_version;
 mod version_increment;
 
-pub use next_version::*;
-pub use version_increment::*;
+pub use crate::{next_version::*, version_increment::*};

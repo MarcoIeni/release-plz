@@ -20,7 +20,7 @@ impl NextVersion for Version {
     ///   [these](https://www.conventionalcommits.org/en/v1.0.0/#how-does-this-relate-to-semverare) rules.
     ///
     /// ```rust
-    /// use next_semver::NextVersion;
+    /// use next_version::NextVersion;
     /// use semver::Version;
     ///
     /// let commits = vec!["feat: make coffe"];

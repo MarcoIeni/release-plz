@@ -1341,7 +1341,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "next_semver"
+name = "next_version"
 version = "0.1.0"
 dependencies = [
  "cargo-edit",
@@ -1770,7 +1770,7 @@ dependencies = [
  "folder_compare",
  "fs_extra",
  "git_cmd",
- "next_semver",
+ "next_version",
  "octocrab",
  "secrecy",
  "tempfile",

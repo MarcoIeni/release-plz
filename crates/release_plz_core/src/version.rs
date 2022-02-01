@@ -1,5 +1,5 @@
 use cargo_metadata::Version;
-use next_semver::NextVersion;
+use next_version::NextVersion;
 
 use crate::diff::Diff;
 
