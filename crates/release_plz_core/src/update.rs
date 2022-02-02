@@ -228,8 +228,12 @@ fn get_remote_packages(
     let remote_packages = match remote_manifest {
         Some(manifest) => list_packages(manifest)?,
         None => {
-            let local_packages_names: Vec<&str> =
-                local_packages.iter().map(|c| c.name.as_str()).collect();
+            let local_packages_names: Vec<&str> = local_packages
+                .iter()
+                // skip packages with `publish = false`
+                .filter(|c| c.publish.is_none())
+                .map(|c| c.name.as_str())
+                .collect();
             download::download_packages(&local_packages_names)?
         }
     };
