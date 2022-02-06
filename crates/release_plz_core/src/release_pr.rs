@@ -5,6 +5,7 @@ use fake::Fake;
 use octocrab::OctocrabBuilder;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{instrument, Span};
+use url::Url;
 
 use crate::{next_versions, UpdateRequest};
 
@@ -19,6 +20,25 @@ pub struct GitHub {
     pub owner: String,
     pub repo: String,
     pub token: SecretString,
+    base_url: Option<Url>,
+}
+
+impl GitHub {
+    pub fn new(owner: String, repo: String, token: SecretString) -> Self {
+        Self {
+            owner,
+            repo,
+            token,
+            base_url: None,
+        }
+    }
+
+    pub fn with_base_url(self, base_url: Url) -> Self {
+        Self {
+            base_url: Some(base_url),
+            ..self
+        }
+    }
 }
 
 /// Open a pull request with the next packages versions of a local rust project
@@ -41,8 +61,14 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     )
 )]
 async fn open_pr(release_branch: &str, github: &GitHub) -> anyhow::Result<()> {
-    let client = OctocrabBuilder::new()
-        .personal_token(github.token.expose_secret().clone())
+    let mut octocrab_builder =
+        OctocrabBuilder::new().personal_token(github.token.expose_secret().clone());
+
+    if let Some(base_url) = &github.base_url {
+        octocrab_builder = octocrab_builder.base_url(base_url.clone()).context("Invalid GitHub base url")?;
+    }
+
+    let client = octocrab_builder
         .build()
         .context("Failed to build GitHub client")?;
 

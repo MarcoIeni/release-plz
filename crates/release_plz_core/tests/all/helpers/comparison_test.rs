@@ -1,8 +1,10 @@
 use std::path::PathBuf;
 
 use fs_extra::dir;
-use release_plz_core::{are_packages_equal, UpdateRequest, CARGO_TOML};
+use release_plz_core::{are_packages_equal, GitHub, ReleasePrRequest, UpdateRequest, CARGO_TOML};
+use secrecy::Secret;
 use tempfile::{tempdir, TempDir};
+use url::Url;
 
 /// Compare local project with remote one
 pub struct ComparisonTest {
@@ -32,12 +34,34 @@ impl ComparisonTest {
         }
     }
 
-    pub fn run_update(&self) {
-        let update_request = UpdateRequest::new(self.local_project_manifest())
+    fn update_request(&self) -> UpdateRequest {
+        UpdateRequest::new(self.local_project_manifest())
             .unwrap()
             .with_remote_manifest(self.remote_project_manfifest())
-            .unwrap();
+            .unwrap()
+    }
+
+    pub fn run_update(&self) {
+        let update_request = self.update_request();
         release_plz_core::update(&update_request).unwrap();
+    }
+
+    fn release_pr_request(&self, base_url: Url) -> ReleasePrRequest {
+        let github = GitHub::new(
+            "owner".to_string(),
+            "repo".to_string(),
+            Secret::from("token".to_string()),
+        )
+        .with_base_url(base_url);
+        ReleasePrRequest {
+            github,
+            update_request: self.update_request(),
+        }
+    }
+
+    pub async fn open_release_pr(&self, base_url: Url) -> anyhow::Result<()> {
+        let release_pr_request = self.release_pr_request(base_url);
+        release_plz_core::release_pr(&release_pr_request).await
     }
 
     pub fn local_project(&self) -> PathBuf {

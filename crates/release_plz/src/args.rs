@@ -92,10 +92,6 @@ impl ReleasePr {
             .get(1)
             .ok_or_else(|| anyhow!("cannot find github repo from url {}", self.repo_url))?
             .to_string();
-        Ok(GitHub {
-            owner,
-            repo,
-            token: self.github_token.clone(),
-        })
+        Ok(GitHub::new(owner, repo, self.github_token.clone()))
     }
 }
