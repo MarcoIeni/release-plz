@@ -1,6 +1,6 @@
 [package]
 name = "release-plz"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Update version and release to GitHub and crates.io based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz"
@@ -15,7 +15,7 @@ categories = ["command-line-utilities", "development-tools"]
 anyhow = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
-tracing-subscriber = "0.3"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-log = "0.1"
 secrecy = "0.8"
 clap = { version = "3", features = ["derive", "env"] }
