@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use fs_extra::dir;
-use release_plz_core::{are_packages_equal, CARGO_TOML};
+use release_plz_core::{are_packages_equal, UpdateRequest, CARGO_TOML};
 use tempfile::{tempdir, TempDir};
 
 /// Compare local project with remote one
@@ -30,6 +30,14 @@ impl ComparisonTest {
             local_project: local_project_dir,
             remote_project,
         }
+    }
+
+    pub fn run_update(&self) {
+        let update_request = UpdateRequest::new(self.local_project_manifest())
+            .unwrap()
+            .with_remote_manifest(self.remote_project_manfifest())
+            .unwrap();
+        release_plz_core::update(&update_request).unwrap();
     }
 
     pub fn local_project(&self) -> PathBuf {

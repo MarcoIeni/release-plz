@@ -2,7 +2,7 @@ use std::fs;
 
 use cargo_metadata::Version;
 use git_cmd::git_in_dir;
-use release_plz_core::{read_package, UpdateRequest};
+use release_plz_core::read_package;
 
 use crate::helpers::comparison_test::ComparisonTest;
 
@@ -10,11 +10,7 @@ use crate::helpers::comparison_test::ComparisonTest;
 fn up_to_date_project_is_not_touched() {
     let comparison_test = ComparisonTest::new();
 
-    let update_request = UpdateRequest::new(comparison_test.local_project_manifest())
-        .unwrap()
-        .with_remote_manifest(comparison_test.remote_project_manfifest())
-        .unwrap();
-    release_plz_core::update(&update_request).unwrap();
+    comparison_test.run_update();
 
     // the update should have not changed anything
     assert!(comparison_test.are_projects_equal());
@@ -36,11 +32,7 @@ fn version_is_updated_when_project_changed() {
     )
     .unwrap();
 
-    let update_request = UpdateRequest::new(comparison_test.local_project_manifest())
-        .unwrap()
-        .with_remote_manifest(comparison_test.remote_project_manfifest())
-        .unwrap();
-    release_plz_core::update(&update_request).unwrap();
+    comparison_test.run_update();
 
     // the update should have changed the version
     assert!(!comparison_test.are_projects_equal());
