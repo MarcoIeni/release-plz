@@ -167,10 +167,21 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
     let args: Vec<&str> = args.iter().map(|s| s.trim()).collect();
     let output = Command::new("git").arg("-C").arg(dir).args(args).output()?;
     debug!("git output = {:?}", output);
+    let stdout = cmd::string_from_bytes(output.stdout)?;
     if output.status.success() {
-        Ok(cmd::stdout(output)?)
+        Ok(stdout)
     } else {
-        Err(anyhow!("error while running git: {}", cmd::stderr(output)?))
+        let mut error = "error while running git:\n".to_string();
+        if !stdout.is_empty() {
+            error.push_str("- stdout: ");
+            error.push_str(&stdout);
+        }
+        let stderr = cmd::string_from_bytes(output.stderr)?;
+        if !stderr.is_empty() {
+            error.push_str("- stderr: ");
+            error.push_str(&stdout);
+        }
+        Err(anyhow!(error))
     }
 }
 
