@@ -1,14 +1,14 @@
 mod diff;
 mod download;
+mod next_ver;
 mod release_pr;
+mod tmp_repo;
 mod update;
 mod version;
-mod next_ver;
-mod tmp_repo;
 
 pub use download::read_package;
+pub use next_ver::*;
 pub use release_pr::*;
 pub use update::*;
-pub use next_ver::*;
 
 pub const CARGO_TOML: &str = "Cargo.toml";

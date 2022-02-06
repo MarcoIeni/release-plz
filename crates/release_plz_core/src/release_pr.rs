@@ -65,7 +65,9 @@ async fn open_pr(release_branch: &str, github: &GitHub) -> anyhow::Result<()> {
         OctocrabBuilder::new().personal_token(github.token.expose_secret().clone());
 
     if let Some(base_url) = &github.base_url {
-        octocrab_builder = octocrab_builder.base_url(base_url.clone()).context("Invalid GitHub base url")?;
+        octocrab_builder = octocrab_builder
+            .base_url(base_url.clone())
+            .context("Invalid GitHub base url")?;
     }
 
     let client = octocrab_builder
