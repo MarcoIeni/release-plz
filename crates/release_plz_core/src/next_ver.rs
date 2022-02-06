@@ -1,4 +1,4 @@
-use crate::{diff::Diff, download, version::NextVersionFromDiff, CARGO_TOML};
+use crate::{diff::Diff, download, tmp_repo::TempRepo, version::NextVersionFromDiff, CARGO_TOML};
 use anyhow::{anyhow, Context};
 use cargo_metadata::{Package, Version};
 use folder_compare::FolderCompare;
@@ -41,16 +41,14 @@ impl UpdateRequest {
 
 /// Determine next version of packages
 #[instrument]
-pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, Repo)> {
+pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, TempRepo)> {
     let local_project = Project::new(&input.local_manifest)?;
     let remote_packages =
         get_remote_packages(input.remote_manifest.as_ref(), &local_project.packages)?;
 
-    // copy the repository into a temporary directory, so that we are not sure we don't alter the original one
-    let tmp_project_root = tempdir().context("cannot create temporary directory")?;
-    let repository = local_project.get_repo(tmp_project_root.as_ref())?;
+    let repository = local_project.get_repo()?;
 
-    let packages_to_update = packages_to_update(local_project, &remote_packages, &repository)?;
+    let packages_to_update = packages_to_update(local_project, &remote_packages, &repository.repo)?;
     debug!("packages to update: {:?}", &packages_to_update);
     Ok((packages_to_update, repository))
 }
@@ -88,9 +86,16 @@ impl Project {
         })
     }
 
-    /// Copy this project in a temporary repository located in `tmp_project_root` and return the repository.
-    fn get_repo(&self, tmp_project_root: &Path) -> anyhow::Result<Repo> {
-        dir::copy(&self.root, tmp_project_root, &dir::CopyOptions::default()).context(format!(
+    /// Copy this project in a temporary repository return the repository.
+    /// We copy the project in another directory in order to avoid altering it.
+    fn get_repo(&self) -> anyhow::Result<TempRepo> {
+        let tmp_project_root = tempdir().context("cannot create temporary directory")?;
+        dir::copy(
+            &self.root,
+            tmp_project_root.as_ref(),
+            &dir::CopyOptions::default(),
+        )
+        .context(format!(
             "cannot copy directory {:?} to {:?}",
             self.root, tmp_project_root
         ))?;
@@ -102,11 +107,11 @@ impl Project {
                 .strip_prefix(parent_root)
                 .context("cannot strip prefix for manifest dir")?;
             debug!("relative_manifest_dir: {relative_manifest_dir:?}");
-            tmp_project_root.join(relative_manifest_dir)
+            tmp_project_root.as_ref().join(relative_manifest_dir)
         };
         debug!("tmp_manifest_dir: {tmp_manifest_dir:?}");
 
-        let repository = Repo::new(&tmp_manifest_dir)?;
+        let repository = TempRepo::new(tmp_project_root, &tmp_manifest_dir)?;
         Ok(repository)
     }
 }

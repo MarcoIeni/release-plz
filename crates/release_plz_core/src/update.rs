@@ -1,14 +1,13 @@
-use crate::{PackagePath, UpdateRequest};
+use crate::{tmp_repo::TempRepo, PackagePath, UpdateRequest};
 use cargo_edit::LocalManifest;
 use cargo_metadata::{Package, Version};
-use git_cmd::{self, Repo};
 use std::path::Path;
 
 use tracing::{debug, instrument};
 
 /// Update a local rust project
 #[instrument]
-pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, Repo)> {
+pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, TempRepo)> {
     let (packages_to_update, repository) = crate::next_versions(input)?;
     update_versions(&packages_to_update);
     Ok((packages_to_update, repository))

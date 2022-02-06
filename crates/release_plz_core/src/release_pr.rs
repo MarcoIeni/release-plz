@@ -28,7 +28,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     if !packages_to_update.is_empty() {
         let random_number: u64 = (100_000_000..999_999_999).fake();
         let release_branch = format!("release-{}", random_number);
-        create_release_branch(&repository, &release_branch)?;
+        create_release_branch(&repository.repo, &release_branch)?;
         open_pr(&release_branch, &input.github).await?;
     }
 
