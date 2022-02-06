@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::anyhow;
-use release_plz_core::{GitHub, UpdateRequest};
+use release_plz_core::{GitHub, UpdateRequest, CARGO_TOML};
 use secrecy::SecretString;
 use url::Url;
 
@@ -67,7 +67,7 @@ impl Update {
             Some(manifest) => manifest.clone(),
             None => std::env::current_dir()
                 .expect("cannot retrieve current directory")
-                .join("Cargo.toml"),
+                .join(CARGO_TOML),
         }
     }
 }

@@ -9,10 +9,13 @@ use anyhow::{anyhow, Context};
 use cargo::core::SourceId;
 use cargo_metadata::Package;
 use tempfile::tempdir;
-use tracing::instrument;
+use tracing::{info, instrument};
+
+use crate::CARGO_TOML;
 
 #[instrument]
 pub fn download_packages(packages: &[&str]) -> anyhow::Result<Vec<Package>> {
+    info!("downloading remote packages");
     let config = cargo::Config::default().expect("Unable to get cargo config.");
     let source_id = SourceId::crates_io(&config).expect("Unable to retrieve source id.");
     let packages: Vec<cargo_clone::Crate> = packages
@@ -51,7 +54,7 @@ fn sub_directories(directory: impl AsRef<Path>) -> anyhow::Result<Vec<PathBuf>> 
 
 /// Read a package from file system
 pub fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<Package> {
-    let manifest_path = directory.as_ref().join("Cargo.toml");
+    let manifest_path = directory.as_ref().join(CARGO_TOML);
     let metadata = cargo_metadata::MetadataCommand::new()
         .no_deps()
         .manifest_path(manifest_path)

@@ -7,3 +7,5 @@ mod version;
 pub use download::read_package;
 pub use release_pr::*;
 pub use update::*;
+
+pub const CARGO_TOML: &str = "Cargo.toml";

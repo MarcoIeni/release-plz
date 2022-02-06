@@ -7,11 +7,11 @@ use std::{
 use cargo_metadata::Version;
 use fs_extra::dir;
 use git_cmd::{git_in_dir, Repo};
-use release_plz_core::{are_packages_equal, read_package, UpdateRequest};
+use release_plz_core::{are_packages_equal, read_package, UpdateRequest, CARGO_TOML};
 use tempfile::tempdir;
 
 fn join_cargo_toml(project: &Path) -> PathBuf {
-    project.join("Cargo.toml")
+    project.join(CARGO_TOML)
 }
 
 fn init_project(project: &Path) {
