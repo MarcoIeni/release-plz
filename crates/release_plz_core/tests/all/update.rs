@@ -3,10 +3,10 @@ use std::fs;
 use cargo_metadata::Version;
 use fs_extra::dir;
 use git_cmd::git_in_dir;
-use release_plz_core::{are_packages_equal, read_package, UpdateRequest};
+use release_plz_core::{are_packages_equal, read_package, UpdateRequest, CARGO_TOML};
 use tempfile::tempdir;
 
-use crate::{init_project, join_cargo_toml};
+use crate::init_project;
 
 #[test]
 fn up_to_date_project_is_not_touched() {
@@ -23,9 +23,9 @@ fn up_to_date_project_is_not_touched() {
     )
     .unwrap();
 
-    let update_request = UpdateRequest::new(join_cargo_toml(&local_project))
+    let update_request = UpdateRequest::new(local_project.join(CARGO_TOML))
         .unwrap()
-        .with_remote_manifest(join_cargo_toml(&remote_project.as_ref().join("myproject")))
+        .with_remote_manifest(remote_project.as_ref().join("myproject").join(CARGO_TOML))
         .unwrap();
     release_plz_core::update(&update_request).unwrap();
 
@@ -59,9 +59,9 @@ fn version_is_updated_when_project_changed() {
     git_in_dir(&local_project, &["add", "."]).unwrap();
     git_in_dir(&local_project, &["commit", "-m", "feat: do awesome stuff"]).unwrap();
 
-    let update_request = UpdateRequest::new(join_cargo_toml(&local_project))
+    let update_request = UpdateRequest::new(local_project.join(CARGO_TOML))
         .unwrap()
-        .with_remote_manifest(join_cargo_toml(&remote_project.as_ref().join("myproject")))
+        .with_remote_manifest(remote_project.as_ref().join("myproject").join(CARGO_TOML))
         .unwrap();
     release_plz_core::update(&update_request).unwrap();
 
