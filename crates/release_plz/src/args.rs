@@ -37,6 +37,10 @@ pub struct Update {
     /// The git history of this project should be behind the one of the project you want to update.
     #[clap(long)]
     reference_project_manifest: Option<PathBuf>,
+    /// Package to update. Use it when you want to update a single package rather than all the
+    /// packages contained in the workspace.
+    #[clap(short, long)]
+    package: Option<String>,
 }
 
 #[derive(clap::Parser, Debug)]
@@ -58,6 +62,9 @@ impl Update {
             update = update
                 .with_remote_manifest(reference_project_manifest.clone())
                 .unwrap();
+        }
+        if let Some(package) = &self.package {
+            update = update.with_single_package(package.clone()).unwrap();
         }
         update
     }

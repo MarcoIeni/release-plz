@@ -16,6 +16,8 @@ use tracing::{debug, info, instrument};
 pub struct UpdateRequest {
     local_manifest: PathBuf,
     remote_manifest: Option<PathBuf>,
+    /// Update just this package.
+    single_package: Option<String>,
 }
 
 impl UpdateRequest {
@@ -27,6 +29,7 @@ impl UpdateRequest {
         Ok(Self {
             local_manifest,
             remote_manifest: None,
+            single_package: None,
         })
     }
 
@@ -34,6 +37,13 @@ impl UpdateRequest {
         let remote_manifest = fs::canonicalize(remote_manifest)?;
         Ok(Self {
             remote_manifest: Some(remote_manifest),
+            ..self
+        })
+    }
+
+    pub fn with_single_package(self, package: String) -> io::Result<Self> {
+        Ok(Self {
+            single_package: Some(package),
             ..self
         })
     }
@@ -50,7 +60,7 @@ impl UpdateRequest {
 /// Determine next version of packages
 #[instrument]
 pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, TempRepo)> {
-    let local_project = Project::new(&input.local_manifest)?;
+    let local_project = Project::new(input)?;
     let remote_packages =
         get_remote_packages(input.remote_manifest.as_ref(), &local_project.packages)?;
 
@@ -70,7 +80,8 @@ struct Project {
 }
 
 impl Project {
-    fn new(manifest: &Path) -> anyhow::Result<Self> {
+    fn new(input: &UpdateRequest) -> anyhow::Result<Self> {
+        let manifest = &input.local_manifest;
         let manifest_dir = manifest
             .parent()
             .ok_or_else(|| {
@@ -87,8 +98,12 @@ impl Project {
             PathBuf::from(project_root)
         };
         debug!("project_root: {root:?}");
+        let mut packages = list_packages(manifest)?;
+        if let Some(pac) = &input.single_package {
+            packages = packages.into_iter().filter(|p| &p.name == pac).collect();
+        }
         Ok(Self {
-            packages: list_packages(manifest)?,
+            packages,
             root,
             manifest_dir,
         })
