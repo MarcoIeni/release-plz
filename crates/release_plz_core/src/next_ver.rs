@@ -228,7 +228,7 @@ fn get_diff(
 }
 
 pub fn are_packages_equal(first: &Path, second: &Path) -> bool {
-    let excluded = vec![".git".to_string()];
+    let excluded = vec![".git".to_string(), ".cargo_vcs_info.json".to_string()];
     let result = FolderCompare::new(first, second, &excluded).unwrap();
     result.changed_files.is_empty() && result.new_files.is_empty()
 }
