@@ -10,7 +10,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use tempfile::{tempdir, TempDir};
-use tracing::{debug, instrument};
+use tracing::{debug, info, instrument};
 
 #[derive(Debug)]
 pub struct UpdateRequest {
@@ -149,14 +149,14 @@ fn packages_to_update(
 ) -> anyhow::Result<Vec<(Package, Version)>> {
     debug!("calculating local packages");
     let mut packages_to_update = vec![];
-    for c in project.packages {
-        let diff = get_diff(&c, remote_packages, repository, &project.root)?;
-        let current_version = &c.version;
-        let next_version = c.version.next_from_diff(&diff);
+    for p in project.packages {
+        let diff = get_diff(&p, remote_packages, repository, &project.root)?;
+        let current_version = &p.version;
+        let next_version = p.version.next_from_diff(&diff);
 
         debug!("diff: {:?}, next_version: {}", &diff, next_version);
         if next_version != *current_version {
-            packages_to_update.push((c, next_version));
+            packages_to_update.push((p, next_version));
         }
     }
     Ok(packages_to_update)
@@ -183,7 +183,7 @@ fn get_diff(
     let remote_package = remote_packages.get(&package.name);
     let mut diff = Diff::new(remote_package.is_some());
     if let Err(_err) = repository.checkout_last_commit_at_path(&package_path) {
-        // there are no commits for this package
+        info!("there are no commits for this package");
         return Ok(diff);
     }
     loop {
@@ -198,14 +198,14 @@ fn get_diff(
                 are_packages_equal(&package_path, remote_path.as_ref())
             };
             if are_packages_equal {
-                debug!("packages are equal");
+                info!("next version calculated starting from commit `{current_commit_message}`");
                 // The local package is identical to the remote one, which means that
                 // the package was published at this commit, so we will not count this commit
                 // as part of the release.
                 // We can process the next create.
                 break;
             } else if remote_package.version != package.version {
-                debug!("the local package {} has already a different version with respect to the remote package, so release-plz will not update it", package.name);
+                info!("the local package has already a different version with respect to the remote package, so release-plz will not update it");
                 break;
             } else {
                 debug!("packages are different");
@@ -217,7 +217,7 @@ fn get_diff(
             diff.commits.push(current_commit_message.clone());
         }
         if let Err(_err) = repository.checkout_previous_commit_at_path(&package_path) {
-            // there are no other commits.
+            info!("there are no other commits");
             break;
         }
     }
