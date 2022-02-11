@@ -179,7 +179,7 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
         let stderr = cmd::string_from_bytes(output.stderr)?;
         if !stderr.is_empty() {
             error.push_str("- stderr: ");
-            error.push_str(&stdout);
+            error.push_str(&stderr);
         }
         Err(anyhow!(error))
     }
