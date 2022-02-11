@@ -198,7 +198,9 @@ fn get_diff(
                 are_packages_equal(&package_path, remote_path.as_ref())
             };
             if are_packages_equal {
-                info!("next version calculated starting from commit `{current_commit_message}`");
+                info!(
+                    "next version calculated starting from commit after `{current_commit_message}`"
+                );
                 // The local package is identical to the remote one, which means that
                 // the package was published at this commit, so we will not count this commit
                 // as part of the release.
