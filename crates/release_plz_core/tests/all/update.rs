@@ -1,10 +1,7 @@
-use std::fs;
-
 use cargo_metadata::Version;
-use git_cmd::git_in_dir;
 use release_plz_core::read_package;
 
-use crate::helpers::comparison_test::ComparisonTest;
+use crate::helpers::{comparison_test::ComparisonTest, user_mock};
 
 #[test]
 fn up_to_date_project_is_not_touched() {
@@ -20,17 +17,7 @@ fn up_to_date_project_is_not_touched() {
 fn version_is_updated_when_project_changed() {
     let comparison_test = ComparisonTest::new();
 
-    fs::write(
-        comparison_test.local_project().join("src").join("lib.rs"),
-        "do amazing things",
-    )
-    .unwrap();
-    git_in_dir(&comparison_test.local_project(), &["add", "."]).unwrap();
-    git_in_dir(
-        &comparison_test.local_project(),
-        &["commit", "-m", "feat: do awesome stuff"],
-    )
-    .unwrap();
+    user_mock::add_feature(&comparison_test.local_project());
 
     comparison_test.run_update();
 

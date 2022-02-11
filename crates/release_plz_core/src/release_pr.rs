@@ -1,13 +1,15 @@
+use std::path::PathBuf;
+
 use git_cmd::Repo;
 
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use fake::Fake;
 use octocrab::OctocrabBuilder;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{instrument, Span};
 use url::Url;
 
-use crate::{next_versions, UpdateRequest};
+use crate::{copy_to_temp_dir, update, UpdateRequest, CARGO_TOML};
 
 #[derive(Debug)]
 pub struct ReleasePrRequest {
@@ -44,11 +46,32 @@ impl GitHub {
 /// Open a pull request with the next packages versions of a local rust project
 #[instrument]
 pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
-    let (packages_to_update, repository) = next_versions(&input.update_request)?;
+    let manifest_dir = input
+        .update_request
+        .local_manifest()
+        .parent()
+        .ok_or_else(|| anyhow!("wrong local manifest path"))?;
+    let tmp_project_root = copy_to_temp_dir(manifest_dir)?;
+    let manifest_dir_name = manifest_dir
+        .iter()
+        .last()
+        .ok_or_else(|| anyhow!("wrong local manifest path"))?;
+    let manifest_dir_name = PathBuf::from(manifest_dir_name);
+    let new_manifest_dir = tmp_project_root.as_ref().join(manifest_dir_name);
+    let new_update_request = {
+        let mut ur = UpdateRequest::new(new_manifest_dir.join(CARGO_TOML))
+            .context("can't find temporary project")?;
+        if let Some(remote) = input.update_request.remote_manifest() {
+            ur = ur.with_remote_manifest(remote.to_path_buf())?;
+        }
+        ur
+    };
+    let (packages_to_update, _repository) = update(&new_update_request)?;
     if !packages_to_update.is_empty() {
         let random_number: u64 = (100_000_000..999_999_999).fake();
         let release_branch = format!("release-{}", random_number);
-        create_release_branch(&repository.repo, &release_branch)?;
+        let repo = Repo::new(new_manifest_dir)?;
+        create_release_branch(&repo, &release_branch)?;
         open_pr(&release_branch, &input.github).await?;
     }
 

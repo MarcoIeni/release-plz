@@ -9,7 +9,7 @@ use std::{
     fs, io,
     path::{Path, PathBuf},
 };
-use tempfile::tempdir;
+use tempfile::{tempdir, TempDir};
 use tracing::{debug, instrument};
 
 #[derive(Debug)]
@@ -36,6 +36,14 @@ impl UpdateRequest {
             remote_manifest: Some(remote_manifest),
             ..self
         })
+    }
+
+    pub fn local_manifest(&self) -> &Path {
+        &self.local_manifest
+    }
+
+    pub fn remote_manifest(&self) -> Option<&Path> {
+        self.remote_manifest.as_deref()
     }
 }
 
@@ -89,17 +97,7 @@ impl Project {
     /// Copy this project in a temporary repository return the repository.
     /// We copy the project in another directory in order to avoid altering it.
     fn get_repo(&self) -> anyhow::Result<TempRepo> {
-        let tmp_project_root = tempdir().context("cannot create temporary directory")?;
-        dir::copy(
-            &self.root,
-            tmp_project_root.as_ref(),
-            &dir::CopyOptions::default(),
-        )
-        .context(format!(
-            "cannot copy directory {:?} to {:?}",
-            self.root, tmp_project_root
-        ))?;
-
+        let tmp_project_root = copy_to_temp_dir(&self.root)?;
         let tmp_manifest_dir = {
             let parent_root = self.root.parent().context("cannot determine parent root")?;
             let relative_manifest_dir = self
@@ -249,4 +247,11 @@ impl PackagePath for Package {
             .expect("Cannot find directory containing Cargo.toml file")
             .as_std_path()
     }
+}
+
+pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
+    let tmp_dir = tempdir().context("cannot create temporary directory")?;
+    dir::copy(target, tmp_dir.as_ref(), &dir::CopyOptions::default())
+        .context(format!("cannot copy directory {target:?} to {tmp_dir:?}",))?;
+    Ok(tmp_dir)
 }

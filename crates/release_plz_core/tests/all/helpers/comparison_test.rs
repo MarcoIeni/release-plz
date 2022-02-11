@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 
-use fs_extra::dir;
-use release_plz_core::{are_packages_equal, GitHub, ReleasePrRequest, UpdateRequest, CARGO_TOML};
+use release_plz_core::{
+    are_packages_equal, copy_to_temp_dir, GitHub, ReleasePrRequest, UpdateRequest, CARGO_TOML,
+};
 use secrecy::Secret;
 use tempfile::{tempdir, TempDir};
 use url::Url;
@@ -21,13 +22,7 @@ impl ComparisonTest {
         let local_project = local_project_dir.as_ref().join(PROJECT_NAME);
         crate::init_project(&local_project);
 
-        let remote_project = tempdir().unwrap();
-        dir::copy(
-            &local_project,
-            remote_project.as_ref(),
-            &dir::CopyOptions::default(),
-        )
-        .unwrap();
+        let remote_project = copy_to_temp_dir(&local_project).unwrap();
         Self {
             local_project: local_project_dir,
             remote_project,
@@ -48,8 +43,8 @@ impl ComparisonTest {
 
     fn release_pr_request(&self, base_url: Url) -> ReleasePrRequest {
         let github = GitHub::new(
-            "owner".to_string(),
-            "repo".to_string(),
+            OWNER.to_string(),
+            REPO.to_string(),
             Secret::from("token".to_string()),
         )
         .with_base_url(base_url);
@@ -84,3 +79,6 @@ impl ComparisonTest {
         are_packages_equal(&self.local_project(), &self.remote_project())
     }
 }
+
+pub const OWNER: &str = "owner";
+pub const REPO: &str = "repo";
