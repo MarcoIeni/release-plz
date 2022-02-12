@@ -98,10 +98,13 @@ impl Project {
             PathBuf::from(project_root)
         };
         debug!("project_root: {root:?}");
-        let mut packages = list_packages(manifest)?;
+        let mut packages = public_packages(manifest)?;
         if let Some(pac) = &input.single_package {
             packages = packages.into_iter().filter(|p| &p.name == pac).collect();
         }
+
+        anyhow::ensure!(!packages.is_empty(), "no public packages found");
+
         Ok(Self {
             packages,
             root,
@@ -135,14 +138,10 @@ fn get_remote_packages(
     local_packages: &[Package],
 ) -> anyhow::Result<BTreeMap<String, Package>> {
     let remote_packages = match remote_manifest {
-        Some(manifest) => list_packages(manifest)?,
+        Some(manifest) => public_packages(manifest)?,
         None => {
-            let local_packages_names: Vec<&str> = local_packages
-                .iter()
-                // skip packages with `publish = false`
-                .filter(|c| c.publish.is_none())
-                .map(|c| c.name.as_str())
-                .collect();
+            let local_packages_names: Vec<&str> =
+                local_packages.iter().map(|c| c.name.as_str()).collect();
             download::download_packages(&local_packages_names)?
         }
     };
@@ -248,9 +247,14 @@ pub fn are_packages_equal(first: &Path, second: &Path) -> bool {
     result.changed_files.is_empty() && result.new_files.is_empty()
 }
 
-fn list_packages(directory: &Path) -> anyhow::Result<Vec<Package>> {
-    cargo_edit::workspace_members(Some(directory))
-        .map_err(|e| anyhow!("cannot read workspace members: {e}"))
+fn public_packages(directory: &Path) -> anyhow::Result<Vec<Package>> {
+    let packages = cargo_edit::workspace_members(Some(directory))
+        .map_err(|e| anyhow!("cannot read workspace members: {e}"))?
+        .into_iter()
+        // skip packages with `publish = false`
+        .filter(|c| c.publish.is_none())
+        .collect();
+    Ok(packages)
 }
 
 pub trait PackagePath {
