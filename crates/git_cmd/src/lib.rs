@@ -11,7 +11,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Context};
-use tracing::{debug, instrument, Span};
+use tracing::{debug, instrument, trace, Span};
 
 /// Repository
 pub struct Repo {
@@ -47,6 +47,14 @@ impl Repo {
                 e
             }
         )
+    }
+
+    /// Check if there are uncommitted changes.
+    pub fn is_clean(&self) -> anyhow::Result<()> {
+        let output = self.git(&["status", "--porcelain"])?;
+        let output = output.trim();
+        anyhow::ensure!(output.is_empty(), "the working directory of this project has uncommitted changes. Please commit or stash these changes:\n{output}");
+        Ok(())
     }
 
     pub fn checkout_new_branch(&self, branch: &str) -> anyhow::Result<()> {
@@ -166,7 +174,7 @@ impl Repo {
 pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
     let args: Vec<&str> = args.iter().map(|s| s.trim()).collect();
     let output = Command::new("git").arg("-C").arg(dir).args(args).output()?;
-    debug!("git output = {:?}", output);
+    trace!("git output = {:?}", output);
     let stdout = cmd::string_from_bytes(output.stdout)?;
     if output.status.success() {
         Ok(stdout)
@@ -187,6 +195,7 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
 
 #[cfg(test)]
 mod tests {
+    use claim::assert_ok;
     use std::fs;
     use tempfile::tempdir;
 
@@ -231,5 +240,23 @@ mod tests {
             repo.add_all_and_commit(commit_message).unwrap();
         }
         assert_eq!(repo.current_commit_message().unwrap(), commit_message);
+    }
+
+    #[test]
+    fn clean_project_is_recognized() {
+        test_logs::init();
+        let repository_dir = tempdir().unwrap();
+        let repo = Repo::init(&repository_dir);
+        assert_ok!(repo.is_clean());
+    }
+
+    #[test]
+    fn dirty_project_is_recognized() {
+        test_logs::init();
+        let repository_dir = tempdir().unwrap();
+        let repo = Repo::init(&repository_dir);
+        let file1 = repository_dir.as_ref().join("file1.txt");
+        fs::write(&file1, b"Hello, file1!").unwrap();
+        assert!(repo.is_clean().is_err());
     }
 }

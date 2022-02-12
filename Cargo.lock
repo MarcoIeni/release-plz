@@ -402,6 +402,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fff857943da45f546682664a79488be82e69e43c1a7a2307679ab9afb3a66d2e"
 
 [[package]]
+name = "claim"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f81099d6bb72e1df6d50bb2347224b666a670912bb7f06dbe867a4a070ab3ce8"
+dependencies = [
+ "autocfg",
+]
+
+[[package]]
 name = "clap"
 version = "2.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1030,6 +1039,7 @@ name = "git_cmd"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "claim",
  "git_cmd",
  "tempfile",
  "test_logs",

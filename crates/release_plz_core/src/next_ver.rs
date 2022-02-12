@@ -161,6 +161,7 @@ fn packages_to_update(
     remote_packages: &BTreeMap<String, Package>,
     repository: &Repo,
 ) -> anyhow::Result<Vec<(Package, Version)>> {
+    repository.is_clean()?;
     debug!("calculating local packages");
     let mut packages_to_update = vec![];
     for p in project.packages {
