@@ -1,6 +1,6 @@
 [package]
 name = "git_cmd"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Wrapper around git cli"
 repository = "https://github.com/MarcoIeni/release-plz/crates/git_cmd"
@@ -20,6 +20,6 @@ anyhow = "1"
 [dev-dependencies]
 tempfile = "3"
 
-test_logs = { path = "../test_logs", version = "0.1.0" }
+test_logs = { path = "../test_logs" }
 git_cmd = { path = ".", features = ["test_fixture"]}
 claim = "0.5"

@@ -12,7 +12,7 @@ categories = ["development-tools"]
 
 [dependencies]
 next_version = { path = "../next_version", version = "0.1.0" }
-git_cmd = { path = "../git_cmd", version = "0.1.0" }
+git_cmd = { path = "../git_cmd", version = "0.1.1" }
 
 anyhow = "1"
 cargo = "0.58"
@@ -29,7 +29,7 @@ fs_extra = "1"
 url = "2"
 
 [dev-dependencies]
-test_logs = { path = "../test_logs", version = "0.1.0" }
-git_cmd = { path = "../git_cmd", version = "0.1.0", features = ["test_fixture"] }
+test_logs = { path = "../test_logs" }
+git_cmd = { path = "../git_cmd", features = ["test_fixture"] }
 tokio = { version = "1", features = ["macros"] }
 wiremock = "0.5"
