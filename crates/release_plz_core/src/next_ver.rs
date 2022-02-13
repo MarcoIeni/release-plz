@@ -74,7 +74,6 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Ver
     let repository = local_project.get_repo()?;
 
     let packages_to_update = packages_to_update(local_project, &remote_packages, &repository.repo)?;
-    debug!("packages to update: {:?}", &packages_to_update);
     Ok((packages_to_update, repository))
 }
 
