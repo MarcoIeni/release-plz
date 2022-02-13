@@ -2537,7 +2537,7 @@ dependencies = [
 
 [[package]]
 name = "test_logs"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "once_cell",
  "tracing",
