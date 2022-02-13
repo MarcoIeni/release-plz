@@ -82,15 +82,7 @@ struct Project {
 impl Project {
     fn new(input: &UpdateRequest) -> anyhow::Result<Self> {
         let manifest = &input.local_manifest;
-        let manifest_dir = manifest
-            .parent()
-            .ok_or_else(|| {
-                anyhow!(
-                    "cannot find directory where manifest {:?} is located",
-                    manifest
-                )
-            })?
-            .to_path_buf();
+        let manifest_dir = manifest_dir(manifest)?.to_path_buf();
         debug!("manifest_dir: {manifest_dir:?}");
         let root = {
             let project_root =
@@ -189,7 +181,7 @@ fn get_diff(
 ) -> anyhow::Result<Diff> {
     let package_path = {
         let relative_path = package
-            .package_path()
+            .package_path()?
             .strip_prefix(project_root)
             .context("error while retrieving package_path")?;
         repository.directory().join(relative_path)
@@ -206,11 +198,8 @@ fn get_diff(
         if let Some(remote_package) = remote_package {
             debug!("remote package {} found", remote_package.name);
             let are_packages_equal = {
-                let remote_path = remote_package
-                    .manifest_path
-                    .parent()
-                    .context("cannot find parent directory")?;
-                are_packages_equal(&package_path, remote_path.as_ref())
+                let remote_path = remote_package.package_path()?;
+                are_packages_equal(&package_path, remote_path)
             };
             if are_packages_equal {
                 info!(
@@ -259,16 +248,23 @@ fn public_packages(directory: &Path) -> anyhow::Result<Vec<Package>> {
 }
 
 pub trait PackagePath {
-    fn package_path(&self) -> &Path;
+    fn package_path(&self) -> anyhow::Result<&Path>;
 }
 
 impl PackagePath for Package {
-    fn package_path(&self) -> &Path {
-        self.manifest_path
-            .parent()
-            .expect("Cannot find directory containing Cargo.toml file")
-            .as_std_path()
+    fn package_path(&self) -> anyhow::Result<&Path> {
+        manifest_dir(self.manifest_path.as_std_path())
     }
+}
+
+fn manifest_dir(manifest: &Path) -> anyhow::Result<&Path> {
+    let manifest_dir = manifest.parent().ok_or_else(|| {
+        anyhow!(
+            "Cannot find directory where manifest {:?} is located",
+            manifest
+        )
+    })?;
+    Ok(manifest_dir)
 }
 
 pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {

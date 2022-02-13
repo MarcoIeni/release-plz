@@ -9,16 +9,17 @@ use tracing::{debug, instrument};
 #[instrument]
 pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, TempRepo)> {
     let (packages_to_update, repository) = crate::next_versions(input)?;
-    update_versions(&packages_to_update);
+    update_versions(&packages_to_update)?;
     Ok((packages_to_update, repository))
 }
 
 #[instrument]
-fn update_versions(local_packages: &[(Package, Version)]) {
+fn update_versions(local_packages: &[(Package, Version)]) -> anyhow::Result<()> {
     for (package, next_version) in local_packages {
-        let package_path = package.package_path();
+        let package_path = package.package_path()?;
         set_version(package_path, next_version);
     }
+    Ok(())
 }
 
 #[instrument]
