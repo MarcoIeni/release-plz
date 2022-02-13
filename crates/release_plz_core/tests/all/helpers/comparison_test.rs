@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{fs, path::PathBuf};
 
 use release_plz_core::{
     are_packages_equal, copy_to_temp_dir, GitHub, ReleasePrRequest, UpdateRequest, CARGO_TOML,
@@ -23,10 +23,16 @@ impl ComparisonTest {
         crate::init_project(&local_project);
 
         let remote_project = copy_to_temp_dir(&local_project).unwrap();
-        Self {
+        let comparison = Self {
             local_project: local_project_dir,
             remote_project,
-        }
+        };
+        fs::copy(
+            comparison.remote_project().join(CARGO_TOML),
+            comparison.remote_project().join("Cargo.toml.orig"),
+        )
+        .unwrap();
+        comparison
     }
 
     fn update_request(&self) -> UpdateRequest {
