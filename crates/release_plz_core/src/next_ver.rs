@@ -146,6 +146,7 @@ fn packages_to_update(
 
         debug!("diff: {:?}, next_version: {}", &diff, next_version);
         if next_version != *current_version {
+            info!("{}: next version is {next_version}", p.name);
             packages_to_update.push((p, next_version));
         }
     }
@@ -173,7 +174,7 @@ fn get_diff(
     let remote_package = remote_packages.get_package(&package.name);
     let mut diff = Diff::new(remote_package.is_some());
     if let Err(_err) = repository.checkout_last_commit_at_path(&package_path) {
-        info!("there are no commits for this package");
+        info!("{}: there are no commits", package.name);
         return Ok(diff);
     }
     loop {
@@ -188,13 +189,16 @@ fn get_diff(
                 debug!(
                     "next version calculated starting from commit after `{current_commit_message}`"
                 );
+                if diff.commits.is_empty() {
+                    info!("{}: already up to date", package.name);
+                }
                 // The local package is identical to the remote one, which means that
                 // the package was published at this commit, so we will not count this commit
                 // as part of the release.
                 // We can process the next create.
                 break;
             } else if remote_package.version != package.version {
-                info!("the local package has already a different version with respect to the remote package, so release-plz will not update it");
+                info!("{}: the local package has already a different version with respect to the remote package, so release-plz will not update it", package.name);
                 break;
             } else {
                 debug!("packages are different");
@@ -206,7 +210,7 @@ fn get_diff(
             diff.commits.push(current_commit_message.clone());
         }
         if let Err(_err) = repository.checkout_previous_commit_at_path(&package_path) {
-            info!("there are no other commits");
+            debug!("there are no other commits");
             break;
         }
     }
