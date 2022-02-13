@@ -13,7 +13,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>,
     Ok((packages_to_update, repository))
 }
 
-#[instrument]
+#[instrument(skip_all)]
 fn update_versions(local_packages: &[(Package, Version)]) -> anyhow::Result<()> {
     for (package, next_version) in local_packages {
         let package_path = package.package_path()?;

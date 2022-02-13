@@ -215,10 +215,33 @@ fn get_diff(
     Ok(diff)
 }
 
-pub fn are_packages_equal(first: &Path, second: &Path) -> bool {
-    let excluded = vec![".git".to_string(), ".cargo_vcs_info.json".to_string()];
-    let result = FolderCompare::new(first, second, &excluded).unwrap();
-    result.changed_files.is_empty() && result.new_files.is_empty()
+pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> bool {
+    let are_toml_same = || {
+        // When a package is published to a cargo registry, the original `Cargo.toml` file is stored as
+        // `Cargo.toml.orig`
+        let cargo_orig = format!("{CARGO_TOML}.orig");
+        are_file_equal(
+            &local_package.join(CARGO_TOML),
+            &registry_package.join(cargo_orig),
+        )
+        .unwrap_or(false)
+    };
+    let are_dir_same = || {
+        let excluded = vec![
+            ".git".to_string(),
+            ".cargo_vcs_info.json".to_string(),
+            CARGO_TOML.to_string(),
+        ];
+        let result = FolderCompare::new(local_package, registry_package, &excluded).unwrap();
+        result.changed_files.is_empty() && result.new_files.is_empty()
+    };
+    are_toml_same() && are_dir_same()
+}
+
+fn are_file_equal(first: &Path, second: &Path) -> io::Result<bool> {
+    let first = fs::read_to_string(first)?;
+    let second = fs::read_to_string(second)?;
+    Ok(first == second)
 }
 
 pub fn public_packages(directory: &Path) -> anyhow::Result<Vec<Package>> {
