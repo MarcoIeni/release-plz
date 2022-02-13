@@ -23,7 +23,7 @@ subtle manual mistakes you can make when releasing from your terminal.
 Release-plz is inspired by [release-please](https://github.com/googleapis/release-please),
 but instead of determining the next versions based on git tags, release-plz compares local packages with
 the ones published in the cargo registry.
-Furthermore, release-plz doesn't need any configuration.
+Plus, release-plz doesn't need any configuration.
 
 ## Installation
 
@@ -36,6 +36,18 @@ Furthermore, release-plz doesn't need any configuration.
 * Install the rust toolchain in order to have cargo installed by following
   [this](https://www.rust-lang.org/tools/install) guide.
 * run `cargo install release-plz --locked`
+
+## Example Usage
+
+### Update
+
+With `release-plz update` you can update the version of the packages of a local workspace.
+
+In the following example, I run `release-plz` on [tokio](https://github.com/tokio-rs/tokio), cloned from the default branch.
+`Release-plz` increases the versions of the packages with changes which were not updated on crates.io yet.
+
+![Peek 2022-02-13 22-54](https://user-images.githubusercontent.com/11428655/153777065-36881d08-31c9-4966-8460-72b210f7bf2d.gif)
+
 
 ## License
 
