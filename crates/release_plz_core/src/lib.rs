@@ -1,6 +1,7 @@
 mod diff;
 mod download;
 mod next_ver;
+mod registry_packages;
 mod release_pr;
 mod tmp_repo;
 mod update;

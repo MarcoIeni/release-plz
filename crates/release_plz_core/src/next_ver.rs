@@ -1,11 +1,16 @@
-use crate::{diff::Diff, download, tmp_repo::TempRepo, version::NextVersionFromDiff, CARGO_TOML};
+use crate::{
+    diff::Diff,
+    registry_packages::{self, PackagesCollection},
+    tmp_repo::TempRepo,
+    version::NextVersionFromDiff,
+    CARGO_TOML,
+};
 use anyhow::{anyhow, Context};
 use cargo_metadata::{Package, Version};
 use folder_compare::FolderCompare;
 use fs_extra::dir;
 use git_cmd::{self, Repo};
 use std::{
-    collections::BTreeMap,
     fs, io,
     path::{Path, PathBuf},
 };
@@ -61,8 +66,10 @@ impl UpdateRequest {
 #[instrument]
 pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, TempRepo)> {
     let local_project = Project::new(input)?;
-    let remote_packages =
-        get_remote_packages(input.remote_manifest.as_ref(), &local_project.packages)?;
+    let remote_packages = registry_packages::get_registry_packages(
+        input.remote_manifest.as_ref(),
+        &local_project.packages,
+    )?;
 
     let repository = local_project.get_repo()?;
 
@@ -124,33 +131,10 @@ impl Project {
     }
 }
 
-/// Return [`BTreeMap`] with "package name" as key
-fn get_remote_packages(
-    remote_manifest: Option<&PathBuf>,
-    local_packages: &[Package],
-) -> anyhow::Result<BTreeMap<String, Package>> {
-    let remote_packages = match remote_manifest {
-        Some(manifest) => public_packages(manifest)?,
-        None => {
-            let local_packages_names: Vec<&str> =
-                local_packages.iter().map(|c| c.name.as_str()).collect();
-            download::download_packages(&local_packages_names)?
-        }
-    };
-    let remote_packages = remote_packages
-        .into_iter()
-        .map(|c| {
-            let package_name = c.name.clone();
-            (package_name, c)
-        })
-        .collect();
-    Ok(remote_packages)
-}
-
 #[instrument(skip_all)]
 fn packages_to_update(
     project: Project,
-    remote_packages: &BTreeMap<String, Package>,
+    remote_packages: &PackagesCollection,
     repository: &Repo,
 ) -> anyhow::Result<Vec<(Package, Version)>> {
     repository.is_clean()?;
@@ -175,7 +159,7 @@ fn packages_to_update(
 )]
 fn get_diff(
     package: &Package,
-    remote_packages: &BTreeMap<String, Package>,
+    remote_packages: &PackagesCollection,
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<Diff> {
@@ -187,7 +171,7 @@ fn get_diff(
         repository.directory().join(relative_path)
     };
     repository.checkout_head()?;
-    let remote_package = remote_packages.get(&package.name);
+    let remote_package = remote_packages.get_package(&package.name);
     let mut diff = Diff::new(remote_package.is_some());
     if let Err(_err) = repository.checkout_last_commit_at_path(&package_path) {
         info!("there are no commits for this package");
@@ -237,7 +221,7 @@ pub fn are_packages_equal(first: &Path, second: &Path) -> bool {
     result.changed_files.is_empty() && result.new_files.is_empty()
 }
 
-fn public_packages(directory: &Path) -> anyhow::Result<Vec<Package>> {
+pub fn public_packages(directory: &Path) -> anyhow::Result<Vec<Package>> {
     let packages = cargo_edit::workspace_members(Some(directory))
         .map_err(|e| anyhow!("cannot read workspace members: {e}"))?
         .into_iter()

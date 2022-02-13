@@ -1,20 +1,23 @@
 //! Download packages from cargo registry, similar to the `git clone` behavior.
 
 use std::{
-    fs,
+    fmt, fs,
     path::{Path, PathBuf},
 };
 
 use anyhow::{anyhow, Context};
 use cargo::core::SourceId;
 use cargo_metadata::Package;
-use tempfile::tempdir;
 use tracing::{info, instrument};
 
 use crate::CARGO_TOML;
 
 #[instrument]
-pub fn download_packages(packages: &[&str]) -> anyhow::Result<Vec<Package>> {
+pub fn download_packages(
+    packages: &[&str],
+    directory: impl AsRef<str> + fmt::Debug,
+) -> anyhow::Result<Vec<Package>> {
+    let directory = directory.as_ref();
     info!("downloading remote packages");
     let config = cargo::Config::default().expect("Unable to get cargo config.");
     let source_id = SourceId::crates_io(&config).expect("Unable to retrieve source id.");
@@ -22,8 +25,6 @@ pub fn download_packages(packages: &[&str]) -> anyhow::Result<Vec<Package>> {
         .iter()
         .map(|c| cargo_clone::Crate::new(c.to_string(), None))
         .collect();
-    let temp_dir = tempdir()?;
-    let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
     let clone_opts = cargo_clone::CloneOpts::new(&packages, &source_id, Some(directory), false);
     cargo_clone::clone(&clone_opts, &config).context("cannot download remote packages")?;
     let packages = match packages.len() {
@@ -68,13 +69,17 @@ pub fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<Package> {
 
 #[cfg(test)]
 mod tests {
+    use tempfile::tempdir;
+
     use super::*;
 
     #[test]
     #[ignore]
     fn one_package_is_downloaded() {
         let package_name = "rand";
-        let packages = download_packages(&[package_name]).unwrap();
+        let temp_dir = tempdir().unwrap();
+        let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
+        let packages = download_packages(&[package_name], directory).unwrap();
         let rand = &packages[0];
         assert_eq!(rand.name, package_name);
     }
@@ -84,7 +89,9 @@ mod tests {
     fn two_packages_are_downloaded() {
         let first_package = "rand";
         let second_package = "rust-gh-example";
-        let packages = download_packages(&[first_package, second_package]).unwrap();
+        let temp_dir = tempdir().unwrap();
+        let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
+        let packages = download_packages(&[first_package, second_package], directory).unwrap();
         assert_eq!(&packages[0].name, first_package);
         assert_eq!(&packages[1].name, second_package);
     }

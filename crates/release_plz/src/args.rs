@@ -36,7 +36,7 @@ pub struct Update {
     /// For example, it could be the path to the project with a `git checkout` on its latest tag.
     /// The git history of this project should be behind the one of the project you want to update.
     #[clap(long)]
-    reference_project_manifest: Option<PathBuf>,
+    registry_project_manifest: Option<PathBuf>,
     /// Package to update. Use it when you want to update a single package rather than all the
     /// packages contained in the workspace.
     #[clap(short, long)]
@@ -58,9 +58,9 @@ pub struct ReleasePr {
 impl Update {
     pub fn update_request(&self) -> UpdateRequest {
         let mut update = UpdateRequest::new(self.local_manifest()).unwrap();
-        if let Some(reference_project_manifest) = &self.reference_project_manifest {
+        if let Some(registry_project_manifest) = &self.registry_project_manifest {
             update = update
-                .with_remote_manifest(reference_project_manifest.clone())
+                .with_remote_manifest(registry_project_manifest.clone())
                 .unwrap();
         }
         if let Some(package) = &self.package {
