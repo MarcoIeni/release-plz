@@ -185,7 +185,7 @@ fn get_diff(
                 are_packages_equal(&package_path, remote_path)
             };
             if are_packages_equal {
-                info!(
+                debug!(
                     "next version calculated starting from commit after `{current_commit_message}`"
                 );
                 // The local package is identical to the remote one, which means that
