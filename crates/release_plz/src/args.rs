@@ -60,7 +60,7 @@ impl Update {
         let mut update = UpdateRequest::new(self.local_manifest()).unwrap();
         if let Some(registry_project_manifest) = &self.registry_project_manifest {
             update = update
-                .with_remote_manifest(registry_project_manifest.clone())
+                .with_registry_project_manifest(registry_project_manifest.clone())
                 .unwrap();
         }
         if let Some(package) = &self.package {

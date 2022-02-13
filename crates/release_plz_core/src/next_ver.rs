@@ -19,8 +19,10 @@ use tracing::{debug, info, instrument};
 
 #[derive(Debug)]
 pub struct UpdateRequest {
+    /// The manifest of the project you want to update.
     local_manifest: PathBuf,
-    remote_manifest: Option<PathBuf>,
+    /// Manifest of the project containing packages at the versions published in the Cargo registry.
+    registry_manifest: Option<PathBuf>,
     /// Update just this package.
     single_package: Option<String>,
 }
@@ -33,15 +35,15 @@ impl UpdateRequest {
         }
         Ok(Self {
             local_manifest,
-            remote_manifest: None,
+            registry_manifest: None,
             single_package: None,
         })
     }
 
-    pub fn with_remote_manifest(self, remote_manifest: PathBuf) -> io::Result<Self> {
-        let remote_manifest = fs::canonicalize(remote_manifest)?;
+    pub fn with_registry_project_manifest(self, registry_manifest: PathBuf) -> io::Result<Self> {
+        let registry_manifest = fs::canonicalize(registry_manifest)?;
         Ok(Self {
-            remote_manifest: Some(remote_manifest),
+            registry_manifest: Some(registry_manifest),
             ..self
         })
     }
@@ -57,8 +59,8 @@ impl UpdateRequest {
         &self.local_manifest
     }
 
-    pub fn remote_manifest(&self) -> Option<&Path> {
-        self.remote_manifest.as_deref()
+    pub fn registry_manifest(&self) -> Option<&Path> {
+        self.registry_manifest.as_deref()
     }
 }
 
@@ -66,14 +68,15 @@ impl UpdateRequest {
 #[instrument]
 pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, TempRepo)> {
     let local_project = Project::new(input)?;
-    let remote_packages = registry_packages::get_registry_packages(
-        input.remote_manifest.as_ref(),
+    let registry_packages = registry_packages::get_registry_packages(
+        input.registry_manifest.as_ref(),
         &local_project.packages,
     )?;
 
     let repository = local_project.get_repo()?;
 
-    let packages_to_update = packages_to_update(local_project, &remote_packages, &repository.repo)?;
+    let packages_to_update =
+        packages_to_update(local_project, &registry_packages, &repository.repo)?;
     Ok((packages_to_update, repository))
 }
 
@@ -133,14 +136,14 @@ impl Project {
 #[instrument(skip_all)]
 fn packages_to_update(
     project: Project,
-    remote_packages: &PackagesCollection,
+    registry_packages: &PackagesCollection,
     repository: &Repo,
 ) -> anyhow::Result<Vec<(Package, Version)>> {
     repository.is_clean()?;
     debug!("calculating local packages");
     let mut packages_to_update = vec![];
     for p in project.packages {
-        let diff = get_diff(&p, remote_packages, repository, &project.root)?;
+        let diff = get_diff(&p, registry_packages, repository, &project.root)?;
         let current_version = &p.version;
         let next_version = p.version.next_from_diff(&diff);
 
@@ -159,7 +162,7 @@ fn packages_to_update(
 )]
 fn get_diff(
     package: &Package,
-    remote_packages: &PackagesCollection,
+    registry_packages: &PackagesCollection,
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<Diff> {
@@ -171,19 +174,19 @@ fn get_diff(
         repository.directory().join(relative_path)
     };
     repository.checkout_head()?;
-    let remote_package = remote_packages.get_package(&package.name);
-    let mut diff = Diff::new(remote_package.is_some());
+    let registry_package = registry_packages.get_package(&package.name);
+    let mut diff = Diff::new(registry_package.is_some());
     if let Err(_err) = repository.checkout_last_commit_at_path(&package_path) {
         info!("{}: there are no commits", package.name);
         return Ok(diff);
     }
     loop {
         let current_commit_message = repository.current_commit_message()?;
-        if let Some(remote_package) = remote_package {
-            debug!("remote package {} found", remote_package.name);
+        if let Some(registry_package) = registry_package {
+            debug!("package {} found in cargo registry", registry_package.name);
             let are_packages_equal = {
-                let remote_path = remote_package.package_path()?;
-                are_packages_equal(&package_path, remote_path)
+                let registry_package_path = registry_package.package_path()?;
+                are_packages_equal(&package_path, registry_package_path)
             };
             if are_packages_equal {
                 debug!(
@@ -192,13 +195,13 @@ fn get_diff(
                 if diff.commits.is_empty() {
                     info!("{}: already up to date", package.name);
                 }
-                // The local package is identical to the remote one, which means that
+                // The local package is identical to the registry one, which means that
                 // the package was published at this commit, so we will not count this commit
                 // as part of the release.
                 // We can process the next create.
                 break;
-            } else if remote_package.version != package.version {
-                info!("{}: the local package has already a different version with respect to the remote package, so release-plz will not update it", package.name);
+            } else if registry_package.version != package.version {
+                info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
                 break;
             } else {
                 debug!("packages are different");

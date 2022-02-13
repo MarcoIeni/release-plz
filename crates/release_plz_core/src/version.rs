@@ -25,8 +25,8 @@ mod tests {
 
     #[test]
     fn next_version_of_new_package_is_unchanged() {
-        let remote_package_exists = false;
-        let diff = Diff::new(remote_package_exists);
+        let registry_package_exists = false;
+        let diff = Diff::new(registry_package_exists);
         let version = Version::new(1, 2, 3);
         assert_eq!(version.clone().next_from_diff(&diff), version);
     }
@@ -34,7 +34,7 @@ mod tests {
     #[test]
     fn next_version_of_existing_package_is_updated() {
         let diff = Diff {
-            remote_package_exists: true,
+            registry_package_exists: true,
             commits: vec!["my change".to_string()],
         };
         let version = Version::new(1, 2, 3);

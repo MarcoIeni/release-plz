@@ -61,8 +61,8 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let new_update_request = {
         let mut ur = UpdateRequest::new(new_manifest_dir.join(CARGO_TOML))
             .context("can't find temporary project")?;
-        if let Some(remote) = input.update_request.remote_manifest() {
-            ur = ur.with_remote_manifest(remote.to_path_buf())?;
+        if let Some(registry_manifest) = input.update_request.registry_manifest() {
+            ur = ur.with_registry_project_manifest(registry_manifest.to_path_buf())?;
         }
         ur
     };

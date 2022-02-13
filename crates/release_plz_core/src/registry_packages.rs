@@ -23,7 +23,7 @@ pub fn get_registry_packages(
     registry_manifest: Option<&PathBuf>,
     local_packages: &[Package],
 ) -> anyhow::Result<PackagesCollection> {
-    let (temp_dir, remote_packages) = match registry_manifest {
+    let (temp_dir, registry_packages) = match registry_manifest {
         Some(manifest) => (None, next_ver::public_packages(manifest)?),
         None => {
             let temp_dir = tempdir()?;
@@ -34,7 +34,7 @@ pub fn get_registry_packages(
             (Some(temp_dir), registry_packages)
         }
     };
-    let remote_packages = remote_packages
+    let registry_packages = registry_packages
         .into_iter()
         .map(|c| {
             let package_name = c.name.clone();
@@ -43,6 +43,6 @@ pub fn get_registry_packages(
         .collect();
     Ok(PackagesCollection {
         _temp_dir: temp_dir,
-        packages: remote_packages,
+        packages: registry_packages,
     })
 }

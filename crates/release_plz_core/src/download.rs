@@ -18,7 +18,7 @@ pub fn download_packages(
     directory: impl AsRef<str> + fmt::Debug,
 ) -> anyhow::Result<Vec<Package>> {
     let directory = directory.as_ref();
-    info!("downloading remote packages");
+    info!("downloading packages from cargo registry");
     let config = cargo::Config::default().expect("Unable to get cargo config.");
     let source_id = SourceId::crates_io(&config).expect("Unable to retrieve source id.");
     let packages: Vec<cargo_clone::Crate> = packages
@@ -26,7 +26,7 @@ pub fn download_packages(
         .map(|c| cargo_clone::Crate::new(c.to_string(), None))
         .collect();
     let clone_opts = cargo_clone::CloneOpts::new(&packages, &source_id, Some(directory), false);
-    cargo_clone::clone(&clone_opts, &config).context("cannot download remote packages")?;
+    cargo_clone::clone(&clone_opts, &config).context("cannot download packages from registry")?;
     let packages = match packages.len() {
         1 => vec![read_package(directory)?],
         _ => {

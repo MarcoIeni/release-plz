@@ -7,10 +7,10 @@ use secrecy::Secret;
 use tempfile::{tempdir, TempDir};
 use url::Url;
 
-/// Compare local project with remote one
+/// Compare local project with the one in cargo registry
 pub struct ComparisonTest {
     local_project: TempDir,
-    remote_project: TempDir,
+    registry_project: TempDir,
 }
 
 const PROJECT_NAME: &str = "myproject";
@@ -22,14 +22,14 @@ impl ComparisonTest {
         let local_project = local_project_dir.as_ref().join(PROJECT_NAME);
         crate::init_project(&local_project);
 
-        let remote_project = copy_to_temp_dir(&local_project).unwrap();
+        let registry_project = copy_to_temp_dir(&local_project).unwrap();
         let comparison = Self {
             local_project: local_project_dir,
-            remote_project,
+            registry_project,
         };
         fs::copy(
-            comparison.remote_project().join(CARGO_TOML),
-            comparison.remote_project().join("Cargo.toml.orig"),
+            comparison.registry_project().join(CARGO_TOML),
+            comparison.registry_project().join("Cargo.toml.orig"),
         )
         .unwrap();
         comparison
@@ -38,7 +38,7 @@ impl ComparisonTest {
     fn update_request(&self) -> UpdateRequest {
         UpdateRequest::new(self.local_project_manifest())
             .unwrap()
-            .with_remote_manifest(self.remote_project_manfifest())
+            .with_registry_project_manifest(self.registry_project_manfifest())
             .unwrap()
     }
 
@@ -69,20 +69,20 @@ impl ComparisonTest {
         self.local_project.as_ref().join(PROJECT_NAME)
     }
 
-    fn remote_project(&self) -> PathBuf {
-        self.remote_project.as_ref().join(PROJECT_NAME)
+    fn registry_project(&self) -> PathBuf {
+        self.registry_project.as_ref().join(PROJECT_NAME)
     }
 
     pub fn local_project_manifest(&self) -> PathBuf {
         self.local_project().join(CARGO_TOML)
     }
 
-    pub fn remote_project_manfifest(&self) -> PathBuf {
-        self.remote_project().join(CARGO_TOML)
+    pub fn registry_project_manfifest(&self) -> PathBuf {
+        self.registry_project().join(CARGO_TOML)
     }
 
     pub fn are_projects_equal(&self) -> bool {
-        are_packages_equal(&self.local_project(), &self.remote_project())
+        are_packages_equal(&self.local_project(), &self.registry_project())
     }
 }
 
