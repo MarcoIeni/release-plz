@@ -138,6 +138,7 @@ impl Repo {
         Ok(())
     }
 
+    /// Get `nth` commit starting from `1`.
     #[instrument(
         skip(self)
         fields(
@@ -153,12 +154,7 @@ impl Repo {
         let path = path.as_ref().to_str().ok_or(anyhow!("invalid path"))?;
         let commit_list = self.git(&["log", "--format=%H", "-n", &nth_str, "--", path])?;
         let mut commits = commit_list.lines();
-        // check if there are enough commits
-        for _ in 1..nth {
-            // discard previous commits
-            commits.next().ok_or(anyhow!("not enough commits"))?;
-        }
-        let last_commit = commits.next().context("repository has no commits")?;
+        let last_commit = commits.nth(nth - 1).context("not enough commits")?;
 
         Span::current().record("nth_commit", &last_commit);
         debug!("nth_commit found");
