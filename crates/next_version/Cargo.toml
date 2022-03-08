@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "Determine next semantic version based on conventional commits"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/MarcoIeni/release-plz/crates/next_version"
+repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/next_version"
 keywords = ["semver", "semantic", "versioning", "conventional", "commits"]
 categories = ["development-tools", "parsing"]
 
