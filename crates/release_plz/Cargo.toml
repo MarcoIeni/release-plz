@@ -2,7 +2,7 @@
 name = "release-plz"
 version = "0.1.1"
 edition = "2021"
-description = "Update version and release to GitHub and crates.io based on semantic versioning and conventional commits"
+description = "Update version and release to GitHub and crates.io based on semantic versioning and conventional commits."
 repository = "https://github.com/MarcoIeni/release-plz"
 license = "MIT OR Apache-2.0"
 readme = "../../README.md"
