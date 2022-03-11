@@ -20,10 +20,12 @@ subtle manual mistakes you can make when releasing from your terminal.
 
 ## Similar projects
 
-Release-plz is inspired by [release-please](https://github.com/googleapis/release-please),
-but instead of determining the next versions based on git tags, release-plz compares local packages with
-the ones published in the cargo registry.
-Plus, release-plz doesn't need any configuration.
+- [release-please](https://github.com/googleapis/release-please): release-plz is inspired by release-please,
+  but instead of determining the next versions based on git tags, release-plz compares local packages with
+  the ones published in the cargo registry.
+  Plus, release-plz doesn't need any configuration.
+- [cargo smart-release](https://github.com/Byron/gitoxide/tree/main/cargo-smart-release):
+  Fearlessly release workspace crates and with beautiful semi-handcrafted changelogs.
 
 ## Installation
 
