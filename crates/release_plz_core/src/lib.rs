@@ -6,6 +6,7 @@ mod release_pr;
 mod tmp_repo;
 mod update;
 mod version;
+mod changelog;
 
 pub use download::read_package;
 pub use next_ver::*;
