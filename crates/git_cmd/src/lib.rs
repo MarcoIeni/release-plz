@@ -151,7 +151,10 @@ impl Repo {
         path: impl AsRef<Path> + fmt::Debug,
     ) -> anyhow::Result<String> {
         let nth_str = nth.to_string();
-        let path = path.as_ref().to_str().ok_or(anyhow!("invalid path"))?;
+        let path = path
+            .as_ref()
+            .to_str()
+            .ok_or_else(|| anyhow!("invalid path"))?;
         let commit_list = self.git(&["log", "--format=%H", "-n", &nth_str, "--", path])?;
         let mut commits = commit_list.lines();
         let last_commit = commits.nth(nth - 1).context("not enough commits")?;
