@@ -6,9 +6,19 @@ use git_cliff_core::{
     template::Template,
 };
 
+pub const CHANGELOG_HEADER: &str = r#"# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+"#;
+
 struct Changelog<'a> {
     release: Release<'a>,
 }
+
 impl<'a> Changelog<'a> {
     fn new<I: Into<String>>(commits: Vec<I>) -> Self {
         let git_config = GitConfig {
@@ -25,7 +35,7 @@ impl<'a> Changelog<'a> {
                 CommitParser {
                     message: Regex::new("^fix").ok(),
                     body: None,
-                    group: Some(String::from("fix bugs")),
+                    group: Some(String::from("fix")),
                     default_scope: None,
                     skip: None,
                 },
@@ -81,16 +91,7 @@ impl<'a> Changelog<'a> {
     }
 
     fn full(&self) -> String {
-        let body = self.body();
-        let header = r#"# Changelog
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]"#;
-
-        format!("{header}\n{body}")
+        format!("{CHANGELOG_HEADER}{}", self.body())
     }
 
     fn changelog_config() -> ChangelogConfig {
@@ -98,9 +99,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             header: Some(String::from("this is a changelog")),
             body: Some(String::from(
                 r#"
-## Release {{ version }}
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
 {% for group, commits in commits | group_by(attribute="group") %}
-### {{ group }}
+### {{ group | upper_first }}
 {% for commit in commits %}
 {%- if commit.scope -%}
 - *({{commit.scope}})* {{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
@@ -125,11 +126,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     }
 
     fn update(&self, old_changelog: &str) -> String {
-        let separator = "## [Unreleased]";
+        let separator = "## [Unreleased]\n";
         let idx = old_changelog.find(separator).unwrap();
         let mut new_changelog = old_changelog.to_string();
-        let new_release = format!("\n{}", &self.body());
-        new_changelog.insert_str(idx + separator.len(), &new_release);
+        new_changelog.insert_str(idx + separator.len(), &self.body());
         new_changelog
     }
 }
@@ -142,29 +142,62 @@ mod tests {
     fn changelog_entries_are_generated() {
         let commits = vec!["fix: myfix", "simple update"];
         let changelog = Changelog::new(commits);
-        println!("{}", changelog.full());
+        expect_test::expect![[r####"
+            # Changelog
+            All notable changes to this project will be documented in this file.
+
+            The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+            and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+            ## [Unreleased]
+
+            ## [1.1.1] - 1970-01-01
+
+            ### Fix
+            - myfix
+
+            ### Other
+            - simple update
+        "####]].assert_eq(&changelog.full());
     }
 
     #[test]
     fn changelog_id_updated() {
         let commits = vec!["fix: myfix", "simple update"];
         let changelog = Changelog::new(commits);
-        let old = r#"# Changelog
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
-## Release 1.1.0
+        let old_body = r#"## [1.1.0] - 1970-01-01
 
 ### fix bugs
 - my awesomefix
 
 ### other
 - complex update"#;
+        let old = format!("{CHANGELOG_HEADER}\n{old_body}");
+        let new = changelog.update(&old);
+        expect_test::expect![[r####"
+            # Changelog
+            All notable changes to this project will be documented in this file.
 
-        println!("{}", changelog.update(old));
+            The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+            and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+            ## [Unreleased]
+
+            ## [1.1.1] - 1970-01-01
+
+            ### Fix
+            - myfix
+
+            ### Other
+            - simple update
+
+            ## [1.1.0] - 1970-01-01
+
+            ### fix bugs
+            - my awesomefix
+
+            ### other
+            - complex update"####]]
+        .assert_eq(&new);
     }
 }

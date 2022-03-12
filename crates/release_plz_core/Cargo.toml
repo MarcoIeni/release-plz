@@ -21,16 +21,18 @@ cargo-edit = "0.8"
 cargo_metadata = "0.14"
 fake = "2"
 folder_compare = "0.4"
+fs_extra = "1"
 git-cliff-core = "0.6"
 octocrab = "0.15"
 secrecy = "0.8"
 tempfile = "3"
 tracing = "0.1"
-fs_extra = "1"
 url = "2"
 
 [dev-dependencies]
 test_logs = { path = "../test_logs" }
+
+expect-test = "1"
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }
 tokio = { version = "1", features = ["macros"] }
 wiremock = "0.5"
