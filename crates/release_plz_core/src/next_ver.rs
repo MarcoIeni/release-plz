@@ -159,9 +159,13 @@ fn packages_to_update(
         if next_version != *current_version {
             let new_changelog = Changelog::new(diff.commits.clone(), next_version.to_string());
             info!("{}: next version is {next_version}", p.name);
+            let changelog = match fs::read_to_string(p.changelog_path()?) {
+                Ok(old_changelog) => new_changelog.update(&old_changelog),
+                Err(_err) => new_changelog.full(), // Old changelog doesn't exist.
+            };
             let update_result = UpdateResult {
                 version: next_version,
-                changelog: new_changelog.full(),
+                changelog,
             };
             packages_to_update.push((p, update_result));
         }

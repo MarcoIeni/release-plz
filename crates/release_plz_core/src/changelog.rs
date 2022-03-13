@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 "#;
 
+pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";
 pub struct Changelog<'a> {
     release: Release<'a>,
 }

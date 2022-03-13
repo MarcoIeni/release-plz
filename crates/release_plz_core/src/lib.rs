@@ -12,6 +12,6 @@ pub use download::read_package;
 pub use next_ver::*;
 pub use release_pr::*;
 pub use update::*;
+pub use changelog::*;
 
 pub const CARGO_TOML: &str = "Cargo.toml";
-pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";

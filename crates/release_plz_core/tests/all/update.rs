@@ -1,5 +1,5 @@
 use cargo_metadata::Version;
-use release_plz_core::read_package;
+use release_plz_core::{read_package, CHANGELOG_HEADER};
 
 use crate::helpers::{comparison_test::ComparisonTest, user_mock};
 
@@ -26,6 +26,7 @@ fn version_is_updated_when_project_changed() {
 
     let local_package = read_package(comparison_test.local_project()).unwrap();
     assert_eq!(local_package.version, Version::new(0, 1, 1));
+    // Assert: changelog is generated.
     expect_test::expect![[r####"
         # Changelog
         All notable changes to this project will be documented in this file.
@@ -39,6 +40,49 @@ fn version_is_updated_when_project_changed() {
 
         ### Added
         - do awesome stuff
+    "####]]
+    .assert_eq(&comparison_test.local_project_changelog());
+}
+
+#[test]
+fn changelog_is_updated_if_changelog_already_exists() {
+    let old_body = r#"
+## [0.1.0] - 1970-01-01
+
+### Fixed
+- fix important bug
+"#;
+    let comparison_test = ComparisonTest::new();
+    let old_changelog = format!("{CHANGELOG_HEADER}{old_body}");
+    comparison_test.write_local_project_changelog(&old_changelog);
+    let feature_message = "do awesome stuff";
+    user_mock::add_feature(&comparison_test.local_project(), feature_message);
+
+    comparison_test.run_update();
+
+    // the update should have changed the version
+    assert!(!comparison_test.are_projects_equal());
+
+    let local_package = read_package(comparison_test.local_project()).unwrap();
+    assert_eq!(local_package.version, Version::new(0, 1, 1));
+    expect_test::expect![[r####"
+        # Changelog
+        All notable changes to this project will be documented in this file.
+
+        The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+        and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+        ## [Unreleased]
+
+        ## [0.1.1] - 1970-01-01
+
+        ### Added
+        - do awesome stuff
+
+        ## [0.1.0] - 1970-01-01
+
+        ### Fixed
+        - fix important bug
     "####]]
     .assert_eq(&comparison_test.local_project_changelog());
 }

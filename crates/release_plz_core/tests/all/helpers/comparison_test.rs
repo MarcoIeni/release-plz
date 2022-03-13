@@ -87,8 +87,17 @@ impl ComparisonTest {
         are_packages_equal(&self.local_project(), &self.registry_project())
     }
 
+    pub fn write_local_project_changelog(&self, changelog: &str) {
+        let changelog_path = self.local_project_changelog_path();
+        fs::write(changelog_path, changelog).unwrap()
+    }
+
     pub fn local_project_changelog(&self) -> String {
-        let changelog_path = self.local_project().join(CHANGELOG_FILENAME);
+        let changelog_path = self.local_project_changelog_path();
         fs::read_to_string(changelog_path).unwrap()
+    }
+
+    fn local_project_changelog_path(&self) -> PathBuf {
+self.local_project().join(CHANGELOG_FILENAME)
     }
 }
