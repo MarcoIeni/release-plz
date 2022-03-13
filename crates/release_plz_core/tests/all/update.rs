@@ -36,7 +36,7 @@ fn version_is_updated_when_project_changed() {
 
         ## [Unreleased]
 
-        ## [0.1.1] - 1970-01-01
+        ## [0.1.1] - 2015-05-15
 
         ### Added
         - do awesome stuff
@@ -74,7 +74,7 @@ fn changelog_is_updated_if_changelog_already_exists() {
 
         ## [Unreleased]
 
-        ## [0.1.1] - 1970-01-01
+        ## [0.1.1] - 2015-05-15
 
         ### Added
         - do awesome stuff

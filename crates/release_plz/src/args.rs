@@ -64,7 +64,7 @@ impl Update {
                 .unwrap();
         }
         if let Some(package) = &self.package {
-            update = update.with_single_package(package.clone()).unwrap();
+            update = update.with_single_package(package.clone());
         }
         update
     }

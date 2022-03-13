@@ -1,3 +1,4 @@
+use chrono::{Date, TimeZone, Utc};
 use git_cliff_core::{
     commit::Commit,
     config::{ChangelogConfig, CommitParser, GitConfig, LinkParser},
@@ -16,12 +17,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 "#;
 
 pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";
-pub struct Changelog<'a> {
-    release: Release<'a>,
+
+pub struct ChangelogBuilder {
+    commits: Vec<String>,
+    version: String,
+    release_date: Option<Date<Utc>>,
 }
 
-impl<'a> Changelog<'a> {
+impl ChangelogBuilder {
     pub fn new(commits: Vec<impl Into<String>>, version: impl Into<String>) -> Self {
+        Self {
+            commits: commits.into_iter().map(|s| s.into()).collect(),
+            version: version.into(),
+            release_date: None,
+        }
+    }
+
+    pub fn with_release_date(self, timestamp: Date<Utc>) -> Self {
+        Self {
+            release_date: Some(timestamp),
+            ..self
+        }
+    }
+
+    pub fn build(self) -> Changelog<'static> {
         let git_config = GitConfig {
             conventional_commits: Some(true),
             filter_unconventional: Some(false),
@@ -45,23 +64,37 @@ impl<'a> Changelog<'a> {
                 },
             ]),
         };
-        let commits = commits
+        let release_date = self.release_date();
+        let commits = self
+            .commits
             .into_iter()
-            .map(|c| Commit::new("id".to_string(), c.into()))
+            .map(|c| Commit::new("id".to_string(), c))
             .filter_map(|c| c.process(&git_config).ok())
             .collect();
 
-        Self {
+        Changelog {
             release: Release {
-                version: Some(version.into()),
+                version: Some(self.version),
                 commits,
                 commit_id: None,
-                timestamp: current_timestamp(),
+                timestamp: release_date,
                 previous: None,
             },
         }
     }
 
+    fn release_date(&self) -> i64 {
+        let release_date = self.release_date.unwrap_or_else(|| Utc::now().date());
+        let difference = release_date - Utc.ymd(1970, 1, 1);
+        difference.num_seconds()
+    }
+}
+
+pub struct Changelog<'a> {
+    release: Release<'a>,
+}
+
+impl<'a> Changelog<'a> {
     pub fn full(&self) -> String {
         format!("{CHANGELOG_HEADER}{}", self.body())
     }
@@ -79,26 +112,6 @@ impl<'a> Changelog<'a> {
         new_changelog.insert_str(idx + separator.len(), &self.body());
         new_changelog
     }
-}
-
-#[cfg(not(feature = "mock-time"))]
-/// Number of seconds since epoch.
-fn current_timestamp() -> i64 {
-    use std::time::UNIX_EPOCH;
-    let start = SystemTime::now();
-    let since_the_epoch = start
-        .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards");
-    since_the_epoch
-        .as_secs()
-        .try_into()
-        .expect("cannot convert timestamp to i64")
-}
-
-#[cfg(feature = "mock-time")]
-/// Number of seconds since epoch. Always return 1970-1-1.
-fn current_timestamp() -> i64 {
-    1
 }
 
 fn commit_parsers() -> Vec<CommitParser> {
@@ -186,7 +199,9 @@ mod tests {
     #[test]
     fn changelog_entries_are_generated() {
         let commits = vec!["fix: myfix", "simple update"];
-        let changelog = Changelog::new(commits, "1.1.1");
+        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+            .with_release_date(Utc.ymd(2015, 5, 15))
+            .build();
         expect_test::expect![[r####"
             # Changelog
             All notable changes to this project will be documented in this file.
@@ -196,7 +211,7 @@ mod tests {
 
             ## [Unreleased]
 
-            ## [1.1.1] - 1970-01-01
+            ## [1.1.1] - 2015-05-15
 
             ### Fixed
             - myfix
@@ -210,7 +225,9 @@ mod tests {
     #[test]
     fn changelog_id_updated() {
         let commits = vec!["fix: myfix", "simple update"];
-        let changelog = Changelog::new(commits, "1.1.1");
+        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+            .with_release_date(Utc.ymd(2015, 5, 15))
+            .build();
         let old_body = r#"## [1.1.0] - 1970-01-01
 
 ### fix bugs
@@ -229,7 +246,7 @@ mod tests {
 
             ## [Unreleased]
 
-            ## [1.1.1] - 1970-01-01
+            ## [1.1.1] - 2015-05-15
 
             ### Fixed
             - myfix
