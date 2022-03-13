@@ -64,7 +64,7 @@ impl ChangelogBuilder {
                 },
             ]),
         };
-        let release_date = self.release_date();
+        let release_date = self.release_timestamp();
         let commits = self
             .commits
             .into_iter()
@@ -83,7 +83,7 @@ impl ChangelogBuilder {
         }
     }
 
-    fn release_date(&self) -> i64 {
+    fn release_timestamp(&self) -> i64 {
         let release_date = self.release_date.unwrap_or_else(|| Utc::now().date());
         let difference = release_date - Utc.ymd(1970, 1, 1);
         difference.num_seconds()
