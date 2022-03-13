@@ -20,61 +20,11 @@ pub struct Changelog<'a> {
 }
 
 impl<'a> Changelog<'a> {
-    pub fn new<I: Into<String>>(commits: Vec<I>) -> Self {
+    pub fn new(commits: Vec<impl Into<String>>, version: impl Into<String>) -> Self {
         let git_config = GitConfig {
             conventional_commits: Some(true),
             filter_unconventional: Some(false),
-            commit_parsers: Some(vec![
-                CommitParser {
-                    message: Regex::new("^feat").ok(),
-                    body: None,
-                    group: Some(String::from("added")),
-                    default_scope: None,
-                    skip: None,
-                },
-                CommitParser {
-                    message: Regex::new("^changed").ok(),
-                    body: None,
-                    group: Some(String::from("changed")),
-                    default_scope: None,
-                    skip: None,
-                },
-                CommitParser {
-                    message: Regex::new("^deprecated").ok(),
-                    body: None,
-                    group: Some(String::from("deprecated")),
-                    default_scope: None,
-                    skip: None,
-                },
-                CommitParser {
-                    message: Regex::new("^removed").ok(),
-                    body: None,
-                    group: Some(String::from("removed")),
-                    default_scope: None,
-                    skip: None,
-                },
-                CommitParser {
-                    message: Regex::new("^fix").ok(),
-                    body: None,
-                    group: Some(String::from("fixed")),
-                    default_scope: None,
-                    skip: None,
-                },
-                CommitParser {
-                    message: Regex::new("^security").ok(),
-                    body: None,
-                    group: Some(String::from("security")),
-                    default_scope: None,
-                    skip: None,
-                },
-                CommitParser {
-                    message: Regex::new(".*").ok(),
-                    body: None,
-                    group: Some(String::from("other")),
-                    default_scope: None,
-                    skip: None,
-                },
-            ]),
+            commit_parsers: Some(commit_parsers()),
             filter_commits: Some(true),
             tag_pattern: None,
             skip_tags: None,
@@ -96,22 +46,15 @@ impl<'a> Changelog<'a> {
         };
         let commits = commits
             .into_iter()
-            .map(|c| Commit {
-                id: "commit_id".to_string(),
-                message: c.into(),
-                conv: None,
-                group: None,
-                scope: None,
-                links: vec![],
-            })
+            .map(|c| Commit::new("id".to_string(), c.into()))
             .filter_map(|c| c.process(&git_config).ok())
             .collect();
 
         Self {
             release: Release {
-                version: Some("1.1.1".to_string()),
+                version: Some(version.into()),
                 commits,
-                commit_id: Some("dsaujkldjksa".to_string()),
+                commit_id: None,
                 timestamp: 1111,
                 previous: None,
             },
@@ -137,6 +80,59 @@ impl<'a> Changelog<'a> {
     }
 }
 
+fn commit_parsers() -> Vec<CommitParser> {
+    vec![
+        CommitParser {
+            message: Regex::new("^feat").ok(),
+            body: None,
+            group: Some(String::from("added")),
+            default_scope: None,
+            skip: None,
+        },
+        CommitParser {
+            message: Regex::new("^changed").ok(),
+            body: None,
+            group: Some(String::from("changed")),
+            default_scope: None,
+            skip: None,
+        },
+        CommitParser {
+            message: Regex::new("^deprecated").ok(),
+            body: None,
+            group: Some(String::from("deprecated")),
+            default_scope: None,
+            skip: None,
+        },
+        CommitParser {
+            message: Regex::new("^removed").ok(),
+            body: None,
+            group: Some(String::from("removed")),
+            default_scope: None,
+            skip: None,
+        },
+        CommitParser {
+            message: Regex::new("^fix").ok(),
+            body: None,
+            group: Some(String::from("fixed")),
+            default_scope: None,
+            skip: None,
+        },
+        CommitParser {
+            message: Regex::new("^security").ok(),
+            body: None,
+            group: Some(String::from("security")),
+            default_scope: None,
+            skip: None,
+        },
+        CommitParser {
+            message: Regex::new(".*").ok(),
+            body: None,
+            group: Some(String::from("other")),
+            default_scope: None,
+            skip: None,
+        },
+    ]
+}
 fn changelog_config() -> ChangelogConfig {
     ChangelogConfig {
         header: Some(String::from("this is a changelog")),
@@ -169,7 +165,7 @@ mod tests {
     #[test]
     fn changelog_entries_are_generated() {
         let commits = vec!["fix: myfix", "simple update"];
-        let changelog = Changelog::new(commits);
+        let changelog = Changelog::new(commits, "1.1.1");
         expect_test::expect![[r####"
             # Changelog
             All notable changes to this project will be documented in this file.
@@ -193,7 +189,7 @@ mod tests {
     #[test]
     fn changelog_id_updated() {
         let commits = vec!["fix: myfix", "simple update"];
-        let changelog = Changelog::new(commits);
+        let changelog = Changelog::new(commits, "1.1.1");
         let old_body = r#"## [1.1.0] - 1970-01-01
 
 ### fix bugs

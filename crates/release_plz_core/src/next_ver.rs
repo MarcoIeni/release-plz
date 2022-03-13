@@ -157,7 +157,7 @@ fn packages_to_update(
 
         debug!("diff: {:?}, next_version: {}", &diff, next_version);
         if next_version != *current_version {
-            let new_changelog = Changelog::new(diff.commits.clone());
+            let new_changelog = Changelog::new(diff.commits.clone(), next_version.to_string());
             info!("{}: next version is {next_version}", p.name);
             let update_result = UpdateResult {
                 version: next_version,
