@@ -176,17 +176,8 @@ fn packages_to_update(
 
         debug!("diff: {:?}, next_version: {}", &diff, next_version);
         if next_version != *current_version {
-            let mut changelog_builder =
-                ChangelogBuilder::new(diff.commits.clone(), next_version.to_string());
-            if let Some(release_date) = release_date {
-                changelog_builder = changelog_builder.with_release_date(release_date)
-            }
-            let new_changelog = changelog_builder.build();
             info!("{}: next version is {next_version}", p.name);
-            let changelog = match fs::read_to_string(p.changelog_path()?) {
-                Ok(old_changelog) => new_changelog.update(&old_changelog),
-                Err(_err) => new_changelog.full(), // Old changelog doesn't exist.
-            };
+            let changelog = get_changelog(diff.commits.clone(), &next_version, release_date, &p)?;
             let update_result = UpdateResult {
                 version: next_version,
                 changelog,
@@ -195,6 +186,24 @@ fn packages_to_update(
         }
     }
     Ok(packages_to_update)
+}
+
+fn get_changelog(
+    commits: Vec<String>,
+    next_version: &Version,
+    release_date: Option<Date<Utc>>,
+    package: &Package,
+) -> anyhow::Result<String> {
+    let mut changelog_builder = ChangelogBuilder::new(commits, next_version.to_string());
+    if let Some(release_date) = release_date {
+        changelog_builder = changelog_builder.with_release_date(release_date)
+    }
+    let new_changelog = changelog_builder.build();
+    let changelog = match fs::read_to_string(package.changelog_path()?) {
+        Ok(old_changelog) => new_changelog.update(&old_changelog),
+        Err(_err) => new_changelog.full(), // Old changelog doesn't exist.
+    };
+    Ok(changelog)
 }
 
 #[instrument(
