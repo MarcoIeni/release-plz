@@ -84,6 +84,7 @@ impl<'a> Changelog<'a> {
 #[cfg(not(feature = "mock-time"))]
 /// Number of seconds since epoch.
 fn current_timestamp() -> i64 {
+    use std::time::UNIX_EPOCH;
     let start = SystemTime::now();
     let since_the_epoch = start
         .duration_since(UNIX_EPOCH)
