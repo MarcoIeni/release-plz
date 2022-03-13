@@ -35,9 +35,10 @@ fn version_is_updated_when_project_changed() {
 
         ## [Unreleased]
 
-        ## [1.1.1] - 1970-01-01
+        ## [0.1.1] - 1970-01-01
 
         ### Added
         - do awesome stuff
-    "####]].assert_eq(&comparison_test.local_project_changelog());
+    "####]]
+    .assert_eq(&comparison_test.local_project_changelog());
 }
