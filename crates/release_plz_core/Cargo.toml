@@ -9,6 +9,8 @@ keywords = ["release", "please", "semver", "conventional", "commits"]
 categories = ["development-tools"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+mock-time = []
 
 [dependencies]
 next_version = { path = "../next_version", version = "0.1.0" }
@@ -31,6 +33,7 @@ url = "2"
 
 [dev-dependencies]
 test_logs = { path = "../test_logs" }
+release_plz_core = { path = ".", features = ["mock-time"]}
 
 expect-test = "1"
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }

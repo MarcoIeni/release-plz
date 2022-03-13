@@ -55,7 +55,7 @@ impl<'a> Changelog<'a> {
                 version: Some(version.into()),
                 commits,
                 commit_id: None,
-                timestamp: 1111,
+                timestamp: current_timestamp(),
                 previous: None,
             },
         }
@@ -78,6 +78,25 @@ impl<'a> Changelog<'a> {
         new_changelog.insert_str(idx + separator.len(), &self.body());
         new_changelog
     }
+}
+
+#[cfg(not(feature = "mock-time"))]
+/// Number of seconds since epoch.
+fn current_timestamp() -> i64 {
+    let start = SystemTime::now();
+    let since_the_epoch = start
+        .duration_since(UNIX_EPOCH)
+        .expect("Time went backwards");
+    since_the_epoch
+        .as_secs()
+        .try_into()
+        .expect("cannot convert timestamp to i64")
+}
+
+#[cfg(feature = "mock-time")]
+/// Number of seconds since epoch. Always return 1970-1-1.
+fn current_timestamp() -> i64 {
+    1
 }
 
 fn commit_parsers() -> Vec<CommitParser> {

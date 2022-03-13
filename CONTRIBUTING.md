@@ -58,13 +58,13 @@ cargo test
 - Run Clippy:
 
   ```shell
-  cargo clippy --all-targets --all-features --workspace
+  cargo clippy --all-targets --workspace
   ```
 
 - Run all tests:
 
   ```shell
-  cargo test --all-features --workspace
+  cargo test --workspace
   ```
 
 - Check to see if there are code formatting issues

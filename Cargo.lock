@@ -2235,6 +2235,7 @@ dependencies = [
  "git_cmd",
  "next_version",
  "octocrab",
+ "release_plz_core",
  "secrecy",
  "tempfile",
  "test_logs",

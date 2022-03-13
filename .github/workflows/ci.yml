@@ -24,7 +24,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features --workspace
+          args: --workspace
 
   rustfmt:
     name: Rustfmt
@@ -64,7 +64,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --all-features --workspace -- -D warnings
+          args: --all-targets --workspace -- -D warnings
 
   docs:
     name: Docs
@@ -85,7 +85,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --no-deps --document-private-items --all-features --workspace --examples
+          args: --no-deps --document-private-items --workspace --examples
 
   publish-dry-run:
     name: Publish dry run
