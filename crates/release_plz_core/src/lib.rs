@@ -14,3 +14,4 @@ pub use release_pr::*;
 pub use update::*;
 
 pub const CARGO_TOML: &str = "Cargo.toml";
+pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";

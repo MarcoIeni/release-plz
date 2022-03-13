@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use release_plz_core::{
-    are_packages_equal, copy_to_temp_dir, GitHub, ReleasePrRequest, UpdateRequest, CARGO_TOML,
+    are_packages_equal, copy_to_temp_dir, GitHub, ReleasePrRequest, UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use secrecy::Secret;
 use tempfile::{tempdir, TempDir};
@@ -14,6 +14,8 @@ pub struct ComparisonTest {
 }
 
 const PROJECT_NAME: &str = "myproject";
+pub const OWNER: &str = "owner";
+pub const REPO: &str = "repo";
 
 impl ComparisonTest {
     pub fn new() -> Self {
@@ -84,7 +86,9 @@ impl ComparisonTest {
     pub fn are_projects_equal(&self) -> bool {
         are_packages_equal(&self.local_project(), &self.registry_project())
     }
-}
 
-pub const OWNER: &str = "owner";
-pub const REPO: &str = "repo";
+    pub fn local_project_changelog(&self) -> String {
+        let changelog_path = self.local_project().join(CHANGELOG_FILENAME);
+        fs::read_to_string(changelog_path).unwrap()
+    }
+}

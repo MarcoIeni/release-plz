@@ -1,9 +1,10 @@
 use crate::{
+    changelog::Changelog,
     diff::Diff,
     registry_packages::{self, PackagesCollection},
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
-    CARGO_TOML,
+    CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::{anyhow, Context};
 use cargo_metadata::{Package, Version};
@@ -66,7 +67,9 @@ impl UpdateRequest {
 
 /// Determine next version of packages
 #[instrument]
-pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, TempRepo)> {
+pub fn next_versions(
+    input: &UpdateRequest,
+) -> anyhow::Result<(Vec<(Package, UpdateResult)>, TempRepo)> {
     let local_project = Project::new(input)?;
     let registry_packages = registry_packages::get_registry_packages(
         input.registry_manifest.as_ref(),
@@ -133,12 +136,17 @@ impl Project {
     }
 }
 
+pub struct UpdateResult {
+    pub version: Version,
+    pub changelog: String,
+}
+
 #[instrument(skip_all)]
 fn packages_to_update(
     project: Project,
     registry_packages: &PackagesCollection,
     repository: &Repo,
-) -> anyhow::Result<Vec<(Package, Version)>> {
+) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
     repository.is_clean()?;
     debug!("calculating local packages");
     let mut packages_to_update = vec![];
@@ -149,8 +157,13 @@ fn packages_to_update(
 
         debug!("diff: {:?}, next_version: {}", &diff, next_version);
         if next_version != *current_version {
+            let new_changelog = Changelog::new(diff.commits.clone());
             info!("{}: next version is {next_version}", p.name);
-            packages_to_update.push((p, next_version));
+            let update_result = UpdateResult {
+                version: next_version,
+                changelog: new_changelog.full(),
+            };
+            packages_to_update.push((p, update_result));
         }
     }
     Ok(packages_to_update)
@@ -262,6 +275,10 @@ pub fn public_packages(directory: &Path) -> anyhow::Result<Vec<Package>> {
 
 pub trait PackagePath {
     fn package_path(&self) -> anyhow::Result<&Path>;
+    fn changelog_path(&self) -> anyhow::Result<PathBuf> {
+        let changelog_path = self.package_path()?.join(CHANGELOG_FILENAME);
+        Ok(changelog_path)
+    }
 }
 
 impl PackagePath for Package {

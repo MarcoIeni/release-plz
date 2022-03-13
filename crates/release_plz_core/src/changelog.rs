@@ -15,12 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 "#;
 
-struct Changelog<'a> {
+pub struct Changelog<'a> {
     release: Release<'a>,
 }
 
 impl<'a> Changelog<'a> {
-    fn new<I: Into<String>>(commits: Vec<I>) -> Self {
+    pub fn new<I: Into<String>>(commits: Vec<I>) -> Self {
         let git_config = GitConfig {
             conventional_commits: Some(true),
             filter_unconventional: Some(false),
@@ -28,14 +28,42 @@ impl<'a> Changelog<'a> {
                 CommitParser {
                     message: Regex::new("^feat").ok(),
                     body: None,
-                    group: Some(String::from("shiny features")),
+                    group: Some(String::from("added")),
+                    default_scope: None,
+                    skip: None,
+                },
+                CommitParser {
+                    message: Regex::new("^changed").ok(),
+                    body: None,
+                    group: Some(String::from("changed")),
+                    default_scope: None,
+                    skip: None,
+                },
+                CommitParser {
+                    message: Regex::new("^deprecated").ok(),
+                    body: None,
+                    group: Some(String::from("deprecated")),
+                    default_scope: None,
+                    skip: None,
+                },
+                CommitParser {
+                    message: Regex::new("^removed").ok(),
+                    body: None,
+                    group: Some(String::from("removed")),
                     default_scope: None,
                     skip: None,
                 },
                 CommitParser {
                     message: Regex::new("^fix").ok(),
                     body: None,
-                    group: Some(String::from("fix")),
+                    group: Some(String::from("fixed")),
+                    default_scope: None,
+                    skip: None,
+                },
+                CommitParser {
+                    message: Regex::new("^security").ok(),
+                    body: None,
+                    group: Some(String::from("security")),
                     default_scope: None,
                     skip: None,
                 },
@@ -90,15 +118,30 @@ impl<'a> Changelog<'a> {
         }
     }
 
-    fn full(&self) -> String {
+    pub fn full(&self) -> String {
         format!("{CHANGELOG_HEADER}{}", self.body())
     }
 
-    fn changelog_config() -> ChangelogConfig {
-        ChangelogConfig {
-            header: Some(String::from("this is a changelog")),
-            body: Some(String::from(
-                r#"
+    fn body(&self) -> String {
+        let changelog_config = changelog_config();
+        let template = Template::new(changelog_config.body.unwrap()).unwrap();
+        template.render(&self.release).unwrap()
+    }
+
+    pub fn update(&self, old_changelog: &str) -> String {
+        let separator = "## [Unreleased]\n";
+        let idx = old_changelog.find(separator).unwrap();
+        let mut new_changelog = old_changelog.to_string();
+        new_changelog.insert_str(idx + separator.len(), &self.body());
+        new_changelog
+    }
+}
+
+fn changelog_config() -> ChangelogConfig {
+    ChangelogConfig {
+        header: Some(String::from("this is a changelog")),
+        body: Some(String::from(
+            r#"
 ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group | upper_first }}
@@ -113,24 +156,9 @@ impl<'a> Changelog<'a> {
 {% endif -%}
 {% endfor -%}
 {% endfor %}"#,
-            )),
-            footer: Some(String::from("eoc - end of changelog")),
-            trim: None,
-        }
-    }
-
-    fn body(&self) -> String {
-        let changelog_config = Self::changelog_config();
-        let template = Template::new(changelog_config.body.unwrap()).unwrap();
-        template.render(&self.release).unwrap()
-    }
-
-    fn update(&self, old_changelog: &str) -> String {
-        let separator = "## [Unreleased]\n";
-        let idx = old_changelog.find(separator).unwrap();
-        let mut new_changelog = old_changelog.to_string();
-        new_changelog.insert_str(idx + separator.len(), &self.body());
-        new_changelog
+        )),
+        footer: Some(String::from("eoc - end of changelog")),
+        trim: None,
     }
 }
 
@@ -153,12 +181,13 @@ mod tests {
 
             ## [1.1.1] - 1970-01-01
 
-            ### Fix
+            ### Fixed
             - myfix
 
             ### Other
             - simple update
-        "####]].assert_eq(&changelog.full());
+        "####]]
+        .assert_eq(&changelog.full());
     }
 
     #[test]
@@ -185,7 +214,7 @@ mod tests {
 
             ## [1.1.1] - 1970-01-01
 
-            ### Fix
+            ### Fixed
             - myfix
 
             ### Other
