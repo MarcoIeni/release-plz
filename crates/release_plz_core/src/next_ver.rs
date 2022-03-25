@@ -26,8 +26,14 @@ pub struct UpdateRequest {
     registry_manifest: Option<PathBuf>,
     /// Update just this package.
     single_package: Option<String>,
+    /// If [`Option::Some`], changelog is updated.
+    changelog_req: Option<ChangelogRequest>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct ChangelogRequest {
     /// When the new release is published. If unspecified, current date is used.
-    release_date: Option<Date<Utc>>,
+    pub release_date: Option<Date<Utc>>,
 }
 
 impl UpdateRequest {
@@ -40,7 +46,7 @@ impl UpdateRequest {
             local_manifest,
             registry_manifest: None,
             single_package: None,
-            release_date: None,
+            changelog_req: None,
         })
     }
 
@@ -52,16 +58,16 @@ impl UpdateRequest {
         })
     }
 
-    pub fn with_single_package(self, package: String) -> Self {
+    pub fn with_changelog(self, changelog_req: ChangelogRequest) -> Self {
         Self {
-            single_package: Some(package),
+            changelog_req: Some(changelog_req),
             ..self
         }
     }
 
-    pub fn with_release_date(self, release_date: Date<Utc>) -> Self {
+    pub fn with_single_package(self, package: String) -> Self {
         Self {
-            release_date: Some(release_date),
+            single_package: Some(package),
             ..self
         }
     }
@@ -75,7 +81,7 @@ impl UpdateRequest {
     }
 
     pub fn release_date(&self) -> Option<Date<Utc>> {
-        self.release_date
+        self.changelog_req?.release_date
     }
 }
 
@@ -91,12 +97,11 @@ pub fn next_versions(
     )?;
 
     let repository = local_project.get_repo()?;
-
     let packages_to_update = packages_to_update(
         local_project,
         &registry_packages,
         &repository.repo,
-        input.release_date,
+        input.changelog_req,
     )?;
     Ok((packages_to_update, repository))
 }
@@ -156,7 +161,7 @@ impl Project {
 
 pub struct UpdateResult {
     pub version: Version,
-    pub changelog: String,
+    pub changelog: Option<String>,
 }
 
 #[instrument(skip_all)]
@@ -164,7 +169,7 @@ fn packages_to_update(
     project: Project,
     registry_packages: &PackagesCollection,
     repository: &Repo,
-    release_date: Option<Date<Utc>>,
+    changelog_req: Option<ChangelogRequest>,
 ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
     repository.is_clean()?;
     debug!("calculating local packages");
@@ -177,7 +182,10 @@ fn packages_to_update(
         debug!("diff: {:?}, next_version: {}", &diff, next_version);
         if next_version != *current_version {
             info!("{}: next version is {next_version}", p.name);
-            let changelog = get_changelog(diff.commits.clone(), &next_version, release_date, &p)?;
+            let changelog = changelog_req
+                .map(|r| get_changelog(diff.commits.clone(), &next_version, r.release_date, &p))
+                .transpose()?;
+
             let update_result = UpdateResult {
                 version: next_version,
                 changelog,

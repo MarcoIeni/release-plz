@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 
-use anyhow::anyhow;
-use release_plz_core::{GitHub, UpdateRequest, CARGO_TOML};
+use anyhow::{anyhow, Context};
+use chrono::{Date, NaiveDate, Utc};
+use release_plz_core::{ChangelogRequest, GitHub, UpdateRequest, CARGO_TOML};
 use secrecy::SecretString;
 use url::Url;
 
@@ -41,6 +42,12 @@ pub struct Update {
     /// packages contained in the workspace.
     #[clap(short, long)]
     package: Option<String>,
+    /// Don't create changelog.
+    #[clap(long, overrides_with("release-date"))]
+    no_changelog: bool,
+    /// Date of the release. Format: %Y-%m-%d. It defaults to current Utc date.
+    #[clap(long, overrides_with("no-changelog"))]
+    release_date: Option<String>,
 }
 
 #[derive(clap::Parser, Debug)]
@@ -56,17 +63,29 @@ pub struct ReleasePr {
 }
 
 impl Update {
-    pub fn update_request(&self) -> UpdateRequest {
+    pub fn update_request(&self) -> anyhow::Result<UpdateRequest> {
         let mut update = UpdateRequest::new(self.local_manifest()).unwrap();
         if let Some(registry_project_manifest) = &self.registry_project_manifest {
             update = update
                 .with_registry_project_manifest(registry_project_manifest.clone())
                 .unwrap();
         }
+        if !self.no_changelog {
+            let release_date = self
+                .release_date
+                .as_ref()
+                .map(|date| {
+                    NaiveDate::parse_from_str(date, "%Y-%m-%d")
+                        .context("cannot parse release_date to y-m-d format")
+                })
+                .transpose()?
+                .map(|date| Date::<Utc>::from_utc(date, Utc));
+            update = update.with_changelog(ChangelogRequest { release_date });
+        }
         if let Some(package) = &self.package {
             update = update.with_single_package(package.clone());
         }
-        update
+        Ok(update)
     }
 
     fn local_manifest(&self) -> PathBuf {

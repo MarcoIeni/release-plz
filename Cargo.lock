@@ -2208,6 +2208,7 @@ name = "release-plz"
 version = "0.1.1"
 dependencies = [
  "anyhow",
+ "chrono",
  "clap 3.1.6",
  "release_plz_core",
  "secrecy",

@@ -2,8 +2,8 @@ use std::{fs, path::PathBuf};
 
 use chrono::{TimeZone, Utc};
 use release_plz_core::{
-    are_packages_equal, copy_to_temp_dir, GitHub, ReleasePrRequest, UpdateRequest, CARGO_TOML,
-    CHANGELOG_FILENAME,
+    are_packages_equal, copy_to_temp_dir, ChangelogRequest, GitHub, ReleasePrRequest,
+    UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use secrecy::Secret;
 use tempfile::{tempdir, TempDir};
@@ -42,7 +42,9 @@ impl ComparisonTest {
     fn update_request(&self) -> UpdateRequest {
         UpdateRequest::new(self.local_project_manifest())
             .unwrap()
-            .with_release_date(Utc.ymd(2015, 5, 15))
+            .with_changelog(ChangelogRequest {
+                release_date: Some(Utc.ymd(2015, 5, 15)),
+            })
             .with_registry_project_manifest(self.registry_project_manfifest())
             .unwrap()
     }
