@@ -96,7 +96,7 @@ pub struct Changelog<'a> {
 
 impl<'a> Changelog<'a> {
     pub fn full(&self) -> String {
-        format!("{CHANGELOG_HEADER}{}", self.body())
+        format!("{CHANGELOG_HEADER}\n{}", self.body())
     }
 
     fn body(&self) -> String {
@@ -106,12 +106,32 @@ impl<'a> Changelog<'a> {
     }
 
     pub fn update(&self, old_changelog: &str) -> String {
-        let separator = "## [Unreleased]\n";
-        let idx = old_changelog.find(separator).unwrap();
+        let separator = "## [Unreleased]";
+        let unreleased_idx = old_changelog.find(separator);
         let mut new_changelog = old_changelog.to_string();
-        new_changelog.insert_str(idx + separator.len(), &self.body());
+        let update_idx = unreleased_idx
+            .map(|idx| {
+                let mut idx = idx + separator.len();
+                add_new_line_if_not_present(&mut new_changelog, idx);
+                idx += 1;
+                add_new_line_if_not_present(&mut new_changelog, idx);
+                idx + 1
+            })
+            .unwrap_or(0);
+
+        let body = format!("{}\n", &self.body());
+        new_changelog.insert_str(update_idx, &body);
         new_changelog
     }
+}
+
+fn add_new_line_if_not_present(text: &mut String, idx: usize) {
+    if let Some(c) = text.chars().nth(idx) {
+        if c == '\n' {
+            return;
+        }
+    }
+    text.insert(idx, '\n');
 }
 
 fn commit_parsers() -> Vec<CommitParser> {
@@ -171,8 +191,7 @@ fn changelog_config() -> ChangelogConfig {
     ChangelogConfig {
         header: Some(String::from("this is a changelog")),
         body: Some(String::from(
-            r#"
-## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+            r#"## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group | upper_first }}
 {% for commit in commits %}
@@ -195,6 +214,24 @@ fn changelog_config() -> ChangelogConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn changelog_body_is_generated() {
+        let commits = vec!["fix: myfix", "simple update"];
+        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+            .with_release_date(Utc.ymd(2015, 5, 15))
+            .build();
+        expect_test::expect![[r####"
+            ## [1.1.1] - 2015-05-15
+
+            ### Fixed
+            - myfix
+
+            ### Other
+            - simple update
+        "####]]
+        .assert_eq(&changelog.body());
+    }
 
     #[test]
     fn changelog_entries_are_generated() {
@@ -223,7 +260,7 @@ mod tests {
     }
 
     #[test]
-    fn changelog_id_updated() {
+    fn changelog_is_updated() {
         let commits = vec!["fix: myfix", "simple update"];
         let changelog = ChangelogBuilder::new(commits, "1.1.1")
             .with_release_date(Utc.ymd(2015, 5, 15))
@@ -234,7 +271,8 @@ mod tests {
 - my awesomefix
 
 ### other
-- complex update"#;
+- complex update
+"#;
         let old = format!("{CHANGELOG_HEADER}\n{old_body}");
         let new = changelog.update(&old);
         expect_test::expect![[r####"
@@ -260,7 +298,43 @@ mod tests {
             - my awesomefix
 
             ### other
-            - complex update"####]]
+            - complex update
+        "####]]
+        .assert_eq(&new);
+    }
+
+    #[test]
+    fn changelog_without_header_is_updated() {
+        let commits = vec!["fix: myfix", "simple update"];
+        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+            .with_release_date(Utc.ymd(2015, 5, 15))
+            .build();
+        let old = r#"## [1.1.0] - 1970-01-01
+
+### fix bugs
+- my awesomefix
+
+### other
+- complex update
+"#;
+        let new = changelog.update(old);
+        expect_test::expect![[r####"
+            ## [1.1.1] - 2015-05-15
+
+            ### Fixed
+            - myfix
+
+            ### Other
+            - simple update
+
+            ## [1.1.0] - 1970-01-01
+
+            ### fix bugs
+            - my awesomefix
+
+            ### other
+            - complex update
+        "####]]
         .assert_eq(&new);
     }
 }
