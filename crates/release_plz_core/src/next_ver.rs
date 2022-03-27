@@ -79,10 +79,6 @@ impl UpdateRequest {
     pub fn registry_manifest(&self) -> Option<&Path> {
         self.registry_manifest.as_deref()
     }
-
-    pub fn release_date(&self) -> Option<Date<Utc>> {
-        self.changelog_req?.release_date
-    }
 }
 
 /// Determine next version of packages
