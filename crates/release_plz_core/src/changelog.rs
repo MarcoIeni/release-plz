@@ -1,10 +1,10 @@
 use chrono::{Date, TimeZone, Utc};
+use git_cliff::changelog::Changelog;
 use git_cliff_core::{
     commit::Commit,
-    config::{ChangelogConfig, CommitParser, GitConfig, LinkParser},
+    config::{ChangelogConfig, CommitParser, Config, GitConfig, LinkParser},
     regex::Regex,
     release::Release,
-    template::Template,
 };
 
 pub const CHANGELOG_HEADER: &str = r#"# Changelog
@@ -18,13 +18,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";
 
+pub struct PlzChangelog<'a> {
+    release: Release<'a>,
+}
+
+impl PlzChangelog<'_> {
+    pub fn generate(self) -> String {
+        let config = git_cliff_config();
+        let mut out = Vec::new();
+        let changelog =
+            Changelog::new(vec![self.release], &config).expect("error while building changelog");
+        changelog.generate(&mut out).unwrap();
+        String::from_utf8(out).unwrap()
+    }
+
+    pub fn prepend(self, old: impl Into<String>) -> String {
+        let config = git_cliff_config();
+        let mut out = Vec::new();
+        let changelog =
+            Changelog::new(vec![self.release], &config).expect("error while building changelog");
+        changelog.prepend(old.into(), &mut out).unwrap();
+        String::from_utf8(out).unwrap()
+    }
+}
+
+fn git_cliff_config() -> Config {
+    Config {
+        changelog: changelog_config(),
+        git: git_config(),
+    }
+}
+
 pub struct ChangelogBuilder {
     commits: Vec<String>,
     version: String,
     release_date: Option<Date<Utc>>,
 }
 
-impl ChangelogBuilder {
+impl<'a> ChangelogBuilder {
     pub fn new(commits: Vec<impl Into<String>>, version: impl Into<String>) -> Self {
         Self {
             commits: commits.into_iter().map(|s| s.into()).collect(),
@@ -40,39 +71,17 @@ impl ChangelogBuilder {
         }
     }
 
-    pub fn build(self) -> Changelog<'static> {
-        let git_config = GitConfig {
-            conventional_commits: Some(true),
-            filter_unconventional: Some(false),
-            commit_parsers: Some(commit_parsers()),
-            filter_commits: Some(true),
-            tag_pattern: None,
-            skip_tags: None,
-            ignore_tags: None,
-            date_order: None,
-            sort_commits: None,
-            link_parsers: Some(vec![
-                LinkParser {
-                    pattern: Regex::new("#(\\d+)").unwrap(),
-                    href: String::from("https://github.com/$1"),
-                    text: None,
-                },
-                LinkParser {
-                    pattern: Regex::new("https://github.com/(.*)").unwrap(),
-                    href: String::from("https://github.com/$1"),
-                    text: Some(String::from("$1")),
-                },
-            ]),
-        };
+    pub fn build(self) -> PlzChangelog<'static> {
         let release_date = self.release_timestamp();
         let commits = self
             .commits
+            .clone()
             .into_iter()
             .map(|c| Commit::new("id".to_string(), c))
-            .filter_map(|c| c.process(&git_config).ok())
+            .filter_map(|c| c.process(&git_config()).ok())
             .collect();
 
-        Changelog {
+        PlzChangelog {
             release: Release {
                 version: Some(self.version),
                 commits,
@@ -90,48 +99,30 @@ impl ChangelogBuilder {
     }
 }
 
-pub struct Changelog<'a> {
-    release: Release<'a>,
-}
-
-impl<'a> Changelog<'a> {
-    pub fn full(&self) -> String {
-        format!("{CHANGELOG_HEADER}\n{}", self.body())
+fn git_config() -> GitConfig {
+    GitConfig {
+        conventional_commits: Some(true),
+        filter_unconventional: Some(false),
+        commit_parsers: Some(commit_parsers()),
+        filter_commits: Some(true),
+        tag_pattern: None,
+        skip_tags: None,
+        ignore_tags: None,
+        date_order: None,
+        sort_commits: None,
+        link_parsers: Some(vec![
+            LinkParser {
+                pattern: Regex::new("#(\\d+)").unwrap(),
+                href: String::from("https://github.com/$1"),
+                text: None,
+            },
+            LinkParser {
+                pattern: Regex::new("https://github.com/(.*)").unwrap(),
+                href: String::from("https://github.com/$1"),
+                text: Some(String::from("$1")),
+            },
+        ]),
     }
-
-    fn body(&self) -> String {
-        let changelog_config = changelog_config();
-        let template = Template::new(changelog_config.body.unwrap()).unwrap();
-        template.render(&self.release).unwrap()
-    }
-
-    pub fn update(&self, old_changelog: &str) -> String {
-        let separator = "## [Unreleased]";
-        let unreleased_idx = old_changelog.find(separator);
-        let mut new_changelog = old_changelog.to_string();
-        let update_idx = unreleased_idx
-            .map(|idx| {
-                let mut idx = idx + separator.len();
-                add_new_line_if_not_present(&mut new_changelog, idx);
-                idx += 1;
-                add_new_line_if_not_present(&mut new_changelog, idx);
-                idx + 1
-            })
-            .unwrap_or(0);
-
-        let body = format!("{}\n", &self.body());
-        new_changelog.insert_str(update_idx, &body);
-        new_changelog
-    }
-}
-
-fn add_new_line_if_not_present(text: &mut String, idx: usize) {
-    if let Some(c) = text.chars().nth(idx) {
-        if c == '\n' {
-            return;
-        }
-    }
-    text.insert(idx, '\n');
 }
 
 fn commit_parsers() -> Vec<CommitParser> {
@@ -189,9 +180,10 @@ fn commit_parsers() -> Vec<CommitParser> {
 }
 fn changelog_config() -> ChangelogConfig {
     ChangelogConfig {
-        header: Some(String::from("this is a changelog")),
+        header: Some(String::from(CHANGELOG_HEADER)),
         body: Some(String::from(
-            r#"## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+            r#"
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group | upper_first }}
 {% for commit in commits %}
@@ -206,7 +198,7 @@ fn changelog_config() -> ChangelogConfig {
 {% endfor -%}
 {% endfor %}"#,
         )),
-        footer: Some(String::from("eoc - end of changelog")),
+        footer: None,
         trim: None,
     }
 }
@@ -216,29 +208,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn changelog_body_is_generated() {
-        let commits = vec!["fix: myfix", "simple update"];
-        let changelog = ChangelogBuilder::new(commits, "1.1.1")
-            .with_release_date(Utc.ymd(2015, 5, 15))
-            .build();
-        expect_test::expect![[r####"
-            ## [1.1.1] - 2015-05-15
-
-            ### Fixed
-            - myfix
-
-            ### Other
-            - simple update
-        "####]]
-        .assert_eq(&changelog.body());
-    }
-
-    #[test]
     fn changelog_entries_are_generated() {
         let commits = vec!["fix: myfix", "simple update"];
         let changelog = ChangelogBuilder::new(commits, "1.1.1")
             .with_release_date(Utc.ymd(2015, 5, 15))
             .build();
+
         expect_test::expect![[r####"
             # Changelog
             All notable changes to this project will be documented in this file.
@@ -256,7 +231,49 @@ mod tests {
             ### Other
             - simple update
         "####]]
-        .assert_eq(&changelog.full());
+        .assert_eq(&changelog.generate());
+    }
+
+    #[test]
+    fn generated_changelog_is_updated_correctly() {
+        let commits = vec!["fix: myfix", "simple update"];
+        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+            .with_release_date(Utc.ymd(2015, 5, 15))
+            .build();
+
+        let generated_changelog = changelog.generate();
+
+        let commits = vec!["fix: myfix2", "complex update"];
+        let changelog = ChangelogBuilder::new(commits, "1.1.2")
+            .with_release_date(Utc.ymd(2015, 5, 15))
+            .build();
+
+        expect_test::expect![[r####"
+            # Changelog
+            All notable changes to this project will be documented in this file.
+
+            The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+            and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+            ## [Unreleased]
+
+            ## [1.1.2] - 2015-05-15
+
+            ### Fixed
+            - myfix2
+
+            ### Other
+            - complex update
+
+            ## [1.1.1] - 2015-05-15
+
+            ### Fixed
+            - myfix
+
+            ### Other
+            - simple update
+        "####]]
+        .assert_eq(&changelog.prepend(generated_changelog));
     }
 
     #[test]
@@ -274,7 +291,7 @@ mod tests {
 - complex update
 "#;
         let old = format!("{CHANGELOG_HEADER}\n{old_body}");
-        let new = changelog.update(&old);
+        let new = changelog.prepend(old);
         expect_test::expect![[r####"
             # Changelog
             All notable changes to this project will be documented in this file.
@@ -317,8 +334,16 @@ mod tests {
 ### other
 - complex update
 "#;
-        let new = changelog.update(old);
+        let new = changelog.prepend(old);
         expect_test::expect![[r####"
+            # Changelog
+            All notable changes to this project will be documented in this file.
+
+            The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+            and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+            ## [Unreleased]
+
             ## [1.1.1] - 2015-05-15
 
             ### Fixed
@@ -326,7 +351,6 @@ mod tests {
 
             ### Other
             - simple update
-
             ## [1.1.0] - 1970-01-01
 
             ### fix bugs
@@ -337,4 +361,31 @@ mod tests {
         "####]]
         .assert_eq(&new);
     }
+}
+
+#[test]
+fn empty_changelog_is_updated() {
+    let commits = vec!["fix: myfix", "simple update"];
+    let changelog = ChangelogBuilder::new(commits, "1.1.1")
+        .with_release_date(Utc.ymd(2015, 5, 15))
+        .build();
+    let new = changelog.prepend(CHANGELOG_HEADER);
+    expect_test::expect![[r####"
+        # Changelog
+        All notable changes to this project will be documented in this file.
+
+        The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+        and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+        ## [Unreleased]
+
+        ## [1.1.1] - 2015-05-15
+
+        ### Fixed
+        - myfix
+
+        ### Other
+        - simple update
+    "####]]
+    .assert_eq(&new);
 }

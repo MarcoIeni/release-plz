@@ -23,6 +23,7 @@ chrono = { version = "0.4", features = ["clock"], default-features = false }
 fake = "2"
 folder_compare = "0.4"
 fs_extra = "1"
+git-cliff = "0.6"
 git-cliff-core = "0.6"
 octocrab = "0.15"
 secrecy = "0.8"
