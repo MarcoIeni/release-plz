@@ -3,11 +3,11 @@
 [![Crates.io](https://img.shields.io/crates/v/release-plz.svg)](https://crates.io/crates/release-plz)
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
 
-Release-plz updates the versions of your rust packages, by analyzing you git history,
+Release-plz updates the versions and changelogs of your rust packages, by analyzing you git history,
 based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
 Release-plz can update your `Cargo.toml` files locally, or by opening a GitHub Pull Request.
 
-Once you update the versions, you can then use a command like
+Once you update the packages, you can then use a command like
 [cargo workspaces](https://crates.io/crates/cargo-workspaces) `publish` to publish the changes:
 
 ```shell
@@ -43,7 +43,7 @@ subtle manual mistakes you can make when releasing from your terminal.
 
 ### Update
 
-With `release-plz update` you can update the version of the packages of a local workspace.
+With `release-plz update` you can update the version and the changelog of the packages of a local workspace.
 
 In the following example, I run `release-plz` on [tokio](https://github.com/tokio-rs/tokio), cloned from the default branch.
 `Release-plz` increases the versions of the packages with changes which were not updated on crates.io yet.
