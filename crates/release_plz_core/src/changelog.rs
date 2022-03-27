@@ -127,6 +127,7 @@ fn git_config() -> GitConfig {
     }
 }
 
+/// Commit parsers based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 fn commit_parsers() -> Vec<CommitParser> {
     vec![
         CommitParser {
@@ -180,6 +181,7 @@ fn commit_parsers() -> Vec<CommitParser> {
         },
     ]
 }
+
 fn changelog_config() -> ChangelogConfig {
     ChangelogConfig {
         header: Some(String::from(CHANGELOG_HEADER)),
