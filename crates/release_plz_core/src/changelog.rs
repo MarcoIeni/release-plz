@@ -26,9 +26,9 @@ impl Changelog<'_> {
     /// Generate the full changelog.
     pub fn generate(self) -> String {
         let config = git_cliff_config();
-        let mut out = Vec::new();
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .expect("error while building changelog");
+        let mut out = Vec::new();
         changelog.generate(&mut out).unwrap();
         String::from_utf8(out).unwrap()
     }
@@ -36,9 +36,9 @@ impl Changelog<'_> {
     /// Update an existing changelog.
     pub fn prepend(self, old_changelog: impl Into<String>) -> String {
         let config = git_cliff_config();
-        let mut out = Vec::new();
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .expect("error while building changelog");
+        let mut out = Vec::new();
         changelog.prepend(old_changelog.into(), &mut out).unwrap();
         String::from_utf8(out).unwrap()
     }
