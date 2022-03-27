@@ -1,7 +1,9 @@
 use std::{fs, path::PathBuf};
 
+use chrono::{TimeZone, Utc};
 use release_plz_core::{
-    are_packages_equal, copy_to_temp_dir, GitHub, ReleasePrRequest, UpdateRequest, CARGO_TOML,
+    are_packages_equal, copy_to_temp_dir, ChangelogRequest, GitHub, ReleasePrRequest,
+    UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use secrecy::Secret;
 use tempfile::{tempdir, TempDir};
@@ -14,6 +16,8 @@ pub struct ComparisonTest {
 }
 
 const PROJECT_NAME: &str = "myproject";
+pub const OWNER: &str = "owner";
+pub const REPO: &str = "repo";
 
 impl ComparisonTest {
     pub fn new() -> Self {
@@ -38,6 +42,9 @@ impl ComparisonTest {
     fn update_request(&self) -> UpdateRequest {
         UpdateRequest::new(self.local_project_manifest())
             .unwrap()
+            .with_changelog(ChangelogRequest {
+                release_date: Some(Utc.ymd(2015, 5, 15)),
+            })
             .with_registry_project_manifest(self.registry_project_manfifest())
             .unwrap()
     }
@@ -84,7 +91,18 @@ impl ComparisonTest {
     pub fn are_projects_equal(&self) -> bool {
         are_packages_equal(&self.local_project(), &self.registry_project())
     }
-}
 
-pub const OWNER: &str = "owner";
-pub const REPO: &str = "repo";
+    pub fn write_local_project_changelog(&self, changelog: &str) {
+        let changelog_path = self.local_project_changelog_path();
+        fs::write(changelog_path, changelog).unwrap()
+    }
+
+    pub fn local_project_changelog(&self) -> String {
+        let changelog_path = self.local_project_changelog_path();
+        fs::read_to_string(changelog_path).unwrap()
+    }
+
+    fn local_project_changelog_path(&self) -> PathBuf {
+        self.local_project().join(CHANGELOG_FILENAME)
+    }
+}

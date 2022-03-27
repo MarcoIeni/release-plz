@@ -3,10 +3,11 @@ use crate::{
     registry_packages::{self, PackagesCollection},
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
-    CARGO_TOML,
+    ChangelogBuilder, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::{anyhow, Context};
 use cargo_metadata::{Package, Version};
+use chrono::{Date, Utc};
 use folder_compare::FolderCompare;
 use fs_extra::dir;
 use git_cmd::{self, Repo};
@@ -25,6 +26,14 @@ pub struct UpdateRequest {
     registry_manifest: Option<PathBuf>,
     /// Update just this package.
     single_package: Option<String>,
+    /// If [`Option::Some`], changelog is updated.
+    changelog_req: Option<ChangelogRequest>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct ChangelogRequest {
+    /// When the new release is published. If unspecified, current date is used.
+    pub release_date: Option<Date<Utc>>,
 }
 
 impl UpdateRequest {
@@ -37,6 +46,7 @@ impl UpdateRequest {
             local_manifest,
             registry_manifest: None,
             single_package: None,
+            changelog_req: None,
         })
     }
 
@@ -48,11 +58,18 @@ impl UpdateRequest {
         })
     }
 
-    pub fn with_single_package(self, package: String) -> io::Result<Self> {
-        Ok(Self {
+    pub fn with_changelog(self, changelog_req: ChangelogRequest) -> Self {
+        Self {
+            changelog_req: Some(changelog_req),
+            ..self
+        }
+    }
+
+    pub fn with_single_package(self, package: String) -> Self {
+        Self {
             single_package: Some(package),
             ..self
-        })
+        }
     }
 
     pub fn local_manifest(&self) -> &Path {
@@ -66,7 +83,9 @@ impl UpdateRequest {
 
 /// Determine next version of packages
 #[instrument]
-pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Version)>, TempRepo)> {
+pub fn next_versions(
+    input: &UpdateRequest,
+) -> anyhow::Result<(Vec<(Package, UpdateResult)>, TempRepo)> {
     let local_project = Project::new(input)?;
     let registry_packages = registry_packages::get_registry_packages(
         input.registry_manifest.as_ref(),
@@ -74,9 +93,12 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, Ver
     )?;
 
     let repository = local_project.get_repo()?;
-
-    let packages_to_update =
-        packages_to_update(local_project, &registry_packages, &repository.repo)?;
+    let packages_to_update = packages_to_update(
+        local_project,
+        &registry_packages,
+        &repository.repo,
+        input.changelog_req,
+    )?;
     Ok((packages_to_update, repository))
 }
 
@@ -133,12 +155,18 @@ impl Project {
     }
 }
 
+pub struct UpdateResult {
+    pub version: Version,
+    pub changelog: Option<String>,
+}
+
 #[instrument(skip_all)]
 fn packages_to_update(
     project: Project,
     registry_packages: &PackagesCollection,
     repository: &Repo,
-) -> anyhow::Result<Vec<(Package, Version)>> {
+    changelog_req: Option<ChangelogRequest>,
+) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
     repository.is_clean()?;
     debug!("calculating local packages");
     let mut packages_to_update = vec![];
@@ -150,10 +178,36 @@ fn packages_to_update(
         debug!("diff: {:?}, next_version: {}", &diff, next_version);
         if next_version != *current_version {
             info!("{}: next version is {next_version}", p.name);
-            packages_to_update.push((p, next_version));
+            let changelog = changelog_req
+                .map(|r| get_changelog(diff.commits.clone(), &next_version, r.release_date, &p))
+                .transpose()?;
+
+            let update_result = UpdateResult {
+                version: next_version,
+                changelog,
+            };
+            packages_to_update.push((p, update_result));
         }
     }
     Ok(packages_to_update)
+}
+
+fn get_changelog(
+    commits: Vec<String>,
+    next_version: &Version,
+    release_date: Option<Date<Utc>>,
+    package: &Package,
+) -> anyhow::Result<String> {
+    let mut changelog_builder = ChangelogBuilder::new(commits, next_version.to_string());
+    if let Some(release_date) = release_date {
+        changelog_builder = changelog_builder.with_release_date(release_date)
+    }
+    let new_changelog = changelog_builder.build();
+    let changelog = match fs::read_to_string(package.changelog_path()?) {
+        Ok(old_changelog) => new_changelog.prepend(old_changelog),
+        Err(_err) => new_changelog.generate(), // Old changelog doesn't exist.
+    };
+    Ok(changelog)
 }
 
 #[instrument(
@@ -262,6 +316,10 @@ pub fn public_packages(directory: &Path) -> anyhow::Result<Vec<Package>> {
 
 pub trait PackagePath {
     fn package_path(&self) -> anyhow::Result<&Path>;
+    fn changelog_path(&self) -> anyhow::Result<PathBuf> {
+        let changelog_path = self.package_path()?.join(CHANGELOG_FILENAME);
+        Ok(changelog_path)
+    }
 }
 
 impl PackagePath for Package {

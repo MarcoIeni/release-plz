@@ -1,3 +1,4 @@
+mod changelog;
 mod diff;
 mod download;
 mod next_ver;
@@ -7,6 +8,7 @@ mod tmp_repo;
 mod update;
 mod version;
 
+pub use changelog::*;
 pub use download::read_package;
 pub use next_ver::*;
 pub use release_pr::*;

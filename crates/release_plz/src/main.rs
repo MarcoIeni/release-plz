@@ -14,11 +14,11 @@ async fn main() -> anyhow::Result<()> {
 
     match args.command {
         args::Command::Update(cmd_args) => {
-            let update_request = cmd_args.update_request();
+            let update_request = cmd_args.update_request()?;
             release_plz_core::update(&update_request)?;
         }
         args::Command::ReleasePr(cmd_args) => {
-            let update_request = cmd_args.update.update_request();
+            let update_request = cmd_args.update.update_request()?;
             let request = ReleasePrRequest {
                 github: cmd_args.github().context("invalid github settings")?,
                 update_request,

@@ -2,8 +2,9 @@ use std::{fs, path::Path};
 
 use git_cmd::git_in_dir;
 
-pub fn add_feature(project: &Path) {
+pub fn add_feature(project: &Path, message: &str) {
     fs::write(project.join("src").join("lib.rs"), "do amazing things").unwrap();
     git_in_dir(project, &["add", "."]).unwrap();
-    git_in_dir(project, &["commit", "-m", "feat: do awesome stuff"]).unwrap();
+    let commit_message = format!("feat: {message}");
+    git_in_dir(project, &["commit", "-m", &commit_message]).unwrap();
 }
