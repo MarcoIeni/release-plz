@@ -9,7 +9,7 @@ fn up_to_date_project_is_not_touched() {
 
     comparison_test.run_update();
 
-    // the update should have not changed anything
+    // The update shouldn't have changed anything.
     assert!(comparison_test.are_projects_equal());
 }
 
@@ -20,9 +20,6 @@ fn version_is_updated_when_project_changed() {
     user_mock::add_feature(&comparison_test.local_project(), feature_message);
 
     comparison_test.run_update();
-
-    // the update should have changed the version
-    assert!(!comparison_test.are_projects_equal());
 
     let local_package = read_package(comparison_test.local_project()).unwrap();
     assert_eq!(local_package.version, Version::new(0, 1, 1));
@@ -59,9 +56,6 @@ fn changelog_is_updated_if_changelog_already_exists() {
     user_mock::add_feature(&comparison_test.local_project(), feature_message);
 
     comparison_test.run_update();
-
-    // the update should have changed the version
-    assert!(!comparison_test.are_projects_equal());
 
     let local_package = read_package(comparison_test.local_project()).unwrap();
     assert_eq!(local_package.version, Version::new(0, 1, 1));
