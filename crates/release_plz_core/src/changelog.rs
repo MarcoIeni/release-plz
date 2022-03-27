@@ -192,12 +192,9 @@ fn changelog_config() -> ChangelogConfig {
 ### {{ group | upper_first }}
 {% for commit in commits %}
 {%- if commit.scope -%}
-- *({{commit.scope}})* {{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
+- *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
 {% else -%}
-- {{ commit.message }}
-{% endif -%}
-{% if commit.breaking -%}
-{% raw %}  {% endraw %}- **BREAKING**: {{commit.breaking_description}}
+- {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
 {% endif -%}
 {% endfor -%}
 {% endfor %}"#,

@@ -1182,7 +1182,7 @@ dependencies = [
 
 [[package]]
 name = "git_cmd"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "claim",
@@ -1739,7 +1739,7 @@ dependencies = [
 
 [[package]]
 name = "next_version"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "cargo-edit",
  "conventional_commit_parser",
@@ -2895,7 +2895,7 @@ dependencies = [
 
 [[package]]
 name = "test_logs"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "once_cell",
  "tracing",
