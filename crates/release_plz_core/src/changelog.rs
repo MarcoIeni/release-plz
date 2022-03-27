@@ -1,5 +1,5 @@
 use chrono::{Date, TimeZone, Utc};
-use git_cliff::changelog::Changelog;
+use git_cliff::changelog::Changelog as GitCliffChangelog;
 use git_cliff_core::{
     commit::Commit,
     config::{ChangelogConfig, CommitParser, Config, GitConfig, LinkParser},
@@ -18,26 +18,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";
 
-pub struct PlzChangelog<'a> {
+pub struct Changelog<'a> {
     release: Release<'a>,
 }
 
-impl PlzChangelog<'_> {
+impl Changelog<'_> {
+    /// Generate the full changelog.
     pub fn generate(self) -> String {
         let config = git_cliff_config();
         let mut out = Vec::new();
-        let changelog =
-            Changelog::new(vec![self.release], &config).expect("error while building changelog");
+        let changelog = GitCliffChangelog::new(vec![self.release], &config)
+            .expect("error while building changelog");
         changelog.generate(&mut out).unwrap();
         String::from_utf8(out).unwrap()
     }
 
-    pub fn prepend(self, old: impl Into<String>) -> String {
+    /// Update an existing changelog.
+    pub fn prepend(self, old_changelog: impl Into<String>) -> String {
         let config = git_cliff_config();
         let mut out = Vec::new();
-        let changelog =
-            Changelog::new(vec![self.release], &config).expect("error while building changelog");
-        changelog.prepend(old.into(), &mut out).unwrap();
+        let changelog = GitCliffChangelog::new(vec![self.release], &config)
+            .expect("error while building changelog");
+        changelog.prepend(old_changelog.into(), &mut out).unwrap();
         String::from_utf8(out).unwrap()
     }
 }
@@ -71,7 +73,7 @@ impl<'a> ChangelogBuilder {
         }
     }
 
-    pub fn build(self) -> PlzChangelog<'static> {
+    pub fn build(self) -> Changelog<'static> {
         let release_date = self.release_timestamp();
         let commits = self
             .commits
@@ -81,7 +83,7 @@ impl<'a> ChangelogBuilder {
             .filter_map(|c| c.process(&git_config()).ok())
             .collect();
 
-        PlzChangelog {
+        Changelog {
             release: Release {
                 version: Some(self.version),
                 commits,
