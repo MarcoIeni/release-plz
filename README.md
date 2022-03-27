@@ -11,7 +11,7 @@ Once you update the versions, you can then use a command like
 [cargo workspaces](https://crates.io/crates/cargo-workspaces) `publish` to publish the changes:
 
 ```shell
-cargo workspaces publish --from-git --token "${TOKEN}" --yes
+cargo workspaces publish --from-git --token "${TOKEN}"
 ```
 
 The goal is to create a fully automated release pipeline.
