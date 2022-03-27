@@ -1182,7 +1182,7 @@ dependencies = [
 
 [[package]]
 name = "git_cmd"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "claim",
@@ -1739,7 +1739,7 @@ dependencies = [
 
 [[package]]
 name = "next_version"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "cargo-edit",
  "conventional_commit_parser",
@@ -2267,7 +2267,7 @@ checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
 
 [[package]]
 name = "release-plz"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2283,7 +2283,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "cargo",
@@ -2895,7 +2895,7 @@ dependencies = [
 
 [[package]]
 name = "test_logs"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "once_cell",
  "tracing",
