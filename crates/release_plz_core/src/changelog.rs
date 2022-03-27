@@ -201,7 +201,7 @@ fn changelog_config() -> ChangelogConfig {
 {% endfor %}"#,
         )),
         footer: None,
-        trim: None,
+        trim: Some(true),
     }
 }
 
