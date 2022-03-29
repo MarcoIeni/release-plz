@@ -28,6 +28,10 @@ pub struct UpdateRequest {
     single_package: Option<String>,
     /// If [`Option::Some`], changelog is updated.
     changelog_req: Option<ChangelogRequest>,
+    /// Registry where the packages are stored.
+    /// The registry name needs to be present in the Cargo config.
+    /// If unspecified, crates.io is used.
+    registry: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -47,6 +51,7 @@ impl UpdateRequest {
             registry_manifest: None,
             single_package: None,
             changelog_req: None,
+            registry: None,
         })
     }
 
@@ -61,6 +66,13 @@ impl UpdateRequest {
     pub fn with_changelog(self, changelog_req: ChangelogRequest) -> Self {
         Self {
             changelog_req: Some(changelog_req),
+            ..self
+        }
+    }
+
+    pub fn with_registry(self, registry: String) -> Self {
+        Self {
+            registry: Some(registry),
             ..self
         }
     }
@@ -90,6 +102,7 @@ pub fn next_versions(
     let registry_packages = registry_packages::get_registry_packages(
         input.registry_manifest.as_ref(),
         &local_project.packages,
+        input.registry.as_deref(),
     )?;
 
     let repository = local_project.get_repo()?;

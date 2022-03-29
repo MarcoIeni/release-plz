@@ -22,6 +22,7 @@ impl PackagesCollection {
 pub fn get_registry_packages(
     registry_manifest: Option<&PathBuf>,
     local_packages: &[Package],
+    registry: Option<&str>,
 ) -> anyhow::Result<PackagesCollection> {
     let (temp_dir, registry_packages) = match registry_manifest {
         Some(manifest) => (None, next_ver::public_packages(manifest)?),
@@ -30,7 +31,8 @@ pub fn get_registry_packages(
             let local_packages_names: Vec<&str> =
                 local_packages.iter().map(|c| c.name.as_str()).collect();
             let directory = temp_dir.as_ref().to_str().context("invalid tempdir path")?;
-            let registry_packages = download::download_packages(&local_packages_names, directory)?;
+            let registry_packages =
+                download::download_packages(&local_packages_names, directory, registry)?;
             (Some(temp_dir), registry_packages)
         }
     };

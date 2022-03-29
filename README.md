@@ -46,7 +46,7 @@ subtle manual mistakes you can make when releasing from your terminal.
 With `release-plz update` you can update the version and the changelog of the packages of a local workspace.
 
 In the following example, I run `release-plz` on [tokio](https://github.com/tokio-rs/tokio), cloned from the default branch.
-`Release-plz` increases the versions of the packages with changes which were not updated on crates.io yet.
+`Release-plz` increases the version and the changelog of the packages with unpublished changes.
 
 ![Peek 2022-02-13 22-54](https://user-images.githubusercontent.com/11428655/153777065-36881d08-31c9-4966-8460-72b210f7bf2d.gif)
 
@@ -55,7 +55,7 @@ In the following example, I run `release-plz` on [tokio](https://github.com/toki
 With `release-plz release-pr` you can open a GitHub Pull Request that updates the version of the packages of a local workspace.
 
 In the following example, I run `release-plz` on [tokio](https://github.com/tokio-rs/tokio), cloned from the default branch.
-`Release-plz` opens a PR that increases the versions of the packages with changes which were not updated on crates.io yet.
+`Release-plz` opens a PR that increases the version and the changelog of the packages with unpublished changes.
 
 ![Peek 2022-02-13 23-11](https://user-images.githubusercontent.com/11428655/153777457-a924efa7-1c69-4791-b8e2-c02495c043d8.gif)
 
