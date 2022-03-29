@@ -16,11 +16,16 @@ use crate::CARGO_TOML;
 pub fn download_packages(
     packages: &[&str],
     directory: impl AsRef<str> + fmt::Debug,
+    registry: Option<&str>,
 ) -> anyhow::Result<Vec<Package>> {
     let directory = directory.as_ref();
     info!("downloading packages from cargo registry");
     let config = cargo::Config::default().expect("Unable to get cargo config.");
-    let source_id = SourceId::crates_io(&config).expect("Unable to retrieve source id.");
+    let source_id = match registry {
+        Some(registry) => SourceId::alt_registry(&config, registry)
+            .with_context(|| format!("Unable to retrieve source id for registry {registry}")),
+        None => SourceId::crates_io(&config).context("Unable to retrieve source id for crates.io."),
+    }?;
     let packages: Vec<cargo_clone::Crate> = packages
         .iter()
         .map(|c| cargo_clone::Crate::new(c.to_string(), None))
@@ -79,7 +84,7 @@ mod tests {
         let package_name = "rand";
         let temp_dir = tempdir().unwrap();
         let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
-        let packages = download_packages(&[package_name], directory).unwrap();
+        let packages = download_packages(&[package_name], directory, None).unwrap();
         let rand = &packages[0];
         assert_eq!(rand.name, package_name);
     }
@@ -91,7 +96,8 @@ mod tests {
         let second_package = "rust-gh-example";
         let temp_dir = tempdir().unwrap();
         let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
-        let packages = download_packages(&[first_package, second_package], directory).unwrap();
+        let packages =
+            download_packages(&[first_package, second_package], directory, None).unwrap();
         assert_eq!(&packages[0].name, first_package);
         assert_eq!(&packages[1].name, second_package);
     }

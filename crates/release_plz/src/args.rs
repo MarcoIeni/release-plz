@@ -31,7 +31,7 @@ pub struct Update {
     project_manifest: Option<PathBuf>,
     /// Path to the Cargo.toml contained in the released version of the project you want to update.
     /// If not provided, the packages of your project will be compared with the
-    /// ones published in the cargo registry (only crates.io at the moment).
+    /// ones published in the cargo registry.
     /// Normally, this parameter is used only if the published version of
     /// your project is already available locally.
     /// For example, it could be the path to the project with a `git checkout` on its latest tag.
@@ -43,11 +43,16 @@ pub struct Update {
     #[clap(short, long)]
     package: Option<String>,
     /// Don't create changelog.
-    #[clap(long, overrides_with("release-date"))]
+    #[clap(long, conflicts_with("release-date"))]
     no_changelog: bool,
     /// Date of the release. Format: %Y-%m-%d. It defaults to current Utc date.
-    #[clap(long, overrides_with("no-changelog"))]
+    #[clap(long, conflicts_with("no-changelog"))]
     release_date: Option<String>,
+    /// Registry where the packages are stored.
+    /// The registry name needs to be present in the Cargo config.
+    /// If unspecified, crates.io is used.
+    #[clap(long, conflicts_with("registry-project-manifest"))]
+    registry: Option<String>,
 }
 
 #[derive(clap::Parser, Debug)]
@@ -84,6 +89,9 @@ impl Update {
         }
         if let Some(package) = &self.package {
             update = update.with_single_package(package.clone());
+        }
+        if let Some(registry) = &self.registry {
+            update = update.with_registry(registry.clone());
         }
         Ok(update)
     }
