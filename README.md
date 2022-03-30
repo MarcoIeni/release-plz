@@ -54,10 +54,10 @@ In the following example, I run `release-plz` on the `release-plz` project itsel
 
 With `release-plz release-pr` you can open a GitHub Pull Request that updates the version of the packages of a local workspace.
 
-In the following example, I run `release-plz` on [tokio](https://github.com/tokio-rs/tokio), cloned from the default branch.
+In the following example, I run `release-plz` on the `release-plz` project itself.
 `Release-plz` opens a PR that increases the version and the changelog of the packages with unpublished changes.
 
-![Peek 2022-02-13 23-11](https://user-images.githubusercontent.com/11428655/153777457-a924efa7-1c69-4791-b8e2-c02495c043d8.gif)
+![release-plz release-pr](https://user-images.githubusercontent.com/11428655/160772903-544c7578-7c17-4311-b6ca-a1aefeabe799.gif)
 
 ## License
 
