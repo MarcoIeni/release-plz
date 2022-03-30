@@ -27,10 +27,11 @@ fn update_versions(local_packages: &[(Package, UpdateResult)]) -> anyhow::Result
 #[instrument(skip_all)]
 fn update_changelogs(local_packages: &[(Package, UpdateResult)]) -> anyhow::Result<()> {
     for (package, update) in local_packages {
-        let changelog_path = package.changelog_path()?;
-        let changelog = update.changelog.as_ref().unwrap();
-        fs::write(&changelog_path, changelog)
-            .with_context(|| format!("cannot write changelog to {:?}", &changelog_path))?;
+        if let Some(changelog) = update.changelog.as_ref() {
+            let changelog_path = package.changelog_path()?;
+            fs::write(&changelog_path, changelog)
+                .with_context(|| format!("cannot write changelog to {:?}", &changelog_path))?;
+        }
     }
     Ok(())
 }
