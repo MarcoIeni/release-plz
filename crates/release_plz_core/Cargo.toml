@@ -15,7 +15,7 @@ next_version = { path = "../next_version", version = "0.1.0" }
 git_cmd = { path = "../git_cmd", version = "0.1.1" }
 
 anyhow = "1"
-cargo = "0.58"
+cargo = "0.60"
 cargo-clone = "1"
 cargo-edit = "0.8"
 cargo_metadata = "0.14"
