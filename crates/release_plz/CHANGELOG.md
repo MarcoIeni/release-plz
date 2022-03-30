@@ -8,8 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.1] - 2022-03-30
 
-### Other
+### Added
 - support alternative registries (#34)
+
+### Other
 - update crate description
 
 ## [0.2.0] - 2022-03-27

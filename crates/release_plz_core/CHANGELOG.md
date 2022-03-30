@@ -12,8 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix changelog for release-pr (#39)
 - remove changelog unwrap (#37)
 
-### Other
+### Added
 - support alternative registries (#34)
+
+### Other
 - update crate description
 
 ## [0.2.0] - 2022-03-27
