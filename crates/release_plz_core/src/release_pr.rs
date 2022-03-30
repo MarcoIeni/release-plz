@@ -58,14 +58,12 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .ok_or_else(|| anyhow!("wrong local manifest path"))?;
     let manifest_dir_name = PathBuf::from(manifest_dir_name);
     let new_manifest_dir = tmp_project_root.as_ref().join(manifest_dir_name);
-    let new_update_request = {
-        let mut ur = UpdateRequest::new(new_manifest_dir.join(CARGO_TOML))
-            .context("can't find temporary project")?;
-        if let Some(registry_manifest) = input.update_request.registry_manifest() {
-            ur = ur.with_registry_project_manifest(registry_manifest.to_path_buf())?;
-        }
-        ur
-    };
+    let local_manifest = new_manifest_dir.join(CARGO_TOML);
+    let new_update_request = input
+        .update_request
+        .clone()
+        .set_local_manifest(local_manifest)
+        .context("can't find temporary project")?;
     let (packages_to_update, _repository) = update(&new_update_request)?;
     if !packages_to_update.is_empty() {
         let random_number: u64 = (100_000_000..999_999_999).fake();
