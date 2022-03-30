@@ -45,10 +45,10 @@ subtle manual mistakes you can make when releasing from your terminal.
 
 With `release-plz update` you can update the version and the changelog of the packages of a local workspace.
 
-In the following example, I run `release-plz` on [tokio](https://github.com/tokio-rs/tokio), cloned from the default branch.
+In the following example, I run `release-plz` on the `release-plz` project itself.
 `Release-plz` increases the version and the changelog of the packages with unpublished changes.
 
-![Peek 2022-02-13 22-54](https://user-images.githubusercontent.com/11428655/153777065-36881d08-31c9-4966-8460-72b210f7bf2d.gif)
+![release-plz update](https://user-images.githubusercontent.com/11428655/160762832-54300ddb-ec9c-4538-a611-c66490c47333.gif)
 
 ### Release PR
 
