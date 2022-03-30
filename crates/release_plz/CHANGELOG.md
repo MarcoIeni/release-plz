@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2022-03-30
+
+### Other
+- support alternative registries (#34)
+- update crate description
+
 ## [0.2.0] - 2022-03-27
 
 ### Added
