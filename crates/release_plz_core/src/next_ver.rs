@@ -18,7 +18,7 @@ use std::{
 use tempfile::{tempdir, TempDir};
 use tracing::{debug, info, instrument};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UpdateRequest {
     /// The manifest of the project you want to update.
     local_manifest: PathBuf,
@@ -40,18 +40,29 @@ pub struct ChangelogRequest {
     pub release_date: Option<Date<Utc>>,
 }
 
+fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
+    let mut local_manifest = fs::canonicalize(local_manifest)?;
+    if !local_manifest.ends_with(CARGO_TOML) {
+        local_manifest.push(CARGO_TOML)
+    }
+    Ok(local_manifest)
+}
+
 impl UpdateRequest {
-    pub fn new(local_manifest: PathBuf) -> io::Result<Self> {
-        let mut local_manifest = fs::canonicalize(local_manifest)?;
-        if !local_manifest.ends_with(CARGO_TOML) {
-            local_manifest.push(CARGO_TOML)
-        }
+    pub fn new(local_manifest: impl AsRef<Path>) -> io::Result<Self> {
         Ok(Self {
-            local_manifest,
+            local_manifest: canonical_local_manifest(local_manifest.as_ref())?,
             registry_manifest: None,
             single_package: None,
             changelog_req: None,
             registry: None,
+        })
+    }
+
+    pub fn set_local_manifest(self, local_manifest: impl AsRef<Path>) -> io::Result<Self> {
+        Ok(Self {
+            local_manifest: canonical_local_manifest(local_manifest.as_ref())?,
+            ..self
         })
     }
 
