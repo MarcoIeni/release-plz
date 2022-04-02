@@ -29,10 +29,6 @@ subtle manual mistakes you can make when releasing from your terminal.
 
 ## Installation
 
-### Requirements
-
-- git
-
 ### Cargo
 
 * Install the rust toolchain in order to have cargo installed by following
@@ -40,6 +36,8 @@ subtle manual mistakes you can make when releasing from your terminal.
 * run `cargo install release-plz --locked`
 
 ## Example Usage
+
+Make sure you have `git` installed when running `release-plz`.
 
 ### Update
 
