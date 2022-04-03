@@ -29,8 +29,10 @@ impl Changelog<'_> {
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .expect("error while building changelog");
         let mut out = Vec::new();
-        changelog.generate(&mut out).unwrap();
-        String::from_utf8(out).unwrap()
+        changelog
+            .generate(&mut out)
+            .expect("cannot generate changelog");
+        String::from_utf8(out).expect("cannot convert bytes to string")
     }
 
     /// Update an existing changelog.
@@ -39,8 +41,10 @@ impl Changelog<'_> {
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .expect("error while building changelog");
         let mut out = Vec::new();
-        changelog.prepend(old_changelog.into(), &mut out).unwrap();
-        String::from_utf8(out).unwrap()
+        changelog
+            .prepend(old_changelog.into(), &mut out)
+            .expect("cannot update changelog");
+        String::from_utf8(out).expect("cannot convert bytes to string")
     }
 }
 
