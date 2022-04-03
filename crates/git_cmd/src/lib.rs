@@ -25,7 +25,8 @@ impl Repo {
     #[instrument(skip_all)]
     pub fn new(directory: impl AsRef<Path>) -> anyhow::Result<Self> {
         debug!("initializing directory {:?}", directory.as_ref());
-        let current_branch = Self::get_current_branch(&directory)?;
+        let current_branch =
+            Self::get_current_branch(&directory).context("cannot determine current branch")?;
 
         Ok(Self {
             directory: directory.as_ref().to_path_buf(),
@@ -172,7 +173,12 @@ impl Repo {
 #[instrument]
 pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
     let args: Vec<&str> = args.iter().map(|s| s.trim()).collect();
-    let output = Command::new("git").arg("-C").arg(dir).args(args).output()?;
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(dir)
+        .args(args)
+        .output()
+        .context("error while running git")?;
     trace!("git output = {:?}", output);
     let stdout = cmd::string_from_bytes(output.stdout)?;
     if output.status.success() {
