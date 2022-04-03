@@ -2,6 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/release-plz.svg)](https://crates.io/crates/release-plz)
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
+[![Docker](https://img.shields.io/docker/cloud/build/marcoieni/release-plz.svg)](https://hub.docker.com/r/marcoieni/release-plz/tags)
 
 Release-plz updates the versions and changelogs of your rust packages, by analyzing you git history,
 based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
@@ -28,6 +29,10 @@ subtle manual mistakes you can make when releasing from your terminal.
   Fearlessly release workspace crates and with beautiful semi-handcrafted changelogs.
 
 ## Installation
+
+### Docker
+
+`docker pull marcoieni/release-plz`
 
 ### Cargo
 
