@@ -316,7 +316,8 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> bool
             ".cargo_vcs_info.json".to_string(),
             CARGO_TOML.to_string(),
         ];
-        let result = FolderCompare::new(local_package, registry_package, &excluded).unwrap();
+        let result = FolderCompare::new(local_package, registry_package, &excluded)
+            .expect("cannot compare folders");
         result.changed_files.is_empty() && result.new_files.is_empty()
     };
     are_toml_same() && are_dir_same()
