@@ -18,7 +18,7 @@ RUN cargo build --release --locked --bin release-plz
 FROM debian:bullseye-slim as runner
 WORKDIR /app
 RUN apt-get update && \
-    apt-get install -y libssl1.1 ca-certificates && \
+    apt-get install -y libssl1.1 ca-certificates git && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/target/release/release-plz /usr/local/bin
 ENTRYPOINT ["release-plz"]
