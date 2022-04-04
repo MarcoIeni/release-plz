@@ -176,9 +176,11 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
     let output = Command::new("git")
         .arg("-C")
         .arg(dir)
-        .args(args)
+        .args(&args)
         .output()
-        .context("error while running git")?;
+        .with_context(|| {
+            format!("error while running git in directory `{dir:?}` with args `{args:?}`")
+        })?;
     trace!("git output = {:?}", output);
     let stdout = cmd::string_from_bytes(output.stdout)?;
     if output.status.success() {
