@@ -1,15 +1,16 @@
 use std::path::PathBuf;
 
+use cargo_metadata::Package;
 use git_cmd::Repo;
 
 use anyhow::{anyhow, Context};
 use fake::Fake;
 use octocrab::OctocrabBuilder;
 use secrecy::{ExposeSecret, SecretString};
-use tracing::{instrument, Span};
+use tracing::{info, instrument, Span};
 use url::Url;
 
-use crate::{copy_to_temp_dir, update, UpdateRequest, CARGO_TOML};
+use crate::{copy_to_temp_dir, update, UpdateRequest, UpdateResult, CARGO_TOML};
 
 #[derive(Debug)]
 pub struct ReleasePrRequest {
@@ -66,14 +67,42 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .context("can't find temporary project")?;
     let (packages_to_update, _repository) = update(&new_update_request)?;
     if !packages_to_update.is_empty() {
-        let random_number: u64 = (100_000_000..999_999_999).fake();
-        let release_branch = format!("release-{}", random_number);
         let repo = Repo::new(new_manifest_dir)?;
-        create_release_branch(&repo, &release_branch)?;
-        open_pr(&release_branch, &input.github).await?;
+        let pr = Pr::new(&packages_to_update);
+        create_release_branch(&repo, &pr.branch)?;
+        open_pr(&pr, &input.github).await?;
     }
 
     Ok(())
+}
+
+#[derive(Debug)]
+struct Pr {
+    branch: String,
+    title: String,
+}
+
+impl Pr {
+    fn new(packages_to_update: &[(Package, UpdateResult)]) -> Self {
+        Self {
+            branch: release_branch(),
+            title: pr_title(packages_to_update),
+        }
+    }
+}
+
+fn release_branch() -> String {
+    let random_number: u64 = (100_000_000..999_999_999).fake();
+    format!("release-{}", random_number)
+}
+
+fn pr_title(packages_to_update: &[(Package, UpdateResult)]) -> String {
+    if packages_to_update.len() == 1 {
+        let (package, update) = &packages_to_update[0];
+        format!("chore({}): release {}", package.name, update.version)
+    } else {
+        "chore: release".to_string()
+    }
 }
 
 #[instrument(
@@ -81,7 +110,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         default_branch = tracing::field::Empty,
     )
 )]
-async fn open_pr(release_branch: &str, github: &GitHub) -> anyhow::Result<()> {
+async fn open_pr(pr: &Pr, github: &GitHub) -> anyhow::Result<()> {
     let mut octocrab_builder =
         OctocrabBuilder::new().personal_token(github.token.expose_secret().clone());
 
@@ -107,12 +136,14 @@ async fn open_pr(release_branch: &str, github: &GitHub) -> anyhow::Result<()> {
         .context("failed to retrieve default branch")?;
     Span::current().record("default_branch", &default_branch.as_str());
 
-    let _pr = client
+    let pr = client
         .pulls(&github.owner, &github.repo)
-        .create("chore: release", release_branch, default_branch)
+        .create(&pr.title, &pr.branch, default_branch)
         .body("release-plz automatic bot")
         .send()
         .await?;
+
+    info!("opened pr: {}", pr.url);
 
     Ok(())
 }
