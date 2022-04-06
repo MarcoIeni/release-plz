@@ -99,7 +99,7 @@ fn release_branch() -> String {
 fn pr_title(packages_to_update: &[(Package, UpdateResult)]) -> String {
     if packages_to_update.len() == 1 {
         let (package, update) = &packages_to_update[0];
-        format!("chore({}): release {}", package.name, update.version)
+        format!("chore({}): release v{}", package.name, update.version)
     } else {
         "chore: release".to_string()
     }
@@ -143,7 +143,9 @@ async fn open_pr(pr: &Pr, github: &GitHub) -> anyhow::Result<()> {
         .send()
         .await?;
 
-    info!("opened pr: {}", pr.url);
+    if let Some(url) = pr.html_url {
+        info!("opened pr: {}", url);
+    }
 
     Ok(())
 }
