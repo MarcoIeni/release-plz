@@ -15,7 +15,8 @@ RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 RUN cargo build --release --locked --bin release-plz
 
-FROM debian:bullseye-slim as runner
+# cargo-edit needs the cargo binary installed
+FROM rust:1-slim-bullseye as runner
 WORKDIR /app
 RUN apt-get update && \
     apt-get install -y libssl1.1 ca-certificates git && \
