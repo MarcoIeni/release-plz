@@ -2,9 +2,9 @@ use std::{collections::BTreeMap, path::PathBuf};
 
 use anyhow::Context;
 use cargo_metadata::Package;
-use tempfile::{tempdir, TempDir};
+use tempfile::TempDir;
 
-use crate::{download, next_ver};
+use crate::{download, next_ver, temp_dir::temporary_directory};
 
 pub struct PackagesCollection {
     packages: BTreeMap<String, Package>,
@@ -27,7 +27,7 @@ pub fn get_registry_packages(
     let (temp_dir, registry_packages) = match registry_manifest {
         Some(manifest) => (None, next_ver::public_packages(manifest)?),
         None => {
-            let temp_dir = tempdir()?;
+            let temp_dir = temporary_directory()?;
             let local_packages_names: Vec<&str> =
                 local_packages.iter().map(|c| c.name.as_str()).collect();
             let directory = temp_dir.as_ref().to_str().context("invalid tempdir path")?;
