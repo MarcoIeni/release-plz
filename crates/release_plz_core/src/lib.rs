@@ -4,6 +4,7 @@ mod download;
 mod next_ver;
 mod registry_packages;
 mod release_pr;
+mod temp_dir;
 mod tmp_repo;
 mod update;
 mod version;
