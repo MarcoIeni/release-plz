@@ -16,7 +16,7 @@ use std::{
     fs, io,
     path::{Path, PathBuf},
 };
-use tempfile::{tempdir, TempDir};
+use tempfile::TempDir;
 use tracing::{debug, info, instrument};
 
 #[derive(Debug, Clone)]

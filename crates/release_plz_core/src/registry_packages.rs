@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, path::PathBuf};
 
 use anyhow::Context;
 use cargo_metadata::Package;
-use tempfile::{tempdir, TempDir};
+use tempfile::TempDir;
 
 use crate::{download, next_ver, temp_dir::temporary_directory};
 
