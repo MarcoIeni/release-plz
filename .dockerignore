@@ -1,0 +1,12 @@
+# Directories
+/.git/
+/.github/
+target/
+
+# Files
+.gitignore
+*.md
+Dockerfile
+LICENSE-*
+rustfmt.toml
+deny.toml
