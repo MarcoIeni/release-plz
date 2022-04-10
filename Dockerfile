@@ -19,7 +19,17 @@ RUN cargo build --release --locked --bin release-plz
 FROM rust:1-slim-bullseye as runner
 WORKDIR /app
 RUN apt-get update && \
-    apt-get install -y libssl1.1 ca-certificates git && \
+    apt-get install -y --no-install-recommends libssl1.1 git && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/target/release/release-plz /usr/local/bin
+RUN rm /usr/local/cargo/bin/cargo-clippy \
+    /usr/local/cargo/bin/cargo-fmt \
+    /usr/local/cargo/bin/cargo-miri \
+    /usr/local/cargo/bin/clippy-driver \
+    /usr/local/cargo/bin/rls \
+    /usr/local/cargo/bin/rust-gdb \
+    /usr/local/cargo/bin/rust-lldb \
+    /usr/local/cargo/bin/rustdoc \
+    /usr/local/cargo/bin/rustfmt \
+    /usr/local/cargo/bin/rustup
 ENTRYPOINT ["release-plz"]
