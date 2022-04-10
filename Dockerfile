@@ -21,8 +21,7 @@ WORKDIR /app
 
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
-    PATH=/usr/local/cargo/bin:$PATH \
-    RUST_VERSION=1.60.0
+    PATH=/usr/local/cargo/bin:$PATH
 
 # The dependency cargo-edit needs the cargo binary installed
 # copied from https://github.com/rust-lang/docker-rust/blob/aa8bed3870cb14ecf49f127bae0a212adebc2384/1.60.0/bullseye/slim/Dockerfile#L8
@@ -30,8 +29,6 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         ca-certificates \
-        gcc \
-        libc6-dev \
         wget \
         libssl1.1 \
         ssh-client \
@@ -49,27 +46,16 @@ RUN set -eux; \
     wget "$url"; \
     echo "${rustupSha256} *rustup-init" | sha256sum -c -; \
     chmod +x rustup-init; \
-    ./rustup-init -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION --default-host ${rustArch}; \
+    ./rustup-init -y --no-modify-path --profile minimal --default-host ${rustArch}; \
     rm rustup-init; \
     chmod -R a+w $RUSTUP_HOME $CARGO_HOME; \
-    rustup --version; \
     cargo --version; \
-    rustc --version; \
     apt-get remove -y --auto-remove \
         wget \
-        gcc \
-        libc6-dev \
         ; \
     rm -rf /var/lib/apt/lists/*; \
-    rm /usr/local/cargo/bin/cargo-clippy \
-    /usr/local/cargo/bin/cargo-fmt \
-    /usr/local/cargo/bin/cargo-miri \
-    /usr/local/cargo/bin/clippy-driver \
-    /usr/local/cargo/bin/rls \
-    /usr/local/cargo/bin/rust-gdb \
-    /usr/local/cargo/bin/rust-lldb \
-    /usr/local/cargo/bin/rustdoc \
-    /usr/local/cargo/bin/rustfmt \
-    /usr/local/cargo/bin/rustup;
+    mv /usr/local/cargo/bin/cargo ~; \
+    rm /usr/local/cargo/bin/*; \
+    mv ~/cargo /usr/local/cargo/bin/;
 COPY --from=builder /app/target/release/release-plz /usr/local/bin
 ENTRYPOINT ["release-plz"]
