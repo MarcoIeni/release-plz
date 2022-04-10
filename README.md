@@ -8,16 +8,23 @@ Release-plz updates the versions and changelogs of your rust packages, by analyz
 based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
 Release-plz can update your `Cargo.toml` files locally, or by opening a GitHub Pull Request.
 
-Once you update the packages, you can then use a command like
-[cargo workspaces](https://crates.io/crates/cargo-workspaces) `publish` to publish the changes:
+## Publishing
 
-```shell
-cargo workspaces publish --from-git --token "${TOKEN}"
-```
-
-The goal is to create a fully automated release pipeline.
+The main goal of the project is to create a fully automated release pipeline.
 This means you can easily release changes more frequently, without the fear of doing typo or other
 subtle manual mistakes you can make when releasing from your terminal.
+
+Release-plz delegates the process of publishing the packages and creating git tags to other tools.
+To publish the packages you updated, you can use one of these commands:
+
+- [cargo workspaces](https://crates.io/crates/cargo-workspaces):
+  ```shell
+  cargo workspaces publish --from-git --token "${TOKEN}"
+  ```
+- [cargo release](https://crates.io/crates/cargo-release) (it creates git tags, too):
+  ```shell
+  cargo release --workspace --execute --no-confirm --token "${TOKEN}"
+  ```
 
 ## Similar projects
 
