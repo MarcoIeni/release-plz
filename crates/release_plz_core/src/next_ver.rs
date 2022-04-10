@@ -1,7 +1,6 @@
 use crate::{
     diff::Diff,
     registry_packages::{self, PackagesCollection},
-    temp_dir::temporary_directory,
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
     ChangelogBuilder, CARGO_TOML, CHANGELOG_FILENAME,
@@ -16,7 +15,7 @@ use std::{
     fs, io,
     path::{Path, PathBuf},
 };
-use tempfile::TempDir;
+use tempfile::{tempdir, TempDir};
 use tracing::{debug, info, instrument};
 
 #[derive(Debug, Clone)]
@@ -365,7 +364,7 @@ fn manifest_dir(manifest: &Path) -> anyhow::Result<&Path> {
 }
 
 pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
-    let tmp_dir = temporary_directory()?;
+    let tmp_dir = tempdir().context("cannot create temporary directory")?;
     dir::copy(target, tmp_dir.as_ref(), &dir::CopyOptions::default())
         .context(format!("cannot copy directory {target:?} to {tmp_dir:?}",))?;
     Ok(tmp_dir)
