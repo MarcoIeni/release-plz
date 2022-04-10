@@ -4,7 +4,6 @@ use cargo_metadata::Package;
 use git_cmd::Repo;
 
 use anyhow::{anyhow, Context};
-use fake::Fake;
 use octocrab::OctocrabBuilder;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument, Span};
@@ -92,8 +91,10 @@ impl Pr {
 }
 
 fn release_branch() -> String {
-    let random_number: u64 = (100_000_000..999_999_999).fake();
-    format!("release-{}", random_number)
+    let now = chrono::offset::Utc::now();
+    let now = format!("{:?}", now);
+    let now = now.replace(':', "-");
+    format!("release-plz/{now}")
 }
 
 fn pr_title(packages_to_update: &[(Package, UpdateResult)]) -> String {
