@@ -19,7 +19,7 @@ RUN cargo build --release --locked --bin release-plz
 FROM rust:1-slim-bullseye as runner
 WORKDIR /app
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libssl1.1 git && \
+    apt-get install -y --no-install-recommends libssl1.1 ssh-client git && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/target/release/release-plz /usr/local/bin
 RUN rm /usr/local/cargo/bin/cargo-clippy \
