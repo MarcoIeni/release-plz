@@ -242,7 +242,7 @@ dependencies = [
  "cargo-platform",
  "cargo-util",
  "clap 2.34.0",
- "crates-io",
+ "crates-io 0.33.1",
  "crossbeam-utils",
  "curl",
  "curl-sys",
@@ -290,13 +290,72 @@ dependencies = [
 ]
 
 [[package]]
+name = "cargo"
+version = "0.61.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0cbd4606f3389345f29f372ca41e9633f45aab7b883a4e88f2cd6703b6751501"
+dependencies = [
+ "anyhow",
+ "atty",
+ "bytesize",
+ "cargo-platform",
+ "cargo-util",
+ "clap 3.1.8",
+ "crates-io 0.34.0",
+ "crossbeam-utils",
+ "curl",
+ "curl-sys",
+ "env_logger 0.9.0",
+ "filetime",
+ "flate2",
+ "fwdansi",
+ "git2",
+ "git2-curl",
+ "glob",
+ "hex 0.4.3",
+ "home",
+ "humantime 2.1.0",
+ "ignore",
+ "im-rc",
+ "itertools",
+ "jobserver",
+ "lazy_static",
+ "lazycell",
+ "libc",
+ "libgit2-sys",
+ "log",
+ "memchr",
+ "num_cpus",
+ "opener",
+ "os_info",
+ "percent-encoding",
+ "rustc-workspace-hack",
+ "rustfix",
+ "semver",
+ "serde",
+ "serde_ignored",
+ "serde_json",
+ "shell-escape",
+ "strip-ansi-escapes",
+ "tar",
+ "tempfile",
+ "termcolor",
+ "toml_edit 0.13.4",
+ "unicode-width",
+ "unicode-xid",
+ "url",
+ "walkdir",
+ "winapi",
+]
+
+[[package]]
 name = "cargo-clone"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "385bb4b56daddc4a5846038dd95559ec11a3864bc49c9186df9553568ac16369"
 dependencies = [
  "anyhow",
- "cargo",
+ "cargo 0.58.0",
  "clap 2.34.0",
  "semver",
  "walkdir",
@@ -326,7 +385,7 @@ dependencies = [
  "structopt",
  "subprocess",
  "termcolor",
- "toml_edit",
+ "toml_edit 0.3.1",
  "ureq",
  "url",
 ]
@@ -605,6 +664,20 @@ name = "crates-io"
 version = "0.33.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b2d7714dc2b336c5a579a1a2aa2d41c7cd7a31ccb25e2ea908dba8934cfeb75a"
+dependencies = [
+ "anyhow",
+ "curl",
+ "percent-encoding",
+ "serde",
+ "serde_json",
+ "url",
+]
+
+[[package]]
+name = "crates-io"
+version = "0.34.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b4a87459133b2e708195eaab34be55039bc30e0d120658bd40794bb00b6328d"
 dependencies = [
  "anyhow",
  "curl",
@@ -1566,6 +1639,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kstring"
+version = "1.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b310ccceade8121d7d77fee406160e457c2f4e7c7982d589da3499bc7ea4526"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "language-tags"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2306,7 +2388,7 @@ name = "release_plz_core"
 version = "0.2.1"
 dependencies = [
  "anyhow",
- "cargo",
+ "cargo 0.61.0",
  "cargo-clone",
  "cargo-edit",
  "cargo_metadata",
@@ -3070,6 +3152,19 @@ dependencies = [
  "itertools",
  "serde",
  "vec1",
+]
+
+[[package]]
+name = "toml_edit"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "744e9ed5b352340aa47ce033716991b5589e23781acb97cad37d4ea70560f55b"
+dependencies = [
+ "combine",
+ "indexmap",
+ "itertools",
+ "kstring",
+ "serde",
 ]
 
 [[package]]
