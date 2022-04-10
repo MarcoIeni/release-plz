@@ -17,13 +17,13 @@ subtle manual mistakes you can make when releasing from your terminal.
 Release-plz delegates the process of publishing the packages and creating git tags to other tools.
 To publish the packages you updated, you can use one of these commands:
 
-- [cargo workspaces](https://crates.io/crates/cargo-workspaces):
-  ```shell
-  cargo workspaces publish --from-git --token "${TOKEN}"
-  ```
 - [cargo release](https://crates.io/crates/cargo-release) (it creates git tags, too):
   ```shell
   cargo release --workspace --execute --no-confirm --token "${TOKEN}"
+  ```
+- [cargo workspaces](https://crates.io/crates/cargo-workspaces):
+  ```shell
+  cargo workspaces publish --from-git --token "${TOKEN}"
   ```
 
 ## Similar projects
