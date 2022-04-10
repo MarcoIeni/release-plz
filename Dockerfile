@@ -15,7 +15,7 @@ RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 RUN cargo build --release --locked --bin release-plz
 
-# cargo-edit needs the cargo binary installed
+# The dependency cargo-edit needs the cargo binary installed
 FROM rust:1-slim-bullseye as runner
 WORKDIR /app
 RUN apt-get update && \
