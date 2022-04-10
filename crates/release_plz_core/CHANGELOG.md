@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2022-04-10
+
+### Fixed
+- remove all unwraps that are not in tests (#49)
+
+### Other
+- write package name and version in PR name (#58)
+- improve workspace members error (#56)
+
 ## [0.2.1] - 2022-03-30
 
 ### Fixed
