@@ -2283,7 +2283,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "anyhow",
  "cargo",
