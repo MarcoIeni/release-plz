@@ -1,14 +1,11 @@
 //! Download packages from cargo registry, similar to the `git clone` behavior.
 
-use std::{
-    fmt, fs,
-    path::{Path, PathBuf},
-};
+use std::{fmt, path::Path};
 
 use anyhow::{anyhow, Context};
 use cargo::core::SourceId;
 use cargo_metadata::Package;
-use tracing::{info, instrument};
+use tracing::{info, instrument, warn};
 
 use crate::CARGO_TOML;
 
@@ -26,36 +23,34 @@ pub fn download_packages(
             .with_context(|| format!("Unable to retrieve source id for registry {registry}")),
         None => SourceId::crates_io(&config).context("Unable to retrieve source id for crates.io."),
     }?;
-    let packages: Vec<cargo_clone::Crate> = packages
+    packages
         .iter()
-        .map(|c| cargo_clone::Crate::new(c.to_string(), None))
-        .collect();
-    let clone_opts = cargo_clone::CloneOpts::new(&packages, &source_id, Some(directory), false);
-    cargo_clone::clone(&clone_opts, &config).context("cannot download packages from registry")?;
-    let packages = match packages.len() {
-        1 => vec![read_package(directory)?],
-        _ => {
-            let packages = sub_directories(directory)?;
-            let packages = packages
-                .iter()
-                .map(|p| read_package(&p))
-                .collect::<Result<Vec<Package>, _>>();
-            packages?
-        }
-    };
-    Ok(packages)
-}
-
-fn sub_directories(directory: impl AsRef<Path>) -> anyhow::Result<Vec<PathBuf>> {
-    let mut directories = vec![];
-    for entry in fs::read_dir(directory)? {
-        let entry = entry?;
-        let path = entry.path();
-        if path.is_dir() {
-            directories.push(path)
-        }
-    }
-    Ok(directories)
+        .map(|&package_name| {
+            (
+                package_name,
+                cargo_clone::Crate::new(package_name.to_string(), None),
+            )
+        })
+        .filter_map(|(package_name, package)| {
+            let packages = &[package];
+            let dir_path: &Path = directory.as_ref();
+            let package_path = dir_path.join(package_name);
+            let package_path = package_path
+                .as_path()
+                .as_os_str()
+                .to_str()
+                .expect("can't convert os string into string");
+            let clone_opts =
+                cargo_clone::CloneOpts::new(packages, &source_id, Some(package_path), false);
+            // Filter non-existing packages.
+            // Unfortunately, we also filters packages we couldn't
+            // download due to other issues, such as network.
+            cargo_clone::clone(&clone_opts, &config)
+                .map(|()| (read_package(package_path)))
+                .map_err(|e| warn!("can't download {}: {}", package_name, e))
+                .ok()
+        })
+        .collect()
 }
 
 /// Read a package from file system
@@ -64,7 +59,8 @@ pub fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<Package> {
     let metadata = cargo_metadata::MetadataCommand::new()
         .no_deps()
         .manifest_path(manifest_path)
-        .exec()?;
+        .exec()
+        .context("failed to execute cargo_metadata")?;
     let package = metadata
         .packages
         .get(0)
@@ -74,6 +70,8 @@ pub fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<Package> {
 
 #[cfg(test)]
 mod tests {
+    use claim::assert_ok;
+    use fake::Fake;
     use tempfile::tempdir;
 
     use super::*;
@@ -100,5 +98,15 @@ mod tests {
             download_packages(&[first_package, second_package], directory, None).unwrap();
         assert_eq!(&packages[0].name, first_package);
         assert_eq!(&packages[1].name, second_package);
+    }
+
+    #[test]
+    #[ignore]
+    fn downloading_non_existing_package_does_not_error() {
+        // Generate random string 15 characters long.
+        let package: String = 15.fake();
+        let temp_dir = tempdir().unwrap();
+        let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
+        assert_ok!(download_packages(&[&package], directory, None));
     }
 }
