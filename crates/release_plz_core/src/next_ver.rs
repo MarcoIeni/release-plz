@@ -200,7 +200,7 @@ fn packages_to_update(
         let next_version = p.version.next_from_diff(&diff);
 
         debug!("diff: {:?}, next_version: {}", &diff, next_version);
-        if next_version != *current_version {
+        if next_version != *current_version || !diff.registry_package_exists {
             info!("{}: next version is {next_version}", p.name);
             let changelog = changelog_req
                 .map(|r| get_changelog(diff.commits.clone(), &next_version, r.release_date, &p))
