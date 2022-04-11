@@ -37,3 +37,5 @@ expect-test = "1"
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }
 tokio = { version = "1", features = ["macros"] }
 wiremock = "0.5"
+fake = "2"
+claim = "0.5"
