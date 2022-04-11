@@ -20,7 +20,6 @@ cargo-clone = "1"
 cargo-edit = "0.8"
 cargo_metadata = "0.14"
 chrono = { version = "0.4", features = ["clock"], default-features = false }
-fake = "2"
 folder_compare = "0.4"
 fs_extra = "1"
 git-cliff = "0.6"
