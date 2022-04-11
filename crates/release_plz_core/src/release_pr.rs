@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use cargo_metadata::Package;
+use chrono::SecondsFormat;
 use git_cmd::Repo;
 
 use anyhow::{anyhow, Context};
@@ -92,7 +93,9 @@ impl Pr {
 
 fn release_branch() -> String {
     let now = chrono::offset::Utc::now();
-    let now = format!("{:?}", now);
+    // Convert to a string of format "2018-01-26T18:30:09Z".
+    let now = now.to_rfc3339_opts(SecondsFormat::Secs, true);
+    // ':' is not a valid character for a branch name.
     let now = now.replace(':', "-");
     format!("release-plz/{now}")
 }
