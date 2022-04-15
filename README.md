@@ -26,14 +26,9 @@ To publish the packages you updated, you can use one of these commands:
   cargo workspaces publish --from-git --token "${TOKEN}"
   ```
 
-## Similar projects
+## GitHub action
 
-- [release-please](https://github.com/googleapis/release-please): release-plz is inspired by release-please,
-  but instead of determining the next versions based on git tags, release-plz compares local packages with
-  the ones published in the cargo registry.
-  Plus, release-plz doesn't need any configuration.
-- [cargo smart-release](https://github.com/Byron/gitoxide/tree/main/cargo-smart-release):
-  Fearlessly release workspace crates and with beautiful semi-handcrafted changelogs.
+The simplest way to update your project with release-plz is to use the [GitHub action](https://github.com/marketplace/actions/release-plz).
 
 ## Installation
 
@@ -68,6 +63,16 @@ In the following example, I run `release-plz` on the `release-plz` project itsel
 `Release-plz` opens a PR that increases the version and the changelog of the packages with unpublished changes.
 
 ![release-plz release-pr](https://user-images.githubusercontent.com/11428655/160772903-544c7578-7c17-4311-b6ca-a1aefeabe799.gif)
+
+## Similar projects
+
+- [release-please](https://github.com/googleapis/release-please): release-plz is inspired by release-please,
+  but instead of determining the next versions based on git tags, release-plz compares local packages with
+  the ones published in the cargo registry.
+  Plus, release-plz doesn't need any configuration.
+- [cargo smart-release](https://github.com/Byron/gitoxide/tree/main/cargo-smart-release):
+  Fearlessly release workspace crates and with beautiful semi-handcrafted changelogs.
+
 
 ## License
 
