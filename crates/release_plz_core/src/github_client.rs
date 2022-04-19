@@ -1,5 +1,5 @@
 use anyhow::Context;
-use octocrab::{Octocrab, OctocrabBuilder};
+use octocrab::{models::IssueState, params, Octocrab, OctocrabBuilder};
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument, Span};
 use url::Url;
@@ -34,7 +34,46 @@ impl<'a> GitHubClient<'a> {
         Ok(Self { github, client })
     }
 
-    pub fn close_other_prs(&self) -> anyhow::Result<()> {
+    /// Close all Prs which branch starts with the given `branch_prefix`.
+    pub async fn close_prs_on_branches(&self, branch_prefix: &str) -> anyhow::Result<()> {
+        let pulls = self.client.pulls(&self.github.owner, &self.github.repo);
+
+        let mut i: u32 = 1;
+        let page_size = 30;
+        loop {
+            let prs = pulls
+                .list()
+                .state(params::State::Open)
+                .per_page(page_size)
+                .page(i)
+                .send()
+                .await
+                .context("Failed retrieve PRs")?
+                .take_items();
+            let release_prs = prs
+                .iter()
+                .filter(|&pr| pr.head.ref_field.starts_with(branch_prefix))
+                .map(|pr| pr.number);
+            for release_pr in release_prs {
+                self.close_pr(release_pr).await?;
+            }
+
+            if prs.len() < page_size as usize {
+                break;
+            }
+            i += 1;
+        }
+        Ok(())
+    }
+
+    async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
+        self.client
+            .issues(&self.github.owner, &self.github.repo)
+            .update(pr_number)
+            .state(IssueState::Closed)
+            .send()
+            .await
+            .with_context(|| format!("cannot close pr {pr_number}"))?;
         Ok(())
     }
 
@@ -63,7 +102,8 @@ impl<'a> GitHubClient<'a> {
             .create(&pr.title, &pr.branch, default_branch)
             .body("release-plz automatic bot")
             .send()
-            .await?;
+            .await
+            .context("Failed to open PR")?;
 
         if let Some(url) = pr.html_url {
             info!("opened pr: {}", url);

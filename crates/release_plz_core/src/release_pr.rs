@@ -13,6 +13,8 @@ use crate::{
     update, UpdateRequest, UpdateResult, CARGO_TOML,
 };
 
+const BRANCH_PREFIX: &str = "release-plz/";
+
 #[derive(Debug)]
 pub struct ReleasePrRequest {
     pub github: GitHub,
@@ -42,7 +44,10 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .context("can't find temporary project")?;
     let (packages_to_update, _repository) = update(&new_update_request)?;
     let gh_client = GitHubClient::new(&input.github)?;
-    gh_client.close_other_prs()?;
+    gh_client
+        .close_prs_on_branches(BRANCH_PREFIX)
+        .await
+        .context("cannot close old release-plz prs")?;
     if !packages_to_update.is_empty() {
         let repo = Repo::new(new_manifest_dir)?;
         let pr = Pr::from(packages_to_update.as_ref());
@@ -68,7 +73,7 @@ fn release_branch() -> String {
     let now = now.to_rfc3339_opts(SecondsFormat::Secs, true);
     // ':' is not a valid character for a branch name.
     let now = now.replace(':', "-");
-    format!("release-plz/{now}")
+    format!("{BRANCH_PREFIX}{now}")
 }
 
 fn pr_title(packages_to_update: &[(Package, UpdateResult)]) -> String {
