@@ -18,7 +18,8 @@ pub enum Command {
     /// Update packages version based on commit messages.
     Update(Update),
     /// Create a Pull Request representing the next release.
-    /// The Pull request contains updated packages version based on commit messages.
+    /// The Pull request contains updated packages version and changelog based on commit messages.
+    /// Close old PRs opened by release-plz, too.
     ReleasePr(ReleasePr),
 }
 

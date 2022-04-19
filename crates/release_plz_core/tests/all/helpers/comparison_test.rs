@@ -9,10 +9,13 @@ use secrecy::Secret;
 use tempfile::{tempdir, TempDir};
 use url::Url;
 
+use super::github_mock_server::GitHubMockServer;
+
 /// Compare local project with the one in cargo registry
 pub struct ComparisonTest {
     local_project: TempDir,
     registry_project: TempDir,
+    github_mock_server: GitHubMockServer,
 }
 
 const PROJECT_NAME: &str = "myproject";
@@ -20,7 +23,7 @@ pub const OWNER: &str = "owner";
 pub const REPO: &str = "repo";
 
 impl ComparisonTest {
-    pub fn new() -> Self {
+    pub async fn new() -> Self {
         test_logs::init();
         let local_project_dir = tempdir().unwrap();
         let local_project = local_project_dir.as_ref().join(PROJECT_NAME);
@@ -30,6 +33,7 @@ impl ComparisonTest {
         let comparison = Self {
             local_project: local_project_dir,
             registry_project,
+            github_mock_server: GitHubMockServer::start(OWNER, REPO).await,
         };
         fs::copy(
             comparison.registry_project().join(CARGO_TOML),
@@ -67,7 +71,8 @@ impl ComparisonTest {
         }
     }
 
-    pub async fn open_release_pr(&self, base_url: Url) -> anyhow::Result<()> {
+    pub async fn open_release_pr(&self) -> anyhow::Result<()> {
+        let base_url = self.github_mock_server.base_url();
         let release_pr_request = self.release_pr_request(base_url);
         release_plz_core::release_pr(&release_pr_request).await
     }
@@ -104,5 +109,11 @@ impl ComparisonTest {
 
     fn local_project_changelog_path(&self) -> PathBuf {
         self.local_project().join(CHANGELOG_FILENAME)
+    }
+
+    /// Get a reference to the comparison test's github mock server.
+    #[must_use]
+    pub fn github_mock_server(&self) -> &GitHubMockServer {
+        &self.github_mock_server
     }
 }
