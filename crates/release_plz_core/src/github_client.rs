@@ -48,7 +48,7 @@ impl<'a> GitHubClient<'a> {
                 .page(i)
                 .send()
                 .await
-                .context("Failed retrieve PRs")?
+                .context("Failed to retrieve PRs")?
                 .take_items();
             let release_prs = prs
                 .iter()

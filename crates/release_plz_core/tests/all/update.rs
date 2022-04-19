@@ -3,9 +3,9 @@ use release_plz_core::{read_package, CHANGELOG_HEADER};
 
 use crate::helpers::{comparison_test::ComparisonTest, user_mock};
 
-#[test]
-fn up_to_date_project_is_not_touched() {
-    let comparison_test = ComparisonTest::new();
+#[tokio::test]
+async fn up_to_date_project_is_not_touched() {
+    let comparison_test = ComparisonTest::new().await;
 
     comparison_test.run_update();
 
@@ -13,9 +13,9 @@ fn up_to_date_project_is_not_touched() {
     assert!(comparison_test.are_projects_equal());
 }
 
-#[test]
-fn version_is_updated_when_project_changed() {
-    let comparison_test = ComparisonTest::new();
+#[tokio::test]
+async fn version_is_updated_when_project_changed() {
+    let comparison_test = ComparisonTest::new().await;
     let feature_message = "do awesome stuff";
     user_mock::add_feature(&comparison_test.local_project(), feature_message);
 
@@ -41,15 +41,15 @@ fn version_is_updated_when_project_changed() {
     .assert_eq(&comparison_test.local_project_changelog());
 }
 
-#[test]
-fn changelog_is_updated_if_changelog_already_exists() {
+#[tokio::test]
+async fn changelog_is_updated_if_changelog_already_exists() {
     let old_body = r#"
 ## [0.1.0] - 1970-01-01
 
 ### Fixed
 - fix important bug
 "#;
-    let comparison_test = ComparisonTest::new();
+    let comparison_test = ComparisonTest::new().await;
     let old_changelog = format!("{CHANGELOG_HEADER}{old_body}");
     comparison_test.write_local_project_changelog(&old_changelog);
     let feature_message = "do awesome stuff";

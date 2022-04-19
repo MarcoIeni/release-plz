@@ -2308,6 +2308,7 @@ dependencies = [
  "next_version",
  "octocrab",
  "secrecy",
+ "serde_json",
  "tempfile",
  "test_logs",
  "tokio",
