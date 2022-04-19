@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] - 2022-04-19
+
+### Added
+- *(release-pr)* close old release-plz prs (#81) ([#81](https://github.com/81) [#81](https://github.com/81) )
+
 ## [0.2.2] - 2022-04-10
 
 ### Fixed
