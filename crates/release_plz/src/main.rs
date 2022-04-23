@@ -3,7 +3,7 @@ mod log;
 
 use anyhow::Context;
 use clap::Parser;
-use release_plz_core::ReleasePrRequest;
+use release_plz_core::{ReleasePrRequest, ReleaseRequest};
 
 use crate::args::CliArgs;
 
@@ -24,6 +24,10 @@ async fn main() -> anyhow::Result<()> {
                 update_request,
             };
             release_plz_core::release_pr(&request).await?;
+        }
+        args::Command::Release(cmd_args) => {
+            let request: ReleaseRequest = cmd_args.into();
+            release_plz_core::release(&request).await?;
         }
     }
 

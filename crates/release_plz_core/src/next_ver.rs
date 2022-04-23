@@ -329,7 +329,8 @@ fn are_file_equal(first: &Path, second: &Path) -> io::Result<bool> {
     Ok(first == second)
 }
 
-pub fn public_packages(manifest: &Path) -> anyhow::Result<Vec<Package>> {
+pub fn public_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
+    let manifest = manifest.as_ref();
     let packages = cargo_edit::workspace_members(Some(manifest))
         .map_err(|e| anyhow!("cannot read workspace members in manifest {manifest:?}: {e}"))?
         .into_iter()

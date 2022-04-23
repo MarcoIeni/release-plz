@@ -26,4 +26,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits
 
-- Strongly inspired by parts of the codebase of [cocogitto](https://github.com/cocogitto/cocogitto).
+Strongly inspired by parts of the codebase of [cocogitto](https://github.com/cocogitto/cocogitto).
