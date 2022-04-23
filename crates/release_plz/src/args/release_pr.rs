@@ -10,10 +10,10 @@ pub struct ReleasePr {
     #[clap(flatten)]
     pub update: Update,
     /// GitHub token used to create the pull request.
-    #[clap(long)]
+    #[clap(long, forbid_empty_values(true))]
     pub github_token: SecretString,
     /// GitHub repository url where your project is hosted.
-    #[clap(long)]
+    #[clap(long, forbid_empty_values(true))]
     pub repo_url: Url,
 }
 
