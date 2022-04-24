@@ -13,7 +13,8 @@ pub struct Release {
     project_manifest: Option<PathBuf>,
     /// Registry where you want to publish the packages.
     /// The registry name needs to be present in the Cargo config.
-    /// If unspecified, crates.io is used.
+    /// If unspecified, the `publish` field of the package manifest is used.
+    /// If the `publish` field is empty, crates.io is used.
     #[clap(long)]
     registry: Option<String>,
     /// Token used to publish to the cargo registry
