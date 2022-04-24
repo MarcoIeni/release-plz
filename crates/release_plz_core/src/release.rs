@@ -74,6 +74,8 @@ fn publish(index: &mut Index, package: &Package, input: &ReleaseRequest) -> anyh
     }
 
     let mut args = vec!["publish"];
+    args.push("--color");
+    args.push("always");
     args.push("--manifest-path");
     args.push(package.manifest_path.as_ref());
     if let Some(token) = &input.token {
@@ -94,7 +96,9 @@ fn publish(index: &mut Index, package: &Package, input: &ReleaseRequest) -> anyh
         anyhow::bail!("failed to publish {}: {}", package.name, stderr);
     }
 
-    wait_until_published(index, package)?;
+    if !input.dry_run {
+        wait_until_published(index, package)?;
+    }
 
     info!("published {} to {:?}", package.name, index.path());
     Ok(())
