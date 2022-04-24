@@ -95,4 +95,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits
 
-Strongly inspired by parts of the codebase of [cargo-workspaces](https://github.com/pksunkara/cargo-workspaces)
+Parts of the codebase are inspired by [cargo-workspaces](https://github.com/pksunkara/cargo-workspaces) and [cargo-release](https://github.com/crate-ci/cargo-release).
