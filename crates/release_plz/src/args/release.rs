@@ -19,6 +19,9 @@ pub struct Release {
     /// Token used to publish to the cargo registry
     #[clap(long, forbid_empty_values(true))]
     token: Option<String>,
+    /// Perform all checks without uploading
+    #[clap(long)]
+    pub dry_run: bool,
 }
 
 impl From<Release> for ReleaseRequest {
@@ -27,6 +30,7 @@ impl From<Release> for ReleaseRequest {
             local_manifest: local_manifest(r.project_manifest.as_deref()),
             registry: r.registry,
             token: r.token,
+            dry_run: r.dry_run,
         }
     }
 }

@@ -22,6 +22,8 @@ pub struct ReleaseRequest {
     pub registry: Option<String>,
     /// Token used to publish to the cargo registry
     pub token: Option<String>,
+    /// Perform all checks without uploading
+    pub dry_run: bool,
 }
 
 /// Open a pull request with the next packages versions of a local rust project
@@ -77,6 +79,9 @@ fn publish(index: &mut Index, package: &Package, input: &ReleaseRequest) -> anyh
     if let Some(token) = &input.token {
         args.push("--token");
         args.push(token);
+    }
+    if input.dry_run {
+        args.push("--dry-run");
     }
 
     let workspace_root = input
