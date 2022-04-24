@@ -4,6 +4,8 @@ use anyhow::Context;
 use chrono::{Date, NaiveDate, Utc};
 use release_plz_core::{ChangelogRequest, UpdateRequest, CARGO_TOML};
 
+use super::local_manifest;
+
 #[derive(clap::Parser, Debug)]
 pub struct Update {
     /// Path to the Cargo.toml of the project you want to update.
@@ -43,9 +45,10 @@ pub struct Update {
 
 impl Update {
     pub fn update_request(&self) -> anyhow::Result<UpdateRequest> {
-        let mut update = UpdateRequest::new(self.local_manifest()).with_context(|| {
-            format!("cannot find {CARGO_TOML} file. Make sure you are inside a rust project")
-        })?;
+        let mut update = UpdateRequest::new(local_manifest(self.project_manifest.as_deref()))
+            .with_context(|| {
+                format!("cannot find {CARGO_TOML} file. Make sure you are inside a rust project")
+            })?;
         if let Some(registry_project_manifest) = &self.registry_project_manifest {
             update = update
                 .with_registry_project_manifest(registry_project_manifest.clone())
@@ -72,14 +75,5 @@ impl Update {
             update = update.with_registry(registry.clone());
         }
         Ok(update)
-    }
-
-    fn local_manifest(&self) -> PathBuf {
-        match &self.project_manifest {
-            Some(manifest) => manifest.clone(),
-            None => std::env::current_dir()
-                .expect("cannot retrieve current directory")
-                .join(CARGO_TOML),
-        }
     }
 }

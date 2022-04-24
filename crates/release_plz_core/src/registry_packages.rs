@@ -25,7 +25,7 @@ pub fn get_registry_packages(
     registry: Option<&str>,
 ) -> anyhow::Result<PackagesCollection> {
     let (temp_dir, registry_packages) = match registry_manifest {
-        Some(manifest) => (None, next_ver::public_packages(manifest)?),
+        Some(manifest) => (None, next_ver::publishable_packages(manifest)?),
         None => {
             let temp_dir = tempdir()?;
             let local_packages_names: Vec<&str> =

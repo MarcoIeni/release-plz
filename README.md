@@ -4,27 +4,13 @@
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
 [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/marcoieni/release-plz)
 
-Release-plz updates the versions and changelogs of your rust packages, by analyzing you git history,
-based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
-Release-plz can update your `Cargo.toml` files locally, or by opening a GitHub Pull Request.
+Release-plz updates the versions and changelogs of your rust packages, by analyzing your git history,
+based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/):
+- `release-plz update` updates your project locally, without committing any change.
+- `release-plz release-pr` opens a GitHub Pull Request.
 
-## Publishing
-
-The main goal of the project is to create a fully automated release pipeline.
-This means you can easily release changes more frequently, without the fear of doing typo or other
-subtle manual mistakes you can make when releasing from your terminal.
-
-Release-plz delegates the process of publishing the packages and creating git tags to other tools.
-To publish the packages you updated, you can use one of these commands:
-
-- [cargo release](https://crates.io/crates/cargo-release) (it creates git tags, too):
-  ```shell
-  cargo release --workspace --execute --no-confirm --token "${TOKEN}"
-  ```
-- [cargo workspaces](https://crates.io/crates/cargo-workspaces):
-  ```shell
-  cargo workspaces publish --from-git --token "${TOKEN}"
-  ```
+Once the changes are merged to the main branch, you can use
+`release-plz release` to publish the new versions of the packages.
 
 ## GitHub action
 
@@ -64,6 +50,14 @@ In the following example, I run `release-plz` on the `release-plz` project itsel
 
 ![release-plz release-pr](https://user-images.githubusercontent.com/11428655/160772903-544c7578-7c17-4311-b6ca-a1aefeabe799.gif)
 
+### Publishing
+
+The goal of release-plz is to create a fully automated release pipeline.
+This means you can easily release changes more frequently, without the fear of doing typo or other
+subtle manual mistakes you can make when releasing from your terminal.
+
+You can release all the unpublished packages by running `release-plz release`.
+
 ## Similar projects
 
 - [release-please](https://github.com/googleapis/release-please): release-plz is inspired by release-please,
@@ -92,3 +86,7 @@ for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Credits
+
+Parts of the codebase are inspired by [cargo-workspaces](https://github.com/pksunkara/cargo-workspaces) and [cargo-release](https://github.com/crate-ci/cargo-release).

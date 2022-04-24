@@ -16,10 +16,11 @@ git_cmd = { path = "../git_cmd", version = "0.1.1" }
 
 anyhow = "1"
 cargo = "0.58"
+cargo_metadata = "0.14"
 cargo-clone = "1"
 cargo-edit = "0.8"
-cargo_metadata = "0.14"
 chrono = { version = "0.4", features = ["clock"], default-features = false }
+crates-index = "0.18"
 folder_compare = "0.4"
 fs_extra = "1"
 git-cliff = "0.6"
