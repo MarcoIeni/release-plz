@@ -42,6 +42,9 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Get the indexes where the package should be published.
+/// If `registry` is specified, it takes precedence over the `publish` field
+/// of the package manifest.
 fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Result<Vec<Index>> {
     let registries = registry
         .map(|r| vec![r])
