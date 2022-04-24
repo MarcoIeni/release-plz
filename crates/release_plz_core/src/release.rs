@@ -69,7 +69,7 @@ fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Resu
 
 fn publish(index: &mut Index, package: &Package, input: &ReleaseRequest) -> anyhow::Result<()> {
     if is_published(index, package)? {
-        info!("{}-{} is already published", package.name, package.version);
+        info!("{} {} is already published", package.name, package.version);
         return Ok(());
     }
 
