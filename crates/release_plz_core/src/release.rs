@@ -16,13 +16,14 @@ use crate::{
 pub struct ReleaseRequest {
     /// The manifest of the project you want to release.
     pub local_manifest: PathBuf,
-    /// Registry where the packages are published.
+    /// Registry where you want to publish the packages.
     /// The registry name needs to be present in the Cargo config.
-    /// If unspecified, crates.io is used.
+    /// If unspecified, the `publish` field of the package manifest is used.
+    /// If the `publish` field is empty, crates.io is used.
     pub registry: Option<String>,
-    /// Token used to publish to the cargo registry
+    /// Token used to publish to the cargo registry.
     pub token: Option<String>,
-    /// Perform all checks without uploading
+    /// Perform all checks without uploading.
     pub dry_run: bool,
 }
 
