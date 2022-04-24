@@ -64,12 +64,7 @@ fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Resu
 
 fn publish(index: &mut Index, package: &Package, input: &ReleaseRequest) -> anyhow::Result<()> {
     if is_published(index, package)? {
-        info!(
-            "{}-{} is already published in {:?}",
-            package.name,
-            package.version,
-            index.path()
-        );
+        info!("{}-{} is already published", package.name, package.version);
         return Ok(());
     }
 
@@ -98,8 +93,8 @@ fn publish(index: &mut Index, package: &Package, input: &ReleaseRequest) -> anyh
 
     if !input.dry_run {
         wait_until_published(index, package)?;
+        info!("published {}", package.name);
     }
 
-    info!("published {} to {:?}", package.name, index.path());
     Ok(())
 }
