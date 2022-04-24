@@ -34,9 +34,9 @@ mod tests {
     use super::*;
     use crate::publishable_packages;
 
+    // Test the package release order in the release-plz workspace itself.
     #[test]
     fn workspace_release_order_is_correct() {
-        // test the package release order in the release-plz workspace itself
         let public_packages = publishable_packages("../../Cargo.toml").unwrap();
         let pkgs = &public_packages.iter().collect::<Vec<_>>();
         let ordered = release_order(pkgs);
