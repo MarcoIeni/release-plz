@@ -1,6 +1,6 @@
 use cargo_metadata::{DependencyKind, Package};
 
-/// Return packages in an order the can be released.
+/// Return packages in an order they can be released.
 /// In the result, the packages are placed after all their dependencies.
 pub fn release_order<'a>(packages: &'a [&Package]) -> Vec<&'a Package> {
     let mut visited = vec![];
