@@ -27,7 +27,7 @@ pub struct ReleaseRequest {
     pub dry_run: bool,
 }
 
-/// Open a pull request with the next packages versions of a local rust project
+/// Release the project as it is.
 #[instrument]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     let publishable_packages = publishable_packages(&input.local_manifest)?;
