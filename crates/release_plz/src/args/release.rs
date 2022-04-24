@@ -17,10 +17,10 @@ pub struct Release {
     /// If the `publish` field is empty, crates.io is used.
     #[clap(long)]
     registry: Option<String>,
-    /// Token used to publish to the cargo registry
+    /// Token used to publish to the cargo registry.
     #[clap(long, forbid_empty_values(true))]
     token: Option<String>,
-    /// Perform all checks without uploading
+    /// Perform all checks without uploading.
     #[clap(long)]
     pub dry_run: bool,
 }
