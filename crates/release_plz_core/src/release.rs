@@ -1,8 +1,16 @@
 use std::path::PathBuf;
 
-use tracing::instrument;
+use anyhow::anyhow;
+use cargo_metadata::Package;
+use crates_index::Index;
+use tracing::{info, instrument};
+use url::Url;
 
-use crate::{public_packages, release_order::release_order};
+use crate::{
+    cargo::{is_published, run_cargo, wait_until_published},
+    publishable_packages,
+    release_order::release_order,
+};
 
 #[derive(Debug)]
 pub struct ReleaseRequest {
@@ -19,11 +27,70 @@ pub struct ReleaseRequest {
 /// Open a pull request with the next packages versions of a local rust project
 #[instrument]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
-    let public_packages = public_packages(&input.local_manifest)?;
-    let pkgs = &public_packages.iter().collect::<Vec<_>>();
+    let publishable_packages = publishable_packages(&input.local_manifest)?;
+    let pkgs = &publishable_packages.iter().collect::<Vec<_>>();
     let release_order = release_order(pkgs);
-    for _package in release_order {
-        // TODO publish
+    for package in release_order {
+        let registry_indexes = registry_indexes(package, input.registry.clone())?;
+        for mut index in registry_indexes {
+            publish(&mut index, package, input)?;
+        }
     }
+    Ok(())
+}
+
+fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Result<Vec<Index>> {
+    let registries = registry
+        .map(|r| vec![r])
+        .unwrap_or_else(|| package.publish.clone().unwrap_or_default());
+    let registry_urls = registries
+        .iter()
+        .map(|r| {
+            cargo_edit::registry_url(package.manifest_path.as_ref(), Some(r))
+                .map_err(|_e| anyhow!("failed to retrieve registry url"))
+        })
+        .collect::<anyhow::Result<Vec<Url>>>()?;
+    let mut registry_indexes = registry_urls
+        .iter()
+        .map(|u| Index::from_url(&format!("registry+{}", u)))
+        .collect::<Result<Vec<Index>, crates_index::Error>>()?;
+    if registry_indexes.is_empty() {
+        registry_indexes.push(Index::new_cargo_default()?)
+    }
+    Ok(registry_indexes)
+}
+
+fn publish(index: &mut Index, package: &Package, input: &ReleaseRequest) -> anyhow::Result<()> {
+    if is_published(index, package)? {
+        info!(
+            "{}-{} is already published in {:?}",
+            package.name,
+            package.version,
+            index.path()
+        );
+        return Ok(());
+    }
+
+    let mut args = vec!["publish"];
+    args.push("--manifest-path");
+    args.push(package.manifest_path.as_ref());
+    if let Some(token) = &input.token {
+        args.push("--token");
+        args.push(token);
+    }
+
+    let workspace_root = input
+        .local_manifest
+        .parent()
+        .expect("cannot find local_manifest parent");
+    let (_, stderr) = run_cargo(workspace_root, &args)?;
+
+    if !stderr.contains("Uploading") || stderr.contains("error:") {
+        anyhow::bail!("failed to publish {}: {}", package.name, stderr);
+    }
+
+    wait_until_published(index, package)?;
+
+    info!("published {} to {:?}", package.name, index.path());
     Ok(())
 }

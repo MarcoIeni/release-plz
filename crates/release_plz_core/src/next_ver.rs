@@ -145,7 +145,7 @@ impl Project {
             PathBuf::from(project_root)
         };
         debug!("project_root: {root:?}");
-        let mut packages = public_packages(manifest)?;
+        let mut packages = publishable_packages(manifest)?;
         if let Some(pac) = &input.single_package {
             packages = packages.into_iter().filter(|p| &p.name == pac).collect();
         }
@@ -329,15 +329,33 @@ fn are_file_equal(first: &Path, second: &Path) -> io::Result<bool> {
     Ok(first == second)
 }
 
-pub fn public_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
+pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
     let manifest = manifest.as_ref();
     let packages = cargo_edit::workspace_members(Some(manifest))
         .map_err(|e| anyhow!("cannot read workspace members in manifest {manifest:?}: {e}"))?
         .into_iter()
-        // skip packages with `publish = false`
-        .filter(|c| c.publish.is_none())
+        .filter(|p| p.is_publishable())
         .collect();
     Ok(packages)
+}
+
+pub trait Publishable {
+    fn is_publishable(&self) -> bool;
+}
+
+impl Publishable for Package {
+    /// Return true if the field `publish` in Cargo.toml:
+    /// - is not `[]`
+    /// - is not `false`
+    fn is_publishable(&self) -> bool {
+        if let Some(publish) = &self.publish {
+            // The package can be published only to certain registries
+            !publish.is_empty()
+        } else {
+            // The package can be published anywhere
+            true
+        }
+    }
 }
 
 pub trait PackagePath {

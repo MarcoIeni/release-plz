@@ -10,6 +10,7 @@ mod update;
 mod version;
 mod release;
 mod release_order;
+mod cargo;
 
 pub use changelog::*;
 pub use download::read_package;
