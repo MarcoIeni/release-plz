@@ -69,8 +69,8 @@ impl Repo {
         Ok(())
     }
 
-    pub fn push(&self, branch: &str) -> anyhow::Result<()> {
-        self.git(&["push", "origin", branch])?;
+    pub fn push(&self, obj: &str) -> anyhow::Result<()> {
+        self.git(&["push", "origin", obj])?;
         Ok(())
     }
 
@@ -167,6 +167,10 @@ impl Repo {
 
     pub fn current_commit_message(&self) -> anyhow::Result<String> {
         self.git(&["log", "-1", "--pretty=format:%s"])
+    }
+
+    pub fn tag(&self, name: &str) -> anyhow::Result<String> {
+        self.git(&["tag", name])
     }
 }
 
