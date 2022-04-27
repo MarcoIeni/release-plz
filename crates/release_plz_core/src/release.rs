@@ -111,7 +111,7 @@ fn release_package(
     } else {
         wait_until_published(index, package)?;
 
-        let git_tag = format!("{}-{}", package.name, package.version);
+        let git_tag = format!("{}-v{}", package.name, package.version);
         repo.tag(&git_tag)?;
         repo.push(&git_tag)?;
 
