@@ -74,7 +74,7 @@ fn release_package(
     input: &ReleaseRequest,
 ) -> anyhow::Result<()> {
     if is_published(index, package)? {
-        info!("{} {} is already published", package.name, package.version);
+        info!("{} {}: already published", package.name, package.version);
         return Ok(());
     }
 
@@ -103,7 +103,12 @@ fn release_package(
         anyhow::bail!("failed to publish {}: {}", package.name, stderr);
     }
 
-    if !input.dry_run {
+    if input.dry_run {
+        info!(
+            "{} {}: aborting upload due to dry run",
+            package.name, package.version
+        );
+    } else {
         wait_until_published(index, package)?;
 
         let git_tag = format!("{}-{}", package.name, package.version);
