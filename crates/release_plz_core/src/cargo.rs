@@ -95,7 +95,10 @@ pub fn wait_until_published(index: &mut Index, package: &Package) -> anyhow::Res
         }
 
         if !logged {
-            info!("waiting for the package to be published...");
+            info!(
+                "waiting for the package {} to be published...",
+                package.name
+            );
             logged = true;
         }
 

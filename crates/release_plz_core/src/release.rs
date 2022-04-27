@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use anyhow::anyhow;
 use cargo_metadata::Package;
 use crates_index::Index;
+use git_cmd::Repo;
 use tracing::{info, instrument};
 use url::Url;
 
@@ -36,7 +37,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     for package in release_order {
         let registry_indexes = registry_indexes(package, input.registry.clone())?;
         for mut index in registry_indexes {
-            publish(&mut index, package, input)?;
+            release_package(&mut index, package, input)?;
         }
     }
     Ok(())
@@ -67,9 +68,13 @@ fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Resu
     Ok(registry_indexes)
 }
 
-fn publish(index: &mut Index, package: &Package, input: &ReleaseRequest) -> anyhow::Result<()> {
+fn release_package(
+    index: &mut Index,
+    package: &Package,
+    input: &ReleaseRequest,
+) -> anyhow::Result<()> {
     if is_published(index, package)? {
-        info!("{} {} is already published", package.name, package.version);
+        info!("{} {}: already published", package.name, package.version);
         return Ok(());
     }
 
@@ -90,14 +95,26 @@ fn publish(index: &mut Index, package: &Package, input: &ReleaseRequest) -> anyh
         .local_manifest
         .parent()
         .expect("cannot find local_manifest parent");
+
+    let repo = Repo::new(workspace_root)?;
     let (_, stderr) = run_cargo(workspace_root, &args)?;
 
     if !stderr.contains("Uploading") || stderr.contains("error:") {
         anyhow::bail!("failed to publish {}: {}", package.name, stderr);
     }
 
-    if !input.dry_run {
+    if input.dry_run {
+        info!(
+            "{} {}: aborting upload due to dry run",
+            package.name, package.version
+        );
+    } else {
         wait_until_published(index, package)?;
+
+        let git_tag = format!("{}-v{}", package.name, package.version);
+        repo.tag(&git_tag)?;
+        repo.push(&git_tag)?;
+
         info!("published {}", package.name);
     }
 
