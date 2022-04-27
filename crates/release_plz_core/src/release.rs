@@ -68,7 +68,11 @@ fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Resu
     Ok(registry_indexes)
 }
 
-fn release_package(index: &mut Index, package: &Package, input: &ReleaseRequest) -> anyhow::Result<()> {
+fn release_package(
+    index: &mut Index,
+    package: &Package,
+    input: &ReleaseRequest,
+) -> anyhow::Result<()> {
     if is_published(index, package)? {
         info!("{} {} is already published", package.name, package.version);
         return Ok(());
@@ -101,12 +105,13 @@ fn release_package(index: &mut Index, package: &Package, input: &ReleaseRequest)
 
     if !input.dry_run {
         wait_until_published(index, package)?;
+
+        let git_tag = format!("{}-{}", package.name, package.version);
+        repo.tag(&git_tag)?;
+        repo.push(&git_tag)?;
+
         info!("published {}", package.name);
     }
-
-    let git_tag = format!("{}-{}", package.name, package.version);
-    repo.tag(&git_tag)?;
-    repo.push(&git_tag)?;
 
     Ok(())
 }
