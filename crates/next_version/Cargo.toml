@@ -13,4 +13,4 @@ categories = ["development-tools", "parsing"]
 [dependencies]
 semver = "1"
 conventional_commit_parser = "0.9"
-cargo-edit = "0.8"
+cargo-edit = "0.9"

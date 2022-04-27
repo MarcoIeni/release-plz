@@ -116,6 +116,7 @@ fn git_config() -> GitConfig {
         ignore_tags: None,
         date_order: None,
         sort_commits: None,
+        commit_preprocessors: None,
         link_parsers: Some(vec![
             LinkParser {
                 pattern: Regex::new("#(\\d+)").unwrap(),
