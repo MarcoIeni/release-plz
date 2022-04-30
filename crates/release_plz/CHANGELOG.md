@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4] - 2022-04-27
+
+### Added
+- add `release` command (#89)
+- *(cli)* forbid empty values in args (#88)
+
+### Other
+- *(args)* refactor (#87)
+
 ## [0.2.3] - 2022-04-23
 
 ### Added
