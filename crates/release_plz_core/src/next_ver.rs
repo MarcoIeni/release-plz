@@ -320,7 +320,9 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> bool
             .expect("cannot compare folders");
         result.changed_files.is_empty() && result.new_files.is_empty()
     };
-    are_toml_same() && are_dir_same()
+    let same_toml = are_toml_same();
+    let same_dir = are_dir_same();
+    same_toml && same_dir
 }
 
 fn are_file_equal(first: &Path, second: &Path) -> io::Result<bool> {
