@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add `release` command (#89)
 - Publish tag (#92)
 
-### Fix
+### Fixed
 - fix package equality
 
 ### Other
@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.3] - 2022-04-11
 
-### Fix
+### Fixed
 - generate changelog for new packages (#72)
 - add support for unpublished packages (#71)
 
