@@ -1,9 +1,10 @@
 use crate::{
     diff::Diff,
+    package_compare::are_packages_equal,
     registry_packages::{self, PackagesCollection},
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
-    ChangelogBuilder, CARGO_TOML, CHANGELOG_FILENAME, package_compare::are_packages_equal,
+    ChangelogBuilder, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::{anyhow, Context};
 use cargo_metadata::{Package, Version};
@@ -264,6 +265,7 @@ fn get_diff(
             let are_packages_equal = {
                 let registry_package_path = registry_package.package_path()?;
                 are_packages_equal(&package_path, registry_package_path)
+                    .context("cannot compare packages")?
             };
             if are_packages_equal {
                 debug!(

@@ -10,38 +10,11 @@ use std::{
     path::Path,
 };
 
-pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> bool {
-    let are_toml_same = || {
-        // When a package is published to a cargo registry, the original `Cargo.toml` file is stored as
-        // `Cargo.toml.orig`
-        let cargo_orig = format!("{CARGO_TOML}.orig");
-        are_file_equal(
-            &local_package.join(CARGO_TOML),
-            &registry_package.join(cargo_orig),
-        )
-        .unwrap_or(false)
-    };
-    let same_toml = are_toml_same();
-    let same_dir = are_pkg_same(local_package, registry_package).expect("cannot compare folders");
-    same_toml && same_dir
-}
+pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyhow::Result<bool> {
+    if !are_cargo_toml_equal(local_package, registry_package) {
+        return Ok(false);
+    }
 
-fn are_file_equal(first: &Path, second: &Path) -> io::Result<bool> {
-    let hash1 = file_hash(first)?;
-    let hash2 = file_hash(second)?;
-    Ok(hash1 == hash2)
-}
-
-fn file_hash(file: &Path) -> io::Result<u64> {
-    let buffer = &mut vec![];
-    File::open(file)?.read_to_end(buffer)?;
-    let mut hasher = DefaultHasher::new();
-    buffer.hash(&mut hasher);
-    let hash = hasher.finish();
-    Ok(hash)
-}
-
-pub fn are_pkg_same(local_package: &Path, registry_package: &Path) -> anyhow::Result<bool> {
     let walker = WalkDir::new(local_package)
         .into_iter()
         .filter_entry(|e| {
@@ -69,11 +42,37 @@ pub fn are_pkg_same(local_package: &Path, registry_package: &Path) -> anyhow::Re
             if !file_in_second_path.is_file() {
                 return Ok(false);
             }
-            if !are_file_equal(entry.path(), &file_in_second_path)? {
+            if !are_files_equal(entry.path(), &file_in_second_path)? {
                 return Ok(false);
             }
         }
     }
 
     Ok(true)
+}
+
+fn are_cargo_toml_equal(local_package: &Path, registry_package: &Path) -> bool {
+    // When a package is published to a cargo registry, the original `Cargo.toml` file is stored as
+    // `Cargo.toml.orig`
+    let cargo_orig = format!("{CARGO_TOML}.orig");
+    are_files_equal(
+        &local_package.join(CARGO_TOML),
+        &registry_package.join(cargo_orig),
+    )
+    .unwrap_or(false)
+}
+
+fn are_files_equal(first: &Path, second: &Path) -> io::Result<bool> {
+    let hash1 = file_hash(first)?;
+    let hash2 = file_hash(second)?;
+    Ok(hash1 == hash2)
+}
+
+fn file_hash(file: &Path) -> io::Result<u64> {
+    let buffer = &mut vec![];
+    File::open(file)?.read_to_end(buffer)?;
+    let mut hasher = DefaultHasher::new();
+    buffer.hash(&mut hasher);
+    let hash = hasher.finish();
+    Ok(hash)
 }
