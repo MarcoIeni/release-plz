@@ -95,8 +95,10 @@ impl UpdateRequest {
         }
     }
 
-    pub fn local_manifest(&self) -> &Path {
-        &self.local_manifest
+    pub fn local_manifest_dir(&self) -> anyhow::Result<&Path> {
+        self.local_manifest
+        .parent()
+        .context("wrong local manifest path")
     }
 
     pub fn registry_manifest(&self) -> Option<&Path> {

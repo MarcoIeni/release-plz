@@ -24,11 +24,7 @@ pub struct ReleasePrRequest {
 /// Open a pull request with the next packages versions of a local rust project
 #[instrument]
 pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
-    let manifest_dir = input
-        .update_request
-        .local_manifest()
-        .parent()
-        .ok_or_else(|| anyhow!("wrong local manifest path"))?;
+    let manifest_dir = input.update_request.local_manifest_dir()?;
     let tmp_project_root = copy_to_temp_dir(manifest_dir)?;
     let manifest_dir_name = manifest_dir
         .iter()

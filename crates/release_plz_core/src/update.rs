@@ -2,7 +2,7 @@ use crate::{tmp_repo::TempRepo, PackagePath, UpdateRequest, UpdateResult};
 use anyhow::Context;
 use cargo_edit::LocalManifest;
 use cargo_metadata::{Package, Version};
-use std::{fs, path::Path, process::Command};
+use std::{fs, path::Path};
 
 use tracing::{debug, instrument};
 
@@ -12,7 +12,10 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, UpdateResu
     let (packages_to_update, repository) = crate::next_versions(input)?;
     update_versions(&packages_to_update)?;
     update_changelogs(&packages_to_update)?;
-    update_cargo_lock()?;
+    if !packages_to_update.is_empty() {
+        let local_manifest_dir = input.local_manifest_dir()?;
+        update_cargo_lock(local_manifest_dir)?;
+    }
     Ok((packages_to_update, repository))
 }
 
@@ -38,10 +41,8 @@ fn update_changelogs(local_packages: &[(Package, UpdateResult)]) -> anyhow::Resu
 }
 
 #[instrument(skip_all)]
-fn update_cargo_lock() -> anyhow::Result<()> {
-    Command::new("cargo")
-        .args(&["update", "--workspace"])
-        .output()
+fn update_cargo_lock(root: &Path) -> anyhow::Result<()> {
+    crate::cargo::run_cargo(root, &["update", "--workspace"])
         .context("error while running cargo to update the Cargo.lock file")?;
     Ok(())
 }
