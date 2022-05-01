@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use anyhow::anyhow;
+use anyhow::Context;
 use cargo_metadata::Package;
 use crates_index::Index;
 use git_cmd::Repo;
@@ -54,8 +54,7 @@ fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Resu
         .iter()
         .map(|r| {
             cargo_edit::registry_url(package.manifest_path.as_ref(), Some(r))
-                // TODO do not discard the error once you update cargo-edit to 0.9
-                .map_err(|_e| anyhow!("failed to retrieve registry url"))
+                .context("failed to retrieve registry url")
         })
         .collect::<anyhow::Result<Vec<Url>>>()?;
     let mut registry_indexes = registry_urls
