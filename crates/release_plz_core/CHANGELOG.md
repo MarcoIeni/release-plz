@@ -10,9 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - add `release` command (#89)
+- Publish tag (#92)
+
+### Fix
+- fix package equality
 
 ### Other
-- Publish tag (#92)
 - update dependencies (#91)
 
 ## [0.2.4] - 2022-04-23
