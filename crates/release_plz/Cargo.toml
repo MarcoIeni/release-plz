@@ -12,7 +12,7 @@ categories = ["command-line-utilities", "development-tools"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-release_plz_core = { path = "../release_plz_core", version = "0.2" }
+release_plz_core = { path = "../release_plz_core", version = "0.2.6" }
 
 anyhow = "1"
 clap = { version = "3", features = ["derive", "env"] }

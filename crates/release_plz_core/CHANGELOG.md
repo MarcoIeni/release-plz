@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.6] - 2022-05-01
+
+### Fixed
+- fix cargo update (#99)
+
+### Changed
+- update local dependencies versions (#102)
+- remove default features from some deps (#101)
+
 ## [0.2.5] - 2022-04-27
 
 ### Added
