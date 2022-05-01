@@ -21,7 +21,6 @@ cargo-clone = "1"
 cargo-edit = "0.9"
 chrono = { version = "0.4", features = ["clock"], default-features = false }
 crates-index = "0.18"
-folder_compare = "0.4"
 fs_extra = "1"
 git-cliff = "0.7"
 git-cliff-core = "0.7"
@@ -30,6 +29,7 @@ secrecy = "0.8"
 tempfile = "3"
 tracing = "0.1"
 url = "2"
+walkdir = "2"
 
 [dev-dependencies]
 test_logs = { path = "../test_logs" }

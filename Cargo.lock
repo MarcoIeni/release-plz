@@ -971,17 +971,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
-name = "folder_compare"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7cc8b9547e207c7e5233e593c59919ffdb978f17d1155ea9484cc46cb3e2397"
-dependencies = [
- "fxhash",
- "regex",
- "walkdir",
-]
-
-[[package]]
 name = "foreign-types"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1130,15 +1119,6 @@ checksum = "08c1f5787fe85505d1f7777268db5103d80a7a374d2316a7ce262e57baf8f208"
 dependencies = [
  "memchr",
  "termcolor",
-]
-
-[[package]]
-name = "fxhash"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c31b6d751ae2c7f11320402d34e41349dd1016f8d5d45e48c4312bc8625af50c"
-dependencies = [
- "byteorder",
 ]
 
 [[package]]
@@ -2401,7 +2381,6 @@ dependencies = [
  "crates-index",
  "expect-test",
  "fake",
- "folder_compare",
  "fs_extra",
  "git-cliff",
  "git-cliff-core",
@@ -2415,6 +2394,7 @@ dependencies = [
  "tokio",
  "tracing",
  "url",
+ "walkdir",
  "wiremock",
 ]
 
