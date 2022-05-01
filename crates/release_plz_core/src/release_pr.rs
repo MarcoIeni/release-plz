@@ -42,7 +42,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .clone()
         .set_local_manifest(local_manifest)
         .context("can't find temporary project")?;
-    let (packages_to_update, _repository) = update(&new_update_request)?;
+    let (packages_to_update, _temp_repository) = update(&new_update_request)?;
     let gh_client = GitHubClient::new(&input.github)?;
     gh_client
         .close_prs_on_branches(BRANCH_PREFIX)
