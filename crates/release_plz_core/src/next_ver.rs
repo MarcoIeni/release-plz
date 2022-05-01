@@ -1,5 +1,6 @@
 use crate::{
     diff::Diff,
+    package_compare::are_packages_equal,
     registry_packages::{self, PackagesCollection},
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
@@ -8,7 +9,6 @@ use crate::{
 use anyhow::{anyhow, Context};
 use cargo_metadata::{Package, Version};
 use chrono::{Date, Utc};
-use folder_compare::FolderCompare;
 use fs_extra::dir;
 use git_cmd::{self, Repo};
 use std::{
@@ -265,6 +265,7 @@ fn get_diff(
             let are_packages_equal = {
                 let registry_package_path = registry_package.package_path()?;
                 are_packages_equal(&package_path, registry_package_path)
+                    .context("cannot compare packages")?
             };
             if are_packages_equal {
                 debug!(
@@ -297,36 +298,6 @@ fn get_diff(
     }
     repository.checkout_head()?;
     Ok(diff)
-}
-
-pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> bool {
-    let are_toml_same = || {
-        // When a package is published to a cargo registry, the original `Cargo.toml` file is stored as
-        // `Cargo.toml.orig`
-        let cargo_orig = format!("{CARGO_TOML}.orig");
-        are_file_equal(
-            &local_package.join(CARGO_TOML),
-            &registry_package.join(cargo_orig),
-        )
-        .unwrap_or(false)
-    };
-    let are_dir_same = || {
-        let excluded = vec![
-            ".git".to_string(),
-            ".cargo_vcs_info.json".to_string(),
-            CARGO_TOML.to_string(),
-        ];
-        let result = FolderCompare::new(local_package, registry_package, &excluded)
-            .expect("cannot compare folders");
-        result.changed_files.is_empty() && result.new_files.is_empty()
-    };
-    are_toml_same() && are_dir_same()
-}
-
-fn are_file_equal(first: &Path, second: &Path) -> io::Result<bool> {
-    let first = fs::read_to_string(first)?;
-    let second = fs::read_to_string(second)?;
-    Ok(first == second)
 }
 
 pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
