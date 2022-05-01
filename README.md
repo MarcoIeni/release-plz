@@ -89,4 +89,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits
 
-Parts of the codebase are inspired by [cargo-workspaces](https://github.com/pksunkara/cargo-workspaces) and [cargo-release](https://github.com/crate-ci/cargo-release).
+Parts of the codebase are inspired by:
+- [cargo-workspaces](https://github.com/pksunkara/cargo-workspaces)
+- [cargo-release](https://github.com/crate-ci/cargo-release)
+- [cargo-edit](https://github.com/killercup/cargo-edit)

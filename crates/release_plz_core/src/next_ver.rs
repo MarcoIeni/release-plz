@@ -101,6 +101,10 @@ impl UpdateRequest {
             .context("wrong local manifest path")
     }
 
+    pub fn local_manifest(&self) -> &Path {
+        &self.local_manifest
+    }
+
     pub fn registry_manifest(&self) -> Option<&Path> {
         self.registry_manifest.as_deref()
     }
@@ -161,7 +165,7 @@ impl Project {
         })
     }
 
-    /// Copy this project in a temporary repository return the repository.
+    /// Copy this project in a temporary repository and return the repository.
     /// We copy the project in another directory in order to avoid altering it.
     fn get_repo(&self) -> anyhow::Result<TempRepo> {
         let tmp_project_root = copy_to_temp_dir(&self.root)?;
