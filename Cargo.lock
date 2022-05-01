@@ -2371,6 +2371,7 @@ dependencies = [
  "tempfile",
  "test_logs",
  "tokio",
+ "toml_edit",
  "tracing",
  "url",
  "walkdir",
