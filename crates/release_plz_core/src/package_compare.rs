@@ -45,12 +45,12 @@ pub fn are_pkg_same(local_package: &Path, registry_package: &Path) -> anyhow::Re
     let walker = WalkDir::new(local_package)
         .into_iter()
         .filter_entry(|e| {
-            (e.file_type().is_dir() && e.path().file_name() == Some(OsStr::new(".git")))
-                || e.path_is_symlink()
+            !((e.file_type().is_dir() && e.path().file_name() == Some(OsStr::new(".git")))
+                || e.path_is_symlink())
         })
         .filter_map(Result::ok)
-        .filter(|e| e.file_type().is_dir() && e.path() == local_package)
-        .filter(|e| {
+        .filter(|e| !(e.file_type().is_dir() && e.path() == local_package))
+        .filter(|e| !{
             e.file_type().is_file()
                 && (e.path().file_name() == Some(OsStr::new(".cargo_vcs_info.json"))
                     || e.path().file_name() == Some(OsStr::new(CARGO_TOML)))
