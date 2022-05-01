@@ -18,11 +18,11 @@ anyhow = "1"
 cargo = "0.61"
 cargo_metadata = "0.14"
 cargo-clone = "1"
-cargo-edit = "0.9"
+cargo-edit = { version = "0.9", features = ["set-version"], default-features = false }
 chrono = { version = "0.4", features = ["clock"], default-features = false }
 crates-index = "0.18"
 fs_extra = "1"
-git-cliff = "0.7"
+git-cliff = { version = "0.7", default-features = false }
 git-cliff-core = "0.7"
 octocrab = "0.16"
 secrecy = "0.8"
