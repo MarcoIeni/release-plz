@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.7] - 2022-05-02
 
-### Other
-- *(release)* do not discard error (#105) ([#105](https://github.com/105) [#105](https://github.com/105) )
+### Fixed
+- *(release)* do not discard error (#105)
 
 ## [0.2.6] - 2022-05-01
 
