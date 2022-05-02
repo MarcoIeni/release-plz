@@ -30,6 +30,8 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
         ca-certificates \
         wget \
+        gcc \
+        libc6-dev \
         libssl1.1 \
         ssh-client \
         git \
@@ -55,7 +57,9 @@ RUN set -eux; \
         ; \
     rm -rf /var/lib/apt/lists/*; \
     mv /usr/local/cargo/bin/cargo ~; \
+    mv /usr/local/cargo/bin/rustc ~; \
     rm /usr/local/cargo/bin/*; \
-    mv ~/cargo /usr/local/cargo/bin/;
+    mv ~/cargo /usr/local/cargo/bin/; \
+    mv ~/rustc /usr/local/cargo/bin/;
 COPY --from=builder /app/target/release/release-plz /usr/local/bin
 ENTRYPOINT ["release-plz"]
