@@ -64,11 +64,21 @@ fn set_version(
 ) -> anyhow::Result<()> {
     debug!("updating version");
     let mut local_manifest =
-        LocalManifest::try_new(&package_path.join("Cargo.toml")).expect("cannot read manifest");
+        LocalManifest::try_new(&package_path.join("Cargo.toml")).context("cannot read manifest")?;
     local_manifest.set_package_version(version);
     local_manifest.write().expect("cannot update manifest");
 
     let crate_root = fs::canonicalize(local_manifest.path.parent().expect("at least a parent"))?;
+    update_dependencies(all_packages, version, &crate_root)?;
+    Ok(())
+}
+
+/// Update the package version in the dependencies of the other packages.
+fn update_dependencies(
+    all_packages: &[Package],
+    version: &Version,
+    package_path: &Path,
+) -> anyhow::Result<()> {
     for member in all_packages {
         let mut dep_manifest = LocalManifest::try_new(member.manifest_path.as_std_path())?;
         let dep_crate_root = dep_manifest
@@ -88,7 +98,7 @@ fn set_version(
                     .and_then(|i| i.as_str())
                     .and_then(|relpath| fs::canonicalize(dep_crate_root.join(relpath)).ok())
                 {
-                    Some(dep_path) => dep_path == crate_root.as_path(),
+                    Some(dep_path) => dep_path == package_path,
                     None => false,
                 }
             });
