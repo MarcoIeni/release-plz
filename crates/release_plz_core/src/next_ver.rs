@@ -7,6 +7,7 @@ use crate::{
     ChangelogBuilder, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::{anyhow, Context};
+use cargo_edit::{LocalManifest, VersionExt};
 use cargo_metadata::{Package, Version};
 use chrono::{Date, Utc};
 use fs_extra::dir;
@@ -199,27 +200,64 @@ fn packages_to_update(
 ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
     repository.is_clean()?;
     debug!("calculating local packages");
-    let mut packages_to_update = vec![];
-    for p in project.packages {
-        let diff = get_diff(&p, registry_packages, repository, &project.root)?;
-        let current_version = &p.version;
+    let mut packages_to_update: Vec<(Package, UpdateResult)> = vec![];
+    for p in &project.packages {
+        let diff = get_diff(p, registry_packages, repository, &project.root)?;
+        let current_version = p.version.clone();
         let next_version = p.version.next_from_diff(&diff);
 
         debug!("diff: {:?}, next_version: {}", &diff, next_version);
-        if next_version != *current_version || !diff.registry_package_exists {
+        if next_version != current_version || !diff.registry_package_exists {
             info!("{}: next version is {next_version}", p.name);
             let changelog = changelog_req
-                .map(|r| get_changelog(diff.commits.clone(), &next_version, r.release_date, &p))
+                .map(|r| get_changelog(diff.commits.clone(), &next_version, r.release_date, p))
                 .transpose()?;
 
             let update_result = UpdateResult {
                 version: next_version,
                 changelog,
             };
-            packages_to_update.push((p, update_result));
+            packages_to_update.push((p.clone(), update_result));
         }
     }
+
+    let changed_packages: Vec<&Package> = packages_to_update.iter().map(|(p, _)| p).collect();
+    let dependent_packages = dependent_packages(&project.packages, &changed_packages)?;
+    packages_to_update.extend(dependent_packages);
     Ok(packages_to_update)
+}
+
+/// Return the packages that depend on the `target_packages`.
+fn dependent_packages(
+    all_packages: &[Package],
+    target_packages: &[&Package],
+) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
+    let different_packages = all_packages.iter().filter(|p| !target_packages.contains(p));
+    let dependent_packages = different_packages
+        .map(|p| {
+            let dependencies_present = target_packages.iter().filter(|t| {
+                if let Ok(is_contained) = p.contains_dependency(t) {
+                    if is_contained {
+                        return true;
+                    }
+                }
+                false
+            });
+            let dependencies_present: Vec<&str> =
+                dependencies_present.map(|d| d.name.as_str()).collect();
+            let changelog = format!("todo: {}", dependencies_present.join(","));
+            let mut next_ver = p.version.clone();
+            next_ver.increment_patch();
+            (
+                p.clone(),
+                UpdateResult {
+                    version: next_ver,
+                    changelog: Some(changelog),
+                },
+            )
+        })
+        .collect();
+    Ok(dependent_packages)
 }
 
 fn get_changelog(
@@ -337,9 +375,15 @@ impl Publishable for Package {
 
 pub trait PackagePath {
     fn package_path(&self) -> anyhow::Result<&Path>;
+
     fn changelog_path(&self) -> anyhow::Result<PathBuf> {
         let changelog_path = self.package_path()?.join(CHANGELOG_FILENAME);
         Ok(changelog_path)
+    }
+
+    fn canonical_path(&self) -> anyhow::Result<PathBuf> {
+        let p = fs::canonicalize(&self.package_path()?)?;
+        Ok(p)
     }
 }
 
@@ -364,4 +408,38 @@ pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
     dir::copy(target, tmp_dir.as_ref(), &dir::CopyOptions::default())
         .context(format!("cannot copy directory {target:?} to {tmp_dir:?}",))?;
     Ok(tmp_dir)
+}
+
+trait ContainsDependency {
+    /// Returns `Ok(true)` if the package contains the package `dependency` among the dependencies.
+    fn contains_dependency(&self, dependency: &Package) -> anyhow::Result<bool>;
+}
+
+impl ContainsDependency for Package {
+    fn contains_dependency(&self, dependency: &Package) -> anyhow::Result<bool> {
+        let canonical_path = dependency.canonical_path()?;
+        let mut package_manifest = LocalManifest::try_new(self.manifest_path.as_std_path())?;
+        let package_dir = package_manifest
+            .path
+            .parent()
+            .context("at least a parent")?
+            .to_owned();
+        let deps_to_update = package_manifest
+            .get_dependency_tables_mut()
+            .flat_map(|t| t.iter_mut().filter_map(|(_, d)| d.as_table_like_mut()))
+            .filter(|d| d.contains_key("version"))
+            .filter(|d| {
+                let dependency_path = d
+                    .get("path")
+                    .and_then(|i| i.as_str())
+                    .and_then(|relpath| fs::canonicalize(package_dir.join(relpath)).ok());
+                match dependency_path {
+                    Some(dep_path) => dep_path == canonical_path,
+                    None => false,
+                }
+            });
+
+        // TODO check if the version will be updated based on the requirement
+        Ok(deps_to_update.count() > 0)
+    }
 }
