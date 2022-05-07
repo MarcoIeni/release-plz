@@ -7,7 +7,7 @@ use crate::{
     ChangelogBuilder, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::{anyhow, Context};
-use cargo_edit::{LocalManifest, VersionExt};
+use cargo_edit::{upgrade_requirement, LocalManifest, VersionExt};
 use cargo_metadata::{Package, Version};
 use chrono::{Date, Utc};
 use fs_extra::dir;
@@ -221,7 +221,10 @@ fn packages_to_update(
         }
     }
 
-    let changed_packages: Vec<&Package> = packages_to_update.iter().map(|(p, _)| p).collect();
+    let changed_packages: Vec<(&Package, &Version)> = packages_to_update
+        .iter()
+        .map(|(p, u)| (p, &u.version))
+        .collect();
     let dependent_packages = dependent_packages(&project.packages, &changed_packages)?;
     packages_to_update.extend(dependent_packages);
     Ok(packages_to_update)
@@ -230,22 +233,19 @@ fn packages_to_update(
 /// Return the packages that depend on the `target_packages`.
 fn dependent_packages(
     all_packages: &[Package],
-    target_packages: &[&Package],
+    target_packages: &[(&Package, &Version)],
 ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
-    let different_packages = all_packages.iter().filter(|p| !target_packages.contains(p));
-    let dependent_packages = different_packages
-        .map(|p| {
-            let dependencies_present = target_packages.iter().filter(|t| {
-                if let Ok(is_contained) = p.contains_dependency(t) {
-                    if is_contained {
-                        return true;
-                    }
-                }
-                false
-            });
-            let dependencies_present: Vec<&str> =
-                dependencies_present.map(|d| d.name.as_str()).collect();
-            let changelog = format!("todo: {}", dependencies_present.join(","));
+    let different_packages = all_packages
+        .iter()
+        .filter(|p| !target_packages.iter().map(|(p, _v)| *p).any(|x| x == *p));
+    let packages_to_update: Vec<_> = different_packages
+        .filter_map(|p| match p.dependencies_to_update(target_packages) {
+            Ok(deps) => Some((p, deps)),
+            Err(_e) => None,
+        })
+        .map(|(p, deps)| {
+            let deps: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
+            let changelog = format!("todo: {}", deps.join(","));
             let mut next_ver = p.version.clone();
             next_ver.increment_patch();
             (
@@ -257,7 +257,7 @@ fn dependent_packages(
             )
         })
         .collect();
-    Ok(dependent_packages)
+    Ok(packages_to_update)
 }
 
 fn get_changelog(
@@ -411,35 +411,55 @@ pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
 }
 
 trait ContainsDependency {
-    /// Returns `Ok(true)` if the package contains the package `dependency` among the dependencies.
-    fn contains_dependency(&self, dependency: &Package) -> anyhow::Result<bool>;
+    /// Returns the `updated_packages` which should be updated in the dependencies of the package.
+    fn dependencies_to_update<'a>(
+        &self,
+        updated_packages: &'a [(&Package, &Version)],
+    ) -> anyhow::Result<Vec<&'a Package>>;
 }
 
 impl ContainsDependency for Package {
-    fn contains_dependency(&self, dependency: &Package) -> anyhow::Result<bool> {
-        let canonical_path = dependency.canonical_path()?;
+    fn dependencies_to_update<'a>(
+        &self,
+        updated_packages: &'a [(&Package, &Version)],
+    ) -> anyhow::Result<Vec<&'a Package>> {
         let mut package_manifest = LocalManifest::try_new(self.manifest_path.as_std_path())?;
         let package_dir = package_manifest
             .path
             .parent()
             .context("at least a parent")?
             .to_owned();
-        let deps_to_update = package_manifest
-            .get_dependency_tables_mut()
-            .flat_map(|t| t.iter_mut().filter_map(|(_, d)| d.as_table_like_mut()))
-            .filter(|d| d.contains_key("version"))
-            .filter(|d| {
-                let dependency_path = d
-                    .get("path")
-                    .and_then(|i| i.as_str())
-                    .and_then(|relpath| fs::canonicalize(package_dir.join(relpath)).ok());
-                match dependency_path {
-                    Some(dep_path) => dep_path == canonical_path,
-                    None => false,
-                }
-            });
 
-        // TODO check if the version will be updated based on the requirement
-        Ok(deps_to_update.count() > 0)
+        let mut deps_to_update: Vec<&Package> = vec![];
+        for (p, next_ver) in updated_packages {
+            let canonical_path = p.canonical_path()?;
+            let matching_deps = package_manifest
+                .get_dependency_tables_mut()
+                .flat_map(|t| t.iter_mut().filter_map(|(_, d)| d.as_table_like_mut()))
+                .filter(|d| d.contains_key("version"))
+                .filter(|d| {
+                    let dependency_path = d
+                        .get("path")
+                        .and_then(|i| i.as_str())
+                        .and_then(|relpath| fs::canonicalize(package_dir.join(relpath)).ok());
+                    match dependency_path {
+                        Some(dep_path) => dep_path == canonical_path,
+                        None => false,
+                    }
+                });
+
+            for dep in matching_deps {
+                let old_req = dep
+                    .get("version")
+                    .expect("filter ensures this")
+                    .as_str()
+                    .unwrap_or("*");
+                if let Some(_new_req) = upgrade_requirement(old_req, next_ver)? {
+                    deps_to_update.push(p);
+                }
+            }
+        }
+
+        Ok(deps_to_update)
     }
 }
