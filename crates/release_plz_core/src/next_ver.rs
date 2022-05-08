@@ -215,6 +215,7 @@ fn packages_to_update(
 ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
     repository.is_clean()?;
     debug!("calculating local packages");
+    let mut packages_to_check_for_deps: Vec<&Package> = vec![];
     let mut packages_to_update: Vec<(Package, UpdateResult)> = vec![];
     for p in &project.packages {
         let diff = get_diff(p, registry_packages, repository, &project.root)?;
@@ -228,6 +229,8 @@ fn packages_to_update(
                 UpdateResult::new(diff.commits.clone(), next_version, changelog_req, p)?;
 
             packages_to_update.push((p.clone(), update_result));
+        } else if diff.is_version_published {
+            packages_to_check_for_deps.push(p);
         }
     }
 
@@ -235,22 +238,23 @@ fn packages_to_update(
         .iter()
         .map(|(p, u)| (p, &u.version))
         .collect();
-    let dependent_packages =
-        dependent_packages(&project.packages, &changed_packages, changelog_req)?;
+    let dependent_packages = dependent_packages(
+        &packages_to_check_for_deps,
+        &changed_packages,
+        changelog_req,
+    )?;
     packages_to_update.extend(dependent_packages);
     Ok(packages_to_update)
 }
 
 /// Return the packages that depend on the `target_packages`.
 fn dependent_packages(
-    all_packages: &[Package],
+    packages_to_check_for_deps: &[&Package],
     target_packages: &[(&Package, &Version)],
     changelog_req: Option<ChangelogRequest>,
 ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
-    let different_packages = all_packages
+    let packages_to_update = packages_to_check_for_deps
         .iter()
-        .filter(|p| !target_packages.iter().map(|(p, _v)| *p).any(|x| x == *p));
-    let packages_to_update = different_packages
         .filter_map(|p| match p.dependencies_to_update(target_packages) {
             Ok(deps) => {
                 if deps.is_empty() {
@@ -261,20 +265,24 @@ fn dependent_packages(
             }
             Err(_e) => None,
         })
-        .map(|(p, deps)| {
+        .map(|(&p, deps)| {
             let deps: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
             let change = format!(
                 "chore: updated the following local packages: {}",
                 deps.join(",")
             );
-            let next_ver = {
+            let next_version = {
                 let mut next_ver = p.version.clone();
                 next_ver.increment_patch();
                 next_ver
             };
+            info!(
+                "{}: dependencies updated. Next version is {next_version}",
+                p.name
+            );
             Ok((
                 p.clone(),
-                UpdateResult::new(vec![change], next_ver, changelog_req, p)?,
+                UpdateResult::new(vec![change], next_version, changelog_req, p)?,
             ))
         })
         .collect::<anyhow::Result<Vec<_>>>()?;
@@ -346,6 +354,7 @@ fn get_diff(
                 break;
             } else if registry_package.version != package.version {
                 info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
+                diff.set_version_unpublished();
                 break;
             } else {
                 debug!("packages are different");

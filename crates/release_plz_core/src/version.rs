@@ -36,6 +36,7 @@ mod tests {
         let diff = Diff {
             registry_package_exists: true,
             commits: vec!["my change".to_string()],
+            is_version_published: true,
         };
         let version = Version::new(1, 2, 3);
         assert_eq!(version.next_from_diff(&diff), Version::new(1, 2, 4));
