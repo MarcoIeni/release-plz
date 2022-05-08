@@ -28,9 +28,9 @@ jobs:
             type=ref,event=pr
             type=sha
             type=raw,value=latest
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=match,pattern=release-plz-v(\d+),group=1
+            type=match,pattern=release-plz-v(\d+.\d+),group=1
+            type=match,pattern=release-plz-v(\d+.\d+.\d+),group=1
 
       - name: Cache Docker layers
         uses: actions/cache@v3
