@@ -6,7 +6,7 @@ pub(crate) struct Diff {
     /// Whether the package name exists in the registry or not.
     pub registry_package_exists: bool,
     /// Whether the current local version is published to the registry.
-    /// If the current is unpublished, the version will not be updated.
+    /// If the current version is still unpublished, the package will not be processed.
     pub is_version_published: bool,
 }
 

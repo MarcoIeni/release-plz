@@ -247,15 +247,15 @@ fn packages_to_update(
     Ok(packages_to_update)
 }
 
-/// Return the packages that depend on the `target_packages`.
+/// Return the packages that depend on the `changed_packages`.
 fn dependent_packages(
     packages_to_check_for_deps: &[&Package],
-    target_packages: &[(&Package, &Version)],
+    changed_packages: &[(&Package, &Version)],
     changelog_req: Option<ChangelogRequest>,
 ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
     let packages_to_update = packages_to_check_for_deps
         .iter()
-        .filter_map(|p| match p.dependencies_to_update(target_packages) {
+        .filter_map(|p| match p.dependencies_to_update(changed_packages) {
             Ok(deps) => {
                 if deps.is_empty() {
                     None
@@ -269,7 +269,7 @@ fn dependent_packages(
             let deps: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
             let change = format!(
                 "chore: updated the following local packages: {}",
-                deps.join(",")
+                deps.join(", ")
             );
             let next_version = {
                 let mut next_ver = p.version.clone();
