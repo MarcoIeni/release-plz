@@ -2332,7 +2332,7 @@ checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
 
 [[package]]
 name = "release-plz"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2348,7 +2348,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "anyhow",
  "cargo",
