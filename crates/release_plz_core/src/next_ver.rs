@@ -484,7 +484,7 @@ impl PackageDependencies for Package {
                     .expect("filter ensures this")
                     .as_str()
                     .unwrap_or("*");
-                if let Some(_new_req) = upgrade_requirement(old_req, next_ver)? {
+                if upgrade_requirement(old_req, next_ver)?.is_some() {
                     deps_to_update.push(p);
                 }
             }
