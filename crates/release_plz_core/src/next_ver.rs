@@ -252,7 +252,13 @@ fn dependent_packages(
         .filter(|p| !target_packages.iter().map(|(p, _v)| *p).any(|x| x == *p));
     let packages_to_update = different_packages
         .filter_map(|p| match p.dependencies_to_update(target_packages) {
-            Ok(deps) => Some((p, deps)),
+            Ok(deps) => {
+                if deps.is_empty() {
+                    None
+                } else {
+                    Some((p, deps))
+                }
+            }
             Err(_e) => None,
         })
         .map(|(p, deps)| {
