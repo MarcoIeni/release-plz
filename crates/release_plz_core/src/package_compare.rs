@@ -24,7 +24,7 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyh
         .filter_map(Result::ok)
         .filter(|e| !(e.file_type().is_dir() && e.path() == local_package))
         .filter(|e| !{
-            e.file_type().is_file()
+            !e.file_type().is_dir()
                 && (e.path().file_name() == Some(OsStr::new(".cargo_vcs_info.json"))
                     || e.path().file_name() == Some(OsStr::new(CARGO_TOML)))
         });
@@ -38,7 +38,7 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyh
             if dir1.count() != dir2.count() {
                 return Ok(false);
             }
-        } else if entry.file_type().is_file() {
+        } else if !entry.file_type().is_dir() {
             if !file_in_second_path.is_file() {
                 return Ok(false);
             }

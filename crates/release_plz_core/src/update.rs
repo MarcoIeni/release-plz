@@ -29,9 +29,9 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, UpdateResu
 #[instrument(skip_all)]
 fn update_versions(
     all_packages: &[Package],
-    local_packages: &[(Package, UpdateResult)],
+    packages_to_update: &[(Package, UpdateResult)],
 ) -> anyhow::Result<()> {
-    for (package, update) in local_packages {
+    for (package, update) in packages_to_update {
         let package_path = package.package_path()?;
         set_version(all_packages, package_path, &update.version)?;
     }
@@ -64,31 +64,40 @@ fn set_version(
 ) -> anyhow::Result<()> {
     debug!("updating version");
     let mut local_manifest =
-        LocalManifest::try_new(&package_path.join("Cargo.toml")).expect("cannot read manifest");
+        LocalManifest::try_new(&package_path.join("Cargo.toml")).context("cannot read manifest")?;
     local_manifest.set_package_version(version);
     local_manifest.write().expect("cannot update manifest");
 
-    let crate_root = fs::canonicalize(local_manifest.path.parent().expect("at least a parent"))?;
+    let package_path =
+        fs::canonicalize(local_manifest.path.parent().context("at least a parent")?)?;
+    update_dependencies(all_packages, version, &package_path)?;
+    Ok(())
+}
+
+/// Update the package version in the dependencies of the other packages.
+fn update_dependencies(
+    all_packages: &[Package],
+    version: &Version,
+    package_path: &Path,
+) -> anyhow::Result<()> {
     for member in all_packages {
-        let mut dep_manifest = LocalManifest::try_new(member.manifest_path.as_std_path())?;
-        let dep_crate_root = dep_manifest
+        let mut member_manifest = LocalManifest::try_new(member.manifest_path.as_std_path())?;
+        let member_dir = member_manifest
             .path
             .parent()
-            .expect("at least a parent")
+            .context("at least a parent")?
             .to_owned();
-        let deps_to_update = dep_manifest
+        let deps_to_update = member_manifest
             .get_dependency_tables_mut()
             .flat_map(|t| t.iter_mut().filter_map(|(_, d)| d.as_table_like_mut()))
+            .filter(|d| d.contains_key("version"))
             .filter(|d| {
-                if !d.contains_key("version") {
-                    return false;
-                }
-                match d
+                let dependency_path = d
                     .get("path")
                     .and_then(|i| i.as_str())
-                    .and_then(|relpath| fs::canonicalize(dep_crate_root.join(relpath)).ok())
-                {
-                    Some(dep_path) => dep_path == crate_root.as_path(),
+                    .and_then(|relpath| fs::canonicalize(member_dir.join(relpath)).ok());
+                match dependency_path {
+                    Some(dep_path) => dep_path == package_path,
                     None => false,
                 }
             });
@@ -103,7 +112,7 @@ fn set_version(
                 dep.insert("version", toml_edit::value(new_req));
             }
         }
-        dep_manifest.write()?;
+        member_manifest.write()?;
     }
     Ok(())
 }

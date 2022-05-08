@@ -7,6 +7,7 @@ use crate::{
     ChangelogBuilder, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::{anyhow, Context};
+use cargo_edit::{upgrade_requirement, LocalManifest, VersionExt};
 use cargo_metadata::{Package, Version};
 use chrono::{Date, Utc};
 use fs_extra::dir;
@@ -190,6 +191,21 @@ pub struct UpdateResult {
     pub changelog: Option<String>,
 }
 
+impl UpdateResult {
+    fn new(
+        commits: Vec<String>,
+        version: Version,
+        changelog_req: Option<ChangelogRequest>,
+        package: &Package,
+    ) -> anyhow::Result<UpdateResult> {
+        let changelog = changelog_req
+            .map(|r| get_changelog(commits, &version, r.release_date, package))
+            .transpose()?;
+
+        Ok(UpdateResult { version, changelog })
+    }
+}
+
 #[instrument(skip_all)]
 fn packages_to_update(
     project: Project,
@@ -199,26 +215,77 @@ fn packages_to_update(
 ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
     repository.is_clean()?;
     debug!("calculating local packages");
-    let mut packages_to_update = vec![];
-    for p in project.packages {
-        let diff = get_diff(&p, registry_packages, repository, &project.root)?;
-        let current_version = &p.version;
+    let mut packages_to_check_for_deps: Vec<&Package> = vec![];
+    let mut packages_to_update: Vec<(Package, UpdateResult)> = vec![];
+    for p in &project.packages {
+        let diff = get_diff(p, registry_packages, repository, &project.root)?;
+        let current_version = p.version.clone();
         let next_version = p.version.next_from_diff(&diff);
 
         debug!("diff: {:?}, next_version: {}", &diff, next_version);
-        if next_version != *current_version || !diff.registry_package_exists {
+        if next_version != current_version || !diff.registry_package_exists {
             info!("{}: next version is {next_version}", p.name);
-            let changelog = changelog_req
-                .map(|r| get_changelog(diff.commits.clone(), &next_version, r.release_date, &p))
-                .transpose()?;
+            let update_result =
+                UpdateResult::new(diff.commits.clone(), next_version, changelog_req, p)?;
 
-            let update_result = UpdateResult {
-                version: next_version,
-                changelog,
-            };
-            packages_to_update.push((p, update_result));
+            packages_to_update.push((p.clone(), update_result));
+        } else if diff.is_version_published {
+            packages_to_check_for_deps.push(p);
         }
     }
+
+    let changed_packages: Vec<(&Package, &Version)> = packages_to_update
+        .iter()
+        .map(|(p, u)| (p, &u.version))
+        .collect();
+    let dependent_packages = dependent_packages(
+        &packages_to_check_for_deps,
+        &changed_packages,
+        changelog_req,
+    )?;
+    packages_to_update.extend(dependent_packages);
+    Ok(packages_to_update)
+}
+
+/// Return the packages that depend on the `changed_packages`.
+fn dependent_packages(
+    packages_to_check_for_deps: &[&Package],
+    changed_packages: &[(&Package, &Version)],
+    changelog_req: Option<ChangelogRequest>,
+) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
+    let packages_to_update = packages_to_check_for_deps
+        .iter()
+        .filter_map(|p| match p.dependencies_to_update(changed_packages) {
+            Ok(deps) => {
+                if deps.is_empty() {
+                    None
+                } else {
+                    Some((p, deps))
+                }
+            }
+            Err(_e) => None,
+        })
+        .map(|(&p, deps)| {
+            let deps: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
+            let change = format!(
+                "chore: updated the following local packages: {}",
+                deps.join(", ")
+            );
+            let next_version = {
+                let mut next_ver = p.version.clone();
+                next_ver.increment_patch();
+                next_ver
+            };
+            info!(
+                "{}: dependencies changed. Next version is {next_version}",
+                p.name
+            );
+            Ok((
+                p.clone(),
+                UpdateResult::new(vec![change], next_version, changelog_req, p)?,
+            ))
+        })
+        .collect::<anyhow::Result<Vec<_>>>()?;
     Ok(packages_to_update)
 }
 
@@ -287,6 +354,7 @@ fn get_diff(
                 break;
             } else if registry_package.version != package.version {
                 info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
+                diff.set_version_unpublished();
                 break;
             } else {
                 debug!("packages are different");
@@ -337,9 +405,15 @@ impl Publishable for Package {
 
 pub trait PackagePath {
     fn package_path(&self) -> anyhow::Result<&Path>;
+
     fn changelog_path(&self) -> anyhow::Result<PathBuf> {
         let changelog_path = self.package_path()?.join(CHANGELOG_FILENAME);
         Ok(changelog_path)
+    }
+
+    fn canonical_path(&self) -> anyhow::Result<PathBuf> {
+        let p = fs::canonicalize(&self.package_path()?)?;
+        Ok(p)
     }
 }
 
@@ -364,4 +438,58 @@ pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
     dir::copy(target, tmp_dir.as_ref(), &dir::CopyOptions::default())
         .context(format!("cannot copy directory {target:?} to {tmp_dir:?}",))?;
     Ok(tmp_dir)
+}
+
+trait PackageDependencies {
+    /// Returns the `updated_packages` which should be updated in the dependencies of the package.
+    fn dependencies_to_update<'a>(
+        &self,
+        updated_packages: &'a [(&Package, &Version)],
+    ) -> anyhow::Result<Vec<&'a Package>>;
+}
+
+impl PackageDependencies for Package {
+    fn dependencies_to_update<'a>(
+        &self,
+        updated_packages: &'a [(&Package, &Version)],
+    ) -> anyhow::Result<Vec<&'a Package>> {
+        let mut package_manifest = LocalManifest::try_new(self.manifest_path.as_std_path())?;
+        let package_dir = package_manifest
+            .path
+            .parent()
+            .context("at least a parent")?
+            .to_owned();
+
+        let mut deps_to_update: Vec<&Package> = vec![];
+        for (p, next_ver) in updated_packages {
+            let canonical_path = p.canonical_path()?;
+            let matching_deps = package_manifest
+                .get_dependency_tables_mut()
+                .flat_map(|t| t.iter_mut().filter_map(|(_, d)| d.as_table_like_mut()))
+                .filter(|d| d.contains_key("version"))
+                .filter(|d| {
+                    let dependency_path = d
+                        .get("path")
+                        .and_then(|i| i.as_str())
+                        .and_then(|relpath| fs::canonicalize(package_dir.join(relpath)).ok());
+                    match dependency_path {
+                        Some(dep_path) => dep_path == canonical_path,
+                        None => false,
+                    }
+                });
+
+            for dep in matching_deps {
+                let old_req = dep
+                    .get("version")
+                    .expect("filter ensures this")
+                    .as_str()
+                    .unwrap_or("*");
+                if upgrade_requirement(old_req, next_ver)?.is_some() {
+                    deps_to_update.push(p);
+                }
+            }
+        }
+
+        Ok(deps_to_update)
+    }
 }
