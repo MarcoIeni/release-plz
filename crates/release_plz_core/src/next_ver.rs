@@ -440,7 +440,7 @@ pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
     Ok(tmp_dir)
 }
 
-trait ContainsDependency {
+trait PackageDependencies {
     /// Returns the `updated_packages` which should be updated in the dependencies of the package.
     fn dependencies_to_update<'a>(
         &self,
@@ -448,7 +448,7 @@ trait ContainsDependency {
     ) -> anyhow::Result<Vec<&'a Package>>;
 }
 
-impl ContainsDependency for Package {
+impl PackageDependencies for Package {
     fn dependencies_to_update<'a>(
         &self,
         updated_packages: &'a [(&Package, &Version)],
