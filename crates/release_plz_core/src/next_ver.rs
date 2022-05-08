@@ -191,6 +191,21 @@ pub struct UpdateResult {
     pub changelog: Option<String>,
 }
 
+impl UpdateResult {
+    fn new(
+        commits: Vec<String>,
+        version: Version,
+        changelog_req: Option<ChangelogRequest>,
+        package: &Package,
+    ) -> anyhow::Result<UpdateResult> {
+        let changelog = changelog_req
+            .map(|r| get_changelog(commits, &version, r.release_date, package))
+            .transpose()?;
+
+        Ok(UpdateResult { version, changelog })
+    }
+}
+
 #[instrument(skip_all)]
 fn packages_to_update(
     project: Project,
@@ -209,14 +224,9 @@ fn packages_to_update(
         debug!("diff: {:?}, next_version: {}", &diff, next_version);
         if next_version != current_version || !diff.registry_package_exists {
             info!("{}: next version is {next_version}", p.name);
-            let changelog = changelog_req
-                .map(|r| get_changelog(diff.commits.clone(), &next_version, r.release_date, p))
-                .transpose()?;
+            let update_result =
+                UpdateResult::new(diff.commits.clone(), next_version, changelog_req, p)?;
 
-            let update_result = UpdateResult {
-                version: next_version,
-                changelog,
-            };
             packages_to_update.push((p.clone(), update_result));
         }
     }
@@ -225,7 +235,8 @@ fn packages_to_update(
         .iter()
         .map(|(p, u)| (p, &u.version))
         .collect();
-    let dependent_packages = dependent_packages(&project.packages, &changed_packages)?;
+    let dependent_packages =
+        dependent_packages(&project.packages, &changed_packages, changelog_req)?;
     packages_to_update.extend(dependent_packages);
     Ok(packages_to_update)
 }
@@ -234,29 +245,33 @@ fn packages_to_update(
 fn dependent_packages(
     all_packages: &[Package],
     target_packages: &[(&Package, &Version)],
+    changelog_req: Option<ChangelogRequest>,
 ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
     let different_packages = all_packages
         .iter()
         .filter(|p| !target_packages.iter().map(|(p, _v)| *p).any(|x| x == *p));
-    let packages_to_update: Vec<_> = different_packages
+    let packages_to_update = different_packages
         .filter_map(|p| match p.dependencies_to_update(target_packages) {
             Ok(deps) => Some((p, deps)),
             Err(_e) => None,
         })
         .map(|(p, deps)| {
             let deps: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
-            let changelog = format!("todo: {}", deps.join(","));
-            let mut next_ver = p.version.clone();
-            next_ver.increment_patch();
-            (
+            let change = format!(
+                "chore: updated the following local packages: {}",
+                deps.join(",")
+            );
+            let next_ver = {
+                let mut next_ver = p.version.clone();
+                next_ver.increment_patch();
+                next_ver
+            };
+            Ok((
                 p.clone(),
-                UpdateResult {
-                    version: next_ver,
-                    changelog: Some(changelog),
-                },
-            )
+                UpdateResult::new(vec![change], next_ver, changelog_req, p)?,
+            ))
         })
-        .collect();
+        .collect::<anyhow::Result<Vec<_>>>()?;
     Ok(packages_to_update)
 }
 
