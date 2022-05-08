@@ -277,7 +277,7 @@ fn dependent_packages(
                 next_ver
             };
             info!(
-                "{}: dependencies updated. Next version is {next_version}",
+                "{}: dependencies changed. Next version is {next_version}",
                 p.name
             );
             Ok((
