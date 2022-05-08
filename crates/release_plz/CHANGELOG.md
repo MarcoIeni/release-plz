@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.7] - 2022-05-08
 
 ### Other
-- updated the following local packages: release_plz_core
+- update package if one of its local dependencies is updated (#112)
 
 ## [0.2.6] - 2022-05-02
 
