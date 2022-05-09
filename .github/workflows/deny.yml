@@ -23,5 +23,4 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
-      - uses: Swatinem/rust-cache@v1
       - uses: EmbarkStudios/cargo-deny-action@v1
