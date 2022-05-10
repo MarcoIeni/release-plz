@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.8] - 2022-05-10
+
+### Added
+- add ability to update all the dependencies in the lockfile with the `-u` cli option (#123)
+
 ## [0.2.7] - 2022-05-08
 
 ### Other
