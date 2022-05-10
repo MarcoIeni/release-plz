@@ -43,8 +43,8 @@ pub struct Update {
     registry: Option<String>,
     /// Update all the dependencies in the Cargo.lock file by running `cargo update`.
     /// If this flag is not specified, only update the workspace packages by running `cargo update --workspace`.
-    #[clap(long)]
-    update_all_lockfile: bool,
+    #[clap(short, long)]
+    update_deps: bool,
 }
 
 impl Update {
@@ -78,8 +78,8 @@ impl Update {
         if let Some(registry) = &self.registry {
             update = update.with_registry(registry.clone());
         }
-        if self.update_all_lockfile {
-            update = update.with_all_lockfile_update();
+        if self.update_deps {
+            update = update.with_update_dependencies(true);
         }
         Ok(update)
     }

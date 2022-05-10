@@ -21,7 +21,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, UpdateResu
     update_changelogs(&packages_to_update)?;
     if !packages_to_update.is_empty() {
         let local_manifest_dir = input.local_manifest_dir()?;
-        update_cargo_lock(local_manifest_dir, input.should_update_all_lockfile())?;
+        update_cargo_lock(local_manifest_dir, input.should_update_dependencies())?;
     }
     Ok((packages_to_update, repository))
 }
@@ -51,9 +51,9 @@ fn update_changelogs(local_packages: &[(Package, UpdateResult)]) -> anyhow::Resu
 }
 
 #[instrument(skip_all)]
-fn update_cargo_lock(root: &Path, update_all_lockfile: bool) -> anyhow::Result<()> {
+fn update_cargo_lock(root: &Path, update_all_dependencies: bool) -> anyhow::Result<()> {
     let mut args = vec!["update"];
-    if !update_all_lockfile {
+    if !update_all_dependencies {
         args.push("--workspace")
     }
     crate::cargo::run_cargo(root, &args)

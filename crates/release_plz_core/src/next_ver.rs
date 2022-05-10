@@ -35,7 +35,7 @@ pub struct UpdateRequest {
     registry: Option<String>,
     /// - If true, update all the dependencies in Cargo.lock by running `cargo update`.
     /// - If false, updates the workspace packages in Cargo.lock by running `cargo update --workspace`.
-    update_all_lockfile: bool,
+    update_dependencies: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -60,7 +60,7 @@ impl UpdateRequest {
             single_package: None,
             changelog_req: None,
             registry: None,
-            update_all_lockfile: false,
+            update_dependencies: false,
         })
     }
 
@@ -114,15 +114,15 @@ impl UpdateRequest {
         self.registry_manifest.as_deref()
     }
 
-    pub fn with_all_lockfile_update(self) -> Self {
+    pub fn with_update_dependencies(self, update_dependencies: bool) -> Self {
         Self {
-            update_all_lockfile: true,
+            update_dependencies,
             ..self
         }
     }
 
-    pub fn should_update_all_lockfile(&self) -> bool {
-        self.update_all_lockfile
+    pub fn should_update_dependencies(&self) -> bool {
+        self.update_dependencies
     }
 }
 
