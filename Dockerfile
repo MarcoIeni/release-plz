@@ -31,6 +31,7 @@ RUN set -eux; \
         ca-certificates \
         wget \
         gcc \
+        pkg-config \
         libc6-dev \
         libssl1.1 \
         ssh-client \
