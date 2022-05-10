@@ -33,6 +33,9 @@ pub struct UpdateRequest {
     /// The registry name needs to be present in the Cargo config.
     /// If unspecified, crates.io is used.
     registry: Option<String>,
+    /// - If true, update all the dependencies in Cargo.lock by running `cargo update`.
+    /// - If false, updates the workspace packages in Cargo.lock by running `cargo update --workspace`.
+    update_dependencies: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -57,6 +60,7 @@ impl UpdateRequest {
             single_package: None,
             changelog_req: None,
             registry: None,
+            update_dependencies: false,
         })
     }
 
@@ -108,6 +112,17 @@ impl UpdateRequest {
 
     pub fn registry_manifest(&self) -> Option<&Path> {
         self.registry_manifest.as_deref()
+    }
+
+    pub fn with_update_dependencies(self, update_dependencies: bool) -> Self {
+        Self {
+            update_dependencies,
+            ..self
+        }
+    }
+
+    pub fn should_update_dependencies(&self) -> bool {
+        self.update_dependencies
     }
 }
 
