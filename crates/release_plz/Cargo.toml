@@ -23,3 +23,5 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-log = "0.1"
 url = "2"
+dirs = "4"
+git-cliff-core = "0.7"

@@ -51,13 +51,14 @@ impl Changelog<'_> {
 fn git_cliff_config() -> Config {
     Config {
         changelog: changelog_config(),
-        git: git_config(),
+        git: default_git_config(),
     }
 }
 
 pub struct ChangelogBuilder {
     commits: Vec<String>,
     version: String,
+    git_config: Option<GitConfig>,
     release_date: Option<Date<Utc>>,
 }
 
@@ -67,6 +68,7 @@ impl<'a> ChangelogBuilder {
             commits: commits.into_iter().map(|s| s.into()).collect(),
             version: version.into(),
             release_date: None,
+            git_config: None,
         }
     }
 
@@ -77,14 +79,22 @@ impl<'a> ChangelogBuilder {
         }
     }
 
+    pub fn with_git_config(self, git_config: GitConfig) -> Self {
+        Self {
+            git_config: Some(git_config),
+            ..self
+        }
+    }
+
     pub fn build(self) -> Changelog<'static> {
+        let git_config = self.git_config.clone().unwrap_or_else(default_git_config);
         let release_date = self.release_timestamp();
         let commits = self
             .commits
             .clone()
             .into_iter()
             .map(|c| Commit::new("id".to_string(), c))
-            .filter_map(|c| c.process(&git_config()).ok())
+            .filter_map(|c| c.process(&git_config).ok())
             .collect();
 
         Changelog {
@@ -105,7 +115,7 @@ impl<'a> ChangelogBuilder {
     }
 }
 
-fn git_config() -> GitConfig {
+fn default_git_config() -> GitConfig {
     GitConfig {
         conventional_commits: Some(true),
         filter_unconventional: Some(false),
