@@ -52,7 +52,8 @@ pub struct Update {
         long,
         env = "GIT_CLIFF_CONFIG",
         value_name = "PATH",
-        conflicts_with("no-changelog")
+        conflicts_with("no-changelog"),
+        forbid_empty_values(true)
     )]
     changelog_config: Option<PathBuf>,
 }
@@ -104,7 +105,17 @@ impl Update {
             .context("cannot get config dir")?
             .join("git-cliff")
             .join(git_cliff_core::DEFAULT_CONFIG);
-        let path = self.changelog_config.clone().unwrap_or(default_config_path);
+
+        let path = match self.changelog_config.clone() {
+            Some(provided_path) => {
+                if provided_path.exists() {
+                    provided_path
+                } else {
+                    anyhow::bail!("cannot read {:?}", provided_path)
+                }
+            }
+            None => default_config_path,
+        };
 
         // Parse the configuration file.
         let config = if path.exists() {
