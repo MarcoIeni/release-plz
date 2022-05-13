@@ -317,8 +317,8 @@ fn get_changelog(
         if let Some(release_date) = changelog_req.release_date {
             changelog_builder = changelog_builder.with_release_date(release_date)
         }
-        if let Some(changelog_config) = changelog_req.changelog_config {
-            changelog_builder = changelog_builder.with_git_config(changelog_config.git)
+        if let Some(config) = changelog_req.changelog_config {
+            changelog_builder = changelog_builder.with_config(config)
         }
     }
     let new_changelog = changelog_builder.build();
