@@ -11,6 +11,7 @@ use cargo_edit::{upgrade_requirement, LocalManifest, VersionExt};
 use cargo_metadata::{Package, Version};
 use chrono::{Date, Utc};
 use fs_extra::dir;
+use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
 use std::{
     fs, io,
@@ -38,10 +39,11 @@ pub struct UpdateRequest {
     update_dependencies: bool,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct ChangelogRequest {
     /// When the new release is published. If unspecified, current date is used.
     pub release_date: Option<Date<Utc>>,
+    pub changelog_config: Option<GitCliffConfig>,
 }
 
 fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
@@ -143,7 +145,7 @@ pub fn next_versions(
         local_project,
         &registry_packages,
         &repository.repo,
-        input.changelog_req,
+        input.changelog_req.clone(),
     )?;
     Ok((packages_to_update, repository))
 }
@@ -214,7 +216,7 @@ impl UpdateResult {
         package: &Package,
     ) -> anyhow::Result<UpdateResult> {
         let changelog = changelog_req
-            .map(|r| get_changelog(commits, &version, r.release_date, package))
+            .map(|r| get_changelog(commits, &version, Some(r), package))
             .transpose()?;
 
         Ok(UpdateResult { version, changelog })
@@ -241,7 +243,7 @@ fn packages_to_update(
         if next_version != current_version || !diff.registry_package_exists {
             info!("{}: next version is {next_version}", p.name);
             let update_result =
-                UpdateResult::new(diff.commits.clone(), next_version, changelog_req, p)?;
+                UpdateResult::new(diff.commits.clone(), next_version, changelog_req.clone(), p)?;
 
             packages_to_update.push((p.clone(), update_result));
         } else if diff.is_version_published {
@@ -297,7 +299,7 @@ fn dependent_packages(
             );
             Ok((
                 p.clone(),
-                UpdateResult::new(vec![change], next_version, changelog_req, p)?,
+                UpdateResult::new(vec![change], next_version, changelog_req.clone(), p)?,
             ))
         })
         .collect::<anyhow::Result<Vec<_>>>()?;
@@ -307,12 +309,17 @@ fn dependent_packages(
 fn get_changelog(
     commits: Vec<String>,
     next_version: &Version,
-    release_date: Option<Date<Utc>>,
+    changelog_req: Option<ChangelogRequest>,
     package: &Package,
 ) -> anyhow::Result<String> {
     let mut changelog_builder = ChangelogBuilder::new(commits, next_version.to_string());
-    if let Some(release_date) = release_date {
-        changelog_builder = changelog_builder.with_release_date(release_date)
+    if let Some(changelog_req) = changelog_req {
+        if let Some(release_date) = changelog_req.release_date {
+            changelog_builder = changelog_builder.with_release_date(release_date)
+        }
+        if let Some(config) = changelog_req.changelog_config {
+            changelog_builder = changelog_builder.with_config(config)
+        }
     }
     let new_changelog = changelog_builder.build();
     let changelog = match fs::read_to_string(package.changelog_path()?) {

@@ -58,6 +58,13 @@ subtle manual mistakes you can make when releasing from your terminal.
 
 You can release all the unpublished packages by running `release-plz release`.
 
+## Changelog format
+
+Release-plz generates the changelog by using [git-cliff](https://github.com/orhun/git-cliff).
+By default, release-plz uses the [keep a changelog](https://keepachangelog.com/en/1.1.0/) format.
+You can customize the changelog format, by providing a git-cliff configuration
+file with the `--changelog-config` argument.
+
 ## Similar projects
 
 - [release-please](https://github.com/googleapis/release-please): release-plz is inspired by release-please,
@@ -93,3 +100,4 @@ Parts of the codebase are inspired by:
 - [cargo-workspaces](https://github.com/pksunkara/cargo-workspaces)
 - [cargo-release](https://github.com/crate-ci/cargo-release)
 - [cargo-edit](https://github.com/killercup/cargo-edit)
+- [git-cliff](https://github.com/orhun/git-cliff)

@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 use chrono::{Date, NaiveDate, Utc};
+use git_cliff_core::config::Config as GitCliffConfig;
 use release_plz_core::{ChangelogRequest, UpdateRequest, CARGO_TOML};
 
 use super::local_manifest;
@@ -45,6 +46,16 @@ pub struct Update {
     /// If this flag is not specified, only update the workspace packages by running `cargo update --workspace`.
     #[clap(short, long)]
     update_deps: bool,
+    /// Path to the git cliff configuration file.
+    /// If not provided, `dirs::config_dir()/git-cliff/cliff.toml` is used if present.
+    #[clap(
+        long,
+        env = "GIT_CLIFF_CONFIG",
+        value_name = "PATH",
+        conflicts_with("no-changelog"),
+        forbid_empty_values(true)
+    )]
+    changelog_config: Option<PathBuf>,
 }
 
 impl Update {
@@ -70,7 +81,11 @@ impl Update {
                 })
                 .transpose()?
                 .map(|date| Date::<Utc>::from_utc(date, Utc));
-            update = update.with_changelog(ChangelogRequest { release_date });
+            let changelog_req = ChangelogRequest {
+                release_date,
+                changelog_config: self.changelog_config()?,
+            };
+            update = update.with_changelog(changelog_req);
         }
         if let Some(package) = &self.package {
             update = update.with_single_package(package.clone());
@@ -81,6 +96,34 @@ impl Update {
         if self.update_deps {
             update = update.with_update_dependencies(true);
         }
+
         Ok(update)
+    }
+
+    fn changelog_config(&self) -> anyhow::Result<Option<GitCliffConfig>> {
+        let default_config_path = dirs::config_dir()
+            .context("cannot get config dir")?
+            .join("git-cliff")
+            .join(git_cliff_core::DEFAULT_CONFIG);
+
+        let path = match self.changelog_config.clone() {
+            Some(provided_path) => {
+                if provided_path.exists() {
+                    provided_path
+                } else {
+                    anyhow::bail!("cannot read {:?}", provided_path)
+                }
+            }
+            None => default_config_path,
+        };
+
+        // Parse the configuration file.
+        let config = if path.exists() {
+            Some(GitCliffConfig::parse(&path).context("failed to parse git cliff config file")?)
+        } else {
+            None
+        };
+
+        Ok(config)
     }
 }

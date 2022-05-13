@@ -20,12 +20,13 @@ pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";
 
 pub struct Changelog<'a> {
     release: Release<'a>,
+    config: Option<Config>,
 }
 
 impl Changelog<'_> {
     /// Generate the full changelog.
     pub fn generate(self) -> String {
-        let config = git_cliff_config();
+        let config = self.config.unwrap_or_else(default_git_cliff_config);
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .expect("error while building changelog");
         let mut out = Vec::new();
@@ -37,7 +38,7 @@ impl Changelog<'_> {
 
     /// Update an existing changelog.
     pub fn prepend(self, old_changelog: impl Into<String>) -> String {
-        let config = git_cliff_config();
+        let config = self.config.unwrap_or_else(default_git_cliff_config);
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .expect("error while building changelog");
         let mut out = Vec::new();
@@ -48,16 +49,17 @@ impl Changelog<'_> {
     }
 }
 
-fn git_cliff_config() -> Config {
+fn default_git_cliff_config() -> Config {
     Config {
-        changelog: changelog_config(),
-        git: git_config(),
+        changelog: default_changelog_config(),
+        git: default_git_config(),
     }
 }
 
 pub struct ChangelogBuilder {
     commits: Vec<String>,
     version: String,
+    config: Option<Config>,
     release_date: Option<Date<Utc>>,
 }
 
@@ -67,6 +69,7 @@ impl<'a> ChangelogBuilder {
             commits: commits.into_iter().map(|s| s.into()).collect(),
             version: version.into(),
             release_date: None,
+            config: None,
         }
     }
 
@@ -77,14 +80,26 @@ impl<'a> ChangelogBuilder {
         }
     }
 
+    pub fn with_config(self, config: Config) -> Self {
+        Self {
+            config: Some(config),
+            ..self
+        }
+    }
+
     pub fn build(self) -> Changelog<'static> {
+        let git_config = self
+            .config
+            .clone()
+            .map(|c| c.git)
+            .unwrap_or_else(default_git_config);
         let release_date = self.release_timestamp();
         let commits = self
             .commits
             .clone()
             .into_iter()
             .map(|c| Commit::new("id".to_string(), c))
-            .filter_map(|c| c.process(&git_config()).ok())
+            .filter_map(|c| c.process(&git_config).ok())
             .collect();
 
         Changelog {
@@ -95,6 +110,7 @@ impl<'a> ChangelogBuilder {
                 timestamp: release_date,
                 previous: None,
             },
+            config: self.config,
         }
     }
 
@@ -105,7 +121,7 @@ impl<'a> ChangelogBuilder {
     }
 }
 
-fn git_config() -> GitConfig {
+fn default_git_config() -> GitConfig {
     GitConfig {
         conventional_commits: Some(true),
         filter_unconventional: Some(false),
@@ -187,7 +203,7 @@ fn commit_parsers() -> Vec<CommitParser> {
     ]
 }
 
-fn changelog_config() -> ChangelogConfig {
+fn default_changelog_config() -> ChangelogConfig {
     ChangelogConfig {
         header: Some(String::from(CHANGELOG_HEADER)),
         body: Some(String::from(

@@ -48,6 +48,7 @@ impl ComparisonTest {
             .unwrap()
             .with_changelog(ChangelogRequest {
                 release_date: Some(Utc.ymd(2015, 5, 15)),
+                changelog_config: None,
             })
             .with_registry_project_manifest(self.registry_project_manfifest())
             .unwrap()
