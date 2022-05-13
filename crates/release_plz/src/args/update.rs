@@ -49,7 +49,6 @@ pub struct Update {
     /// Path to the git cliff configuration file.
     /// If not provided, `dirs::config_dir()/git-cliff/cliff.toml` is used if present.
     #[clap(
-        short,
         long,
         env = "GIT_CLIFF_CONFIG",
         value_name = "PATH",
