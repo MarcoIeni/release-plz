@@ -51,7 +51,7 @@ impl Changelog<'_> {
 
 fn default_git_cliff_config() -> Config {
     Config {
-        changelog: changelog_config(),
+        changelog: default_changelog_config(),
         git: default_git_config(),
     }
 }
@@ -203,7 +203,7 @@ fn commit_parsers() -> Vec<CommitParser> {
     ]
 }
 
-fn changelog_config() -> ChangelogConfig {
+fn default_changelog_config() -> ChangelogConfig {
     ChangelogConfig {
         header: Some(String::from(CHANGELOG_HEADER)),
         body: Some(String::from(
