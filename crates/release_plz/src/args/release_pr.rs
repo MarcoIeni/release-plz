@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Context};
+use git_cmd::Repo;
 use git_url_parse::GitUrl;
 use release_plz_core::GitHub;
 use secrecy::SecretString;
@@ -22,7 +23,13 @@ impl ReleasePr {
     pub fn github(&self) -> anyhow::Result<GitHub> {
         let (owner, repo) = match &self.repo_url {
             Some(url) => owner_and_repo(url),
-            None => todo!(),
+            None => {
+                let project_manifest = self.update.project_manifest();
+                let project_dir = project_manifest.parent().context("at least a parent")?;
+                let repo = Repo::new(project_dir)?;
+                let url = repo.origin_url().context("cannot determine origin url")?;
+                owner_and_repo(&url)
+            }
         }?;
         Ok(GitHub::new(owner, repo, self.github_token.clone()))
     }

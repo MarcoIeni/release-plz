@@ -59,11 +59,14 @@ pub struct Update {
 }
 
 impl Update {
+    pub fn project_manifest(&self) -> PathBuf {
+        super::local_manifest(self.project_manifest.as_deref())
+    }
+
     pub fn update_request(&self) -> anyhow::Result<UpdateRequest> {
-        let mut update = UpdateRequest::new(local_manifest(self.project_manifest.as_deref()))
-            .with_context(|| {
-                format!("cannot find {CARGO_TOML} file. Make sure you are inside a rust project")
-            })?;
+        let mut update = UpdateRequest::new(self.project_manifest()).with_context(|| {
+            format!("cannot find {CARGO_TOML} file. Make sure you are inside a rust project")
+        })?;
         if let Some(registry_project_manifest) = &self.registry_project_manifest {
             update = update
                 .with_registry_project_manifest(registry_project_manifest.clone())

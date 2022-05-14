@@ -2424,6 +2424,7 @@ dependencies = [
  "dirs",
  "git-cliff-core",
  "git-url-parse",
+ "git_cmd",
  "release_plz_core",
  "secrecy",
  "tokio",
