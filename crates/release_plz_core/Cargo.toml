@@ -1,6 +1,6 @@
 [package]
 name = "release_plz_core"
-version = "0.2.10"
+version = "0.2.11"
 edition = "2021"
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/release_plz_core"
@@ -12,7 +12,7 @@ categories = ["development-tools"]
 
 [dependencies]
 next_version = { path = "../next_version", version = "0.1" }
-git_cmd = { path = "../git_cmd", version = "0.1.1" }
+git_cmd = { path = "../git_cmd", version = "0.1.4" }
 
 anyhow = "1"
 cargo = "0.61"
