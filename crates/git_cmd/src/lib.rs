@@ -172,6 +172,10 @@ impl Repo {
     pub fn tag(&self, name: &str) -> anyhow::Result<String> {
         self.git(&["tag", name])
     }
+
+    pub fn origin_url(&self) -> anyhow::Result<String> {
+        self.git(&["config", "--get", "remote.origin.url"])
+    }
 }
 
 #[instrument]
