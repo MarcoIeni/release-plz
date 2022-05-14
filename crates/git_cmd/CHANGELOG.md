@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.4] - 2022-05-14
 
 ### Added
-- infer repo url (#128)
+- get origin url (#128)
 
 ## [0.1.3] - 2022-05-01
 
