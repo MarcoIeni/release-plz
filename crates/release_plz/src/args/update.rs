@@ -5,8 +5,6 @@ use chrono::{Date, NaiveDate, Utc};
 use git_cliff_core::config::Config as GitCliffConfig;
 use release_plz_core::{ChangelogRequest, UpdateRequest, CARGO_TOML};
 
-use super::local_manifest;
-
 #[derive(clap::Parser, Debug)]
 pub struct Update {
     /// Path to the Cargo.toml of the project you want to update.
