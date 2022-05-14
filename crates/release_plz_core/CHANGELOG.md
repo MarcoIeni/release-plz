@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.11] - 2022-05-14
+
+### Other
+- updated the following local packages: git_cmd
+
 ## [0.2.10] - 2022-05-13
 
 ### Added
