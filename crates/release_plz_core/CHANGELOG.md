@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.10] - 2022-05-13
+
+### Added
+- read custom git cliff config (#126)
+
 ## [0.2.9] - 2022-05-10
 
 ### Added
