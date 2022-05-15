@@ -32,6 +32,7 @@ RUN set -eux; \
         wget \
         gcc \
         pkg-config \
+        libssl-dev \
         libc6-dev \
         libssl1.1 \
         ssh-client \
