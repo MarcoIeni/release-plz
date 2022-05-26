@@ -14,6 +14,7 @@ pub struct GitHubClient<'a> {
 pub struct Pr {
     pub branch: String,
     pub title: String,
+    pub body: String,
 }
 
 impl<'a> GitHubClient<'a> {
@@ -100,7 +101,7 @@ impl<'a> GitHubClient<'a> {
             .client
             .pulls(&self.github.owner, &self.github.repo)
             .create(&pr.title, &pr.branch, default_branch)
-            .body("release-plz automatic bot")
+            .body(&pr.body)
             .send()
             .await
             .context("Failed to open PR")?;
