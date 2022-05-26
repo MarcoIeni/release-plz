@@ -59,6 +59,7 @@ impl From<&[(Package, UpdateResult)]> for Pr {
         Self {
             branch: release_branch(),
             title: pr_title(packages_to_update),
+            body: pr_body(packages_to_update),
         }
     }
 }
@@ -79,6 +80,17 @@ fn pr_title(packages_to_update: &[(Package, UpdateResult)]) -> String {
     } else {
         "chore: release".to_string()
     }
+}
+
+fn pr_body(packages_to_update: &[(Package, UpdateResult)]) -> String {
+    let header = "## 🤖 New release";
+    let updates: String = packages_to_update
+        .iter()
+        .map(|(package, update)| format!("\n* {} -> {}", package.name, update.version))
+        .collect();
+    let footer =
+        "This PR was generated with [release-plz](https://github.com/MarcoIeni/release-plz/).";
+    format!("{header}{updates}{footer}")
 }
 
 fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {
