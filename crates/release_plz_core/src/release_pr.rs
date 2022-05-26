@@ -89,8 +89,8 @@ fn pr_body(packages_to_update: &[(Package, UpdateResult)]) -> String {
         .map(|(package, update)| format!("\n* {} -> {}", package.name, update.version))
         .collect();
     let footer =
-        "This PR was generated with [release-plz](https://github.com/MarcoIeni/release-plz/).";
-    format!("{header}{updates}{footer}")
+        "---\nThis PR was generated with [release-plz](https://github.com/MarcoIeni/release-plz/).";
+    format!("{header}{updates}\n{footer}")
 }
 
 fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {
