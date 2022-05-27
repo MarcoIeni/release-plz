@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.14] - 2022-05-27
+
+### Other
+- *(deps)* bump expect-test from 1.2.2 to 1.3.0 (#141) ([#141](https://github.com/141) [#141](https://github.com/141) )
+
 ## [0.2.13] - 2022-05-26
 
 ### Added
