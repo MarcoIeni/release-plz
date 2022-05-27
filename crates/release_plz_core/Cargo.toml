@@ -35,7 +35,7 @@ toml_edit = "0.14.4"
 [dev-dependencies]
 test_logs = { path = "../test_logs" }
 
-expect-test = "1.2.2"
+expect-test = "1.3.0"
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }
 tokio = { version = "1.18.2", features = ["macros"] }
 wiremock = "0.5.13"
