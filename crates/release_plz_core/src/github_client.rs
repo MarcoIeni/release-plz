@@ -81,7 +81,8 @@ impl<'a> GitHubClient<'a> {
     #[instrument(
         fields(
             default_branch = tracing::field::Empty,
-        )
+        ),
+        skip(pr)
     )]
     pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<()> {
         let default_branch = self
