@@ -2,7 +2,7 @@ use chrono::{Date, TimeZone, Utc};
 use git_cliff::changelog::Changelog as GitCliffChangelog;
 use git_cliff_core::{
     commit::Commit,
-    config::{ChangelogConfig, CommitParser, Config, GitConfig, LinkParser},
+    config::{ChangelogConfig, CommitParser, Config, GitConfig},
     regex::Regex,
     release::Release,
 };
@@ -133,18 +133,7 @@ fn default_git_config() -> GitConfig {
         date_order: None,
         sort_commits: None,
         commit_preprocessors: None,
-        link_parsers: Some(vec![
-            LinkParser {
-                pattern: Regex::new("#(\\d+)").unwrap(),
-                href: String::from("https://github.com/$1"),
-                text: None,
-            },
-            LinkParser {
-                pattern: Regex::new("https://github.com/(.*)").unwrap(),
-                href: String::from("https://github.com/$1"),
-                text: Some(String::from("$1")),
-            },
-        ]),
+        link_parsers: None,
     }
 }
 
