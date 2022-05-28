@@ -5,8 +5,6 @@
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
 [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/marcoieni/release-plz)
 
-
-
 Release-plz updates the versions and changelogs of your rust packages, by analyzing your git history,
 based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/):
 - `release-plz update` updates your project locally, without committing any change.
