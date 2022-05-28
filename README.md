@@ -1,6 +1,5 @@
 ![release-plz-logo](https://user-images.githubusercontent.com/11428655/170828599-4ec63822-15dd-4552-b3bc-d32bd6d680f2.jpeg)
 
-
 [![Crates.io](https://img.shields.io/crates/v/release-plz.svg)](https://crates.io/crates/release-plz)
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
 [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/marcoieni/release-plz)
