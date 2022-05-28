@@ -2,7 +2,7 @@ use chrono::{Date, TimeZone, Utc};
 use git_cliff::changelog::Changelog as GitCliffChangelog;
 use git_cliff_core::{
     commit::Commit,
-    config::{ChangelogConfig, CommitParser, Config, GitConfig, LinkParser},
+    config::{ChangelogConfig, CommitParser, Config, GitConfig},
     regex::Regex,
     release::Release,
 };
