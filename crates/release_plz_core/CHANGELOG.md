@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.14] - 2022-05-28
+
+### Fixed
+- remove link parsers (#155)
+
+### Other
+- *(deps)* bump crates-index from 0.18.7 to 0.18.8 (#144)
+- *(deps)* bump expect-test from 1.2.2 to 1.3.0 (#141)
+
 ## [0.2.13] - 2022-05-26
 
 ### Added
