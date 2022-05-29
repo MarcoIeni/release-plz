@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.15] - 2022-05-28
 
 ### Other
-- updated the following local packages: release_plz_core
+- skip pr field in instrument (#165)
 
 ## [0.2.14] - 2022-05-28
 
