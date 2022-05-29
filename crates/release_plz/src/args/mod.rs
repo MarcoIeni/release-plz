@@ -13,6 +13,10 @@ use self::{release::Release, release_pr::ReleasePr, update::Update};
 pub struct CliArgs {
     #[clap(subcommand)]
     pub command: Command,
+    /// Print source location and additional information in logs.
+    /// To change the log level, use the `RUST_FLAG` environment variable.
+    #[clap(short, long)]
+    pub verbose: bool,
 }
 
 #[derive(clap::Subcommand, Debug)]
