@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.15] - 2022-05-28
 
 ### Other
-- skip pr field in instrument (#165)
+- skip pr field in logs (#165)
 
 ## [0.2.14] - 2022-05-28
 
