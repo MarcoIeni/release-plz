@@ -54,6 +54,10 @@ pub struct Update {
         forbid_empty_values(true)
     )]
     changelog_config: Option<PathBuf>,
+    /// Allow dirty working directories to be updated.
+    /// The uncommitted changes will be part of the update.
+    #[clap(long)]
+    allow_dirty: bool,
 }
 
 impl Update {
@@ -62,9 +66,12 @@ impl Update {
     }
 
     pub fn update_request(&self) -> anyhow::Result<UpdateRequest> {
-        let mut update = UpdateRequest::new(self.project_manifest()).with_context(|| {
-            format!("cannot find {CARGO_TOML} file. Make sure you are inside a rust project")
-        })?;
+        let mut update = UpdateRequest::new(self.project_manifest())
+            .with_context(|| {
+                format!("cannot find {CARGO_TOML} file. Make sure you are inside a rust project")
+            })?
+            .with_update_dependencies(self.update_deps)
+            .with_allow_dirty(self.allow_dirty);
         if let Some(registry_project_manifest) = &self.registry_project_manifest {
             update = update
                 .with_registry_project_manifest(registry_project_manifest.clone())
@@ -93,9 +100,6 @@ impl Update {
         }
         if let Some(registry) = &self.registry {
             update = update.with_registry(registry.clone());
-        }
-        if self.update_deps {
-            update = update.with_update_dependencies(true);
         }
 
         Ok(update)
