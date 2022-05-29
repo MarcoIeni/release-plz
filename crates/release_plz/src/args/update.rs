@@ -54,6 +54,10 @@ pub struct Update {
         forbid_empty_values(true)
     )]
     changelog_config: Option<PathBuf>,
+    /// Allow dirty working directories to be updated.
+    /// The uncommitted changes will be part of the update.
+    #[clap(long)]
+    allow_dirty: bool,
 }
 
 impl Update {
@@ -70,7 +74,9 @@ impl Update {
                 .with_registry_project_manifest(registry_project_manifest.clone())
                 .with_context(|| {
                     format!("cannot find project manifest {registry_project_manifest:?}")
-                })?;
+                })?
+                .with_update_dependencies(self.update_deps)
+                .with_allow_dirty(self.allow_dirty);
         }
         if !self.no_changelog {
             let release_date = self
@@ -93,9 +99,6 @@ impl Update {
         }
         if let Some(registry) = &self.registry {
             update = update.with_registry(registry.clone());
-        }
-        if self.update_deps {
-            update = update.with_update_dependencies(true);
         }
 
         Ok(update)

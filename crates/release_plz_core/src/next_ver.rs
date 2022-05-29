@@ -37,6 +37,9 @@ pub struct UpdateRequest {
     /// - If true, update all the dependencies in Cargo.lock by running `cargo update`.
     /// - If false, updates the workspace packages in Cargo.lock by running `cargo update --workspace`.
     update_dependencies: bool,
+    /// Allow dirty working directories to be updated.
+    /// The uncommitted changes will be part of the update.
+    allow_dirty: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -63,6 +66,7 @@ impl UpdateRequest {
             changelog_req: None,
             registry: None,
             update_dependencies: false,
+            allow_dirty: false,
         })
     }
 
@@ -126,6 +130,13 @@ impl UpdateRequest {
     pub fn should_update_dependencies(&self) -> bool {
         self.update_dependencies
     }
+
+    pub fn with_allow_dirty(self, allow_dirty: bool) -> Self {
+        Self {
+            allow_dirty,
+            ..self
+        }
+    }
 }
 
 /// Determine next version of packages
@@ -141,6 +152,9 @@ pub fn next_versions(
     )?;
 
     let repository = local_project.get_repo()?;
+    if !input.allow_dirty {
+        repository.repo.is_clean()?;
+    }
     let packages_to_update = packages_to_update(
         local_project,
         &registry_packages,
@@ -230,7 +244,6 @@ fn packages_to_update(
     repository: &Repo,
     changelog_req: Option<ChangelogRequest>,
 ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
-    repository.is_clean()?;
     debug!("calculating local packages");
     let mut packages_to_check_for_deps: Vec<&Package> = vec![];
     let mut packages_to_update: Vec<(Package, UpdateResult)> = vec![];
