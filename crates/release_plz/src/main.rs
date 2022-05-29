@@ -9,8 +9,8 @@ use crate::args::CliArgs;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    log::init();
     let args = CliArgs::parse();
+    log::init(args.verbose);
 
     match args.command {
         args::Command::Update(cmd_args) => {
