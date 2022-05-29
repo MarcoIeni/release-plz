@@ -16,7 +16,6 @@ fn _init() {
 
         let subscriber = FmtSubscriber::builder()
             .with_env_filter(env_filter)
-            .with_line_number(true)
             .pretty()
             .finish();
 
