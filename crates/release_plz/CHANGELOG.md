@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.15] - 2022-05-28
+
+### Other
+- skip pr field in logs (#165)
+
 ## [0.2.14] - 2022-05-28
 
 ### Other
