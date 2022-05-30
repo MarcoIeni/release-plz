@@ -1255,15 +1255,15 @@ dependencies = [
 
 [[package]]
 name = "git-url-parse"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e4761f444c4845b504dfa46f88b5c29a57b4ea4c021036550ef9977951cd2ed"
+checksum = "93ae5dda97b9d08f11f4c0f0060237a42472d1e1f0d509393cbcf7d71215ac1d"
 dependencies = [
  "color-eyre",
- "log",
  "regex",
  "strum",
  "strum_macros",
+ "tracing",
  "url",
 ]
 
