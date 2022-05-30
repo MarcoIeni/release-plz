@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.18] - 2022-05-30
+
+### Other
+- *(deps)* bump git-url-parse from 0.4.1 to 0.4.2 (#172)
+
 ## [0.2.17] - 2022-05-29
 
 ### Added
