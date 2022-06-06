@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.17] - 2022-06-06
+
+### Other
+- *(deps)* bump tokio from 1.18.2 to 1.19.1 (#175)
+
 ## [0.2.16] - 2022-05-29
 
 ### Added
