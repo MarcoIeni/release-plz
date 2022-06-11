@@ -1,12 +1,15 @@
 mod release;
 mod release_pr;
+mod generate_completions;
 mod update;
 
 use std::path::{Path, PathBuf};
 
 use release_plz_core::CARGO_TOML;
 
-use self::{release::Release, release_pr::ReleasePr, update::Update};
+use self::{
+    release::Release, release_pr::ReleasePr, generate_completions::GenerateCompletions, update::Update,
+};
 
 #[derive(clap::Parser, Debug)]
 #[clap(about, version, author)]
@@ -32,6 +35,8 @@ pub enum Command {
     /// - publish the package to the cargo registry.
     /// You can run this command in the CI on every commit in the main branch.
     Release(Release),
+    /// Generate command autocompletions for various shells.
+    GenerateCompletions(GenerateCompletions),
 }
 
 fn local_manifest(project_manifest: Option<&Path>) -> PathBuf {
