@@ -19,7 +19,7 @@ anyhow = "1.0.57"
 clap = { version = "3.2.1", features = ["derive", "env"] }
 chrono = { version = "0.4.19", features = ["clock"], default-features = false }
 secrecy = "0.8.0"
-tokio = { version = "1.19.1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.19.2", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1.34"
 tracing-subscriber = { version = "0.3.11", features = ["env-filter"] }
 tracing-log = "0.1.3"
