@@ -9,13 +9,12 @@ pub struct GenerateCompletions {
 }
 
 impl GenerateCompletions {
-    pub fn print(&self) -> anyhow::Result<()> {
+    pub fn print(&self) {
         clap_complete::generate(
             self.shell,
             &mut super::CliArgs::command(),
             "release-plz",
             &mut std::io::stdout(),
         );
-        Ok(())
     }
 }

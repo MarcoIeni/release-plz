@@ -64,7 +64,7 @@ You can release all the unpublished packages by running `release-plz release`.
 To load completions in your current shell session:
 ```sh
 $ autoload bashcompinit; bashcompinit
-$ source <(./release-plz generate-completions)
+$ source <(release-plz generate-completions)
 ```
 
 To load completions for every new session, execute once:
