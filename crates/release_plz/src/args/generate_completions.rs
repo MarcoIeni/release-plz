@@ -5,7 +5,7 @@ use clap_complete::Shell;
 pub struct GenerateCompletions {
     /// Shell option
     #[clap(default_value = "bash")]
-    shell: Shell
+    shell: Shell,
 }
 
 impl GenerateCompletions {

@@ -1,6 +1,6 @@
+mod generate_completions;
 mod release;
 mod release_pr;
-mod generate_completions;
 mod update;
 
 use std::path::{Path, PathBuf};
@@ -8,7 +8,8 @@ use std::path::{Path, PathBuf};
 use release_plz_core::CARGO_TOML;
 
 use self::{
-    release::Release, release_pr::ReleasePr, generate_completions::GenerateCompletions, update::Update,
+    generate_completions::GenerateCompletions, release::Release, release_pr::ReleasePr,
+    update::Update,
 };
 
 #[derive(clap::Parser, Debug)]
