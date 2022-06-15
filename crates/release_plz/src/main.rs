@@ -29,6 +29,7 @@ async fn main() -> anyhow::Result<()> {
             let request: ReleaseRequest = cmd_args.into();
             release_plz_core::release(&request).await?;
         }
+        args::Command::GenerateCompletions(cmd_args) => cmd_args.print(),
     }
 
     Ok(())
