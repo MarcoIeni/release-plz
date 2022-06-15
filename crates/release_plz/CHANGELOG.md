@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- add `generate-completions` command to generate shell completions file.
+
 ## [0.2.17] - 2022-05-29
 
 ### Added
