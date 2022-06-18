@@ -8,16 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.18] - 2022-06-18
 
+### Added
+- add `generate-completions` command to generate shell completions file. (#177)
+
 ### Other
-- update clap and fake libraries (#186)
-- Add shell completion (#177)
+- *(deps)* bump clap and fake libraries (#186)
 - *(deps)* bump tracing from 0.1.34 to 0.1.35 (#179)
 - *(deps)* bump tokio from 1.19.1 to 1.19.2 (#178)
 - *(deps)* bump tokio from 1.18.2 to 1.19.1 (#175)
 - *(deps)* bump git-url-parse from 0.4.1 to 0.4.2 (#172)
-
-### Added
-- add `generate-completions` command to generate shell completions file.
 
 ## [0.2.17] - 2022-05-29
 
