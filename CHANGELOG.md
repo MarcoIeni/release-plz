@@ -1,0 +1,1 @@
+./crates/release_plz/CHANGELOG.md
