@@ -303,7 +303,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34965aea9b211a43ace81105894e2e2d15103be244884b31f26065e7538fe30b"
 dependencies = [
  "anyhow",
- "cargo_metadata",
+ "cargo_metadata 0.14.2",
  "clap 3.2.6",
  "concolor-control",
  "crates-index",
@@ -363,6 +363,19 @@ name = "cargo_metadata"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4acbb09d9ee8e23699b9634375c72795d095bf268439da88562cf9b501f181fa"
+dependencies = [
+ "camino",
+ "cargo-platform",
+ "semver",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "cargo_metadata"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3abb7553d5b9b8421c6de7cb02606ff15e0c6eea7d8eadd75ef013fd636bec36"
 dependencies = [
  "camino",
  "cargo-platform",
@@ -2423,7 +2436,7 @@ dependencies = [
  "cargo",
  "cargo-clone",
  "cargo-edit",
- "cargo_metadata",
+ "cargo_metadata 0.15.0",
  "chrono",
  "claim",
  "crates-index",
