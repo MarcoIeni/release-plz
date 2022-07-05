@@ -63,7 +63,7 @@ pub struct ChangelogBuilder {
     release_date: Option<Date<Utc>>,
 }
 
-impl<'a> ChangelogBuilder {
+impl ChangelogBuilder {
     pub fn new(commits: Vec<impl Into<String>>, version: impl Into<String>) -> Self {
         Self {
             commits: commits.into_iter().map(|s| s.into()).collect(),
