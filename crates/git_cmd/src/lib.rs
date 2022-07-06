@@ -53,8 +53,12 @@ impl Repo {
     /// Check if there are uncommitted changes.
     pub fn is_clean(&self) -> anyhow::Result<()> {
         let output = self.git(&["status", "--porcelain"])?;
-        let output = output.trim();
-        anyhow::ensure!(output.is_empty(), "the working directory of this project has uncommitted changes. Please commit or stash these changes:\n{output}");
+        let mut entries = output
+            .lines()
+            .map(|l| l.trim())
+            // filter symlinks
+            .filter(|l| !l.starts_with("T "));
+        anyhow::ensure!(entries.next().is_none(), "the working directory of this project has uncommitted changes. Please commit or stash these changes:\n{output}");
         Ok(())
     }
 
