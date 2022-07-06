@@ -57,7 +57,7 @@ impl Repo {
             .lines()
             .map(|l| l.trim())
             // filter symlinks
-            .filter(|l| l.starts_with("T "));
+            .filter(|l| !l.starts_with("T "));
         anyhow::ensure!(entries.next().is_none(), "the working directory of this project has uncommitted changes. Please commit or stash these changes:\n{output}");
         Ok(())
     }
