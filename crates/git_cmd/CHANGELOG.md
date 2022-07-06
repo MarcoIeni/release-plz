@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2022-07-06
+
+### Fixed
+- filter symlink when checking if repo is clean (#207)
+
 ## [0.1.6] - 2022-06-18
 
 ### Other
