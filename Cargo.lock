@@ -235,7 +235,7 @@ dependencies = [
  "bytesize",
  "cargo-platform",
  "cargo-util",
- "clap 3.2.8",
+ "clap 3.2.12",
  "crates-io",
  "crossbeam-utils",
  "curl",
@@ -304,7 +304,7 @@ checksum = "0136de79ac8989cf7dd86999117d7853f86299f85cbe7317b44be7a32852eb68"
 dependencies = [
  "anyhow",
  "cargo_metadata",
- "clap 3.2.8",
+ "clap 3.2.12",
  "concolor-control",
  "crates-index",
  "dirs-next",
@@ -454,9 +454,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "3.2.8"
+version = "3.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "190814073e85d238f31ff738fcb0bf6910cedeb73376c87cd69291028966fd83"
+checksum = "ab8b79fe3946ceb4a0b1c080b4018992b8d27e9ff363644c1c9b6387c854614d"
 dependencies = [
  "atty",
  "bitflags",
@@ -476,7 +476,7 @@ version = "3.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ead064480dfc4880a10764488415a97fdd36a4cf1bb022d372f02e8faf8386e1"
 dependencies = [
- "clap 3.2.8",
+ "clap 3.2.12",
 ]
 
 [[package]]
@@ -503,11 +503,11 @@ dependencies = [
 
 [[package]]
 name = "clap_mangen"
-version = "0.1.8"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b009eb8517c57e54db8b50748684f84af57ff0390287f132970bf783b7d7ec7"
+checksum = "937efe4451c32be4ccb3e19549cbb1ea5cb85197f39b87a9662ca1d7b1765d1d"
 dependencies = [
- "clap 3.2.8",
+ "clap 3.2.12",
  "roff",
 ]
 
@@ -1205,11 +1205,11 @@ checksum = "78cc372d058dcf6d5ecd98510e7fbc9e5aec4d21de70f65fea8fecebcd881bd4"
 
 [[package]]
 name = "git-cliff"
-version = "0.7.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e050fdd73f7235cd8ffbeae6686f70275da2695de1fb3295da33ff49d219b707"
+checksum = "489961d3260232649314811bde00409f9ce19809a28d053ecafda0de770d81e3"
 dependencies = [
- "clap 3.2.8",
+ "clap 3.2.12",
  "clap_complete",
  "clap_mangen",
  "dirs-next",
@@ -1220,9 +1220,9 @@ dependencies = [
 
 [[package]]
 name = "git-cliff-core"
-version = "0.7.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f84e3da639e8270c779a31cdf513585c0f97f70be1ab18ae388b0debb124d07"
+checksum = "0c17cf65b62b2a988e8891396e3a99d5340f00d2b79bf0ebee45f605d191f794"
 dependencies = [
  "config",
  "git-conventional",
@@ -1578,9 +1578,9 @@ checksum = "ce23b50ad8242c51a442f3ff322d56b02f08852c77e4c0b4d3fd684abc89c683"
 
 [[package]]
 name = "indexmap"
-version = "1.9.0"
+version = "1.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c6392766afd7964e2531940894cffe4bd8d7d17dbc3c1c4857040fd4b33bdb3"
+checksum = "10a35a97730320ffe8e2d410b5d3b69279b98d2c14bdb8b70ea89ecf7888d41e"
 dependencies = [
  "autocfg",
  "hashbrown",
@@ -2379,9 +2379,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.5.6"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d83f127d94bdbcda4c8cc2e50f6f84f4b611f69c902699ca385a39c3a75f9ff1"
+checksum = "4c4eb3267174b8c6c2f654116623910a0fef09c4753f8dd83db29c48a0df988b"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -2399,9 +2399,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.6.26"
+version = "0.6.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49b3de9ec5dc0a3417da371aab17d729997c15010e7fd24ff707773a33bddb64"
+checksum = "a3f87b73ce11b1619a3c6332f45341e0047173771e8b8b73f87bfeefb7b56244"
 
 [[package]]
 name = "release-plz"
@@ -2409,7 +2409,7 @@ version = "0.2.18"
 dependencies = [
  "anyhow",
  "chrono",
- "clap 3.2.8",
+ "clap 3.2.12",
  "clap_complete",
  "dirs",
  "git-cliff-core",
@@ -2695,18 +2695,18 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.137"
+version = "1.0.139"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61ea8d54c77f8315140a05f4c7237403bf38b72704d031543aa1d16abbf517d1"
+checksum = "0171ebb889e45aa68b44aee0859b3eede84c6f5f5c228e6f140c0b2a0a46cad6"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.137"
+version = "1.0.139"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f26faba0c3959972377d3b2d306ee9f71faee9714294e41bb777f83f88578be"
+checksum = "dc1d3230c1de7932af58ad8ffbe1d784bd55efd5a9d84ac24f69c72d83543dfb"
 dependencies = [
  "proc-macro2",
  "quote",
