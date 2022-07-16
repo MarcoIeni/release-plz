@@ -8,7 +8,7 @@ use crate::{
 };
 use anyhow::{anyhow, Context};
 use cargo_edit::{upgrade_requirement, LocalManifest, VersionExt};
-use cargo_metadata::{Package, Version};
+use cargo_metadata::{semver::Version, Package};
 use chrono::{Date, Utc};
 use fs_extra::dir;
 use git_cliff_core::config::Config as GitCliffConfig;
