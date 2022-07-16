@@ -146,6 +146,7 @@ fn commit_parsers() -> Vec<CommitParser> {
             group: Some(String::from("added")),
             default_scope: None,
             skip: None,
+            scope: None,
         },
         CommitParser {
             message: Regex::new("^changed").ok(),
@@ -153,6 +154,7 @@ fn commit_parsers() -> Vec<CommitParser> {
             group: Some(String::from("changed")),
             default_scope: None,
             skip: None,
+            scope: None,
         },
         CommitParser {
             message: Regex::new("^deprecated").ok(),
@@ -160,6 +162,7 @@ fn commit_parsers() -> Vec<CommitParser> {
             group: Some(String::from("deprecated")),
             default_scope: None,
             skip: None,
+            scope: None,
         },
         CommitParser {
             message: Regex::new("^removed").ok(),
@@ -167,6 +170,7 @@ fn commit_parsers() -> Vec<CommitParser> {
             group: Some(String::from("removed")),
             default_scope: None,
             skip: None,
+            scope: None,
         },
         CommitParser {
             message: Regex::new("^fix").ok(),
@@ -174,6 +178,7 @@ fn commit_parsers() -> Vec<CommitParser> {
             group: Some(String::from("fixed")),
             default_scope: None,
             skip: None,
+            scope: None,
         },
         CommitParser {
             message: Regex::new("^security").ok(),
@@ -181,6 +186,7 @@ fn commit_parsers() -> Vec<CommitParser> {
             group: Some(String::from("security")),
             default_scope: None,
             skip: None,
+            scope: None,
         },
         CommitParser {
             message: Regex::new(".*").ok(),
@@ -188,6 +194,7 @@ fn commit_parsers() -> Vec<CommitParser> {
             group: Some(String::from("other")),
             default_scope: None,
             skip: None,
+            scope: None,
         },
     ]
 }
