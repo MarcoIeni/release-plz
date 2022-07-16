@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2022-07-16
+
+### Other
+- *(deps)* bump once_cell from 1.12.1 to 1.13.0 (#210)
+- *(deps)* bump once_cell from 1.12.0 to 1.12.1 (#205)
+- *(deps)* bump tracing-subscriber from 0.3.11 to 0.3.14 (#199)
+
 ## [0.1.6] - 2022-06-18
 
 ### Other
