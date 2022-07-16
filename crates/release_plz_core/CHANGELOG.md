@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.18] - 2022-07-16
+
+### Fixed
+- support symlinks
+
+### Other
+- update git cliff to version 8 (#212)
+- update to cargo edit 10 (#211)
+- *(deps)* bump serde_json from 1.0.81 to 1.0.82 (#202)
+- remove unused lifetime (#206)
+
 ## [0.2.17] - 2022-06-18
 
 ### Other
