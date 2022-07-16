@@ -1,4 +1,4 @@
-use cargo_metadata::Version;
+use cargo_metadata::semver::Version;
 use release_plz_core::{read_package, CHANGELOG_HEADER};
 
 use crate::helpers::{comparison_test::ComparisonTest, user_mock};
