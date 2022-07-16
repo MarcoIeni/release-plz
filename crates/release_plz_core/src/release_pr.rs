@@ -95,7 +95,9 @@ fn pr_body(packages_to_update: &[(Package, UpdateResult)]) -> String {
 
 fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {
     repository.checkout_new_branch(release_branch)?;
-    repository.add_all_and_commit("chore: release")?;
+    let changes_expect_typechanges = repository.changes_expect_typechanges()?;
+    repository.add(&changes_expect_typechanges)?;
+    repository.commit("chore: release")?;
     repository.push(release_branch)?;
     Ok(())
 }
