@@ -13,7 +13,7 @@ categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 release_plz_core = { path = "../release_plz_core", version = "0.2.18" }
-git_cmd = { path = "../git_cmd", version = "0.1.7" }
+git_cmd = { path = "../git_cmd", version = "0.2.0" }
 
 anyhow = "1.0.58"
 clap = { version = "3.2.8", features = ["derive", "env"] }
