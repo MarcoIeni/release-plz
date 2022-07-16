@@ -52,13 +52,8 @@ impl Repo {
 
     /// Check if there are uncommitted changes.
     pub fn is_clean(&self) -> anyhow::Result<()> {
-        let output = self.git(&["status", "--porcelain"])?;
-        let mut entries = output
-            .lines()
-            .map(|l| l.trim())
-            // filter symlinks
-            .filter(|l| !l.starts_with("T "));
-        anyhow::ensure!(entries.next().is_none(), "the working directory of this project has uncommitted changes. Please commit or stash these changes:\n{output}");
+        let changes = self.changes_expect_typechanges()?;
+        anyhow::ensure!(changes.is_empty(), "the working directory of this project has uncommitted changes. Please commit or stash these changes:\n{changes:?}");
         Ok(())
     }
 
@@ -69,6 +64,25 @@ impl Repo {
 
     pub fn add_all_and_commit(&self, message: &str) -> anyhow::Result<()> {
         self.git(&["add", "."])?;
+        self.git(&["commit", "-m", message])?;
+        Ok(())
+    }
+
+    pub fn changes_expect_typechanges(&self) -> anyhow::Result<Vec<String>> {
+        let output = self.git(&["status", "--porcelain"])?;
+        let changed_files = changed_files(&output);
+        Ok(changed_files)
+    }
+
+    pub fn add<T: AsRef<str>>(&self, paths: &[T]) -> anyhow::Result<()> {
+        let mut args = vec!["add"];
+        let paths: Vec<&str> = paths.iter().map(|p| p.as_ref()).collect();
+        args.extend(paths);
+        self.git(&args)?;
+        Ok(())
+    }
+
+    pub fn commit(&self, message: &str) -> anyhow::Result<()> {
         self.git(&["commit", "-m", message])?;
         Ok(())
     }
@@ -182,6 +196,17 @@ impl Repo {
     }
 }
 
+fn changed_files(output: &str) -> Vec<String> {
+    output
+        .lines()
+        .map(|l| l.trim())
+        // filter typechanges
+        .filter(|l| !l.starts_with("T "))
+        .filter_map(|e| e.rsplit(' ').next())
+        .map(|e| e.to_string())
+        .collect()
+}
+
 #[instrument]
 pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
     let args: Vec<&str> = args.iter().map(|s| s.trim()).collect();
@@ -277,5 +302,19 @@ mod tests {
         let file1 = repository_dir.as_ref().join("file1.txt");
         fs::write(&file1, b"Hello, file1!").unwrap();
         assert!(repo.is_clean().is_err());
+    }
+
+    #[test]
+    fn changes_files_except_typechanges_are_detected() {
+        let git_status_output = r"T CHANGELOG.md
+ M README.md
+A  crates
+D  crates/git_cmd/CHANGELOG.md
+";
+        let changed_files = changed_files(git_status_output);
+        assert_eq!(
+            changed_files,
+            vec!["README.md", "crates", "crates/git_cmd/CHANGELOG.md",]
+        )
     }
 }
