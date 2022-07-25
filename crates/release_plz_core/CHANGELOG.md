@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.19] - 2022-07-25
+
+### Other
+- *(deps)* bump cargo-edit from 0.10.1 to 0.10.2 (#225)
+
 ## [0.2.18] - 2022-07-16
 
 ### Fixed
