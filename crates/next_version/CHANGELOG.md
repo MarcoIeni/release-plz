@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2022-07-25
+
+### Other
+- inline the increment* functions to cut down dependencies (#220)
+
 ## [0.1.6] - 2022-07-16
 
 ### Other
