@@ -64,6 +64,10 @@ impl VersionIncrement {
 
 impl VersionIncrement {
     pub fn bump(&self, version: &Version) -> Version {
+        // This code is essentially the inlined version of these functions from cargo-edit
+        // increment_major: https://github.com/killercup/cargo-edit/blob/643e9253a84db02c52a7fa94f07d786d281362ab/src/version.rs#L38
+        // increment_minor: https://github.com/killercup/cargo-edit/blob/643e9253a84db02c52a7fa94f07d786d281362ab/src/version.rs#L46
+        // increment_patch: https://github.com/killercup/cargo-edit/blob/643e9253a84db02c52a7fa94f07d786d281362ab/src/version.rs#L53
         match self {
             Self::Major => Version {
                 major: version.major + 1,
