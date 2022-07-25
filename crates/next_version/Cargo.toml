@@ -13,4 +13,3 @@ categories = ["development-tools", "parsing"]
 [dependencies]
 semver = "1.0.12"
 conventional_commit_parser = "0.9.4"
-cargo-edit = { version = "0.10.1", features = ["set-version"], default-features = false }

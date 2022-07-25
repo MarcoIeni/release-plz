@@ -1,4 +1,3 @@
-use cargo_edit::VersionExt;
 use conventional_commit_parser::commit::{CommitType, ConventionalCommit};
 use semver::Version;
 
@@ -65,12 +64,28 @@ impl VersionIncrement {
 
 impl VersionIncrement {
     pub fn bump(&self, version: &Version) -> Version {
-        let mut new_version = version.clone();
         match self {
-            Self::Major => new_version.increment_major(),
-            Self::Minor => new_version.increment_minor(),
-            Self::Patch => new_version.increment_patch(),
+            Self::Major => Version {
+                major: version.major + 1,
+                minor: 0,
+                patch: 0,
+                pre: semver::Prerelease::EMPTY,
+                build: semver::BuildMetadata::EMPTY,
+            },
+            Self::Minor => Version {
+                major: version.major,
+                minor: version.minor + 1,
+                patch: 0,
+                pre: semver::Prerelease::EMPTY,
+                build: semver::BuildMetadata::EMPTY,
+            },
+            Self::Patch => Version {
+                major: version.major,
+                minor: version.minor,
+                patch: version.patch + 1,
+                pre: semver::Prerelease::EMPTY,
+                build: semver::BuildMetadata::EMPTY,
+            },
         }
-        new_version
     }
 }
