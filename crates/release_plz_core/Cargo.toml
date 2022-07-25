@@ -18,7 +18,7 @@ anyhow = "1.0.58"
 cargo = "0.61.1"
 cargo_metadata = "0.15.0"
 cargo-clone = "1.0.1"
-cargo-edit = { version = "0.10.1", features = ["set-version"], default-features = false }
+cargo-edit = { version = "0.10.2", features = ["set-version"], default-features = false }
 chrono = { version = "0.4.19", features = ["clock"], default-features = false }
 crates-index = "0.18.8"
 fs_extra = "1.2.0"
