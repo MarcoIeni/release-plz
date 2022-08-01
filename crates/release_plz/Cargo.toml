@@ -16,7 +16,7 @@ release_plz_core = { path = "../release_plz_core", version = "0.2.18" }
 git_cmd = { path = "../git_cmd", version = "0.2.0" }
 
 anyhow = "1.0.58"
-clap = { version = "3.2.14", features = ["derive", "env"] }
+clap = { version = "3.2.16", features = ["derive", "env"] }
 chrono = { version = "0.4.19", features = ["clock"], default-features = false }
 secrecy = "0.8.0"
 tokio = { version = "1.19.2", features = ["macros", "rt-multi-thread"] }
