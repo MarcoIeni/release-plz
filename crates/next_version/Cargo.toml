@@ -11,5 +11,5 @@ categories = ["development-tools", "parsing"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-semver = "1.0.12"
+semver = "1.0.13"
 conventional_commit_parser = "0.9.4"
