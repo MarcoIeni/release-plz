@@ -235,7 +235,7 @@ dependencies = [
  "bytesize",
  "cargo-platform",
  "cargo-util",
- "clap 3.2.16",
+ "clap 3.2.17",
  "crates-io",
  "crossbeam-utils",
  "curl",
@@ -304,7 +304,7 @@ checksum = "a055abd7d5cdb5a4e0aad89962b2f172eaad613374056cab74124ff2cf978ea7"
 dependencies = [
  "anyhow",
  "cargo_metadata",
- "clap 3.2.16",
+ "clap 3.2.17",
  "concolor-control",
  "crates-index",
  "dirs-next",
@@ -455,9 +455,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "3.2.16"
+version = "3.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3dbbb6653e7c55cc8595ad3e1f7be8f32aba4eb7ff7f0fd1163d4f3d137c0a9"
+checksum = "29e724a68d9319343bb3328c9cc2dfde263f4b3142ee1059a9980580171c954b"
 dependencies = [
  "atty",
  "bitflags",
@@ -477,14 +477,14 @@ version = "3.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ead064480dfc4880a10764488415a97fdd36a4cf1bb022d372f02e8faf8386e1"
 dependencies = [
- "clap 3.2.16",
+ "clap 3.2.17",
 ]
 
 [[package]]
 name = "clap_derive"
-version = "3.2.15"
+version = "3.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ba52acd3b0a5c33aeada5cdaa3267cdc7c594a98731d4268cdc1532f4264cb4"
+checksum = "13547f7012c01ab4a0e8f8967730ada8f9fdf419e8b6c792788f39cf4e46eefa"
 dependencies = [
  "heck",
  "proc-macro-error",
@@ -508,7 +508,7 @@ version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "937efe4451c32be4ccb3e19549cbb1ea5cb85197f39b87a9662ca1d7b1765d1d"
 dependencies = [
- "clap 3.2.16",
+ "clap 3.2.17",
  "roff",
 ]
 
@@ -1210,7 +1210,7 @@ version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "489961d3260232649314811bde00409f9ce19809a28d053ecafda0de770d81e3"
 dependencies = [
- "clap 3.2.16",
+ "clap 3.2.17",
  "clap_complete",
  "clap_mangen",
  "dirs-next",
@@ -2410,7 +2410,7 @@ version = "0.2.19"
 dependencies = [
  "anyhow",
  "chrono",
- "clap 3.2.16",
+ "clap 3.2.17",
  "clap_complete",
  "dirs",
  "git-cliff-core",
