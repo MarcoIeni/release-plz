@@ -20,7 +20,7 @@ cargo_metadata = "0.15.0"
 cargo-clone = "1.0.1"
 cargo-edit = { version = "0.10.4", features = ["set-version"], default-features = false }
 chrono = { version = "0.4.20", features = ["clock"], default-features = false }
-crates-index = "0.18.8"
+crates-index = "0.18.9"
 fs_extra = "1.2.0"
 git-cliff = { version = "0.8.1", default-features = false }
 git-cliff-core = "0.8.1"
