@@ -24,7 +24,7 @@ crates-index = "0.18.8"
 fs_extra = "1.2.0"
 git-cliff = { version = "0.8.1", default-features = false }
 git-cliff-core = "0.8.1"
-octocrab = "0.16.0"
+octocrab = "0.17.0"
 secrecy = "0.8.0"
 tempfile = "3.3.0"
 tracing = "0.1.36"
