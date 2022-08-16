@@ -14,8 +14,8 @@ categories = ["development-tools", "filesystem"]
 test_fixture = []
 
 [dependencies]
+anyhow = "1.0.61"
 tracing = "0.1.36"
-anyhow = "1.0.58"
 
 [dev-dependencies]
 tempfile = "3.3.0"

@@ -15,7 +15,7 @@ categories = ["command-line-utilities", "development-tools"]
 release_plz_core = { path = "../release_plz_core", version = "0.2.18" }
 git_cmd = { path = "../git_cmd", version = "0.2.0" }
 
-anyhow = "1.0.58"
+anyhow = "1.0.61"
 chrono = { version = "0.4.22", features = ["clock"], default-features = false }
 clap = { version = "3.2.17", features = ["derive", "env"] }
 secrecy = "0.8.0"
