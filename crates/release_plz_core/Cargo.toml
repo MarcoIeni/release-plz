@@ -19,15 +19,15 @@ cargo = "0.61.1"
 cargo_metadata = "0.15.0"
 cargo-clone = "1.0.1"
 cargo-edit = { version = "0.10.4", features = ["set-version"], default-features = false }
-chrono = { version = "0.4.19", features = ["clock"], default-features = false }
-crates-index = "0.18.8"
+chrono = { version = "0.4.22", features = ["clock"], default-features = false }
+crates-index = "0.18.9"
 fs_extra = "1.2.0"
 git-cliff = { version = "0.8.1", default-features = false }
 git-cliff-core = "0.8.1"
-octocrab = "0.16.0"
+octocrab = "0.17.0"
 secrecy = "0.8.0"
 tempfile = "3.3.0"
-tracing = "0.1.35"
+tracing = "0.1.36"
 url = "2.2.2"
 walkdir = "2.3.2"
 toml_edit = "0.14.4"
@@ -38,7 +38,7 @@ test_logs = { path = "../test_logs" }
 expect-test = "1.4.0"
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }
 tokio = { version = "1.19.2", features = ["macros"] }
-wiremock = "0.5.13"
+wiremock = "0.5.14"
 fake = "2.5.0"
 claim = "0.5.0"
-serde_json = "1.0.82"
+serde_json = "1.0.83"
