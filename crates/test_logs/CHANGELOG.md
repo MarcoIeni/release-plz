@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8] - 2022-08-16
+
+### Other
+- *(deps)* bump tracing from 0.1.35 to 0.1.36 (#234)
+- *(deps)* bump tracing-subscriber from 0.3.14 to 0.3.15 (#224)
+
 ## [0.1.7] - 2022-07-16
 
 ### Other
