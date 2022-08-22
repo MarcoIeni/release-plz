@@ -1,4 +1,4 @@
-FROM lukemathwalker/cargo-chef:0.1.39-rust-slim-bullseye AS chef
+FROM lukemathwalker/cargo-chef:0.1.40-rust-slim-bullseye AS chef
 WORKDIR /app
 
 FROM chef as planner
