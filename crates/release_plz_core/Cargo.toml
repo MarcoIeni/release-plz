@@ -14,7 +14,7 @@ categories = ["development-tools"]
 next_version = { path = "../next_version", version = "0.1" }
 git_cmd = { path = "../git_cmd", version = "0.2.1" }
 
-anyhow = "1.0.61"
+anyhow = "1.0.64"
 cargo = "0.61.1"
 cargo_metadata = "0.15.0"
 cargo-clone = "1.0.1"
