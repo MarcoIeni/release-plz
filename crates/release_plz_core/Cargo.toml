@@ -28,7 +28,7 @@ octocrab = "0.17.0"
 secrecy = "0.8.0"
 tempfile = "3.3.0"
 tracing = "0.1.36"
-url = "2.2.2"
+url = "2.3.0"
 walkdir = "2.3.2"
 toml_edit = "0.14.4"
 
