@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.20] - 2022-09-12
+
+### Other
+- *(deps)* bump url from 2.2.2 to 2.3.0 (#277)
+- *(deps)* bump clap from 3.2.17 to 3.2.20 (#273)
+- *(deps)* bump anyhow from 1.0.62 to 1.0.64 (#272)
+- update anyhow to 1.0.61 (#263)
+- *(deps)* bump anyhow from 1.0.58 to 1.0.59 (#235)
+- *(deps)* bump chrono from 0.4.20 to 0.4.22 (#252)
+- *(deps)* bump clap_complete from 3.2.3 to 3.2.4 (#253)
+- *(deps)* bump clap from 3.2.16 to 3.2.17 (#251)
+- *(deps)* bump chrono from 0.4.19 to 0.4.20 (#244)
+- *(deps)* bump tracing from 0.1.35 to 0.1.36 (#234)
+- *(deps)* bump clap from 3.2.14 to 3.2.16 (#233)
+- *(deps)* bump clap from 3.2.12 to 3.2.14 (#226)
+- *(deps)* bump tracing-subscriber from 0.3.14 to 0.3.15 (#224)
+
 ## [0.2.19] - 2022-07-16
 
 ### Other
