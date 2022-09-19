@@ -6,6 +6,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.19] - 2022-09-19
+
+### Other
+- *(deps)* bump anyhow from 1.0.64 to 1.0.65 (#281)
+- *(deps)* bump cargo-edit from 0.10.4 to 0.11.1 (#285)
+- *(deps)* bump url from 2.2.2 to 2.3.0 (#277)
+- *(deps)* bump anyhow from 1.0.62 to 1.0.64 (#272)
+- *(deps)* bump serde_json from 1.0.83 to 1.0.85 (#265)
+- update anyhow to 1.0.61 (#263)
+- *(deps)* bump anyhow from 1.0.58 to 1.0.59 (#235)
+- *(deps)* bump chrono from 0.4.20 to 0.4.22 (#252)
+- *(deps)* bump crates-index from 0.18.8 to 0.18.9 (#250)
+- *(deps)* bump octocrab from 0.16.0 to 0.17.0 (#249)
+- *(deps)* bump chrono from 0.4.19 to 0.4.20 (#244)
+- *(deps)* bump wiremock from 0.5.13 to 0.5.14 (#243)
+- *(deps)* bump serde_json from 1.0.82 to 1.0.83 (#241)
+- *(deps)* bump tracing from 0.1.35 to 0.1.36 (#234)
+- *(deps)* bump cargo-edit from 0.10.2 to 0.10.4 (#232)
+- *(deps)* bump expect-test from 1.3.0 to 1.4.0 (#227)
+- *(deps)* bump cargo-edit from 0.10.1 to 0.10.2 (#225)
+
 ## [0.2.18] - 2022-07-16
 
 ### Fixed
