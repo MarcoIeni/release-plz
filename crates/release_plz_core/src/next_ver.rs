@@ -185,7 +185,7 @@ impl Project {
         debug!("project_root: {root:?}");
         let mut packages = publishable_packages(manifest)?;
         if let Some(pac) = &input.single_package {
-            packages = packages.into_iter().filter(|p| &p.name == pac).collect();
+            packages.retain(|p| &p.name == pac);
         }
 
         anyhow::ensure!(!packages.is_empty(), "no public packages found");
