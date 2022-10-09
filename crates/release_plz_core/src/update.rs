@@ -11,7 +11,7 @@ use tracing::{debug, instrument};
 pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, UpdateResult)>, TempRepo)> {
     let (packages_to_update, repository) = crate::next_versions(input)?;
     let all_packages =
-        cargo_edit::workspace_members(Some(input.local_manifest())).map_err(|e| {
+        cargo_utils::workspace_members(Some(input.local_manifest())).map_err(|e| {
             anyhow!(
                 "cannot read workspace members in manifest {:?}: {e}",
                 input.local_manifest()
