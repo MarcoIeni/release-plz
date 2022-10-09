@@ -3,7 +3,7 @@
 use std::{fmt, path::Path};
 
 use anyhow::{anyhow, Context};
-use cargo::core::SourceId;
+use cargo_clone_core::SourceId;
 use cargo_metadata::Package;
 use tracing::{info, instrument, warn};
 
@@ -17,7 +17,7 @@ pub fn download_packages(
 ) -> anyhow::Result<Vec<Package>> {
     let directory = directory.as_ref();
     info!("downloading packages from cargo registry");
-    let config = cargo::Config::default().expect("Unable to get cargo config.");
+    let config = cargo_clone_core::Config::default().expect("Unable to get cargo config.");
     let source_id = match registry {
         Some(registry) => SourceId::alt_registry(&config, registry)
             .with_context(|| format!("Unable to retrieve source id for registry {registry}")),
@@ -28,7 +28,7 @@ pub fn download_packages(
         .map(|&package_name| {
             (
                 package_name,
-                cargo_clone::Crate::new(package_name.to_string(), None),
+                cargo_clone_core::Crate::new(package_name.to_string(), None),
             )
         })
         .filter_map(|(package_name, package)| {
@@ -41,11 +41,11 @@ pub fn download_packages(
                 .to_str()
                 .expect("can't convert os string into string");
             let clone_opts =
-                cargo_clone::CloneOpts::new(packages, &source_id, Some(package_path), false);
+                cargo_clone_core::CloneOpts::new(packages, &source_id, Some(package_path), false);
             // Filter non-existing packages.
             // Unfortunately, we also filters packages we couldn't
             // download due to other issues, such as network.
-            cargo_clone::clone(&clone_opts, &config)
+            cargo_clone_core::clone(&clone_opts, &config)
                 .map(|()| (read_package(package_path)))
                 .map_err(|e| warn!("can't download {}: {}", package_name, e))
                 .ok()
