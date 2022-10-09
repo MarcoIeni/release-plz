@@ -2,6 +2,11 @@
 name = "cargo_utils"
 version = "0.1.0"
 edition = "2021"
+description = "Utilities around cargo and Rust workspaces"
+repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/cargo_utils"
+license = "MIT OR Apache-2.0"
+keywords = ["cargo", "utilities", "utils", "workspace"]
+categories = ["development-tools"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
