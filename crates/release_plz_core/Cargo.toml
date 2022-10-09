@@ -13,6 +13,7 @@ categories = ["development-tools"]
 [dependencies]
 next_version = { path = "../next_version", version = "0.1" }
 git_cmd = { path = "../git_cmd", version = "0.2.0" }
+cargo_utils = { path = "../cargo_utils", version = "0.1.0" }
 
 anyhow = "1.0.65"
 cargo_metadata = "0.15.0"

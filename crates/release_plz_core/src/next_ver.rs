@@ -411,7 +411,7 @@ fn get_diff(
 
 pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
     let manifest = manifest.as_ref();
-    let packages = cargo_edit::workspace_members(Some(manifest))
+    let packages = cargo_utils::workspace_members(Some(manifest))
         .map_err(|e| anyhow!("cannot read workspace members in manifest {manifest:?}: {e}"))?
         .into_iter()
         .filter(|p| p.is_publishable())
