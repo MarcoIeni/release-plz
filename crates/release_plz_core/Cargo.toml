@@ -38,7 +38,7 @@ test_logs = { path = "../test_logs" }
 expect-test = "1.4.0"
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }
 tokio = { version = "1.19.2", features = ["macros"] }
-wiremock = "0.5.14"
+wiremock = "0.5.15"
 fake = "2.5.0"
 claim = "0.5.0"
 serde_json = "1.0.85"
