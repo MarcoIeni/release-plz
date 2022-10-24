@@ -12,5 +12,5 @@ categories = ["development-tools"]
 
 [dependencies]
 anyhow = "1.0.65"
-cargo_metadata = "0.15.0"
+cargo_metadata = "0.15.1"
 dunce = "1.0.3"
