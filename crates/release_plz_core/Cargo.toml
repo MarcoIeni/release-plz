@@ -30,7 +30,7 @@ tempfile = "3.3.0"
 tracing = "0.1.36"
 url = "2.3.0"
 walkdir = "2.3.2"
-toml_edit = "0.14.4"
+toml_edit = "0.15.0"
 
 [dev-dependencies]
 test_logs = { path = "../test_logs" }
