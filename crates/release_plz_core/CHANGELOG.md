@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.19] - 2022-10-24
+
+### Fixed
+- include function removed from cargo-edit (#305)
+
+### Other
+- bump dependencies
+- use cargo-clone-core library (#302)
+- fix clippy lint (#297)
+
 ## [0.2.18] - 2022-07-16
 
 ### Fixed
