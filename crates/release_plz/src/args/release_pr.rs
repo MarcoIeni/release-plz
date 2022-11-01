@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Context};
+use clap::builder::NonEmptyStringValueParser;
 use git_cmd::Repo;
 use git_url_parse::GitUrl;
 use release_plz_core::GitHub;
@@ -11,11 +12,11 @@ pub struct ReleasePr {
     #[clap(flatten)]
     pub update: Update,
     /// GitHub token used to create the pull request.
-    #[clap(long, forbid_empty_values(true))]
+    #[clap(long, value_parser = NonEmptyStringValueParser::new())]
     pub github_token: SecretString,
     /// GitHub repository url where your project is hosted.
     /// It defaults to the `origin` url.
-    #[clap(long, forbid_empty_values(true))]
+    #[clap(long, value_parser = NonEmptyStringValueParser::new())]
     pub repo_url: Option<String>,
 }
 

@@ -276,7 +276,7 @@ checksum = "0d95a6560003619ddcff340d69937671c6ecd7e549e20db5feb99711397c087a"
 dependencies = [
  "anyhow",
  "cargo_metadata",
- "clap 4.0.11",
+ "clap 4.0.18",
  "concolor-control",
  "crates-index",
  "dirs-next",
@@ -441,13 +441,13 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.0.11"
+version = "4.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ed45cc2c62a3eff523e718d8576ba762c83a3146151093283ac62ae11933a73"
+checksum = "335867764ed2de42325fafe6d18b8af74ba97ee0c590fa016f157535b42ab04b"
 dependencies = [
  "atty",
  "bitflags",
- "clap_derive 4.0.10",
+ "clap_derive 4.0.18",
  "clap_lex 0.3.0",
  "once_cell",
  "strsim",
@@ -465,6 +465,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "clap_complete"
+version = "4.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dfe581a2035db4174cdbdc91265e1aba50f381577f0510d0ad36c7bc59cc84a3"
+dependencies = [
+ "clap 4.0.18",
+]
+
+[[package]]
 name = "clap_derive"
 version = "3.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -479,9 +488,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.0.10"
+version = "4.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db342ce9fda24fb191e2ed4e102055a4d381c1086a06630174cd8da8d5d917ce"
+checksum = "16a1b0f6422af32d5da0c58e2703320f379216ee70198241c84173a8c5ac28f3"
 dependencies = [
  "heck",
  "proc-macro-error",
@@ -1277,7 +1286,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "489961d3260232649314811bde00409f9ce19809a28d053ecafda0de770d81e3"
 dependencies = [
  "clap 3.2.22",
- "clap_complete",
+ "clap_complete 3.2.5",
  "clap_mangen",
  "dirs-next",
  "git-cliff-core",
@@ -2520,8 +2529,8 @@ version = "0.2.20"
 dependencies = [
  "anyhow",
  "chrono",
- "clap 3.2.22",
- "clap_complete",
+ "clap 4.0.18",
+ "clap_complete 4.0.3",
  "dirs",
  "git-cliff-core",
  "git-url-parse",
