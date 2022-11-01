@@ -2525,7 +2525,7 @@ checksum = "a3f87b73ce11b1619a3c6332f45341e0047173771e8b8b73f87bfeefb7b56244"
 
 [[package]]
 name = "release-plz"
-version = "0.2.20"
+version = "0.2.21"
 dependencies = [
  "anyhow",
  "chrono",
@@ -3194,7 +3194,7 @@ dependencies = [
 
 [[package]]
 name = "test_logs"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "once_cell",
  "tracing",
