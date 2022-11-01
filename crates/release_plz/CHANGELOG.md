@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.21] - 2022-11-01
+
+### Other
+- update to clap v4 (#325)
+
 ## [0.2.20] - 2022-10-24
 
 ### Other

@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9] - 2022-11-01
+
+### Other
+- *(deps)* bump once_cell from 1.15.0 to 1.16.0 (#323)
+
 ## [0.1.8] - 2022-10-24
 
 ### Other
