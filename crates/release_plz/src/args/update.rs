@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 use chrono::{Date, NaiveDate, Utc};
+use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use git_cliff_core::config::Config as GitCliffConfig;
 use release_plz_core::{ChangelogRequest, UpdateRequest, CARGO_TOML};
 
@@ -10,7 +11,7 @@ pub struct Update {
     /// Path to the Cargo.toml of the project you want to update.
     /// If not provided, release-plz will use the Cargo.toml of the current directory.
     /// Both Cargo workspaces and single packages are supported.
-    #[clap(long, forbid_empty_values(true))]
+    #[clap(long, value_parser = PathBufValueParser::new())]
     project_manifest: Option<PathBuf>,
     /// Path to the Cargo.toml contained in the released version of the project you want to update.
     /// If not provided, the packages of your project will be compared with the
@@ -19,17 +20,25 @@ pub struct Update {
     /// your project is already available locally.
     /// For example, it could be the path to the project with a `git checkout` on its latest tag.
     /// The git history of this project should be behind the one of the project you want to update.
-    #[clap(long, forbid_empty_values(true))]
+    #[clap(long, value_parser = PathBufValueParser::new())]
     registry_project_manifest: Option<PathBuf>,
     /// Package to update. Use it when you want to update a single package rather than all the
     /// packages contained in the workspace.
-    #[clap(short, long, forbid_empty_values(true))]
+    #[clap(
+        short,
+        long,
+        value_parser = NonEmptyStringValueParser::new()
+    )]
     package: Option<String>,
     /// Don't create changelog.
     #[clap(long, conflicts_with("release-date"))]
     no_changelog: bool,
     /// Date of the release. Format: %Y-%m-%d. It defaults to current Utc date.
-    #[clap(long, conflicts_with("no-changelog"), forbid_empty_values(true))]
+    #[clap(
+        long,
+        conflicts_with("no-changelog"),
+        value_parser = NonEmptyStringValueParser::new()
+    )]
     release_date: Option<String>,
     /// Registry where the packages are stored.
     /// The registry name needs to be present in the Cargo config.
@@ -37,7 +46,7 @@ pub struct Update {
     #[clap(
         long,
         conflicts_with("registry-project-manifest"),
-        forbid_empty_values(true)
+        value_parser = NonEmptyStringValueParser::new()
     )]
     registry: Option<String>,
     /// Update all the dependencies in the Cargo.lock file by running `cargo update`.
@@ -51,7 +60,7 @@ pub struct Update {
         env = "GIT_CLIFF_CONFIG",
         value_name = "PATH",
         conflicts_with("no-changelog"),
-        forbid_empty_values(true)
+        value_parser = PathBufValueParser::new()
     )]
     changelog_config: Option<PathBuf>,
     /// Allow dirty working directories to be updated.

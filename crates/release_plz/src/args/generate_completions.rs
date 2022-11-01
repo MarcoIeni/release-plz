@@ -1,4 +1,4 @@
-use clap::IntoApp;
+use clap::CommandFactory;
 use clap_complete::Shell;
 
 #[derive(clap::Parser, Debug)]
