@@ -1,7 +1,7 @@
 /// Difference between local and registry package (i.e. the last released version)
 #[derive(Debug)]
 pub(crate) struct Diff {
-    /// List of commits from last released vesion to last local changes.
+    /// List of commits from last released version to last local changes.
     pub commits: Vec<String>,
     /// Whether the package name exists in the registry or not.
     pub registry_package_exists: bool,
