@@ -31,12 +31,12 @@ pub struct Update {
     )]
     package: Option<String>,
     /// Don't create changelog.
-    #[clap(long, conflicts_with("release-date"))]
+    #[clap(long, conflicts_with("release_date"))]
     no_changelog: bool,
     /// Date of the release. Format: %Y-%m-%d. It defaults to current Utc date.
     #[clap(
         long,
-        conflicts_with("no-changelog"),
+        conflicts_with("no_changelog"),
         value_parser = NonEmptyStringValueParser::new()
     )]
     release_date: Option<String>,
@@ -45,7 +45,7 @@ pub struct Update {
     /// If unspecified, crates.io is used.
     #[clap(
         long,
-        conflicts_with("registry-project-manifest"),
+        conflicts_with("registry_project_manifest"),
         value_parser = NonEmptyStringValueParser::new()
     )]
     registry: Option<String>,
@@ -59,7 +59,7 @@ pub struct Update {
         long,
         env = "GIT_CLIFF_CONFIG",
         value_name = "PATH",
-        conflicts_with("no-changelog"),
+        conflicts_with("no_changelog"),
         value_parser = PathBufValueParser::new()
     )]
     changelog_config: Option<PathBuf>,
