@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.22] - 2022-11-03
+
+### Fixed
+- *(args)* use the correct case for conflicting arguments (#328)
+
 ## [0.2.21] - 2022-11-01
 
 ### Other

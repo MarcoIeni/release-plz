@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.20] - 2022-11-03
+
+### Fixed
+- *(typo)* update code comment for `Diff` struct field (#329)
+
 ## [0.2.19] - 2022-10-24
 
 ### Fixed
