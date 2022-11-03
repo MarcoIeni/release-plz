@@ -120,7 +120,7 @@ impl Repo {
             .lines()
             .last()
             .context("repository has no commits")?;
-        Span::current().record("nth_commit", &last_commit);
+        Span::current().record("nth_commit", last_commit);
 
         Ok(last_commit.to_string())
     }
@@ -178,7 +178,7 @@ impl Repo {
         let mut commits = commit_list.lines();
         let last_commit = commits.nth(nth - 1).context("not enough commits")?;
 
-        Span::current().record("nth_commit", &last_commit);
+        Span::current().record("nth_commit", last_commit);
         debug!("nth_commit found");
         Ok(last_commit.to_string())
     }
