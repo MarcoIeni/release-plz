@@ -15,7 +15,7 @@ test_fixture = []
 
 [dependencies]
 anyhow.workspace = true
-tracing = "0.1.36"
+tracing.workspace = true
 
 [dev-dependencies]
 tempfile = "3.3.0"
