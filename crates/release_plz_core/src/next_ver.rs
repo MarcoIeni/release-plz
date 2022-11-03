@@ -447,7 +447,7 @@ pub trait PackagePath {
     }
 
     fn canonical_path(&self) -> anyhow::Result<PathBuf> {
-        let p = fs::canonicalize(&self.package_path()?)?;
+        let p = fs::canonicalize(self.package_path()?)?;
         Ok(p)
     }
 }

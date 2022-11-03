@@ -96,7 +96,7 @@ impl<'a> GitHubClient<'a> {
             ))?
             .default_branch
             .context("failed to retrieve default branch")?;
-        Span::current().record("default_branch", &default_branch.as_str());
+        Span::current().record("default_branch", default_branch.as_str());
 
         let pr = self
             .client
