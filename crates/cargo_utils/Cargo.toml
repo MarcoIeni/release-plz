@@ -11,6 +11,6 @@ categories = ["development-tools"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.66"
+anyhow.workspace = true
 cargo_metadata = "0.15.1"
 dunce = "1.0.3"
