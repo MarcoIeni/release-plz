@@ -11,9 +11,9 @@ categories = ["development-tools"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-next_version = { path = "../next_version", version = "0.1" }
-git_cmd = { path = "../git_cmd", version = "0.2.1" }
 cargo_utils = { path = "../cargo_utils", version = "0.1.1" }
+git_cmd = { path = "../git_cmd", version = "0.2.1" }
+next_version = { path = "../next_version", version = "0.1" }
 
 anyhow.workspace = true
 cargo_metadata.workspace = true
@@ -33,12 +33,12 @@ walkdir.workspace = true
 toml_edit.workspace = true
 
 [dev-dependencies]
-test_logs = { path = "../test_logs" }
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }
+test_logs = { path = "../test_logs" }
 
+claim.workspace = true
 expect-test.workspace = true
+fake.workspace = true
+serde_json.workspace = true
 tokio = { workspace = true, features = ["macros"] }
 wiremock.workspace = true
-fake.workspace = true
-claim.workspace = true
-serde_json.workspace = true

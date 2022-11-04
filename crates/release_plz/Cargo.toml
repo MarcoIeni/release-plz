@@ -12,19 +12,19 @@ categories = ["command-line-utilities", "development-tools"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-release_plz_core = { path = "../release_plz_core", version = "0.2.20" }
 git_cmd = { path = "../git_cmd", version = "0.2.1" }
+release_plz_core = { path = "../release_plz_core", version = "0.2.20" }
 
 anyhow.workspace = true
 chrono = { workspace = true, features = ["clock"] }
 clap = { workspace = true, features = ["derive", "env"] }
-secrecy.workspace = true
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
-tracing.workspace = true
-tracing-subscriber = { workspace = true, features = ["env-filter"] }
-tracing-log.workspace = true
-url.workspace = true
+clap_complete.workspace = true
 dirs.workspace = true
 git-cliff-core.workspace = true
 git-url-parse.workspace = true
-clap_complete.workspace = true
+secrecy.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tracing-log.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+tracing.workspace = true
+url.workspace = true

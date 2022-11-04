@@ -18,8 +18,8 @@ anyhow.workspace = true
 tracing.workspace = true
 
 [dev-dependencies]
-tempfile.workspace = true
-claim.workspace = true
-
-test_logs = { path = "../test_logs" }
 git_cmd = { path = ".", features = ["test_fixture"]}
+test_logs = { path = "../test_logs" }
+
+claim.workspace = true
+tempfile.workspace = true
