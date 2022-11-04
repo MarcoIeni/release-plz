@@ -14,12 +14,12 @@ categories = ["development-tools", "filesystem"]
 test_fixture = []
 
 [dependencies]
-anyhow = "1.0.66"
-tracing = "0.1.36"
+anyhow.workspace = true
+tracing.workspace = true
 
 [dev-dependencies]
-tempfile = "3.3.0"
-
-test_logs = { path = "../test_logs" }
 git_cmd = { path = ".", features = ["test_fixture"]}
-claim = "0.5.0"
+test_logs = { path = "../test_logs" }
+
+claim.workspace = true
+tempfile.workspace = true
