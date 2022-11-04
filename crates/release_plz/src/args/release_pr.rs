@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use anyhow::{anyhow, Context};
 use clap::builder::NonEmptyStringValueParser;
 use git_cmd::Repo;
@@ -13,11 +15,11 @@ pub struct ReleasePr {
     pub update: Update,
     /// GitHub token used to create the pull request.
     #[clap(long, value_parser = NonEmptyStringValueParser::new())]
-    pub github_token: SecretString,
+    github_token: String,
     /// GitHub repository url where your project is hosted.
     /// It defaults to the `origin` url.
     #[clap(long, value_parser = NonEmptyStringValueParser::new())]
-    pub repo_url: Option<String>,
+    repo_url: Option<String>,
 }
 
 impl ReleasePr {
@@ -32,7 +34,8 @@ impl ReleasePr {
                 owner_and_repo(&url)
             }
         }?;
-        Ok(GitHub::new(owner, repo, self.github_token.clone()))
+        let token = SecretString::from_str(&self.github_token).context("Invalid GitHub token")?;
+        Ok(GitHub::new(owner, repo, token))
     }
 }
 
