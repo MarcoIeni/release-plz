@@ -17,28 +17,28 @@ cargo_utils = { path = "../cargo_utils", version = "0.1.1" }
 
 anyhow.workspace = true
 cargo_metadata.workspace = true
-cargo-clone-core = "0.1.0"
-cargo-edit = { version = "0.11.3", features = ["set-version"], default-features = false }
-chrono = { version = "0.4.22", features = ["clock"], default-features = false }
-crates-index = "0.18.9"
-fs_extra = "1.2.0"
-git-cliff = { version = "0.8.1", default-features = false }
-git-cliff-core = "0.8.1"
-octocrab = "0.17.0"
-secrecy = "0.8.0"
-tempfile = "3.3.0"
+cargo-clone-core.workspace = true
+cargo-edit = { workspace = true, features = ["set-version"] }
+chrono = { workspace = true, features = ["clock"] }
+crates-index.workspace = true
+fs_extra.workspace = true
+git-cliff.workspace = true
+git-cliff-core.workspace = true
+octocrab.workspace = true
+secrecy.workspace = true
+tempfile.workspace = true
 tracing.workspace = true
-url = "2.3.0"
-walkdir = "2.3.2"
-toml_edit = "0.14.4"
+url.workspace = true
+walkdir.workspace = true
+toml_edit.workspace = true
 
 [dev-dependencies]
 test_logs = { path = "../test_logs" }
-
-expect-test = "1.4.0"
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }
-tokio = { version = "1.19.2", features = ["macros"] }
-wiremock = "0.5.15"
-fake = "2.5.0"
-claim = "0.5.0"
-serde_json = "1.0.87"
+
+expect-test.workspace = true
+tokio = { workspace = true, features = ["macros"] }
+wiremock.workspace = true
+fake.workspace = true
+claim.workspace = true
+serde_json.workspace = true

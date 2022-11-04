@@ -13,4 +13,4 @@ categories = ["development-tools"]
 [dependencies]
 anyhow.workspace = true
 cargo_metadata.workspace = true
-dunce = "1.0.3"
+dunce.workspace = true
