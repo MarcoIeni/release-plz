@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.23] - 2022-11-04
+
+### Fixed
+- github token parsing (#334)
+
+### Other
+- use workspace dependencies (#333)
+
 ## [0.2.22] - 2022-11-03
 
 ### Fixed

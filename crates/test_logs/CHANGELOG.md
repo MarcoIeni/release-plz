@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10] - 2022-11-04
+
+### Other
+- use workspace dependencies (#333)
+
 ## [0.1.9] - 2022-11-01
 
 ### Other
