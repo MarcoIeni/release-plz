@@ -6,10 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.0] - 2022-11-12
+## [0.2.24] - 2022-11-12
 
 ### Fixed
-- [**breaking**] remove deprecated chrono::Date (#340)
+- breaking remove deprecated chrono::Date (#340)
 
 ## [0.2.23] - 2022-11-04
 
