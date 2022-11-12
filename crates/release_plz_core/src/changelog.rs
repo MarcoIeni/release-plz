@@ -1,4 +1,4 @@
-use chrono::{Date, TimeZone, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use git_cliff::changelog::Changelog as GitCliffChangelog;
 use git_cliff_core::{
     commit::Commit,
@@ -60,7 +60,7 @@ pub struct ChangelogBuilder {
     commits: Vec<String>,
     version: String,
     config: Option<Config>,
-    release_date: Option<Date<Utc>>,
+    release_date: Option<NaiveDate>,
 }
 
 impl ChangelogBuilder {
@@ -73,9 +73,9 @@ impl ChangelogBuilder {
         }
     }
 
-    pub fn with_release_date(self, timestamp: Date<Utc>) -> Self {
+    pub fn with_release_date(self, release_date: NaiveDate) -> Self {
         Self {
-            release_date: Some(timestamp),
+            release_date: Some(release_date),
             ..self
         }
     }
@@ -114,10 +114,14 @@ impl ChangelogBuilder {
         }
     }
 
+    /// Returns the provided release timestamp, if provided.
+    /// Current timestamp otherwise.
     fn release_timestamp(&self) -> i64 {
-        let release_date = self.release_date.unwrap_or_else(|| Utc::now().date());
-        let difference = release_date - Utc.ymd(1970, 1, 1);
-        difference.num_seconds()
+        self.release_date
+            .and_then(|date| date.and_hms_opt(0, 0, 0))
+            .map(|d| DateTime::<Utc>::from_utc(d, Utc))
+            .unwrap_or_else(Utc::now)
+            .timestamp()
     }
 }
 
@@ -229,7 +233,7 @@ mod tests {
     fn changelog_entries_are_generated() {
         let commits = vec!["fix: myfix", "simple update"];
         let changelog = ChangelogBuilder::new(commits, "1.1.1")
-            .with_release_date(Utc.ymd(2015, 5, 15))
+            .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
 
         expect_test::expect![[r####"
@@ -256,14 +260,14 @@ mod tests {
     fn generated_changelog_is_updated_correctly() {
         let commits = vec!["fix: myfix", "simple update"];
         let changelog = ChangelogBuilder::new(commits, "1.1.1")
-            .with_release_date(Utc.ymd(2015, 5, 15))
+            .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
 
         let generated_changelog = changelog.generate();
 
         let commits = vec!["fix: myfix2", "complex update"];
         let changelog = ChangelogBuilder::new(commits, "1.1.2")
-            .with_release_date(Utc.ymd(2015, 5, 15))
+            .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
 
         expect_test::expect![[r####"
@@ -298,7 +302,7 @@ mod tests {
     fn changelog_is_updated() {
         let commits = vec!["fix: myfix", "simple update"];
         let changelog = ChangelogBuilder::new(commits, "1.1.1")
-            .with_release_date(Utc.ymd(2015, 5, 15))
+            .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
         let old_body = r#"## [1.1.0] - 1970-01-01
 
@@ -342,7 +346,7 @@ mod tests {
     fn changelog_without_header_is_updated() {
         let commits = vec!["fix: myfix", "simple update"];
         let changelog = ChangelogBuilder::new(commits, "1.1.1")
-            .with_release_date(Utc.ymd(2015, 5, 15))
+            .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
         let old = r#"## [1.1.0] - 1970-01-01
 
@@ -385,7 +389,7 @@ mod tests {
 fn empty_changelog_is_updated() {
     let commits = vec!["fix: myfix", "simple update"];
     let changelog = ChangelogBuilder::new(commits, "1.1.1")
-        .with_release_date(Utc.ymd(2015, 5, 15))
+        .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
         .build();
     let new = changelog.prepend(CHANGELOG_HEADER);
     expect_test::expect![[r####"

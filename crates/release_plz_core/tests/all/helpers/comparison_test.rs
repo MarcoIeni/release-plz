@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use chrono::{TimeZone, Utc};
+use chrono::NaiveDate;
 use release_plz_core::{
     are_packages_equal, copy_to_temp_dir, ChangelogRequest, GitHub, ReleasePrRequest,
     UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
@@ -47,7 +47,7 @@ impl ComparisonTest {
         UpdateRequest::new(self.local_project_manifest())
             .unwrap()
             .with_changelog(ChangelogRequest {
-                release_date: Some(Utc.ymd(2015, 5, 15)),
+                release_date: NaiveDate::from_ymd_opt(2015, 5, 15),
                 changelog_config: None,
             })
             .with_registry_project_manifest(self.registry_project_manfifest())

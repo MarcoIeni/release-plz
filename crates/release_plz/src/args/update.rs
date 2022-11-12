@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::Context;
-use chrono::{Date, NaiveDate, Utc};
+use chrono::NaiveDate;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use git_cliff_core::config::Config as GitCliffConfig;
 use release_plz_core::{ChangelogRequest, UpdateRequest, CARGO_TOML};
@@ -96,8 +96,7 @@ impl Update {
                     NaiveDate::parse_from_str(date, "%Y-%m-%d")
                         .context("cannot parse release_date to y-m-d format")
                 })
-                .transpose()?
-                .map(|date| Date::<Utc>::from_utc(date, Utc));
+                .transpose()?;
             let changelog_req = ChangelogRequest {
                 release_date,
                 changelog_config: self.changelog_config()?,

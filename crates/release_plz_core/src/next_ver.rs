@@ -9,7 +9,7 @@ use crate::{
 use anyhow::{anyhow, Context};
 use cargo_edit::{upgrade_requirement, LocalManifest, VersionExt};
 use cargo_metadata::{semver::Version, Package};
-use chrono::{Date, Utc};
+use chrono::NaiveDate;
 use fs_extra::dir;
 use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
@@ -45,7 +45,7 @@ pub struct UpdateRequest {
 #[derive(Debug, Clone)]
 pub struct ChangelogRequest {
     /// When the new release is published. If unspecified, current date is used.
-    pub release_date: Option<Date<Utc>>,
+    pub release_date: Option<NaiveDate>,
     pub changelog_config: Option<GitCliffConfig>,
 }
 
