@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 use cargo_metadata::Package;
@@ -28,6 +28,14 @@ pub struct ReleaseRequest {
     pub dry_run: bool,
 }
 
+impl ReleaseRequest {
+    fn workspace_root(&self) -> anyhow::Result<&Path> {
+        self.local_manifest
+            .parent()
+            .context("cannot find local_manifest parent")
+    }
+}
+
 /// Release the project as it is.
 #[instrument]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
@@ -35,8 +43,22 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     let pkgs = &publishable_packages.iter().collect::<Vec<_>>();
     let release_order = release_order(pkgs);
     for package in release_order {
+        let workspace_root = input.workspace_root()?;
+        let repo = Repo::new(workspace_root)?;
+        let git_tag = git_tag(package);
+        if repo.tag_exists(&git_tag)? {
+            info!(
+                "{} {}: Already published - Tag {} already exists",
+                package.name, package.version, git_tag
+            );
+            continue;
+        }
         let registry_indexes = registry_indexes(package, input.registry.clone())?;
         for mut index in registry_indexes {
+            if is_published(&mut index, package)? {
+                info!("{} {}: already published", package.name, package.version);
+                return Ok(());
+            }
             release_package(&mut index, package, input)?;
         }
     }
@@ -72,11 +94,6 @@ fn release_package(
     package: &Package,
     input: &ReleaseRequest,
 ) -> anyhow::Result<()> {
-    if is_published(index, package)? {
-        info!("{} {}: already published", package.name, package.version);
-        return Ok(());
-    }
-
     let mut args = vec!["publish"];
     args.push("--color");
     args.push("always");
@@ -90,10 +107,7 @@ fn release_package(
         args.push("--dry-run");
     }
 
-    let workspace_root = input
-        .local_manifest
-        .parent()
-        .expect("cannot find local_manifest parent");
+    let workspace_root = input.workspace_root()?;
 
     let repo = Repo::new(workspace_root)?;
     let (_, stderr) = run_cargo(workspace_root, &args)?;
@@ -110,7 +124,7 @@ fn release_package(
     } else {
         wait_until_published(index, package)?;
 
-        let git_tag = format!("{}-v{}", package.name, package.version);
+        let git_tag = git_tag(package);
         repo.tag(&git_tag)?;
         repo.push(&git_tag)?;
 
@@ -118,4 +132,8 @@ fn release_package(
     }
 
     Ok(())
+}
+
+fn git_tag(package: &Package) -> String {
+    format!("{}-v{}", package.name, package.version)
 }

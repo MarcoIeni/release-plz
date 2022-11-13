@@ -194,6 +194,13 @@ impl Repo {
     pub fn origin_url(&self) -> anyhow::Result<String> {
         self.git(&["config", "--get", "remote.origin.url"])
     }
+
+    pub fn tag_exists(&self, tag: &str) -> anyhow::Result<bool> {
+        let output = self
+            .git(&["tag", "-l", tag])
+            .context("cannot determine if git tag exists")?;
+        Ok(output.lines().count() >= 1)
+    }
 }
 
 fn changed_files(output: &str) -> Vec<String> {
@@ -316,5 +323,34 @@ D  crates/git_cmd/CHANGELOG.md
             changed_files,
             vec!["README.md", "crates", "crates/git_cmd/CHANGELOG.md",]
         )
+    }
+
+    #[test]
+    fn existing_tag_is_recognized() {
+        test_logs::init();
+        let repository_dir = tempdir().unwrap();
+        let repo = Repo::init(&repository_dir);
+        let file1 = repository_dir.as_ref().join("file1.txt");
+        {
+            fs::write(&file1, b"Hello, file1!").unwrap();
+            repo.add_all_and_commit("file1").unwrap();
+        }
+        let version = "v1.0.0";
+        repo.tag(version).unwrap();
+        assert!(repo.tag_exists(version).unwrap())
+    }
+
+    #[test]
+    fn non_existing_tag_is_recognized() {
+        test_logs::init();
+        let repository_dir = tempdir().unwrap();
+        let repo = Repo::init(&repository_dir);
+        let file1 = repository_dir.as_ref().join("file1.txt");
+        {
+            fs::write(&file1, b"Hello, file1!").unwrap();
+            repo.add_all_and_commit("file1").unwrap();
+        }
+        repo.tag("v1.0.0").unwrap();
+        assert!(!repo.tag_exists("v2.0.0").unwrap())
     }
 }
