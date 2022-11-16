@@ -112,7 +112,7 @@ file with the `--changelog-config` argument.
 ## Users
 
 [This](https://cs.github.com/?scopeName=All+repos&scope=&q=path%3A*.yml+OR+path%3A*.yml+MarcoIeni%2Frelease-plz)
-GitHub search shows all the public repositories that use release-plz.
+GitHub search shows all the public repositories that use release-plz in CI.
 
 ## Similar projects
 
