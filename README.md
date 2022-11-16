@@ -109,6 +109,11 @@ By default, release-plz uses the [keep a changelog](https://keepachangelog.com/e
 You can customize the changelog format, by providing a git-cliff configuration
 file with the `--changelog-config` argument.
 
+## Users
+
+[This](https://cs.github.com/?scopeName=All+repos&scope=&q=path%3A*.yml+OR+path%3A*.yml+MarcoIeni%2Frelease-plz)
+GitHub search shows all the public repositories that use release-plz.
+
 ## Similar projects
 
 - [release-please](https://github.com/googleapis/release-please): release-plz is inspired by release-please,
