@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.25] - 2022-11-17
 
-### Other
-- updated the following local packages: git_cmd, release_plz_core
+### Changed
+- don't release if the tag exists (#342)
 
 ## [0.2.24] - 2022-11-12
 
