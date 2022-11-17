@@ -1371,7 +1371,7 @@ dependencies = [
 
 [[package]]
 name = "git_cmd"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "anyhow",
  "claim",
@@ -2517,7 +2517,7 @@ checksum = "456c603be3e8d448b072f410900c09faf164fbce2d480456f50eea6e25f9c848"
 
 [[package]]
 name = "release-plz"
-version = "0.2.24"
+version = "0.2.25"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2538,7 +2538,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "anyhow",
  "cargo-clone-core",
