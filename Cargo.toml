@@ -8,7 +8,7 @@ cargo-clone-core = "0.1.0"
 cargo-edit = { version = "0.11.6", default-features = false }
 chrono = { version = "0.4.22", default-features = false }
 claim = "0.5.0"
-clap = "4.0.26"
+clap = "4.0.29"
 clap_complete = "4.0.6"
 conventional_commit_parser = "0.9.4"
 crates-index = "0.18.11"
