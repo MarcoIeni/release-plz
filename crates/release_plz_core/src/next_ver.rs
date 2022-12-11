@@ -242,7 +242,7 @@ impl UpdateResult {
     ) -> anyhow::Result<UpdateResult> {
         let release_link = {
             let prev_tag = git_tag(&package.name, &package.version.to_string());
-            let next_tag = git_tag(&package.name, &package.version.to_string());
+            let next_tag = git_tag(&package.name, &version.to_string());
             req.github_repo
                 .as_ref()
                 .map(|r| r.gh_release_link(&prev_tag, &next_tag))
