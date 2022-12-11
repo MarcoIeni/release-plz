@@ -9,10 +9,10 @@ mod registry_packages;
 mod release;
 mod release_order;
 mod release_pr;
+mod repo_url;
 mod tmp_repo;
 mod update;
 mod version;
-mod repo_url;
 
 pub use changelog::*;
 pub use download::read_package;
@@ -21,7 +21,7 @@ pub use next_ver::*;
 pub use package_compare::*;
 pub use release::*;
 pub use release_pr::*;
-pub use update::*;
 pub use repo_url::*;
+pub use update::*;
 
 pub const CARGO_TOML: &str = "Cargo.toml";
