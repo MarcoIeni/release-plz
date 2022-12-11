@@ -1,7 +1,9 @@
 use crate::{
     diff::Diff,
+    git_tag,
     package_compare::are_packages_equal,
     registry_packages::{self, PackagesCollection},
+    repo_url::RepoUrl,
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
     ChangelogBuilder, CARGO_TOML, CHANGELOG_FILENAME,
@@ -40,6 +42,9 @@ pub struct UpdateRequest {
     /// Allow dirty working directories to be updated.
     /// The uncommitted changes will be part of the update.
     allow_dirty: bool,
+    /// If present, the new changelog entry contains a link to the diff between the old and new version.
+    /// Format: `https://{repo_host}/{repo_owner}/{repo_name}/compare/{old_tag}...{new_tag}`.
+    github_repo: Option<RepoUrl>,
 }
 
 #[derive(Debug, Clone)]
@@ -67,6 +72,7 @@ impl UpdateRequest {
             registry: None,
             update_dependencies: false,
             allow_dirty: false,
+            github_repo: None,
         })
     }
 
@@ -102,6 +108,13 @@ impl UpdateRequest {
     pub fn with_single_package(self, package: String) -> Self {
         Self {
             single_package: Some(package),
+            ..self
+        }
+    }
+
+    pub fn with_repo_url(self, repo_url: RepoUrl) -> Self {
+        Self {
+            github_repo: Some(repo_url),
             ..self
         }
     }
@@ -155,12 +168,8 @@ pub fn next_versions(
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
-    let packages_to_update = packages_to_update(
-        local_project,
-        &registry_packages,
-        &repository.repo,
-        input.changelog_req.clone(),
-    )?;
+    let packages_to_update =
+        packages_to_update(local_project, &registry_packages, &repository.repo, input)?;
     Ok((packages_to_update, repository))
 }
 
@@ -223,14 +232,26 @@ pub struct UpdateResult {
 }
 
 impl UpdateResult {
+    /// # Args
+    /// - `release_link`: Link to the web page containing the changes of this release.
     fn new(
         commits: Vec<String>,
         version: Version,
-        changelog_req: Option<ChangelogRequest>,
+        req: &UpdateRequest,
         package: &Package,
     ) -> anyhow::Result<UpdateResult> {
-        let changelog = changelog_req
-            .map(|r| get_changelog(commits, &version, Some(r), package))
+        let release_link = {
+            let prev_tag = git_tag(&package.name, &package.version.to_string());
+            let next_tag = git_tag(&package.name, &package.version.to_string());
+            req.github_repo
+                .as_ref()
+                .map(|r| r.gh_release_link(&prev_tag, &next_tag))
+        };
+
+        let changelog = req
+            .changelog_req
+            .as_ref()
+            .map(|r| get_changelog(commits, &version, Some(r.clone()), package, release_link))
             .transpose()?;
 
         Ok(UpdateResult { version, changelog })
@@ -242,7 +263,7 @@ fn packages_to_update(
     project: Project,
     registry_packages: &PackagesCollection,
     repository: &Repo,
-    changelog_req: Option<ChangelogRequest>,
+    req: &UpdateRequest,
 ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
     debug!("calculating local packages");
     let mut packages_to_check_for_deps: Vec<&Package> = vec![];
@@ -255,8 +276,7 @@ fn packages_to_update(
         debug!("diff: {:?}, next_version: {}", &diff, next_version);
         if next_version != current_version || !diff.registry_package_exists {
             info!("{}: next version is {next_version}", p.name);
-            let update_result =
-                UpdateResult::new(diff.commits.clone(), next_version, changelog_req.clone(), p)?;
+            let update_result = UpdateResult::new(diff.commits.clone(), next_version, req, p)?;
 
             packages_to_update.push((p.clone(), update_result));
         } else if diff.is_version_published {
@@ -268,11 +288,8 @@ fn packages_to_update(
         .iter()
         .map(|(p, u)| (p, &u.version))
         .collect();
-    let dependent_packages = dependent_packages(
-        &packages_to_check_for_deps,
-        &changed_packages,
-        changelog_req,
-    )?;
+    let dependent_packages =
+        dependent_packages(&packages_to_check_for_deps, &changed_packages, req)?;
     packages_to_update.extend(dependent_packages);
     Ok(packages_to_update)
 }
@@ -281,7 +298,7 @@ fn packages_to_update(
 fn dependent_packages(
     packages_to_check_for_deps: &[&Package],
     changed_packages: &[(&Package, &Version)],
-    changelog_req: Option<ChangelogRequest>,
+    req: &UpdateRequest,
 ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
     let packages_to_update = packages_to_check_for_deps
         .iter()
@@ -312,7 +329,7 @@ fn dependent_packages(
             );
             Ok((
                 p.clone(),
-                UpdateResult::new(vec![change], next_version, changelog_req.clone(), p)?,
+                UpdateResult::new(vec![change], next_version, req, p)?,
             ))
         })
         .collect::<anyhow::Result<Vec<_>>>()?;
@@ -324,6 +341,7 @@ fn get_changelog(
     next_version: &Version,
     changelog_req: Option<ChangelogRequest>,
     package: &Package,
+    release_link: Option<String>,
 ) -> anyhow::Result<String> {
     let mut changelog_builder = ChangelogBuilder::new(commits, next_version.to_string());
     if let Some(changelog_req) = changelog_req {
@@ -332,6 +350,9 @@ fn get_changelog(
         }
         if let Some(config) = changelog_req.changelog_config {
             changelog_builder = changelog_builder.with_config(config)
+        }
+        if let Some(link) = release_link {
+            changelog_builder = changelog_builder.with_release_link(link)
         }
     }
     let new_changelog = changelog_builder.build();

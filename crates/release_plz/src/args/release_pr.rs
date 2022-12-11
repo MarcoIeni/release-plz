@@ -1,9 +1,7 @@
 use std::str::FromStr;
 
-use anyhow::{anyhow, Context};
+use anyhow::Context;
 use clap::builder::NonEmptyStringValueParser;
-use git_cmd::Repo;
-use git_url_parse::GitUrl;
 use release_plz_core::GitHub;
 use secrecy::SecretString;
 
@@ -16,51 +14,36 @@ pub struct ReleasePr {
     /// GitHub token used to create the pull request.
     #[clap(long, value_parser = NonEmptyStringValueParser::new())]
     github_token: String,
-    /// GitHub repository url where your project is hosted.
-    /// It defaults to the `origin` url.
-    #[clap(long, value_parser = NonEmptyStringValueParser::new())]
-    repo_url: Option<String>,
 }
 
 impl ReleasePr {
     pub fn github(&self) -> anyhow::Result<GitHub> {
-        let (owner, repo) = match &self.repo_url {
-            Some(url) => owner_and_repo(url),
-            None => {
-                let project_manifest = self.update.project_manifest();
-                let project_dir = project_manifest.parent().context("at least a parent")?;
-                let repo = Repo::new(project_dir)?;
-                let url = repo.origin_url().context("cannot determine origin url")?;
-                owner_and_repo(&url)
-            }
-        }?;
+        let repo = self.update.repo_url()?;
+        anyhow::ensure!(
+            repo.is_on_github(),
+            "Can't create PR: the repository is not hosted in GitHub"
+        );
         let token = SecretString::from_str(&self.github_token).context("Invalid GitHub token")?;
-        Ok(GitHub::new(owner, repo, token))
+        Ok(GitHub::new(repo.owner, repo.name, token))
     }
-}
-
-fn owner_and_repo(github_url: &str) -> anyhow::Result<(String, String)> {
-    let git_url = GitUrl::parse(github_url)
-        .map_err(|err| anyhow!("cannot parse github url {}: {}", github_url, err))?;
-    let owner = git_url
-        .owner
-        .with_context(|| format!("cannot find owner in git url {}", github_url))?;
-    let repo = git_url.name;
-    Ok((owner, repo))
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use release_plz_core::RepoUrl;
+
+    const GITHUB_COM: &str = "github.com";
 
     #[test]
     fn https_github_url_is_parsed() {
         let expected_owner = "MarcoIeni";
         let expected_repo = "release-plz";
-        let url = format!("https://github.com/{}/{}", expected_owner, expected_repo);
-        let (owner, repo) = owner_and_repo(&url).unwrap();
-        assert_eq!(expected_owner, owner);
-        assert_eq!(expected_repo, repo);
+        let url = format!("https://{GITHUB_COM}/{}/{}", expected_owner, expected_repo);
+        let repo = RepoUrl::new(&url).unwrap();
+        assert_eq!(expected_owner, repo.owner);
+        assert_eq!(expected_repo, repo.name);
+        assert_eq!(GITHUB_COM, repo.host);
+        assert!(repo.is_on_github())
     }
 
     #[test]
@@ -68,8 +51,10 @@ mod tests {
         let expected_owner = "MarcoIeni";
         let expected_repo = "release-plz";
         let url = format!("git@github.com:{}/{}.git", expected_owner, expected_repo);
-        let (owner, repo) = owner_and_repo(&url).unwrap();
-        assert_eq!(expected_owner, owner);
-        assert_eq!(expected_repo, repo);
+        let repo = RepoUrl::new(&url).unwrap();
+        assert_eq!(expected_owner, repo.owner);
+        assert_eq!(expected_repo, repo.name);
+        assert_eq!(GITHUB_COM, repo.host);
+        assert!(repo.is_on_github())
     }
 }

@@ -4,8 +4,12 @@ use anyhow::Context;
 use chrono::NaiveDate;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use git_cliff_core::config::Config as GitCliffConfig;
-use release_plz_core::{ChangelogRequest, UpdateRequest, CARGO_TOML};
+use git_cmd::Repo;
+use release_plz_core::{ChangelogRequest, RepoUrl, UpdateRequest, CARGO_TOML};
 
+/// Update your project locally, without opening a PR.
+/// If `repo_url` contains a GitHub URL, release-plz uses it to add a release
+/// link in the changelog.
 #[derive(clap::Parser, Debug)]
 pub struct Update {
     /// Path to the Cargo.toml of the project you want to update.
@@ -67,11 +71,29 @@ pub struct Update {
     /// The uncommitted changes will be part of the update.
     #[clap(long)]
     allow_dirty: bool,
+    /// GitHub repository url where your project is hosted.
+    /// It is used to generate the changelog release link.
+    /// It defaults to the `origin` url.
+    #[clap(long, value_parser = NonEmptyStringValueParser::new())]
+    repo_url: Option<String>,
 }
 
 impl Update {
     pub fn project_manifest(&self) -> PathBuf {
         super::local_manifest(self.project_manifest.as_deref())
+    }
+
+    pub fn repo_url(&self) -> anyhow::Result<RepoUrl> {
+        match &self.repo_url {
+            Some(url) => RepoUrl::new(url),
+            None => {
+                let project_manifest = self.project_manifest();
+                let project_dir = project_manifest.parent().context("at least a parent")?;
+                let repo = Repo::new(project_dir)?;
+                let url = repo.origin_url().context("cannot determine origin url")?;
+                RepoUrl::new(&url)
+            }
+        }
     }
 
     pub fn update_request(&self) -> anyhow::Result<UpdateRequest> {
@@ -81,6 +103,12 @@ impl Update {
             })?
             .with_update_dependencies(self.update_deps)
             .with_allow_dirty(self.allow_dirty);
+        let repo_url = self
+            .repo_url()
+            .context("error while determining repo url")?;
+        if repo_url.is_on_github() {
+            update = update.with_repo_url(repo_url);
+        }
         if let Some(registry_project_manifest) = &self.registry_project_manifest {
             update = update
                 .with_registry_project_manifest(registry_project_manifest.clone())
