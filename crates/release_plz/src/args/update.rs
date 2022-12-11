@@ -103,12 +103,15 @@ impl Update {
             })?
             .with_update_dependencies(self.update_deps)
             .with_allow_dirty(self.allow_dirty);
-        let repo_url = self
-            .repo_url()
-            .context("error while determining repo url")?;
-        if repo_url.is_on_github() {
-            update = update.with_repo_url(repo_url);
+        match self.repo_url() {
+            Ok(repo_url) => {
+                if repo_url.is_on_github() {
+                    update = update.with_repo_url(repo_url);
+                }
+            }
+            Err(e) => tracing::warn!("Cannot determine repo url. The changelog won't contain the release link. Error: {}", e),
         }
+
         if let Some(registry_project_manifest) = &self.registry_project_manifest {
             update = update
                 .with_registry_project_manifest(registry_project_manifest.clone())
