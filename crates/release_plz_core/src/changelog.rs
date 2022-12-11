@@ -21,12 +21,15 @@ pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";
 pub struct Changelog<'a> {
     release: Release<'a>,
     config: Option<Config>,
+    release_link: Option<String>,
 }
 
 impl Changelog<'_> {
     /// Generate the full changelog.
     pub fn generate(self) -> String {
-        let config = self.config.unwrap_or_else(default_git_cliff_config);
+        let config = self
+            .config
+            .unwrap_or_else(|| default_git_cliff_config(self.release_link.as_deref()));
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .expect("error while building changelog");
         let mut out = Vec::new();
@@ -38,7 +41,9 @@ impl Changelog<'_> {
 
     /// Update an existing changelog.
     pub fn prepend(self, old_changelog: impl Into<String>) -> String {
-        let config = self.config.unwrap_or_else(default_git_cliff_config);
+        let config = self
+            .config
+            .unwrap_or_else(|| default_git_cliff_config(self.release_link.as_deref()));
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .expect("error while building changelog");
         let mut out = Vec::new();
@@ -49,18 +54,20 @@ impl Changelog<'_> {
     }
 }
 
-fn default_git_cliff_config() -> Config {
+fn default_git_cliff_config(release_link: Option<&str>) -> Config {
     Config {
-        changelog: default_changelog_config(),
+        changelog: default_changelog_config(release_link),
         git: default_git_config(),
     }
 }
 
+#[derive(Default)]
 pub struct ChangelogBuilder {
     commits: Vec<String>,
     version: String,
     config: Option<Config>,
     release_date: Option<NaiveDate>,
+    release_link: Option<String>,
 }
 
 impl ChangelogBuilder {
@@ -68,14 +75,20 @@ impl ChangelogBuilder {
         Self {
             commits: commits.into_iter().map(|s| s.into()).collect(),
             version: version.into(),
-            release_date: None,
-            config: None,
+            ..Self::default()
         }
     }
 
     pub fn with_release_date(self, release_date: NaiveDate) -> Self {
         Self {
             release_date: Some(release_date),
+            ..self
+        }
+    }
+
+    pub fn with_release_link(self, release_link: impl Into<String>) -> Self {
+        Self {
+            release_link: Some(release_link.into()),
             ..self
         }
     }
@@ -110,6 +123,7 @@ impl ChangelogBuilder {
                 timestamp: release_date,
                 previous: None,
             },
+            release_link: self.release_link,
             config: self.config,
         }
     }
@@ -203,12 +217,19 @@ fn commit_parsers() -> Vec<CommitParser> {
     ]
 }
 
-fn default_changelog_config() -> ChangelogConfig {
+fn default_changelog_config(release_link: Option<&str>) -> ChangelogConfig {
     ChangelogConfig {
         header: Some(String::from(CHANGELOG_HEADER)),
-        body: Some(String::from(
-            r#"
-## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+        body: Some(default_changelog_body_config(release_link)),
+        footer: None,
+        trim: Some(true),
+    }
+}
+
+fn default_changelog_body_config(release_link: Option<&str>) -> String {
+    let pre = r#"
+    ## [{{ version | trim_start_matches(pat="v") }}]"#;
+    let post = r#" - {{ timestamp | date(format="%Y-%m-%d") }}
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group | upper_first }}
 {% for commit in commits %}
@@ -218,10 +239,11 @@ fn default_changelog_config() -> ChangelogConfig {
 - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
 {% endif -%}
 {% endfor -%}
-{% endfor %}"#,
-        )),
-        footer: None,
-        trim: Some(true),
+{% endfor %}"#;
+
+    match release_link {
+        Some(link) => format!("{pre}({link}){post}"),
+        None => format!("{pre}{post}"),
     }
 }
 
@@ -252,6 +274,31 @@ mod tests {
 
             ### Other
             - simple update
+        "####]]
+        .assert_eq(&changelog.generate());
+    }
+
+    #[test]
+    fn changelog_entry_with_link_is_generated() {
+        let commits = vec!["fix: myfix"];
+        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+            .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
+            .with_release_link("https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.24...release-plz-v0.2.25")
+            .build();
+
+        expect_test::expect![[r####"
+            # Changelog
+            All notable changes to this project will be documented in this file.
+
+            The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+            and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+            ## [Unreleased]
+
+            ## [1.1.1](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.24...release-plz-v0.2.25) - 2015-05-15
+
+            ### Fixed
+            - myfix
         "####]]
         .assert_eq(&changelog.generate());
     }
