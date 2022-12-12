@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.26] - 2022-12-12
+
+### Added
+- Changelog: add GitHub release link to show the commits since the previous version (#371)
+
+### Other
+- *(deps)* bump assert_cmd from 2.0.6 to 2.0.7 (#366)
+- *(completions)* add tests for shell completions (#330) (#349)
+
 ## [0.2.25] - 2022-11-17
 
 ### Changed
