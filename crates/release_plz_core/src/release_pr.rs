@@ -43,7 +43,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .context("cannot close old release-plz prs")?;
     if !packages_to_update.is_empty() {
         let repo = Repo::new(new_manifest_dir)?;
-        let pr = Pr::from(packages_to_update.as_ref());
+        let pr = Pr::from((repo.default_branch(), packages_to_update.as_ref()));
         create_release_branch(&repo, &pr.branch)?;
         gh_client.open_pr(&pr).await?;
     }
@@ -51,10 +51,11 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     Ok(())
 }
 
-impl From<&[(Package, UpdateResult)]> for Pr {
-    fn from(packages_to_update: &[(Package, UpdateResult)]) -> Self {
+impl From<(&str, &[(Package, UpdateResult)])> for Pr {
+    fn from((default_branch, packages_to_update): (&str, &[(Package, UpdateResult)])) -> Self {
         Self {
             branch: release_branch(),
+            base_branch: default_branch.to_string(),
             title: pr_title(packages_to_update),
             body: pr_body(packages_to_update),
         }

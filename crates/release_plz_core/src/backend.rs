@@ -60,6 +60,7 @@ impl<'a> GitClient<'a> {
 
 #[derive(Debug)]
 pub struct Pr {
+    pub base_branch: String,
     pub branch: String,
     pub title: String,
     pub body: String,

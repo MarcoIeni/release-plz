@@ -97,6 +97,10 @@ impl Repo {
         Ok(())
     }
 
+    pub fn default_branch(&self) -> &str {
+        &self.default_branch
+    }
+
     #[instrument(skip(self))]
     fn current_commit(&self) -> anyhow::Result<String> {
         self.nth_commit(1)
