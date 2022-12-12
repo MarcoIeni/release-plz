@@ -13,7 +13,7 @@ categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 git_cmd = { path = "../git_cmd", version = "0.2.4" }
-release_plz_core = { path = "../release_plz_core", version = "0.3.2" }
+release_plz_core = { path = "../release_plz_core", version = "0.4.0" }
 
 anyhow.workspace = true
 chrono = { workspace = true, features = ["clock"] }

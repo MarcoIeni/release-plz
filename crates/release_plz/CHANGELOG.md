@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.26] - 2022-12-12
 
 ### Added
-- feat!(changelog): support release link (#371)
+- Changelog: add GitHub release link to show the commits since the previous version (#371)
 
 ### Other
 - *(deps)* bump assert_cmd from 2.0.6 to 2.0.7 (#366)
