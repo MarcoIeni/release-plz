@@ -45,7 +45,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     for package in release_order {
         let workspace_root = input.workspace_root()?;
         let repo = Repo::new(workspace_root)?;
-        let git_tag = git_tag(package);
+        let git_tag = git_tag(&package.name, &package.version.to_string());
         if repo.tag_exists(&git_tag)? {
             info!(
                 "{} {}: Already published - Tag {} already exists",
@@ -124,7 +124,7 @@ fn release_package(
     } else {
         wait_until_published(index, package)?;
 
-        let git_tag = git_tag(package);
+        let git_tag = git_tag(&package.name, &package.version.to_string());
         repo.tag(&git_tag)?;
         repo.push(&git_tag)?;
 
@@ -134,6 +134,6 @@ fn release_package(
     Ok(())
 }
 
-fn git_tag(package: &Package) -> String {
-    format!("{}-v{}", package.name, package.version)
+pub fn git_tag(package_name: &str, version: &str) -> String {
+    format!("{}-v{}", package_name, version)
 }

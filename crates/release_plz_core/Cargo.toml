@@ -24,6 +24,7 @@ crates-index.workspace = true
 fs_extra.workspace = true
 git-cliff.workspace = true
 git-cliff-core.workspace = true
+git-url-parse.workspace = true
 octocrab.workspace = true
 secrecy.workspace = true
 tempfile.workspace = true
