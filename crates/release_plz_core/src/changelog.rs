@@ -61,7 +61,6 @@ fn default_git_cliff_config(release_link: Option<&str>) -> Config {
     }
 }
 
-#[derive(Default)]
 pub struct ChangelogBuilder {
     commits: Vec<String>,
     version: String,
@@ -75,7 +74,10 @@ impl ChangelogBuilder {
         Self {
             commits: commits.into_iter().map(|s| s.into()).collect(),
             version: version.into(),
-            ..Self::default()
+            config: None,
+            release_date: None,
+            release_link: None,
+
         }
     }
 
