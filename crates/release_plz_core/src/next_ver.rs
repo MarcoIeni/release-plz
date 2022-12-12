@@ -72,7 +72,6 @@ fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
     if !local_manifest.ends_with(CARGO_TOML) {
         local_manifest.push(CARGO_TOML)
     }
-    println!("{local_manifest:?}");
     Ok(local_manifest)
 }
 
@@ -226,7 +225,6 @@ impl Project {
     fn get_repo(&self) -> anyhow::Result<TempRepo> {
         let tmp_project_root = copy_to_temp_dir(&self.root)?;
         let tmp_manifest_dir = {
-            println!("{self:?}");
             let parent_root = self.root.parent().context("cannot determine parent root")?;
             let relative_manifest_dir = self
                 .manifest_dir
