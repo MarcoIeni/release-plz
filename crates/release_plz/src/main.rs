@@ -20,7 +20,7 @@ async fn main() -> anyhow::Result<()> {
         args::Command::ReleasePr(cmd_args) => {
             let update_request = cmd_args.update.update_request()?;
             let request = ReleasePrRequest {
-                github: cmd_args
+                git: cmd_args
                     .git_backend()
                     .context("invalid git backend settings")?,
                 update_request,

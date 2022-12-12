@@ -2,7 +2,10 @@ use std::str::FromStr;
 
 use anyhow::Context;
 use clap::builder::NonEmptyStringValueParser;
-use release_plz_core::{GitBackend, GitBackendKind, GitHub, Gitea};
+use clap::ValueEnum;
+use git_cmd::Repo;
+use git_url_parse::GitUrl;
+use release_plz_core::{GitBackend, GitHub, Gitea};
 use secrecy::SecretString;
 use url::Url;
 
@@ -16,8 +19,16 @@ pub struct ReleasePr {
     #[clap(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github_token")]
     token: String,
     /// Kind of git host where your project is hosted.
-    #[clap(long, default_value_t = GitBackendKind::Github)]
+    #[clap(value_enum, default_value_t = GitBackendKind::Github)]
     backend: GitBackendKind,
+}
+
+#[derive(ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]
+enum GitBackendKind {
+    #[value(name = "github")]
+    Github,
+    #[value(name = "gitea")]
+    Gitea,
 }
 
 impl ReleasePr {

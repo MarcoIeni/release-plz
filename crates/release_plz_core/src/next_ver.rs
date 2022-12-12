@@ -55,20 +55,7 @@ pub struct ChangelogRequest {
 }
 
 fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
-    let mut local_manifest = if cfg!(windows) {
-        // Path canonicalization mucks with the path on windows, so manually calculate the absolute
-        // path if needed
-        if local_manifest.is_absolute() {
-            local_manifest.to_owned()
-        } else {
-            let mut path = std::env::current_dir()?;
-            path.push(local_manifest);
-            path
-        }
-    } else {
-        fs::canonicalize(local_manifest)?
-    };
-
+    let mut local_manifest = dunce::canonicalize(local_manifest)?;
     if !local_manifest.ends_with(CARGO_TOML) {
         local_manifest.push(CARGO_TOML)
     }

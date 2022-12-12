@@ -1,5 +1,6 @@
 use crate::backend::Pr;
 use anyhow::bail;
+use reqwest::header::HeaderValue;
 use reqwest::Method;
 use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
@@ -14,7 +15,7 @@ pub struct GiteaClient<'a> {
 
 impl<'a> GiteaClient<'a> {
     pub fn new(gitea: &'a Gitea) -> anyhow::Result<Self> {
-        let client = reqwest::Client::builder().use_rustls_tls().build()?;
+        let client = reqwest::Client::new();
         Ok(Self { gitea, client })
     }
 
@@ -28,15 +29,11 @@ impl<'a> GiteaClient<'a> {
                 .request(
                     Method::GET,
                     format!(
-                        "{}/repos/{}/{}/pulls?token={}&state=open&page={}&limit={}",
-                        self.gitea.api_url,
-                        self.gitea.owner,
-                        self.gitea.repo,
-                        self.gitea.token.expose_secret(),
-                        page,
-                        page_size
+                        "{}/repos/{}/{}/pulls?state=open&page={}&limit={}",
+                        self.gitea.api_url, self.gitea.owner, self.gitea.repo, page, page_size
                     ),
                 )
+                .header("Authorization", self.get_token_header()?)
                 .header("accept", "application/json")
                 .build()?;
             debug!(
@@ -62,14 +59,11 @@ impl<'a> GiteaClient<'a> {
                         .request(
                             Method::PATCH,
                             format!(
-                                "{}/repos/{}/{}/pulls/{}?token={}",
-                                self.gitea.api_url,
-                                self.gitea.owner,
-                                self.gitea.repo,
-                                &pr.id,
-                                self.gitea.token.expose_secret(),
+                                "{}/repos/{}/{}/pulls/{}",
+                                self.gitea.api_url, self.gitea.owner, self.gitea.repo, &pr.id,
                             ),
                         )
+                        .header("Authorization", self.get_token_header()?)
                         .json(&EditPullRequest { state: "closed" })
                         .build()?;
                     self.client.execute(req).await?.error_for_status()?;
@@ -104,13 +98,11 @@ impl<'a> GiteaClient<'a> {
             .request(
                 Method::POST,
                 format!(
-                    "{}/repos/{}/{}/pulls?token={}",
-                    self.gitea.api_url,
-                    self.gitea.owner,
-                    self.gitea.repo,
-                    self.gitea.token.expose_secret()
+                    "{}/repos/{}/{}/pulls",
+                    self.gitea.api_url, self.gitea.owner, self.gitea.repo,
                 ),
             )
+            .header("Authorization", self.get_token_header()?)
             .json(&req_body)
             .build()?;
         debug!(
@@ -119,6 +111,11 @@ impl<'a> GiteaClient<'a> {
         );
         self.client.execute(req).await?.error_for_status()?;
         Ok(())
+    }
+
+    fn get_token_header(&self) -> anyhow::Result<HeaderValue> {
+        let header = HeaderValue::from_str(&format!("token {}", self.gitea.token.expose_secret()))?;
+        Ok(header)
     }
 }
 

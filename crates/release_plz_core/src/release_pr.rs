@@ -14,7 +14,7 @@ const BRANCH_PREFIX: &str = "release-plz/";
 
 #[derive(Debug)]
 pub struct ReleasePrRequest {
-    pub github: GitBackend,
+    pub git: GitBackend,
     pub update_request: UpdateRequest,
 }
 
@@ -36,7 +36,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .set_local_manifest(local_manifest)
         .context("can't find temporary project")?;
     let (packages_to_update, _temp_repository) = update(&new_update_request)?;
-    let gh_client = GitClient::new(&input.github)?;
+    let gh_client = GitClient::new(&input.git)?;
     gh_client
         .close_prs_on_branches(BRANCH_PREFIX)
         .await

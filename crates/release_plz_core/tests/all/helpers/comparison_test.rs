@@ -72,7 +72,7 @@ impl ComparisonTest {
             .with_base_url(base_url),
         );
         ReleasePrRequest {
-            github,
+            git: github,
             update_request: self.update_request(),
         }
     }
@@ -91,7 +91,7 @@ impl ComparisonTest {
             base_url,
         )?);
         Ok(ReleasePrRequest {
-            github: git,
+            git: git,
             update_request: self.update_request(),
         })
     }

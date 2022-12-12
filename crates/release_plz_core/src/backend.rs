@@ -1,25 +1,12 @@
 use crate::gitea_client::{Gitea, GiteaClient};
 use crate::github_client::GitHubClient;
 use crate::GitHub;
-use clap::ValueEnum;
-use enum_kinds::EnumKind;
-use std::fmt::{Display, Formatter};
 use tracing::instrument;
 
-#[derive(EnumKind, Debug)]
-#[enum_kind(GitBackendKind, derive(ValueEnum))]
+#[derive(Debug)]
 pub enum GitBackend {
     Github(GitHub),
     Gitea(Gitea),
-}
-
-impl Display for GitBackendKind {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            GitBackendKind::Github => f.write_str("github"),
-            GitBackendKind::Gitea => f.write_str("gitea"),
-        }
-    }
 }
 
 #[derive(Debug)]
