@@ -230,12 +230,15 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
     if output.status.success() {
         Ok(stdout)
     } else {
-        let mut error = "error while running git:\n".to_string();
+        let mut error = "error while running git".to_string();
+        let stderr = cmd::string_from_bytes(output.stderr)?;
+        if !stdout.is_empty() || !stderr.is_empty() {
+            error.push_str(":\n");
+        }
         if !stdout.is_empty() {
             error.push_str("- stdout: ");
             error.push_str(&stdout);
         }
-        let stderr = cmd::string_from_bytes(output.stderr)?;
         if !stderr.is_empty() {
             error.push_str("- stderr: ");
             error.push_str(&stderr);
