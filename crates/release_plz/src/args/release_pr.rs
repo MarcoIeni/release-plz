@@ -15,6 +15,7 @@ pub struct ReleasePr {
     /// Git token used to create the pull request.
     #[clap(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github_token")]
     token: String,
+    /// Kind of git host where your project is hosted.
     #[clap(long, default_value_t = GitBackendKind::Github)]
     backend: GitBackendKind,
 }
@@ -27,8 +28,7 @@ impl ReleasePr {
                 let project_manifest = self.update.project_manifest();
                 let project_dir = project_manifest.parent().context("at least a parent")?;
                 let repo = Repo::new(project_dir)?;
-                let url = repo.origin_url().context("cannot determine origin url")?;
-                url
+                repo.origin_url().context("cannot determine origin url")?
             }
         };
 
@@ -45,7 +45,7 @@ impl ReleasePr {
                 parts
                     .host
                     .ok_or_else(|| anyhow!("Gitea backend must have a valid URL"))?,
-            )),
+            )?),
         })
     }
 }

@@ -28,7 +28,9 @@ git-cliff.workspace = true
 git-cliff-core.workspace = true
 git-url-parse.workspace = true
 octocrab.workspace = true
+reqwest = { workspace = true, features = ["rustls-tls-native-roots", "json"] }
 secrecy.workspace = true
+serde = { workspace = true, features = ["derive"] }
 tempfile.workspace = true
 tracing.workspace = true
 url.workspace = true
