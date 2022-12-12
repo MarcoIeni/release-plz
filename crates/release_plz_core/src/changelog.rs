@@ -77,7 +77,6 @@ impl ChangelogBuilder {
             config: None,
             release_date: None,
             release_link: None,
-
         }
     }
 
