@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf};
 
 use chrono::NaiveDate;
 use release_plz_core::{
-    are_packages_equal, copy_to_temp_dir, ChangelogRequest, GitHub, ReleasePrRequest,
+    are_packages_equal, copy_to_temp_dir, ChangelogRequest, GitBackend, GitHub, ReleasePrRequest,
     UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use secrecy::Secret;
@@ -60,12 +60,14 @@ impl ComparisonTest {
     }
 
     fn release_pr_request(&self, base_url: Url) -> ReleasePrRequest {
-        let github = GitHub::new(
-            OWNER.to_string(),
-            REPO.to_string(),
-            Secret::from("token".to_string()),
-        )
-        .with_base_url(base_url);
+        let github = GitBackend::Github(
+            GitHub::new(
+                OWNER.to_string(),
+                REPO.to_string(),
+                Secret::from("token".to_string()),
+            )
+            .with_base_url(base_url),
+        );
         ReleasePrRequest {
             github,
             update_request: self.update_request(),

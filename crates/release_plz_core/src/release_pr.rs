@@ -7,17 +7,14 @@ use git_cmd::Repo;
 use anyhow::{anyhow, Context};
 use tracing::instrument;
 
-use crate::{
-    copy_to_temp_dir,
-    github_client::{GitHub, GitHubClient, Pr},
-    update, UpdateRequest, UpdateResult, CARGO_TOML,
-};
+use crate::backend::{GitClient, Pr};
+use crate::{copy_to_temp_dir, update, GitBackend, UpdateRequest, UpdateResult, CARGO_TOML};
 
 const BRANCH_PREFIX: &str = "release-plz/";
 
 #[derive(Debug)]
 pub struct ReleasePrRequest {
-    pub github: GitHub,
+    pub github: GitBackend,
     pub update_request: UpdateRequest,
 }
 
@@ -39,7 +36,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .set_local_manifest(local_manifest)
         .context("can't find temporary project")?;
     let (packages_to_update, _temp_repository) = update(&new_update_request)?;
-    let gh_client = GitHubClient::new(&input.github)?;
+    let gh_client = GitClient::new(&input.github)?;
     gh_client
         .close_prs_on_branches(BRANCH_PREFIX)
         .await

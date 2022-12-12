@@ -20,7 +20,9 @@ cargo_metadata.workspace = true
 cargo-clone-core.workspace = true
 cargo-edit = { workspace = true, features = ["set-version"] }
 chrono = { workspace = true, features = ["clock"] }
+clap = { workspace = true, features = ["derive"] }
 crates-index.workspace = true
+enum-kinds = "0.5.1"
 fs_extra.workspace = true
 git-cliff.workspace = true
 git-cliff-core.workspace = true

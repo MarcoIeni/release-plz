@@ -2,8 +2,9 @@ use std::str::FromStr;
 
 use anyhow::Context;
 use clap::builder::NonEmptyStringValueParser;
-use release_plz_core::GitHub;
+use release_plz_core::{GitBackend, GitBackendKind, GitHub, Gitea};
 use secrecy::SecretString;
+use url::Url;
 
 use super::update::Update;
 
@@ -11,21 +12,59 @@ use super::update::Update;
 pub struct ReleasePr {
     #[clap(flatten)]
     pub update: Update,
-    /// GitHub token used to create the pull request.
-    #[clap(long, value_parser = NonEmptyStringValueParser::new())]
-    github_token: String,
+    /// Git token used to create the pull request.
+    #[clap(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github_token")]
+    token: String,
+    #[clap(long, default_value_t = GitBackendKind::Github)]
+    backend: GitBackendKind,
 }
 
 impl ReleasePr {
-    pub fn github(&self) -> anyhow::Result<GitHub> {
-        let repo = self.update.repo_url()?;
-        anyhow::ensure!(
-            repo.is_on_github(),
-            "Can't create PR: the repository is not hosted in GitHub"
-        );
-        let token = SecretString::from_str(&self.github_token).context("Invalid GitHub token")?;
-        Ok(GitHub::new(repo.owner, repo.name, token))
+    pub fn git_backend(&self) -> anyhow::Result<GitBackend> {
+        let url = match &self.repo_url {
+            Some(url) => url.clone(),
+            None => {
+                let project_manifest = self.update.project_manifest();
+                let project_dir = project_manifest.parent().context("at least a parent")?;
+                let repo = Repo::new(project_dir)?;
+                let url = repo.origin_url().context("cannot determine origin url")?;
+                url
+            }
+        };
+
+        let parts = git_url_parts(&url)?;
+        let token = SecretString::from_str(&self.token).context("Invalid GitHub token")?;
+        Ok(match self.backend {
+            GitBackendKind::Github => {
+                GitBackend::Github(GitHub::new(parts.owner, parts.repo, token))
+            }
+            GitBackendKind::Gitea => GitBackend::Gitea(Gitea::new(
+                parts.owner,
+                parts.repo,
+                token,
+                parts
+                    .host
+                    .ok_or_else(|| anyhow!("Gitea backend must have a valid URL"))?,
+            )),
+        })
     }
+}
+
+struct GitUrlParts {
+    host: Option<Url>,
+    owner: String,
+    repo: String,
+}
+
+fn git_url_parts(github_url: &str) -> anyhow::Result<GitUrlParts> {
+    let git_url = GitUrl::parse(github_url)
+        .map_err(|err| anyhow!("cannot parse github url {}: {}", github_url, err))?;
+    let host = Url::parse(&format!("{git_url}")).ok();
+    let owner = git_url
+        .owner
+        .with_context(|| format!("cannot find owner in git url {}", github_url))?;
+    let repo = git_url.name;
+    Ok(GitUrlParts { host, owner, repo })
 }
 
 #[cfg(test)]

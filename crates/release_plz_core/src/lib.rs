@@ -1,7 +1,9 @@
+mod backend;
 mod cargo;
 mod changelog;
 mod diff;
 mod download;
+mod gitea_client;
 mod github_client;
 mod next_ver;
 mod package_compare;
@@ -14,8 +16,10 @@ mod tmp_repo;
 mod update;
 mod version;
 
+pub use backend::{GitBackend, GitBackendKind};
 pub use changelog::*;
 pub use download::read_package;
+pub use gitea_client::Gitea;
 pub use github_client::GitHub;
 pub use next_ver::*;
 pub use package_compare::*;
