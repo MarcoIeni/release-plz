@@ -42,9 +42,7 @@ impl ReleasePr {
                 parts.owner,
                 parts.repo,
                 token,
-                parts
-                    .host
-                    .ok_or_else(|| anyhow!("Gitea backend must have a valid URL"))?,
+                parts.host.context("Gitea backend must have a valid URL")?,
             )?),
         })
     }
