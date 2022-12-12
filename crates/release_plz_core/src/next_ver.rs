@@ -55,10 +55,24 @@ pub struct ChangelogRequest {
 }
 
 fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
-    let mut local_manifest = fs::canonicalize(local_manifest)?;
+    let mut local_manifest = if cfg!(windows) {
+        // Path canonicalization mucks with the path on windows, so manually calculate the absolute
+        // path if needed
+        if local_manifest.is_absolute() {
+            local_manifest.to_owned()
+        } else {
+            let mut path = std::env::current_dir()?;
+            path.push(local_manifest);
+            path
+        }
+    } else {
+        fs::canonicalize(local_manifest)?
+    };
+
     if !local_manifest.ends_with(CARGO_TOML) {
         local_manifest.push(CARGO_TOML)
     }
+    println!("{local_manifest:?}");
     Ok(local_manifest)
 }
 
@@ -173,6 +187,7 @@ pub fn next_versions(
     Ok((packages_to_update, repository))
 }
 
+#[derive(Debug)]
 struct Project {
     packages: Vec<Package>,
     /// Project root directory
@@ -211,6 +226,7 @@ impl Project {
     fn get_repo(&self) -> anyhow::Result<TempRepo> {
         let tmp_project_root = copy_to_temp_dir(&self.root)?;
         let tmp_manifest_dir = {
+            println!("{self:?}");
             let parent_root = self.root.parent().context("cannot determine parent root")?;
             let relative_manifest_dir = self
                 .manifest_dir
