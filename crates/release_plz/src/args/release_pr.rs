@@ -33,7 +33,7 @@ impl ReleasePr {
         };
 
         let parts = git_url_parts(&url)?;
-        let token = SecretString::from_str(&self.token).context("Invalid GitHub token")?;
+        let token = SecretString::from_str(&self.token).context("Invalid git backend token")?;
         Ok(match self.backend {
             GitBackendKind::Github => {
                 GitBackend::Github(GitHub::new(parts.owner, parts.repo, token))
