@@ -1,11 +1,11 @@
 use crate::backend::Pr;
+use crate::RepoUrl;
 use anyhow::bail;
 use reqwest::header::HeaderValue;
 use reqwest::Method;
 use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, instrument};
-use url::Url;
 
 #[derive(Debug)]
 pub struct GiteaClient<'a> {
@@ -124,35 +124,23 @@ pub struct Gitea {
     pub owner: String,
     pub repo: String,
     pub token: SecretString,
-    api_url: Url,
+    api_url: String,
 }
 
 impl Gitea {
-    pub fn new(
-        owner: String,
-        repo: String,
-        token: SecretString,
-        base_url: Url,
-    ) -> anyhow::Result<Self> {
-        match base_url.scheme() {
+    pub fn new(url: RepoUrl, token: SecretString) -> anyhow::Result<Self> {
+        match url.scheme.as_str() {
             "http" | "https" => {}
             _ => bail!(
-                "invalid scheme for gitea url, only `http` and `https` are supported: {base_url}"
+                "invalid scheme for gitea url, only `http` and `https` are supported: {url:?}"
             ),
         }
-        let api_url = base_url
-            .as_str()
-            .strip_suffix('/')
-            .unwrap_or_else(|| base_url.as_str());
-        let api_url = api_url.strip_suffix(".git").unwrap_or(api_url);
-        let api_url = api_url
-            .strip_suffix(&format!("/{owner}/{repo}"))
-            .unwrap_or(api_url);
+
         Ok(Self {
-            owner,
-            repo,
+            api_url: url.gitea_api_url(),
+            owner: url.owner,
+            repo: url.name,
             token,
-            api_url: Url::parse(&format!("{api_url}/api/v1"))?,
         })
     }
 }
