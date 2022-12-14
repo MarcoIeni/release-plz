@@ -1,6 +1,6 @@
 use crate::{tmp_repo::TempRepo, PackagePath, UpdateRequest, UpdateResult};
 use anyhow::{anyhow, Context};
-use cargo_edit::upgrade_requirement;
+use cargo_utils::upgrade_requirement;
 use cargo_metadata::{semver::Version, Package};
 use cargo_utils::LocalManifest;
 use std::{fs, path::Path};
