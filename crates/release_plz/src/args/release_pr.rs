@@ -16,7 +16,7 @@ pub struct ReleasePr {
     #[clap(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github_token")]
     token: String,
     /// Kind of git host where your project is hosted.
-    #[clap(value_enum, default_value_t = GitBackendKind::Github)]
+    #[clap(long, value_enum, default_value_t = GitBackendKind::Github)]
     backend: GitBackendKind,
 }
 
