@@ -9,13 +9,14 @@ use crate::{
     ChangelogBuilder, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::{anyhow, Context};
-use cargo_edit::{upgrade_requirement, VersionExt};
+use cargo_edit::upgrade_requirement;
 use cargo_metadata::{semver::Version, Package};
 use cargo_utils::LocalManifest;
 use chrono::NaiveDate;
 use fs_extra::dir;
 use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
+use next_version::NextVersion;
 use std::{
     fs, io,
     path::{Path, PathBuf},
@@ -319,11 +320,7 @@ fn dependent_packages(
                 "chore: updated the following local packages: {}",
                 deps.join(", ")
             );
-            let next_version = {
-                let mut next_ver = p.version.clone();
-                next_ver.increment_patch();
-                next_ver
-            };
+            let next_version = { p.version.increment_patch() };
             info!(
                 "{}: dependencies changed. Next version is {next_version}",
                 p.name
