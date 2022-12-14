@@ -377,6 +377,7 @@ dependencies = [
  "anyhow",
  "cargo_metadata",
  "dunce",
+ "semver",
  "toml_edit 0.14.4",
 ]
 

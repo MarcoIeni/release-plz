@@ -9,8 +9,9 @@ use crate::{
     ChangelogBuilder, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::{anyhow, Context};
-use cargo_edit::{upgrade_requirement, LocalManifest, VersionExt};
+use cargo_edit::{upgrade_requirement, VersionExt};
 use cargo_metadata::{semver::Version, Package};
+use cargo_utils::LocalManifest;
 use chrono::NaiveDate;
 use fs_extra::dir;
 use git_cliff_core::config::Config as GitCliffConfig;
