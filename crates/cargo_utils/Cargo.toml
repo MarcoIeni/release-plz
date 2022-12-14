@@ -14,3 +14,4 @@ categories = ["development-tools"]
 anyhow.workspace = true
 cargo_metadata.workspace = true
 dunce.workspace = true
+toml_edit = "0.14.4"

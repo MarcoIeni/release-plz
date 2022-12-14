@@ -377,6 +377,7 @@ dependencies = [
  "anyhow",
  "cargo_metadata",
  "dunce",
+ "toml_edit 0.14.4",
 ]
 
 [[package]]
