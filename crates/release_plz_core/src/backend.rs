@@ -31,12 +31,7 @@ impl<'a> GitClient<'a> {
         }
     }
 
-    #[instrument(
-    fields(
-    default_branch = tracing::field::Empty,
-    ),
-    skip(pr)
-    )]
+    #[instrument(skip(pr))]
     pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<()> {
         match self {
             GitClient::GitHub(g) => g.open_pr(pr).await,

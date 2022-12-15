@@ -79,12 +79,7 @@ impl<'a> GiteaClient<'a> {
         Ok(())
     }
 
-    #[instrument(
-    fields(
-    default_branch = tracing::field::Empty,
-    ),
-    skip(pr)
-    )]
+    #[instrument(skip(pr))]
     pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<()> {
         let req_body = OpenPrBody {
             title: &pr.title,

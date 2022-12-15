@@ -22,7 +22,6 @@ cargo-edit = { workspace = true, features = ["set-version"] }
 chrono = { workspace = true, features = ["clock"] }
 crates-index.workspace = true
 dunce.workspace = true
-enum-kinds = "0.5.1"
 fs_extra.workspace = true
 git-cliff.workspace = true
 git-cliff-core.workspace = true

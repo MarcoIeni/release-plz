@@ -89,7 +89,7 @@ impl ComparisonTest {
             Secret::from("token".to_string()),
         )?);
         Ok(ReleasePrRequest {
-            git: git,
+            git,
             update_request: self.update_request(),
         })
     }

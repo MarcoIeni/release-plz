@@ -14,7 +14,7 @@ pub struct ReleasePr {
     pub update: Update,
     /// Git token used to create the pull request.
     #[clap(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github_token")]
-    token: String,
+    git_token: String,
     /// Kind of git host where your project is hosted.
     #[clap(long, value_enum, default_value_t = GitBackendKind::Github)]
     backend: GitBackendKind,
@@ -32,7 +32,7 @@ impl ReleasePr {
     pub fn git_backend(&self) -> anyhow::Result<GitBackend> {
         let repo = self.update.repo_url()?;
 
-        let token = SecretString::from_str(&self.token).context("Invalid git backend token")?;
+        let token = SecretString::from_str(&self.git_token).context("Invalid git backend token")?;
         Ok(match self.backend {
             GitBackendKind::Github => {
                 anyhow::ensure!(
