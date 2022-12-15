@@ -13,6 +13,9 @@ categories = ["development-tools"]
 [dependencies]
 anyhow.workspace = true
 cargo_metadata.workspace = true
+dirs.workspace = true
 dunce.workspace = true
 toml_edit.workspace = true
 semver.workspace = true
+url.workspace = true
+serde.workspace = true

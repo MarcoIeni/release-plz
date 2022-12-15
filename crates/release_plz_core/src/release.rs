@@ -75,7 +75,7 @@ fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Resu
     let registry_urls = registries
         .iter()
         .map(|r| {
-            cargo_edit::registry_url(package.manifest_path.as_ref(), Some(r))
+            cargo_utils::registry_url(package.manifest_path.as_ref(), Some(r))
                 .context("failed to retrieve registry url")
         })
         .collect::<anyhow::Result<Vec<Url>>>()?;

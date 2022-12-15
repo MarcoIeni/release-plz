@@ -11,17 +11,6 @@ pub struct Manifest {
 }
 
 impl Manifest {
-    /// Get the specified table from the manifest.
-    ///
-    /// If there is no table at the specified path, then a non-existent table
-    /// error will be returned.
-    pub(crate) fn get_table_mut<'a>(
-        &'a mut self,
-        table_path: &[String],
-    ) -> anyhow::Result<&'a mut toml_edit::Item> {
-        self.get_table_mut_internal(table_path, false)
-    }
-
     /// Get all sections in the manifest that exist and might contain dependencies.
     /// The returned items are always `Table` or `InlineTable`.
     pub(crate) fn get_sections(&self) -> Vec<(DepTable, toml_edit::Item)> {
@@ -62,39 +51,6 @@ impl Manifest {
 
         sections
     }
-
-    fn get_table_mut_internal<'a>(
-        &'a mut self,
-        table_path: &[String],
-        insert_if_not_exists: bool,
-    ) -> anyhow::Result<&'a mut toml_edit::Item> {
-        /// Descend into a manifest until the required table is found.
-        fn descend<'a>(
-            input: &'a mut toml_edit::Item,
-            path: &[String],
-            insert_if_not_exists: bool,
-        ) -> anyhow::Result<&'a mut toml_edit::Item> {
-            if let Some(segment) = path.get(0) {
-                let value = if insert_if_not_exists {
-                    input[&segment].or_insert(toml_edit::table())
-                } else {
-                    input
-                        .get_mut(segment)
-                        .ok_or_else(|| non_existent_table_err(segment))?
-                };
-
-                if value.is_table_like() {
-                    descend(value, &path[1..], insert_if_not_exists)
-                } else {
-                    Err(non_existent_table_err(segment))
-                }
-            } else {
-                Ok(input)
-            }
-        }
-
-        descend(self.data.as_item_mut(), table_path, insert_if_not_exists)
-    }
 }
 
 impl str::FromStr for Manifest {
@@ -113,8 +69,4 @@ impl std::fmt::Display for Manifest {
         let s = self.data.to_string();
         s.fmt(f)
     }
-}
-
-fn non_existent_table_err(table: &str) -> anyhow::Error {
-    anyhow::anyhow!("The table `{}` could not be found.", table)
 }
