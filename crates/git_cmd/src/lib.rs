@@ -277,7 +277,7 @@ mod tests {
         {
             fs::write(&file2, b"Hello, file2!-1").unwrap();
             repo.add_all_and_commit("file2-1").unwrap();
-            fs::write(&file1, b"Hello, file1!").unwrap();
+            fs::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit("file1").unwrap();
             fs::write(&file2, b"Hello, file2!-2").unwrap();
             repo.add_all_and_commit("file2-2").unwrap();
@@ -294,7 +294,7 @@ mod tests {
         let file1 = repository_dir.as_ref().join("file1.txt");
         let commit_message = "file1 message";
         {
-            fs::write(&file1, b"Hello, file1!").unwrap();
+            fs::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit(commit_message).unwrap();
         }
         assert_eq!(repo.current_commit_message().unwrap(), commit_message);
@@ -314,7 +314,7 @@ mod tests {
         let repository_dir = tempdir().unwrap();
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
-        fs::write(&file1, b"Hello, file1!").unwrap();
+        fs::write(file1, b"Hello, file1!").unwrap();
         assert!(repo.is_clean().is_err());
     }
 
@@ -339,7 +339,7 @@ D  crates/git_cmd/CHANGELOG.md
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
         {
-            fs::write(&file1, b"Hello, file1!").unwrap();
+            fs::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit("file1").unwrap();
         }
         let version = "v1.0.0";
@@ -354,7 +354,7 @@ D  crates/git_cmd/CHANGELOG.md
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
         {
-            fs::write(&file1, b"Hello, file1!").unwrap();
+            fs::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit("file1").unwrap();
         }
         repo.tag("v1.0.0").unwrap();
