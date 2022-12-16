@@ -3,23 +3,33 @@ use git_url_parse::GitUrl;
 
 #[derive(Debug, Clone)]
 pub struct RepoUrl {
+    pub scheme: String,
     pub host: String,
+    port: Option<u16>,
     pub owner: String,
     pub name: String,
 }
 
 impl RepoUrl {
-    pub fn new(github_url: &str) -> anyhow::Result<Self> {
-        let git_url = GitUrl::parse(github_url)
-            .map_err(|err| anyhow!("cannot parse github url {}: {}", github_url, err))?;
+    pub fn new(git_host_url: &str) -> anyhow::Result<Self> {
+        let git_url = GitUrl::parse(git_host_url)
+            .map_err(|err| anyhow!("cannot parse git url {}: {}", git_host_url, err))?;
         let owner = git_url
             .owner
-            .with_context(|| format!("cannot find owner in git url {}", github_url))?;
+            .with_context(|| format!("cannot find owner in git url {}", git_host_url))?;
         let name = git_url.name;
         let host = git_url
             .host
-            .with_context(|| format!("cannot find host in git url {}", github_url))?;
-        Ok(RepoUrl { owner, name, host })
+            .with_context(|| format!("cannot find host in git url {}", git_host_url))?;
+        let port = git_url.port;
+        let scheme = git_url.scheme.to_string();
+        Ok(RepoUrl {
+            owner,
+            name,
+            host,
+            port,
+            scheme,
+        })
     }
 
     pub fn is_on_github(&self) -> bool {
@@ -32,5 +42,13 @@ impl RepoUrl {
             "https://{}/{}/{}/compare/{prev_tag}...{new_tag}",
             self.host, self.owner, self.name
         )
+    }
+
+    pub fn gitea_api_url(&self) -> String {
+        if let Some(port) = self.port {
+            format!("{}://{}:{}/api/v1", self.scheme, self.host, port)
+        } else {
+            format!("{}://{}/api/v1", self.scheme, self.host)
+        }
     }
 }
