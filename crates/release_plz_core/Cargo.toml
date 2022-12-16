@@ -18,7 +18,6 @@ next_version = { path = "../next_version", version = "0.1" }
 anyhow.workspace = true
 cargo_metadata.workspace = true
 cargo-clone-core.workspace = true
-cargo-edit = { workspace = true, features = ["set-version"] }
 chrono = { workspace = true, features = ["clock"] }
 crates-index.workspace = true
 dunce.workspace = true
