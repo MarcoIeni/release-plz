@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.0...release_plz_core-v0.4.1) - 2022-12-16
+
+### Other
+- remove `cargo-edit` dependency (#375)
+- Add support for Gitea repositories (#372)
+
 ## [0.4.0] - 2022-12-12
 
 ### Added
