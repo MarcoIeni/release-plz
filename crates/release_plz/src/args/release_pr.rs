@@ -2,7 +2,8 @@ use std::str::FromStr;
 
 use anyhow::Context;
 use clap::builder::NonEmptyStringValueParser;
-use release_plz_core::GitHub;
+use clap::ValueEnum;
+use release_plz_core::{GitBackend, GitHub, Gitea};
 use secrecy::SecretString;
 
 use super::update::Update;
@@ -11,20 +12,37 @@ use super::update::Update;
 pub struct ReleasePr {
     #[clap(flatten)]
     pub update: Update,
-    /// GitHub token used to create the pull request.
-    #[clap(long, value_parser = NonEmptyStringValueParser::new())]
-    github_token: String,
+    /// Git token used to create the pull request.
+    #[clap(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github_token")]
+    git_token: String,
+    /// Kind of git host where your project is hosted.
+    #[clap(long, value_enum, default_value_t = GitBackendKind::Github)]
+    backend: GitBackendKind,
+}
+
+#[derive(ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]
+enum GitBackendKind {
+    #[value(name = "github")]
+    Github,
+    #[value(name = "gitea")]
+    Gitea,
 }
 
 impl ReleasePr {
-    pub fn github(&self) -> anyhow::Result<GitHub> {
+    pub fn git_backend(&self) -> anyhow::Result<GitBackend> {
         let repo = self.update.repo_url()?;
-        anyhow::ensure!(
-            repo.is_on_github(),
-            "Can't create PR: the repository is not hosted in GitHub"
-        );
-        let token = SecretString::from_str(&self.github_token).context("Invalid GitHub token")?;
-        Ok(GitHub::new(repo.owner, repo.name, token))
+
+        let token = SecretString::from_str(&self.git_token).context("Invalid git backend token")?;
+        Ok(match self.backend {
+            GitBackendKind::Github => {
+                anyhow::ensure!(
+                    repo.is_on_github(),
+                    "Can't create PR: the repository is not hosted in GitHub"
+                );
+                GitBackend::Github(GitHub::new(repo.owner, repo.name, token))
+            }
+            GitBackendKind::Gitea => GitBackend::Gitea(Gitea::new(repo, token)?),
+        })
     }
 }
 
@@ -56,5 +74,20 @@ mod tests {
         assert_eq!(expected_repo, repo.name);
         assert_eq!(GITHUB_COM, repo.host);
         assert!(repo.is_on_github())
+    }
+
+    #[test]
+    fn gitea_url_is_parsed() {
+        let host = "example.com";
+        let expected_owner = "MarcoIeni";
+        let expected_repo = "release-plz";
+        let url = format!("https://{host}/{expected_owner}/{expected_repo}");
+        let repo = RepoUrl::new(&url).unwrap();
+        assert_eq!(expected_owner, repo.owner);
+        assert_eq!(expected_repo, repo.name);
+        assert_eq!(host, repo.host);
+        assert_eq!("https", repo.scheme);
+        assert!(!repo.is_on_github());
+        assert_eq!(format!("https://{host}/api/v1"), repo.gitea_api_url());
     }
 }

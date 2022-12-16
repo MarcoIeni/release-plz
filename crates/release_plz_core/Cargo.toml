@@ -21,12 +21,15 @@ cargo-clone-core.workspace = true
 cargo-edit = { workspace = true, features = ["set-version"] }
 chrono = { workspace = true, features = ["clock"] }
 crates-index.workspace = true
+dunce.workspace = true
 fs_extra.workspace = true
 git-cliff.workspace = true
 git-cliff-core.workspace = true
 git-url-parse.workspace = true
 octocrab.workspace = true
+reqwest = { workspace = true, features = ["json"] }
 secrecy.workspace = true
+serde = { workspace = true, features = ["derive"] }
 tempfile.workspace = true
 tracing.workspace = true
 url.workspace = true

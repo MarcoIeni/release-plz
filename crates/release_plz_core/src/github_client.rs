@@ -1,3 +1,4 @@
+use crate::backend::Pr;
 use anyhow::Context;
 use octocrab::{models::IssueState, params, Octocrab, OctocrabBuilder};
 use secrecy::{ExposeSecret, SecretString};
@@ -8,13 +9,6 @@ use url::Url;
 pub struct GitHubClient<'a> {
     github: &'a GitHub,
     client: Octocrab,
-}
-
-#[derive(Debug)]
-pub struct Pr {
-    pub branch: String,
-    pub title: String,
-    pub body: String,
 }
 
 impl<'a> GitHubClient<'a> {

@@ -55,7 +55,7 @@ pub struct ChangelogRequest {
 }
 
 fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
-    let mut local_manifest = fs::canonicalize(local_manifest)?;
+    let mut local_manifest = dunce::canonicalize(local_manifest)?;
     if !local_manifest.ends_with(CARGO_TOML) {
         local_manifest.push(CARGO_TOML)
     }
@@ -173,6 +173,7 @@ pub fn next_versions(
     Ok((packages_to_update, repository))
 }
 
+#[derive(Debug)]
 struct Project {
     packages: Vec<Package>,
     /// Project root directory

@@ -7,17 +7,14 @@ use git_cmd::Repo;
 use anyhow::{anyhow, Context};
 use tracing::instrument;
 
-use crate::{
-    copy_to_temp_dir,
-    github_client::{GitHub, GitHubClient, Pr},
-    update, UpdateRequest, UpdateResult, CARGO_TOML,
-};
+use crate::backend::{GitClient, Pr};
+use crate::{copy_to_temp_dir, update, GitBackend, UpdateRequest, UpdateResult, CARGO_TOML};
 
 const BRANCH_PREFIX: &str = "release-plz/";
 
 #[derive(Debug)]
 pub struct ReleasePrRequest {
-    pub github: GitHub,
+    pub git: GitBackend,
     pub update_request: UpdateRequest,
 }
 
@@ -39,14 +36,14 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .set_local_manifest(local_manifest)
         .context("can't find temporary project")?;
     let (packages_to_update, _temp_repository) = update(&new_update_request)?;
-    let gh_client = GitHubClient::new(&input.github)?;
+    let gh_client = GitClient::new(&input.git)?;
     gh_client
         .close_prs_on_branches(BRANCH_PREFIX)
         .await
         .context("cannot close old release-plz prs")?;
     if !packages_to_update.is_empty() {
         let repo = Repo::new(new_manifest_dir)?;
-        let pr = Pr::from(packages_to_update.as_ref());
+        let pr = Pr::from((repo.default_branch(), packages_to_update.as_ref()));
         create_release_branch(&repo, &pr.branch)?;
         gh_client.open_pr(&pr).await?;
     }
@@ -54,10 +51,11 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     Ok(())
 }
 
-impl From<&[(Package, UpdateResult)]> for Pr {
-    fn from(packages_to_update: &[(Package, UpdateResult)]) -> Self {
+impl From<(&str, &[(Package, UpdateResult)])> for Pr {
+    fn from((default_branch, packages_to_update): (&str, &[(Package, UpdateResult)])) -> Self {
         Self {
             branch: release_branch(),
+            base_branch: default_branch.to_string(),
             title: pr_title(packages_to_update),
             body: pr_body(packages_to_update),
         }

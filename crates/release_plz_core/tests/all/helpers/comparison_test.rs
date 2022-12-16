@@ -1,9 +1,10 @@
 use std::{fs, path::PathBuf};
 
+use crate::helpers::gitea_mock_server::GiteaMockServer;
 use chrono::NaiveDate;
 use release_plz_core::{
-    are_packages_equal, copy_to_temp_dir, ChangelogRequest, GitHub, ReleasePrRequest,
-    UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
+    are_packages_equal, copy_to_temp_dir, ChangelogRequest, GitBackend, GitHub, Gitea,
+    ReleasePrRequest, RepoUrl, UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use secrecy::Secret;
 use tempfile::{tempdir, TempDir};
@@ -16,6 +17,7 @@ pub struct ComparisonTest {
     local_project: TempDir,
     registry_project: TempDir,
     github_mock_server: GitHubMockServer,
+    gitea_mock_server: GiteaMockServer,
 }
 
 const PROJECT_NAME: &str = "myproject";
@@ -34,6 +36,7 @@ impl ComparisonTest {
             local_project: local_project_dir,
             registry_project,
             github_mock_server: GitHubMockServer::start(OWNER, REPO).await,
+            gitea_mock_server: GiteaMockServer::start(OWNER, REPO).await,
         };
         fs::copy(
             comparison.registry_project().join(CARGO_TOML),
@@ -59,22 +62,41 @@ impl ComparisonTest {
         release_plz_core::update(&update_request).unwrap();
     }
 
-    fn release_pr_request(&self, base_url: Url) -> ReleasePrRequest {
-        let github = GitHub::new(
-            OWNER.to_string(),
-            REPO.to_string(),
-            Secret::from("token".to_string()),
-        )
-        .with_base_url(base_url);
+    fn github_release_pr_request(&self, base_url: Url) -> ReleasePrRequest {
+        let github = GitBackend::Github(
+            GitHub::new(
+                OWNER.to_string(),
+                REPO.to_string(),
+                Secret::from("token".to_string()),
+            )
+            .with_base_url(base_url),
+        );
         ReleasePrRequest {
-            github,
+            git: github,
             update_request: self.update_request(),
         }
     }
 
-    pub async fn open_release_pr(&self) -> anyhow::Result<()> {
+    pub async fn github_open_release_pr(&self) -> anyhow::Result<()> {
         let base_url = self.github_mock_server.base_url();
-        let release_pr_request = self.release_pr_request(base_url);
+        let release_pr_request = self.github_release_pr_request(base_url);
+        release_plz_core::release_pr(&release_pr_request).await
+    }
+
+    fn gitea_release_pr_request(&self, base_url: Url) -> anyhow::Result<ReleasePrRequest> {
+        let git = GitBackend::Gitea(Gitea::new(
+            RepoUrl::new(&format!("{}{OWNER}/{REPO}", base_url.as_str()))?,
+            Secret::from("token".to_string()),
+        )?);
+        Ok(ReleasePrRequest {
+            git,
+            update_request: self.update_request(),
+        })
+    }
+
+    pub async fn gitea_open_release_pr(&self) -> anyhow::Result<()> {
+        let base_url = self.gitea_mock_server.base_url();
+        let release_pr_request = self.gitea_release_pr_request(base_url)?;
         release_plz_core::release_pr(&release_pr_request).await
     }
 
@@ -116,5 +138,11 @@ impl ComparisonTest {
     #[must_use]
     pub fn github_mock_server(&self) -> &GitHubMockServer {
         &self.github_mock_server
+    }
+
+    /// Get a reference to the comparison test's github mock server.
+    #[must_use]
+    pub fn gitea_mock_server(&self) -> &GiteaMockServer {
+        &self.gitea_mock_server
     }
 }
