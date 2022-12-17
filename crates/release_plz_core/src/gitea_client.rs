@@ -70,7 +70,7 @@ impl<'a> GiteaClient<'a> {
                 }
             }
 
-            if prs.len() < page_size as usize {
+            if prs.len() < page_size {
                 break;
             }
             page += 1;

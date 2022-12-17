@@ -17,7 +17,7 @@ pub fn registry_url(manifest_path: &Path, registry: Option<&str>) -> anyhow::Res
         // TODO unit test for source replacement
         let content = std::fs::read(path)?;
         let config = toml_edit::easy::from_slice::<CargoConfig>(&content)
-            .map_err(|_| invalid_cargo_config())?;
+        .context("Invalid cargo config")?;
         for (key, value) in config.registries {
             registries.entry(key).or_insert(Source {
                 registry: value.index,
@@ -92,7 +92,7 @@ pub fn registry_url(manifest_path: &Path, registry: Option<&str>) -> anyhow::Res
     let registry_url = source
         .registry
         .and_then(|x| Url::parse(&x).ok())
-        .with_context(invalid_cargo_config)?;
+        .context("Invalid cargo config")?;
 
     Ok(registry_url)
 }
@@ -125,8 +125,4 @@ fn cargo_home() -> anyhow::Result<PathBuf> {
         .map(PathBuf::from)
         .unwrap_or(default_cargo_home);
     Ok(cargo_home)
-}
-
-fn invalid_cargo_config() -> anyhow::Error {
-    anyhow::anyhow!("Invalid cargo config")
 }
