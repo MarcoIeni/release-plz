@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.5](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.4...git_cmd-v0.2.5) - 2022-12-16
 
-### Other
-- Add support for Gitea repositories (#372)
+### Added
+- Add function to retrieve default branch (#372)
 
 ## [0.2.4] - 2022-12-12
 
