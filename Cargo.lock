@@ -343,7 +343,7 @@ dependencies = [
  "dunce",
  "semver",
  "serde",
- "toml_edit 0.14.4",
+ "toml_edit 0.15.0",
  "url",
 ]
 
@@ -1654,9 +1654,9 @@ checksum = "ce23b50ad8242c51a442f3ff322d56b02f08852c77e4c0b4d3fd684abc89c683"
 
 [[package]]
 name = "indexmap"
-version = "1.9.1"
+version = "1.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10a35a97730320ffe8e2d410b5d3b69279b98d2c14bdb8b70ea89ecf7888d41e"
+checksum = "1885e79c1fc4b10f0e172c475f458b7f7b93061064d98c3293e98c5ba0c8b399"
 dependencies = [
  "autocfg",
  "hashbrown",
@@ -2594,7 +2594,7 @@ dependencies = [
  "tempfile",
  "test_logs",
  "tokio",
- "toml_edit 0.14.4",
+ "toml_edit 0.15.0",
  "tracing",
  "url",
  "walkdir",
@@ -3358,6 +3358,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "toml_datetime"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "808b51e57d0ef8f71115d8f3a01e7d3750d01c79cac4b3eda910f4389fdf92fd"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "toml_edit"
 version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3372,15 +3381,16 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.14.4"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5376256e44f2443f8896ac012507c19a012df0fe8758b55246ae51a2279db51f"
+checksum = "b1541ba70885967e662f69d31ab3aeca7b1aaecfcd58679590b893e9239c3646"
 dependencies = [
  "combine",
  "indexmap",
  "itertools",
  "kstring 2.0.0",
  "serde",
+ "toml_datetime",
 ]
 
 [[package]]
