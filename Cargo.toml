@@ -25,7 +25,7 @@ reqwest = "0.11.13"
 secrecy = "0.8.0"
 semver = "1.0.14"
 serde = "1.0.150"
-serde_json = "1.0.89"
+serde_json = "1.0.91"
 tempfile = "3.3.0"
 tokio = "1.19.2"
 toml_edit = { version = "0.15.0", features = ["easy", "perf"] }
