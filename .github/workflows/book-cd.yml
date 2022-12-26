@@ -1,6 +1,7 @@
 name: Book CD # Continuous Deployment
 
 on:
+  workflow_dispatch:  # Allow manual triggers
   push:
     tags:
       - "release-plz-v*.*.*"
