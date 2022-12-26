@@ -12,6 +12,9 @@ based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/):
 Once the changes are merged to the main branch, you can use
 `release-plz release` to publish the new versions of the packages.
 
+## Docs
+
+Lean how to use release-plz in the mdbook [docs](https://marcoieni.github.io/release-plz/).
 ## Users
 
 [This](https://cs.github.com/?scopeName=All+repos&scope=&q=path%3A*.yml+OR+path%3A*.yml+MarcoIeni%2Frelease-plz)
