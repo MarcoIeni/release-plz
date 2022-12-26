@@ -36,4 +36,4 @@ jobs:
         uses: avto-dev/markdown-lint@v1
         with:
           config: '.markdownlint.yaml'
-          args: '**/*.md'
+          args: 'docs/**/*.md'
