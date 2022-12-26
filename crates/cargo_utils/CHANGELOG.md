@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.3...cargo_utils-v0.1.4) - 2022-12-26
+
+### Other
+- fix additional clippy lints (#379)
+
 ## [0.1.3](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.2...cargo_utils-v0.1.3) - 2022-12-16
 
 ### Added
