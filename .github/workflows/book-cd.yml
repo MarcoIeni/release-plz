@@ -2,10 +2,8 @@ name: Book CD # Continuous Deployment
 
 on:
   push:
-    branches:
-      - main  # Set a branch name to trigger deployment
-    # tags:
-    #   - "release-plz-v*.*.*"
+    tags:
+      - "release-plz-v*.*.*"
 
 jobs:
   deploy:
