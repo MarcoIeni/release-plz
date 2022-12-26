@@ -1,6 +1,7 @@
 # Update
 
-With `release-plz update` you can update the version and the changelog of the packages of a local workspace.
+With `release-plz update` you can update the version and the changelog of the
+packages of a local workspace.
 
 In the following example, I run `release-plz` on the `release-plz` project itself.
 `Release-plz` increases the version and the changelog of the packages with

@@ -1,6 +1,7 @@
 # Introduction
 
-Release-plz updates the versions and changelogs of your rust packages, by analyzing your git history,
+Release-plz updates the versions and changelogs of your rust packages, by
+analyzing your git history,
 based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/):
 
 - `release-plz update` updates your project locally, without committing any change.
