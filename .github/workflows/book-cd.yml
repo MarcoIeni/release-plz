@@ -2,8 +2,10 @@ name: Book CD # Continuous Deployment
 
 on:
   push:
-    tags:
-      - "release-plz-v*.*.*"
+    branches:
+      - main  # Set a branch name to trigger deployment
+    # tags:
+    #   - "release-plz-v*.*.*"
 
 jobs:
   deploy:
@@ -12,7 +14,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Setup mdbook
         uses: peaceiris/actions-mdbook@v1
-      - run: mdbook build
+      - run: mdbook build docs
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
