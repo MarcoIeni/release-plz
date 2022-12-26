@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.1...release_plz_core-v0.4.2) - 2022-12-26
+
+### Other
+- fix additional clippy lints (#379)
+
 ## [0.4.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.0...release_plz_core-v0.4.1) - 2022-12-16
 
 ### Other
