@@ -429,9 +429,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.0.29"
+version = "4.0.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d63b9e9c07271b9957ad22c173bae2a4d9a81127680962039296abcd2f8251d"
+checksum = "a7db700bc935f9e43e88d00b0850dae18a63773cfbec6d8e070fccf7fef89a39"
 dependencies = [
  "bitflags",
  "clap_derive 4.0.21",
@@ -457,7 +457,7 @@ version = "4.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "10861370d2ba66b0f5989f83ebf35db6421713fd92351790e7fdd6c36774c56b"
 dependencies = [
- "clap 4.0.29",
+ "clap 4.0.32",
 ]
 
 [[package]]
@@ -2552,7 +2552,7 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "chrono",
- "clap 4.0.29",
+ "clap 4.0.32",
  "clap_complete 4.0.7",
  "dirs",
  "git-cliff-core",
