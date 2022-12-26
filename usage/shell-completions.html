@@ -150,27 +150,27 @@
                         <h1 id="generate-shell-completions"><a class="header" href="#generate-shell-completions">Generate shell completions</a></h1>
 <h2 id="zsh"><a class="header" href="#zsh">zsh</a></h2>
 <p>To load completions in your current shell session:</p>
-<pre><code class="language-sh">$ autoload bashcompinit; bashcompinit
-$ source &lt;(release-plz generate-completions)
+<pre><code class="language-sh">autoload bashcompinit; bashcompinit
+source &lt;(release-plz generate-completions)
 </code></pre>
 <p>To load completions for every new session, execute once:</p>
-<pre><code class="language-sh">$ release-plz generate-completions zsh &gt; _release-plz
-$ sudo mv _release-plz /usr/local/share/zsh/site-functions/
+<pre><code class="language-sh">release-plz generate-completions zsh &gt; _release-plz
+sudo mv _release-plz /usr/local/share/zsh/site-functions/
 </code></pre>
 <h2 id="bash"><a class="header" href="#bash">bash</a></h2>
 <p>To load completions in your current shell session:</p>
-<pre><code class="language-sh">$ source &lt;(release-plz generate-completions)
+<pre><code class="language-sh">source &lt;(release-plz generate-completions)
 </code></pre>
 <p>To load completions for every new session, execute once:</p>
-<pre><code class="language-sh">$ release-plz generate-completions bash &gt; ~/.local/share/bash-completion/completions/release-plz
+<pre><code class="language-sh">release-plz generate-completions bash &gt; ~/.local/share/bash-completion/completions/release-plz
 </code></pre>
-<p>Note: package <em>bash-completion</em> is required for this to work.</p>
+<p>Note: package <code>bash-completion</code> is required for this to work.</p>
 <h2 id="fish"><a class="header" href="#fish">fish</a></h2>
 <p>To load completions in your current shell session:</p>
-<pre><code class="language-sh">$ release-plz generate-completions fish | source
+<pre><code class="language-sh">release-plz generate-completions fish | source
 </code></pre>
 <p>To load completions for every new session, execute once:</p>
-<pre><code class="language-sh">$ release-plz generate-completions fish &gt; $HOME/.config/fish/completions/release-plz.fish
+<pre><code class="language-sh">release-plz generate-completions fish &gt; $HOME/.config/fish/completions/release-plz.fish
 </code></pre>
 
                     </main>
