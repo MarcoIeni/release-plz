@@ -37,3 +37,4 @@ jobs:
         with:
           config: '.markdownlint.yaml'
           args: '**/*.md'
+          ignore: 'CHANGELOG.md'
