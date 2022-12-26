@@ -28,7 +28,7 @@ To load completions for every new session, execute once:
 ```sh
 $ release-plz generate-completions bash > ~/.local/share/bash-completion/completions/release-plz
 ```
-Note: package *bash-completion* is required for this to work.
+Note: package `bash-completion` is required for this to work.
 
 ## fish
 
