@@ -24,6 +24,9 @@ pub struct Release {
     /// Perform all checks without uploading.
     #[clap(long)]
     pub dry_run: bool,
+    ///Publish github release.
+    #[clap(long)]
+    pub gh_release: bool,
 }
 
 impl From<Release> for ReleaseRequest {
@@ -33,6 +36,7 @@ impl From<Release> for ReleaseRequest {
             registry: r.registry,
             token: r.token,
             dry_run: r.dry_run,
+            gh_release: r.gh_release,
         }
     }
 }

@@ -26,6 +26,8 @@ pub struct ReleaseRequest {
     pub token: Option<String>,
     /// Perform all checks without uploading.
     pub dry_run: bool,
+    ///Publishes github release.
+    pub gh_release: bool,
 }
 
 impl ReleaseRequest {
@@ -106,6 +108,9 @@ fn release_package(
     if input.dry_run {
         args.push("--dry-run");
     }
+    if input.gh_release {
+        args.push("--gh-release");
+    }
 
     let workspace_root = input.workspace_root()?;
 
@@ -131,7 +136,22 @@ fn release_package(
         info!("published {}", package.name);
     }
 
+    if input.gh_release {
+        publish_release(package);
+    }
+
     Ok(())
+}
+
+async fn publish_release(package: &Package) {
+    let page = octocrab::Octocrab::default()
+        .repos(package.authors.join(", "), package.clone().name)
+        .releases()
+        .create(&package.version.to_string())
+        .send()
+        .await
+        .unwrap();
+    println!("{:?}", page);
 }
 
 pub fn git_tag(package_name: &str, version: &str) -> String {
