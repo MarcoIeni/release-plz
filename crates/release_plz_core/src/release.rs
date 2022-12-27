@@ -11,6 +11,7 @@ use crate::{
     cargo::{is_published, run_cargo, wait_until_published},
     publishable_packages,
     release_order::release_order,
+    RepoUrl,
 };
 
 #[derive(Debug)]
@@ -26,7 +27,7 @@ pub struct ReleaseRequest {
     pub token: Option<String>,
     /// Perform all checks without uploading.
     pub dry_run: bool,
-    ///Publishes github release.
+    /// Publishes GitHub release.
     pub gh_release: bool,
 }
 
@@ -109,7 +110,7 @@ fn release_package(
         args.push("--dry-run");
     }
     if input.gh_release {
-        args.push("--gh-release");
+        args.push("-- --gh-release");
     }
 
     let workspace_root = input.workspace_root()?;
@@ -137,17 +138,19 @@ fn release_package(
     }
 
     if input.gh_release {
-        publish_release(package);
+        publish_release(git_tag(&package.name, &package.version.to_string()));
     }
 
     Ok(())
 }
 
-async fn publish_release(package: &Package) {
+async fn publish_release(git_tag: String) {
+    let owner = RepoUrl::new("https://www.github.com").unwrap().owner;
+    let repo = RepoUrl::new("https://www.github.com").unwrap().name;
     let page = octocrab::Octocrab::default()
-        .repos(package.authors.join(", "), package.clone().name)
+        .repos(owner, repo)
         .releases()
-        .create(&package.version.to_string())
+        .create(&git_tag)
         .send()
         .await
         .unwrap();

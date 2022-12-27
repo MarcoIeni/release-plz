@@ -24,7 +24,7 @@ pub struct Release {
     /// Perform all checks without uploading.
     #[clap(long)]
     pub dry_run: bool,
-    ///Publish github release.
+    /// Publish GitHub release.
     #[clap(long)]
     pub gh_release: bool,
 }
