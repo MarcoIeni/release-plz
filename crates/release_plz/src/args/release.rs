@@ -27,6 +27,12 @@ pub struct Release {
     /// Publish GitHub release.
     #[clap(long)]
     pub gh_release: bool,
+    /// GitHub repository url.
+    #[clap(long, value_parser = NonEmptyStringValueParser::new())]
+    pub repo_url: Option<String>,
+    ///Git token used to publish release.
+    #[clap(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github-token")]
+    pub git_token: String,
 }
 
 impl From<Release> for ReleaseRequest {
@@ -37,6 +43,8 @@ impl From<Release> for ReleaseRequest {
             token: r.token,
             dry_run: r.dry_run,
             gh_release: r.gh_release,
+            repo_url: r.repo_url,
+            git_token: r.git_token,
         }
     }
 }

@@ -4,14 +4,17 @@ use anyhow::Context;
 use cargo_metadata::Package;
 use crates_index::Index;
 use git_cmd::Repo;
+use octocrab::Octocrab;
+use secrecy::SecretString;
 use tracing::{info, instrument};
 use url::Url;
 
 use crate::{
     cargo::{is_published, run_cargo, wait_until_published},
+    github_client::GitHubClient,
     publishable_packages,
     release_order::release_order,
-    RepoUrl,
+    GitHub, RepoUrl,
 };
 
 #[derive(Debug)]
@@ -29,6 +32,10 @@ pub struct ReleaseRequest {
     pub dry_run: bool,
     /// Publishes GitHub release.
     pub gh_release: bool,
+    /// GitHub repo URL.
+    pub repo_url: Option<String>,
+    ///Git token used to publish release.
+    pub git_token: String,
 }
 
 impl ReleaseRequest {
@@ -109,10 +116,6 @@ fn release_package(
     if input.dry_run {
         args.push("--dry-run");
     }
-    if input.gh_release {
-        args.push("-- --gh-release");
-    }
-
     let workspace_root = input.workspace_root()?;
 
     let repo = Repo::new(workspace_root)?;
@@ -138,23 +141,38 @@ fn release_package(
     }
 
     if input.gh_release {
-        publish_release(git_tag(&package.name, &package.version.to_string()));
+        publish_release(git_tag(&package.name, &package.version.to_string()), input);
     }
 
     Ok(())
 }
 
-async fn publish_release(git_tag: String) {
-    let owner = RepoUrl::new("https://www.github.com").unwrap().owner;
-    let repo = RepoUrl::new("https://www.github.com").unwrap().name;
-    let page = octocrab::Octocrab::default()
-        .repos(owner, repo)
-        .releases()
-        .create(&git_tag)
-        .send()
-        .await
-        .unwrap();
-    println!("{:?}", page);
+async fn publish_release(git_tag: String, input: &ReleaseRequest) {
+    let repo_url = match &input.repo_url {
+        Some(url) => RepoUrl::new(url.as_str()),
+        None => {
+            let repo = Repo::new(input.workspace_root().unwrap()).unwrap();
+            let url = repo
+                .origin_url()
+                .context("cannot determine origin url")
+                .unwrap();
+            RepoUrl::new(&url)
+        }
+    }
+    .unwrap();
+    let secret_string = SecretString::from(input.git_token.to_string());
+    let github = GitHub::new(repo_url.clone().owner, repo_url.clone().name, secret_string);
+    let github_client = GitHubClient::new(&github);
+    if repo_url.is_on_github() {
+        let page = Octocrab::default()
+            .repos(repo_url.clone().owner, repo_url.name)
+            .releases()
+            .create(&git_tag)
+            .send()
+            .await
+            .unwrap();
+        println!("{:?}", page);
+    }
 }
 
 pub fn git_tag(package_name: &str, version: &str) -> String {
