@@ -20,7 +20,7 @@ git-cliff = { version = "0.8.1", default_features = false }
 git-cliff-core = "0.8.1"
 git-url-parse = "0.4.4"
 octocrab = "0.17.0"
-once_cell = "1.16.0"
+once_cell = "1.17.0"
 reqwest = "0.11.13"
 secrecy = "0.8.0"
 semver = "1.0.16"
