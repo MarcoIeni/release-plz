@@ -4,7 +4,6 @@ use anyhow::Context;
 use cargo_metadata::Package;
 use crates_index::Index;
 use git_cmd::Repo;
-use octocrab::Octocrab;
 use secrecy::SecretString;
 use tracing::{info, instrument};
 use url::Url;
@@ -69,7 +68,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
                 info!("{} {}: already published", package.name, package.version);
                 return Ok(());
             }
-            release_package(&mut index, package, input)?;
+            release_package(&mut index, package, input).await.unwrap();
         }
     }
     Ok(())
@@ -99,7 +98,7 @@ fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Resu
     Ok(registry_indexes)
 }
 
-fn release_package(
+async fn release_package(
     index: &mut Index,
     package: &Package,
     input: &ReleaseRequest,
@@ -138,10 +137,10 @@ fn release_package(
         repo.push(&git_tag)?;
 
         info!("published {}", package.name);
-    }
 
-    if input.gh_release {
-        publish_release(git_tag(&package.name, &package.version.to_string()), input);
+        if input.gh_release {
+            publish_release(git_tag, input).await;
+        }
     }
 
     Ok(())
@@ -162,16 +161,9 @@ async fn publish_release(git_tag: String, input: &ReleaseRequest) {
     .unwrap();
     let secret_string = SecretString::from(input.git_token.to_string());
     let github = GitHub::new(repo_url.clone().owner, repo_url.clone().name, secret_string);
-    let github_client = GitHubClient::new(&github);
+    let github_client = GitHubClient::new(&github).unwrap();
     if repo_url.is_on_github() {
-        let page = Octocrab::default()
-            .repos(repo_url.clone().owner, repo_url.name)
-            .releases()
-            .create(&git_tag)
-            .send()
-            .await
-            .unwrap();
-        println!("{:?}", page);
+        let _page = github_client.create_release(&git_tag).await.unwrap();
     }
 }
 

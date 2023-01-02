@@ -1,6 +1,9 @@
 use crate::backend::Pr;
 use anyhow::Context;
-use octocrab::{models::IssueState, params, Octocrab, OctocrabBuilder};
+use octocrab::{
+    models::{repos, IssueState},
+    params, Octocrab, OctocrabBuilder,
+};
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument, Span};
 use url::Url;
@@ -27,6 +30,17 @@ impl<'a> GitHubClient<'a> {
             .context("Failed to build GitHub client")?;
 
         Ok(Self { github, client })
+    }
+
+    ///Creates a GitHub release.
+    pub async fn create_release(&self, tag: &str) -> anyhow::Result<repos::Release> {
+        self.client
+            .repos(&self.github.owner, &self.github.repo)
+            .releases()
+            .create(tag)
+            .send()
+            .await
+            .context("Failed to create release")
     }
 
     /// Close all Prs which branch starts with the given `branch_prefix`.
