@@ -139,24 +139,17 @@ async fn release_package(
         info!("published {}", package.name);
 
         if input.gh_release {
-            publish_release(git_tag, input).await;
+            publish_release(git_tag, input, repo).await;
         }
     }
 
     Ok(())
 }
 
-async fn publish_release(git_tag: String, input: &ReleaseRequest) {
+async fn publish_release(git_tag: String, input: &ReleaseRequest, repo: Repo) {
     let repo_url = match &input.repo_url {
         Some(url) => RepoUrl::new(url.as_str()),
-        None => {
-            let repo = Repo::new(input.workspace_root().unwrap()).unwrap();
-            let url = repo
-                .origin_url()
-                .context("cannot determine origin url")
-                .unwrap();
-            RepoUrl::new(&url)
-        }
+        None => RepoUrl::from_repo(&repo),
     }
     .unwrap();
     let secret_string = SecretString::from(input.git_token.to_string());
