@@ -4,7 +4,7 @@ use anyhow::Context;
 use cargo_metadata::Package;
 use crates_index::Index;
 use git_cmd::Repo;
-use secrecy::{SecretString, ExposeSecret};
+use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument};
 use url::Url;
 
@@ -155,7 +155,11 @@ async fn publish_release(
         Some(url) => RepoUrl::new(url.as_str()),
         None => RepoUrl::from_repo(&repo),
     }?;
-    let github = GitHub::new(repo_url.clone().owner, repo_url.clone().name, input.git_token.clone());
+    let github = GitHub::new(
+        repo_url.clone().owner,
+        repo_url.clone().name,
+        input.git_token.clone(),
+    );
     let github_client = GitHubClient::new(&github)?;
     if repo_url.is_on_github() {
         let _page = github_client.create_release(&git_tag).await?;
