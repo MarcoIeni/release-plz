@@ -80,7 +80,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html" class="active">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html" class="active">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="why.html"><strong aria-hidden="true">5.</strong> Why yet another release tool</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -148,16 +148,45 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
-<p>Release-plz updates the versions and changelogs of your rust packages, by
-analyzing your git history,
-based on <a href="https://www.conventionalcommits.org/en/v1.0.0/">conventional commits</a>:</p>
+<h2 id="no-more-manual-releases"><a class="header" href="#no-more-manual-releases">No more manual releases</a></h2>
+<p>Releasing Rust packages is tedious and error-prone, just like most IT manual tasks.
+For every package you want to release, you need to:</p>
 <ul>
-<li><code>release-plz update</code> updates your project locally, without committing any change.</li>
-<li><code>release-plz release-pr</code> opens a GitHub Pull Request.</li>
+<li>Increase the version in <code>Cargo.toml</code>.</li>
+<li>Update the changelog.</li>
+<li>Publish the package in the cargo registry (for example, <a href="https://crates.io">crates.io</a>).</li>
+<li>Create and push a git tag.</li>
 </ul>
-<p>Once the changes are merged to the main branch, you can use
-<code>release-plz release</code> to publish the new versions of the packages.</p>
-<p><img src="https://user-images.githubusercontent.com/11428655/160772903-544c7578-7c17-4311-b6ca-a1aefeabe799.gif" alt="release-plz release-pr" /></p>
+<p>Meet <a href="https://github.com/MarcoIeni/release-plz">release-plz</a>: a Rust open-source
+project that automates these tasks, allowing developers to release Rust packages
+without the command line.</p>
+<p>Release-plz creates a fully automated release pipeline, allowing you to
+easily release changes more frequently, without the fear of
+doing typos or other
+subtle manual mistakes you can make when releasing from your terminal.</p>
+<!-- TODO: make screenshot of pr opened by release-plz bot, not github actions. -->
+<p><img src="https://www.marcoieni.com/2023/01/2022-recap-2023-goals/pr.png" alt="pr" /></p>
+<h2 id="release-plz-features"><a class="header" href="#release-plz-features">Release-plz features</a></h2>
+<ul>
+<li>Version update based on <a href="https://www.conventionalcommits.org/en/v1.0.0/">conventional commits</a>.</li>
+<li>Changelog update with <a href="https://github.com/orhun/git-cliff">git-cliff</a>,
+using the <a href="https://keepachangelog.com/en/1.1.0/">keep a changelog</a> format by default.</li>
+<li>Cargo workspaces support.</li>
+<li>No configuration required.</li>
+<li>Optional <code>cargo update</code> before releasing.</li>
+<li>Git tag created for every released package.</li>
+<li>Package published to any cargo registry.</li>
+</ul>
+<h2 id="releases-made-easy"><a class="header" href="#releases-made-easy">Releases made easy</a></h2>
+<p>Release-plz makes releasing Rust packages child's play:</p>
+<ol>
+<li>For every commit, release-plz creates a release Pull Request from CI.</li>
+<li>The release Pull Request reminds the maintainer about the unpublished changes.</li>
+<li>The maintainer reviews and merges the pull request.</li>
+<li>Release-plz releases the updated packages from CI.</li>
+</ol>
+<p>In short, release-plz makes releasing Rust packages as easy as clicking the pull
+request &quot;merge&quot; button.</p>
 
                     </main>
 

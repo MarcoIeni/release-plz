@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="why.html"><strong aria-hidden="true">5.</strong> Why yet another release tool</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -146,17 +146,48 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
-<p>Release-plz updates the versions and changelogs of your rust packages, by
-analyzing your git history,
-based on <a href="https://www.conventionalcommits.org/en/v1.0.0/">conventional commits</a>:</p>
+<h2 id="no-more-manual-releases"><a class="header" href="#no-more-manual-releases">No more manual releases</a></h2>
+<p>Releasing Rust packages is tedious and error-prone, just like most IT manual tasks.
+For every package you want to release, you need to:</p>
 <ul>
-<li><code>release-plz update</code> updates your project locally, without committing any change.</li>
-<li><code>release-plz release-pr</code> opens a GitHub Pull Request.</li>
+<li>Increase the version in <code>Cargo.toml</code>.</li>
+<li>Update the changelog.</li>
+<li>Publish the package in the cargo registry (for example, <a href="https://crates.io">crates.io</a>).</li>
+<li>Create and push a git tag.</li>
 </ul>
-<p>Once the changes are merged to the main branch, you can use
-<code>release-plz release</code> to publish the new versions of the packages.</p>
-<p><img src="https://user-images.githubusercontent.com/11428655/160772903-544c7578-7c17-4311-b6ca-a1aefeabe799.gif" alt="release-plz release-pr" /></p>
+<p>Meet <a href="https://github.com/MarcoIeni/release-plz">release-plz</a>: a Rust open-source
+project that automates these tasks, allowing developers to release Rust packages
+without the command line.</p>
+<p>Release-plz creates a fully automated release pipeline, allowing you to
+easily release changes more frequently, without the fear of
+doing typos or other
+subtle manual mistakes you can make when releasing from your terminal.</p>
+<!-- TODO: make screenshot of pr opened by release-plz bot, not github actions. -->
+<p><img src="https://www.marcoieni.com/2023/01/2022-recap-2023-goals/pr.png" alt="pr" /></p>
+<h2 id="release-plz-features"><a class="header" href="#release-plz-features">Release-plz features</a></h2>
+<ul>
+<li>Version update based on <a href="https://www.conventionalcommits.org/en/v1.0.0/">conventional commits</a>.</li>
+<li>Changelog update with <a href="https://github.com/orhun/git-cliff">git-cliff</a>,
+using the <a href="https://keepachangelog.com/en/1.1.0/">keep a changelog</a> format by default.</li>
+<li>Cargo workspaces support.</li>
+<li>No configuration required.</li>
+<li>Optional <code>cargo update</code> before releasing.</li>
+<li>Git tag created for every released package.</li>
+<li>Package published to any cargo registry.</li>
+</ul>
+<h2 id="releases-made-easy"><a class="header" href="#releases-made-easy">Releases made easy</a></h2>
+<p>Release-plz makes releasing Rust packages child's play:</p>
+<ol>
+<li>For every commit, release-plz creates a release Pull Request from CI.</li>
+<li>The release Pull Request reminds the maintainer about the unpublished changes.</li>
+<li>The maintainer reviews and merges the pull request.</li>
+<li>Release-plz releases the updated packages from CI.</li>
+</ol>
+<p>In short, release-plz makes releasing Rust packages as easy as clicking the pull
+request &quot;merge&quot; button.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
+<p>Make sure you have <code>git</code> and <code>openssl</code> installed when running <code>release-plz</code>.</p>
+<p><code>release-plz</code> is a rust binary that can be installed in different ways.</p>
 <h2 id="docker"><a class="header" href="#docker">Docker</a></h2>
 <p><code>docker pull marcoieni/release-plz</code></p>
 <h2 id="cargo"><a class="header" href="#cargo">Cargo</a></h2>
@@ -174,36 +205,75 @@ using an <a href="https://wiki.archlinux.org/index.php/AUR_helpers">AUR helper</
 <li><code>paru -S release-plz-git</code> (VCS package)</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="github-action"><a class="header" href="#github-action">GitHub action</a></h1>
-<p>The simplest way to update your project with release-plz is to use the <a href="https://github.com/marketplace/actions/release-plz">GitHub action</a>.</p>
+<p>The simplest way to run release-plz is via the <a href="https://github.com/marketplace/actions/release-plz">GitHub action</a>.</p>
+<p>By default, every time you merge a commit to the main branch, the GitHub action
+runs two commands: <a href="usage/release-pr.html"><code>release-plz release-pr</code></a> and
+<a href="usage/release.html"><code>release-plz release</code></a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="usage"><a class="header" href="#usage">Usage</a></h1>
-<p>Make sure you have <code>git</code> installed when running <code>release-plz</code>.</p>
+<p>Release-plz updates the versions and changelogs of your rust packages, by
+analyzing your git history:</p>
+<ul>
+<li><a href="usage/update.html"><code>release-plz update</code></a> updates your project locally, without
+committing any change.</li>
+<li><a href="usage/release-pr.html"><code>release-plz release-pr</code></a> opens a GitHub Pull Request.</li>
+</ul>
+<p>Once the changes are merged to the main branch, you can use
+<a href="usage/release.html"><code>release-plz release</code></a> to publish the new versions of the packages.</p>
 <p>To learn more about how to use release-plz, run <code>release-plz --help</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="update"><a class="header" href="#update">Update</a></h1>
-<p>With <code>release-plz update</code> you can update the version and the changelog of the
+<p>The <code>release-plz update</code> command updates the version and the changelog of the
 packages of a local workspace.</p>
+<p>The command:</p>
+<ul>
+<li>Downloads the packages of the project from the cargo registry.</li>
+<li>Compares the local packages with the downloaded ones to determine the new commits.</li>
+<li>Updates the packages versions based on the messages of the new commits (based
+on <a href="https://www.conventionalcommits.org/en/v1.0.0/">conventional commits</a> and
+<a href="https://semver.org/">semantic versioning</a>).</li>
+<li>Updates the packages changelogs with the messages of the new commits.</li>
+<li>Updates all dependencies by running <code>cargo update</code> (disabled by default).</li>
+</ul>
 <p>In the following example, I run <code>release-plz</code> on the <code>release-plz</code> project itself.
 <code>Release-plz</code> increases the version and the changelog of the packages with
 unpublished changes.</p>
 <p><img src="https://user-images.githubusercontent.com/11428655/160762832-54300ddb-ec9c-4538-a611-c66490c47333.gif" alt="release-plz update" /></p>
+<p>To learn more, run <code>release-plz update --help</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="release-pr"><a class="header" href="#release-pr">Release PR</a></h1>
-<p>With <code>release-plz release-pr</code> you can open a GitHub Pull Request that updates
-the version of the packages of a local workspace.</p>
+<p>The <code>release-plz release-pr</code> command runs <a href="usage/update.html"><code>release-plz update</code></a> and
+opens a GitHub Pull Request that prepares the next release.</p>
+<p>When the project maintainer merges the release pull request, the packages are
+ready to be published.</p>
+<p>Here's an example of a <a href="https://github.com/MarcoIeni/release-plz/pull/377">PR</a>
+opened by release-plz in the release-plz GitHub project itself.</p>
 <p>In the following example, I run <code>release-plz</code> on the <code>release-plz</code> project
 itself.
 <code>Release-plz</code> opens a PR that increases the version and the changelog of the
 packages with unpublished changes.</p>
 <p><img src="https://user-images.githubusercontent.com/11428655/160772903-544c7578-7c17-4311-b6ca-a1aefeabe799.gif" alt="release-plz release-pr" /></p>
+<p>To learn more, run <code>release-plz release-pr --help</code>.</p>
 <h2 id="gitea"><a class="header" href="#gitea">Gitea</a></h2>
 <p><code>release-plz release-pr</code> also supports creating PRs for repositories hosted on
 Gitea with the <code>--backend</code> flag:</p>
 <p><code>release-plz release-pr --token &lt;gitea application token&gt; --backend gitea</code></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="release"><a class="header" href="#release">Release</a></h1>
-<p>The goal of release-plz is to create a fully automated release pipeline.
-This means you can easily release changes more frequently, without the fear of
-doing typos or other
-subtle manual mistakes you can make when releasing from your terminal.</p>
-<p>You can release all the unpublished packages by running <code>release-plz release</code>.</p>
+<p>The <code>release-plz release</code> command releases all the unpublished packages.</p>
+<blockquote>
+<p>For example, let's say you have a workspace with two packages: <code>pkg-a</code>
+(version 0.3.1) and <code>pkg-b</code> (version 0.2.2).
+The crates.io registry contains <code>pkg-a</code> version 0.3.1, but it doesn't contain
+<code>pkg-b</code> version 0.2.2 because you didn't publish this version yet.
+In this case, release-plz would release <code>pkg-b</code>.</p>
+</blockquote>
+<p>For every release, release-plz:</p>
+<ul>
+<li>Creates a git tag named <code>&lt;package_name&gt;-v&lt;version&gt;</code> (e.g. <code>tokio-v1.8.1</code>).</li>
+<li>Publishes the package to the cargo registry by running <code>cargo publish</code>.</li>
+</ul>
+<p>Usually, you use the <code>release-plz release</code> command after you run <code>release-plz update</code>
+or you merge a pull request opened with <code>release-plz release-pr</code>.</p>
+<p>To learn more, run <code>release-plz release --help</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="generate-shell-completions"><a class="header" href="#generate-shell-completions">Generate shell completions</a></h1>
+<p>To learn more, run <code>release-plz generate-completions --help</code>.</p>
 <h2 id="zsh"><a class="header" href="#zsh">zsh</a></h2>
 <p>To load completions in your current shell session:</p>
 <pre><code class="language-sh">autoload bashcompinit; bashcompinit
@@ -234,6 +304,61 @@ By default, release-plz uses the
 <a href="https://keepachangelog.com/en/1.1.0/">keep a changelog</a> format.
 You can customize the changelog format, by providing a git-cliff configuration
 file with the <code>--changelog-config</code> argument.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="why-yet-another-release-tool"><a class="header" href="#why-yet-another-release-tool">Why yet another release tool</a></h1>
+<p>New Rust apps and rewrites are mushrooming every day.
+Choosing which tools to add to your developer toolbox is becoming harder and harder.</p>
+<p>I feel obliged to explain why I created this project and how it compares with
+similar tools.</p>
+<h2 id="differences-with-release-please"><a class="header" href="#differences-with-release-please">Differences with release-please</a></h2>
+<p>Like release-plz, release-please is an open-source project that manages releases
+via pull requests.
+However, there are some differences.</p>
+<h3 id="no-configuration-needed"><a class="header" href="#no-configuration-needed">No configuration needed</a></h3>
+<p>Release-please requires two configuration files: <code>.release-please-manifest.json</code>
+and <code>release-please-config.json</code>.
+Most of the fields you have to write in these two files are already in the
+<code>Cargo.toml</code> files.</p>
+<p>Release-plz obtains all the information it needs from the <code>Cargo.toml</code> files
+and the cargo registry,
+so no configuration files are required.</p>
+<h3 id="versions-retrieved-from-the-cargo-registry"><a class="header" href="#versions-retrieved-from-the-cargo-registry">Versions retrieved from the cargo registry</a></h3>
+<p>Release-please considers a package &quot;published&quot; only when the relative git tag exists.
+Release-please doesn't interact at all with cargo registries.
+However, some Rust projects don't create git tags.
+Instead, they just publish the package to crates.io.</p>
+<p>Release-plz looks at the cargo registry if the relative git tag doesn't exist,
+making it compatible with both workflows and with the majority of the Rust projects.</p>
+<h3 id="no-multiple-programming-languages-support"><a class="header" href="#no-multiple-programming-languages-support">No multiple programming languages support</a></h3>
+<p>Release-please supports multiple programming languages, while release-plz only
+supports Rust projects.</p>
+<h2 id="differences-with-other-rust-release-tools"><a class="header" href="#differences-with-other-rust-release-tools">Differences with other Rust release tools</a></h2>
+<p>These are other release tools in the Rust ecosystem, but they primarily focus on
+the CLI use case, while release-plz focuses mainly on CI.</p>
+<ul>
+<li><a href="https://github.com/crate-ci/cargo-release">cargo-release</a>:
+<ul>
+<li>Bumps the version and publishes Rust packages from the CLI.</li>
+<li>It supports automatic releases with <code>cargo release --unpublished</code></li>
+<li>It doesn't have first-class support for changelogs.
+See <a href="https://github.com/crate-ci/cargo-release/issues/231">this</a> issue.</li>
+<li>It supports hooks (release-plz doesn't).</li>
+</ul>
+</li>
+<li><a href="https://github.com/pksunkara/cargo-workspaces">cargo-workspaces</a>:
+<ul>
+<li>It's a set of commands to manage cargo workspaces and their crates.</li>
+<li>The <code>publish</code> command releases the packages from the CLI similarly to <code>cargo-release</code>.</li>
+</ul>
+</li>
+<li><a href="https://github.com/Byron/gitoxide/tree/main/cargo-smart-release">cargo-smart-release</a>:
+<ul>
+<li>Updates and publishes packages from the CLI.</li>
+<li>It's very similar to release-plz, but it is not meant to be run in CI (see
+<a href="https://github.com/MarcoIeni/release-plz/issues/13#issuecomment-1065790846">this</a>
+comment from the author).</li>
+</ul>
+</li>
+</ul>
 
                     </main>
 

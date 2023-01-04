@@ -80,7 +80,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="../usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="../usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="../usage/release.html" class="active"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="../usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="../changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="../usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="../usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="../usage/release.html" class="active"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="../usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="../changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="../why.html"><strong aria-hidden="true">5.</strong> Why yet another release tool</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -148,11 +148,22 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="release"><a class="header" href="#release">Release</a></h1>
-<p>The goal of release-plz is to create a fully automated release pipeline.
-This means you can easily release changes more frequently, without the fear of
-doing typos or other
-subtle manual mistakes you can make when releasing from your terminal.</p>
-<p>You can release all the unpublished packages by running <code>release-plz release</code>.</p>
+<p>The <code>release-plz release</code> command releases all the unpublished packages.</p>
+<blockquote>
+<p>For example, let's say you have a workspace with two packages: <code>pkg-a</code>
+(version 0.3.1) and <code>pkg-b</code> (version 0.2.2).
+The crates.io registry contains <code>pkg-a</code> version 0.3.1, but it doesn't contain
+<code>pkg-b</code> version 0.2.2 because you didn't publish this version yet.
+In this case, release-plz would release <code>pkg-b</code>.</p>
+</blockquote>
+<p>For every release, release-plz:</p>
+<ul>
+<li>Creates a git tag named <code>&lt;package_name&gt;-v&lt;version&gt;</code> (e.g. <code>tokio-v1.8.1</code>).</li>
+<li>Publishes the package to the cargo registry by running <code>cargo publish</code>.</li>
+</ul>
+<p>Usually, you use the <code>release-plz release</code> command after you run <code>release-plz update</code>
+or you merge a pull request opened with <code>release-plz release-pr</code>.</p>
+<p>To learn more, run <code>release-plz release --help</code>.</p>
 
                     </main>
 

@@ -80,7 +80,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="../usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="../usage/release-pr.html" class="active"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="../usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="../usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="../changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="../usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="../usage/release-pr.html" class="active"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="../usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="../usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="../changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="../why.html"><strong aria-hidden="true">5.</strong> Why yet another release tool</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -148,13 +148,18 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="release-pr"><a class="header" href="#release-pr">Release PR</a></h1>
-<p>With <code>release-plz release-pr</code> you can open a GitHub Pull Request that updates
-the version of the packages of a local workspace.</p>
+<p>The <code>release-plz release-pr</code> command runs <a href="update.html"><code>release-plz update</code></a> and
+opens a GitHub Pull Request that prepares the next release.</p>
+<p>When the project maintainer merges the release pull request, the packages are
+ready to be published.</p>
+<p>Here's an example of a <a href="https://github.com/MarcoIeni/release-plz/pull/377">PR</a>
+opened by release-plz in the release-plz GitHub project itself.</p>
 <p>In the following example, I run <code>release-plz</code> on the <code>release-plz</code> project
 itself.
 <code>Release-plz</code> opens a PR that increases the version and the changelog of the
 packages with unpublished changes.</p>
 <p><img src="https://user-images.githubusercontent.com/11428655/160772903-544c7578-7c17-4311-b6ca-a1aefeabe799.gif" alt="release-plz release-pr" /></p>
+<p>To learn more, run <code>release-plz release-pr --help</code>.</p>
 <h2 id="gitea"><a class="header" href="#gitea">Gitea</a></h2>
 <p><code>release-plz release-pr</code> also supports creating PRs for repositories hosted on
 Gitea with the <code>--backend</code> flag:</p>
