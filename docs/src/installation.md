@@ -1,5 +1,9 @@
 # Installation
 
+Make sure you have `git` and `openssl` installed when running `release-plz`.
+
+`release-plz` is a rust binary that can be installed in different ways.
+
 ## Docker
 
 `docker pull marcoieni/release-plz`
