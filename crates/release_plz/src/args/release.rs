@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use release_plz_core::ReleaseRequest;
+use secrecy::SecretString;
 
 use super::local_manifest;
 
@@ -40,11 +41,11 @@ impl From<Release> for ReleaseRequest {
         ReleaseRequest {
             local_manifest: local_manifest(r.project_manifest.as_deref()),
             registry: r.registry,
-            token: r.token,
+            token: r.token.map(SecretString::from),
             dry_run: r.dry_run,
             gh_release: r.gh_release,
             repo_url: r.repo_url,
-            git_token: r.git_token,
+            git_token: SecretString::from(r.git_token),
         }
     }
 }
