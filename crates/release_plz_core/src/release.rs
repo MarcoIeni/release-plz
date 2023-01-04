@@ -154,8 +154,7 @@ async fn publish_release(
     let repo_url = match &input.repo_url {
         Some(url) => RepoUrl::new(url.as_str()),
         None => RepoUrl::from_repo(&repo),
-    }
-    .unwrap();
+    }?;
     let secret_string = SecretString::from(input.git_token.to_string());
     let github = GitHub::new(repo_url.clone().owner, repo_url.clone().name, secret_string);
     let github_client = GitHubClient::new(&github)?;
