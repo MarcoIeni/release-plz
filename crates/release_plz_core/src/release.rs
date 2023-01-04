@@ -4,7 +4,7 @@ use anyhow::Context;
 use cargo_metadata::Package;
 use crates_index::Index;
 use git_cmd::Repo;
-use secrecy::SecretString;
+use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument};
 use url::Url;
 
@@ -26,7 +26,7 @@ pub struct ReleaseRequest {
     /// If the `publish` field is empty, crates.io is used.
     pub registry: Option<String>,
     /// Token used to publish to the cargo registry.
-    pub token: Option<String>,
+    pub token: Option<SecretString>,
     /// Perform all checks without uploading.
     pub dry_run: bool,
     /// Publishes GitHub release.
@@ -34,7 +34,7 @@ pub struct ReleaseRequest {
     /// GitHub repo URL.
     pub repo_url: Option<String>,
     ///Git token used to publish release.
-    pub git_token: String,
+    pub git_token: SecretString,
 }
 
 impl ReleaseRequest {
@@ -110,7 +110,7 @@ async fn release_package(
     args.push(package.manifest_path.as_ref());
     if let Some(token) = &input.token {
         args.push("--token");
-        args.push(token);
+        args.push(token.expose_secret());
     }
     if input.dry_run {
         args.push("--dry-run");
@@ -155,8 +155,11 @@ async fn publish_release(
         Some(url) => RepoUrl::new(url.as_str()),
         None => RepoUrl::from_repo(&repo),
     }?;
-    let secret_string = SecretString::from(input.git_token.to_string());
-    let github = GitHub::new(repo_url.clone().owner, repo_url.clone().name, secret_string);
+    let github = GitHub::new(
+        repo_url.clone().owner,
+        repo_url.clone().name,
+        input.git_token.clone(),
+    );
     let github_client = GitHubClient::new(&github)?;
     if repo_url.is_on_github() {
         let _page = github_client.create_release(&git_tag).await?;
