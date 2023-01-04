@@ -38,6 +38,7 @@ impl<'a> GitHubClient<'a> {
             .repos(&self.github.owner, &self.github.repo)
             .releases()
             .create(tag)
+            .name(tag)
             .send()
             .await
             .context("Failed to create release")
