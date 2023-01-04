@@ -7,7 +7,9 @@ The command:
 
 - Downloads the packages of the project from the cargo registry.
 - Compares the local packages with the downloaded ones to determine the new commits.
-- Updates the packages versions based on the messages of the new commits (based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) and [semantic versioning](https://semver.org/)).
+- Updates the packages versions based on the messages of the new commits (based
+  on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) and
+  [semantic versioning](https://semver.org/)).
 - Updates the packages changelogs with the messages of the new commits.
 - Updates all dependencies by running `cargo update` (disabled by default).
 

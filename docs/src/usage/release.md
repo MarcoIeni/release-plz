@@ -2,8 +2,10 @@
 
 The `release-plz release` command releases all the unpublished packages.
 
-> For example, let's say you have a workspace with two packages: `pkg-a` (version 0.3.1) and `pkg-b` (version 0.2.2).
-> The crates.io registry contains `pkg-a` version 0.3.1, but it doesn't contain `pkg-b` version 0.2.2 because you didn't publish this version yet.
+> For example, let's say you have a workspace with two packages: `pkg-a`
+> (version 0.3.1) and `pkg-b` (version 0.2.2).
+> The crates.io registry contains `pkg-a` version 0.3.1, but it doesn't contain
+> `pkg-b` version 0.2.2 because you didn't publish this version yet.
 > In this case, release-plz would release `pkg-b`.
 
 For every release, release-plz:
