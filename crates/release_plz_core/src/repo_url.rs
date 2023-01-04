@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Context};
+use git_cmd::Repo;
 use git_url_parse::GitUrl;
 
 #[derive(Debug, Clone)]
@@ -30,6 +31,11 @@ impl RepoUrl {
             port,
             scheme,
         })
+    }
+
+    pub fn from_repo(repo: &Repo) -> Result<Self, anyhow::Error> {
+        let url = repo.origin_url().context("cannot determine origin url")?;
+        RepoUrl::new(&url)
     }
 
     pub fn is_on_github(&self) -> bool {
