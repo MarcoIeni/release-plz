@@ -90,8 +90,7 @@ impl Update {
                 let project_manifest = self.project_manifest();
                 let project_dir = project_manifest.parent().context("at least a parent")?;
                 let repo = Repo::new(project_dir)?;
-                let url = repo.origin_url().context("cannot determine origin url")?;
-                RepoUrl::new(&url)
+                RepoUrl::from_repo(&repo)
             }
         }
     }

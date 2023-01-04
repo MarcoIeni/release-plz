@@ -4,13 +4,16 @@ use anyhow::Context;
 use cargo_metadata::Package;
 use crates_index::Index;
 use git_cmd::Repo;
+use secrecy::SecretString;
 use tracing::{info, instrument};
 use url::Url;
 
 use crate::{
     cargo::{is_published, run_cargo, wait_until_published},
+    github_client::GitHubClient,
     publishable_packages,
     release_order::release_order,
+    GitHub, RepoUrl,
 };
 
 #[derive(Debug)]
@@ -26,6 +29,12 @@ pub struct ReleaseRequest {
     pub token: Option<String>,
     /// Perform all checks without uploading.
     pub dry_run: bool,
+    /// Publishes GitHub release.
+    pub gh_release: bool,
+    /// GitHub repo URL.
+    pub repo_url: Option<String>,
+    ///Git token used to publish release.
+    pub git_token: String,
 }
 
 impl ReleaseRequest {
@@ -59,7 +68,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
                 info!("{} {}: already published", package.name, package.version);
                 return Ok(());
             }
-            release_package(&mut index, package, input)?;
+            release_package(&mut index, package, input).await?;
         }
     }
     Ok(())
@@ -89,7 +98,7 @@ fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Resu
     Ok(registry_indexes)
 }
 
-fn release_package(
+async fn release_package(
     index: &mut Index,
     package: &Package,
     input: &ReleaseRequest,
@@ -106,7 +115,6 @@ fn release_package(
     if input.dry_run {
         args.push("--dry-run");
     }
-
     let workspace_root = input.workspace_root()?;
 
     let repo = Repo::new(workspace_root)?;
@@ -129,8 +137,30 @@ fn release_package(
         repo.push(&git_tag)?;
 
         info!("published {}", package.name);
+
+        if input.gh_release {
+            publish_release(git_tag, input, repo).await?;
+        }
     }
 
+    Ok(())
+}
+
+async fn publish_release(
+    git_tag: String,
+    input: &ReleaseRequest,
+    repo: Repo,
+) -> anyhow::Result<()> {
+    let repo_url = match &input.repo_url {
+        Some(url) => RepoUrl::new(url.as_str()),
+        None => RepoUrl::from_repo(&repo),
+    }?;
+    let secret_string = SecretString::from(input.git_token.to_string());
+    let github = GitHub::new(repo_url.clone().owner, repo_url.clone().name, secret_string);
+    let github_client = GitHubClient::new(&github)?;
+    if repo_url.is_on_github() {
+        let _page = github_client.create_release(&git_tag).await?;
+    }
     Ok(())
 }
 
