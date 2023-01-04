@@ -10,3 +10,4 @@
   - [release](usage/release.md)
   - [shell-completions](usage/shell-completions.md)
 - [Changelog format](changelog-format.md)
+- [Why yet another release tool](why.md)
