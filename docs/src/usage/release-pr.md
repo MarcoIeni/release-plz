@@ -1,7 +1,13 @@
 # Release PR
 
-With `release-plz release-pr` you can open a GitHub Pull Request that updates
-the version of the packages of a local workspace.
+The `release-plz release-pr` command runs [`release-plz update`](update.md) and
+opens a GitHub Pull Request that prepares the next release.
+
+When the project maintainer merges the release pull request, the packages are
+ready to be published.
+
+Here's an example of a [PR](https://github.com/MarcoIeni/release-plz/pull/377)
+opened by release-plz in the release-plz GitHub project itself.
 
 In the following example, I run `release-plz` on the `release-plz` project
 itself.
@@ -9,6 +15,8 @@ itself.
 packages with unpublished changes.
 
 ![release-plz release-pr](https://user-images.githubusercontent.com/11428655/160772903-544c7578-7c17-4311-b6ca-a1aefeabe799.gif)
+
+To learn more, run `release-plz release-pr --help`.
 
 ## Gitea
 

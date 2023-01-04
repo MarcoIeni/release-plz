@@ -1,5 +1,7 @@
 # Generate shell completions
 
+To learn more, run `release-plz generate-completions --help`.
+
 ## zsh
 
 To load completions in your current shell session:
