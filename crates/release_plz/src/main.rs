@@ -4,6 +4,7 @@ mod log;
 use anyhow::Context;
 use clap::Parser;
 use release_plz_core::{ReleasePrRequest, ReleaseRequest};
+use tracing::error;
 
 use crate::args::CliArgs;
 
@@ -11,7 +12,15 @@ use crate::args::CliArgs;
 async fn main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
     log::init(args.verbose);
+    run(args).await.map_err(|e| {
+        error!("{}", e);
+        e
+    })?;
 
+    Ok(())
+}
+
+async fn run(args: CliArgs) -> anyhow::Result<()> {
     match args.command {
         args::Command::Update(cmd_args) => {
             let update_request = cmd_args.update_request()?;
@@ -33,6 +42,5 @@ async fn main() -> anyhow::Result<()> {
         }
         args::Command::GenerateCompletions(cmd_args) => cmd_args.print(),
     }
-
     Ok(())
 }
