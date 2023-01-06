@@ -9,9 +9,9 @@ pub fn last_changes(changelog: &Path) -> anyhow::Result<String> {
 
 fn last_changes_from_str(changelog: &str) -> anyhow::Result<String> {
     let changelog = parse_changelog::parse(changelog).context("can't parse changelog")?;
-    let last_release = release_at(&changelog, 0);
+    let last_release = release_at(&changelog, 0)?;
     let last_changes = if last_release.version.to_lowercase().contains("unreleased") {
-        release_at(&changelog, 1).notes
+        release_at(&changelog, 1)?.notes
     } else {
         last_release.notes
     };
@@ -21,11 +21,12 @@ fn last_changes_from_str(changelog: &str) -> anyhow::Result<String> {
 fn release_at<'a>(
     changelog: &'a parse_changelog::Changelog,
     index: usize,
-) -> &'a parse_changelog::Release<'a> {
-    changelog
+) -> anyhow::Result<&'a parse_changelog::Release<'a>> {
+    let release = changelog
         .get_index(index)
-        .expect("can't find latest release in changelog")
-        .1
+        .context("can't find latest release in changelog")?
+        .1;
+    Ok(release)
 }
 
 #[cfg(test)]
