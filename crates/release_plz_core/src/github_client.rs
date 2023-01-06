@@ -32,7 +32,7 @@ impl<'a> GitHubClient<'a> {
         Ok(Self { github, client })
     }
 
-    ///Creates a GitHub release.
+    /// Creates a GitHub release.
     pub async fn create_release(&self, tag: &str, body: &str) -> anyhow::Result<repos::Release> {
         self.client
             .repos(&self.github.owner, &self.github.repo)
