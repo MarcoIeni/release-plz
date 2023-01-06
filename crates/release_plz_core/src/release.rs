@@ -5,15 +5,16 @@ use cargo_metadata::Package;
 use crates_index::Index;
 use git_cmd::Repo;
 use secrecy::{ExposeSecret, SecretString};
-use tracing::{info, instrument};
+use tracing::{info, instrument, warn};
 use url::Url;
 
 use crate::{
     cargo::{is_published, run_cargo, wait_until_published},
+    changelog_parser,
     github_client::GitHubClient,
     publishable_packages,
     release_order::release_order,
-    GitHub, RepoUrl,
+    GitHub, RepoUrl, CHANGELOG_FILENAME,
 };
 
 #[derive(Debug)]
@@ -139,30 +140,47 @@ async fn release_package(
         info!("published {}", package.name);
 
         if input.git_release {
-            publish_release(git_tag, input, repo).await?;
+            let release_body = release_body(package);
+            publish_release(git_tag, input, repo, &release_body).await?;
         }
     }
 
     Ok(())
 }
 
+/// Return an empty string if the changelog cannot be parsed.
+fn release_body(package: &Package) -> String {
+    let changelog_path = package.manifest_path.join(CHANGELOG_FILENAME);
+    match changelog_parser::last_changes(changelog_path.as_ref()) {
+        Ok(changes) => changes,
+        Err(e) => {
+            warn!(
+                "{}: failed to parse changelog at path {}: {}. The git release body will be empty.",
+                package.name, changelog_path, e
+            );
+            String::new()
+        }
+    }
+}
+
 async fn publish_release(
     git_tag: String,
     input: &ReleaseRequest,
     repo: Repo,
+    release_body: &str,
 ) -> anyhow::Result<()> {
     let repo_url = match &input.repo_url {
         Some(url) => RepoUrl::new(url.as_str()),
         None => RepoUrl::from_repo(&repo),
     }?;
-    let github = GitHub::new(
-        repo_url.clone().owner,
-        repo_url.clone().name,
-        input.git_token.clone(),
-    );
-    let github_client = GitHubClient::new(&github)?;
     if repo_url.is_on_github() {
-        let _page = github_client.create_release(&git_tag).await?;
+        let github = GitHub::new(
+            repo_url.clone().owner,
+            repo_url.clone().name,
+            input.git_token.clone(),
+        );
+        let github_client = GitHubClient::new(&github)?;
+        let _page = github_client.create_release(&git_tag, release_body).await?;
     }
     Ok(())
 }

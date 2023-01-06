@@ -33,12 +33,13 @@ impl<'a> GitHubClient<'a> {
     }
 
     ///Creates a GitHub release.
-    pub async fn create_release(&self, tag: &str) -> anyhow::Result<repos::Release> {
+    pub async fn create_release(&self, tag: &str, body: &str) -> anyhow::Result<repos::Release> {
         self.client
             .repos(&self.github.owner, &self.github.repo)
             .releases()
             .create(tag)
             .name(tag)
+            .body(body)
             .send()
             .await
             .context("Failed to create release")
