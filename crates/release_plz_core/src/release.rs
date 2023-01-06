@@ -30,7 +30,7 @@ pub struct ReleaseRequest {
     /// Perform all checks without uploading.
     pub dry_run: bool,
     /// Publishes GitHub release.
-    pub gh_release: bool,
+    pub git_release: bool,
     /// GitHub repo URL.
     pub repo_url: Option<String>,
     ///Git token used to publish release.
@@ -138,7 +138,7 @@ async fn release_package(
 
         info!("published {}", package.name);
 
-        if input.gh_release {
+        if input.git_release {
             publish_release(git_tag, input, repo).await?;
         }
     }

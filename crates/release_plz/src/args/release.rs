@@ -25,14 +25,14 @@ pub struct Release {
     /// Perform all checks without uploading.
     #[clap(long)]
     pub dry_run: bool,
-    /// Publish GitHub release.
+    /// Publish GitHub release for the created git tag.
     #[clap(long)]
-    pub gh_release: bool,
+    pub git_release: bool,
     /// GitHub repository url.
     #[clap(long, value_parser = NonEmptyStringValueParser::new())]
     pub repo_url: Option<String>,
-    ///Git token used to publish release.
-    #[clap(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github-token")]
+    /// Git token used to publish the GitHub release.
+    #[clap(long, value_parser = NonEmptyStringValueParser::new())]
     pub git_token: String,
 }
 
@@ -43,7 +43,7 @@ impl From<Release> for ReleaseRequest {
             registry: r.registry,
             token: r.token.map(SecretString::from),
             dry_run: r.dry_run,
-            gh_release: r.gh_release,
+            git_release: r.git_release,
             repo_url: r.repo_url,
             git_token: SecretString::from(r.git_token),
         }
