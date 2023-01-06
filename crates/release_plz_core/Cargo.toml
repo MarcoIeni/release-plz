@@ -26,6 +26,7 @@ git-cliff.workspace = true
 git-cliff-core.workspace = true
 git-url-parse.workspace = true
 octocrab.workspace = true
+parse-changelog.workspace = true
 reqwest = { workspace = true, features = ["json"] }
 secrecy.workspace = true
 serde = { workspace = true, features = ["derive"] }

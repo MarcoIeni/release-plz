@@ -2156,6 +2156,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "427c3892f9e783d91cc128285287e70a59e206ca452770ece88a76f7a3eddd72"
 
 [[package]]
+name = "parse-changelog"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5106b777fff7647cac9591cfd65bdb3f62eaf59c4ef26c52be22a7039be5df14"
+dependencies = [
+ "indexmap",
+ "memchr",
+ "once_cell",
+ "regex",
+]
+
+[[package]]
 name = "parse-zoneinfo"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2567,6 +2579,7 @@ dependencies = [
  "git_cmd",
  "next_version",
  "octocrab",
+ "parse-changelog",
  "reqwest",
  "secrecy",
  "serde",
