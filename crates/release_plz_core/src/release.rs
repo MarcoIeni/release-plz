@@ -150,7 +150,11 @@ async fn release_package(
 
 /// Return an empty string if the changelog cannot be parsed.
 fn release_body(package: &Package) -> String {
-    let changelog_path = package.manifest_path.join(CHANGELOG_FILENAME);
+    let changelog_path = package
+        .manifest_path
+        .parent()
+        .expect("manifest must be in a directory")
+        .join(CHANGELOG_FILENAME);
     match changelog_parser::last_changes(changelog_path.as_ref()) {
         Ok(changes) => changes,
         Err(e) => {
