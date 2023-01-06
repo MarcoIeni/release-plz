@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.2...release_plz_core-v0.4.3) - 2023-01-06
 
 ### Added
-### Added
 - Initial experimental support for GitHub releases.
 
 ### Other
