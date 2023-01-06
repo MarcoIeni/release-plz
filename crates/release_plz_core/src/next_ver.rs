@@ -489,8 +489,12 @@ fn manifest_dir(manifest: &Path) -> anyhow::Result<&Path> {
 
 pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
     let tmp_dir = tempdir().context("cannot create temporary directory")?;
-    dir::copy(target, tmp_dir.as_ref(), &dir::CopyOptions::default())
-        .context(format!("cannot copy directory {target:?} to {tmp_dir:?}",))?;
+    dir::copy(target, tmp_dir.as_ref(), &dir::CopyOptions::default()).map_err(|e| {
+        anyhow!(
+            "cannot copy directory {target:?} to {tmp_dir:?}: {e} Error kind: {:?}",
+            e.kind
+        )
+    })?;
     Ok(tmp_dir)
 }
 
