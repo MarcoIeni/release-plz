@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.2...release_plz_core-v0.4.3) - 2023-01-06
+
+### Added
+- *(release)* create GitHub release (#397)
+
+### Other
+- print error kind when copying directories (#408)
+- rename `gh-release` flag to `git-release`
+- use secret strings for tokens (#403)
+
 ## [0.4.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.1...release_plz_core-v0.4.2) - 2022-12-26
 
 ### Other
