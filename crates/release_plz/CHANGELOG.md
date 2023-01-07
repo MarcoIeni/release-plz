@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.30](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.29...release-plz-v0.2.30) - 2023-01-07
 
+### Added
+- add body to git release (#411)
+
 ### Fixed
 - *(release)* git-token is optional (#413)
 
