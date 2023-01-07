@@ -14,7 +14,7 @@ Once the changes are merged to the main branch, you can use
 
 ## Docs
 
-Lean how to use release-plz in the mdbook [docs](https://marcoieni.github.io/release-plz/).
+Learn how to use release-plz in the mdbook [docs](https://marcoieni.github.io/release-plz/).
 
 ## Users
 
