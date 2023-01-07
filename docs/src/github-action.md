@@ -4,17 +4,27 @@ The simplest way to run release-plz is via the [GitHub action](https://github.co
 
 By default, every time you merge a commit to the main branch, the GitHub action
 runs two commands, one after the other:
+
 - [`release-plz release-pr`](usage/release-pr.md): creates the release pr.
 - [`release-plz release`](usage/release.md): publishes the unpublished packages.
 
 ## Input variables
 
-- `command`: The release-plz command to run. Accepted values: `release-pr`, `release`. (By default it runs both commands).
-- `registry`: Registry where the packages are stored. The registry name needs to be present in the Cargo config. If unspecified, crates.io is used. (Defaults to crates.io).
+- `command`: The release-plz command to run. Accepted values: `release-pr`,
+  `release`. (By default it runs both commands).
+- `registry`: Registry where the packages are stored.
+  The registry name needs to be present in the Cargo config.
+  If unspecified, crates.io is used. (Defaults to crates.io).
 - `no_changelog`: Don't create changelog. (Default: `"false"`).
-- `update_dependencies`: If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`. If `false`, only update the workspace packages by running `cargo update --workspace`. (Default: `false`).
-- `project_manifest`: Path to the Cargo.toml of the project you want to update. Both Cargo workspaces and single packages are supported. (Defaults to the root directory).
-- `changelog_config`: Path to the git cliff configuration file. (Defaults to the [keep a changelog](https://keepachangelog.com/en/1.1.0/) configuration).
+- `update_dependencies`: If `true`, update all the dependencies in the Cargo.lock
+  file by running `cargo update`.
+  If `false`, only update the workspace packages by running
+  `cargo update --workspace`. (Default: `false`).
+- `project_manifest`: Path to the Cargo.toml of the project you want to update.
+  Both Cargo workspaces and single packages are supported. (Defaults to the root
+  directory).
+- `changelog_config`: Path to the git cliff configuration file.
+  (Defaults to the [keep a changelog](https://keepachangelog.com/en/1.1.0/) configuration).
 - `args`: Release-plz additional arguments. (Default: `""`)
 
 ## Example: release-pr and release
@@ -103,12 +113,20 @@ jobs:
 
 ## Triggering further workflow runs
 
-Pull requests created by GitHub actions using the default `GITHUB_TOKEN` cannot trigger other workflows.
-If you have `on: pull_request` or `on: push` workflows acting as checks on pull requests, they will not run.
+Pull requests created by GitHub actions using the default `GITHUB_TOKEN` cannot
+trigger other workflows.
+If you have `on: pull_request` or `on: push` workflows acting as checks on pull
+requests, they will not run.
 
-> When you use the repository's `GITHUB_TOKEN` to perform tasks, events triggered by the `GITHUB_TOKEN` will not create a new workflow run. This prevents you from accidentally creating recursive workflow runs. For example, if a workflow run pushes code using the repository's `GITHUB_TOKEN`, a new workflow will not run even when the repository contains a workflow configured to run when `push` events occur.
+> When you use the repository's `GITHUB_TOKEN` to perform tasks, events triggered
+by the `GITHUB_TOKEN` will not create a new workflow run.
+This prevents you from accidentally creating recursive workflow runs.
+For example, if a workflow run pushes code using the repository's `GITHUB_TOKEN`,
+a new workflow will not run even when the repository contains a workflow
+configured to run when `push` events occur.
 
 -- [GitHub Actions: Triggering a workflow from a workflow](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow)
 
 Read [this](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs)
-guide to learn about possible workarounds, such as setting a Personal Access Token, a deploy key or a GitHub app.
+guide to learn about possible workarounds, such as setting a Personal Access
+Token, a deploy key or a GitHub app.
