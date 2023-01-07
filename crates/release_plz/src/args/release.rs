@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use anyhow::Context;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use release_plz_core::ReleaseRequest;
 use secrecy::SecretString;
@@ -33,19 +34,31 @@ pub struct Release {
     pub repo_url: Option<String>,
     /// Git token used to publish the GitHub release.
     #[clap(long, value_parser = NonEmptyStringValueParser::new())]
-    pub git_token: String,
+    pub git_token: Option<String>,
 }
 
-impl From<Release> for ReleaseRequest {
-    fn from(r: Release) -> Self {
-        ReleaseRequest {
+impl TryFrom<Release> for ReleaseRequest {
+    type Error = anyhow::Error;
+
+    fn try_from(r: Release) -> Result<Self, Self::Error> {
+        let git_release = if r.git_release {
+            let release = release_plz_core::GitRelease {
+                git_token: SecretString::from(
+                    r.git_token
+                        .context("git_token is required for git_release")?,
+                ),
+            };
+            Some(release)
+        } else {
+            None
+        };
+        Ok(ReleaseRequest {
             local_manifest: local_manifest(r.project_manifest.as_deref()),
             registry: r.registry,
             token: r.token.map(SecretString::from),
             dry_run: r.dry_run,
-            git_release: r.git_release,
+            git_release,
             repo_url: r.repo_url,
-            git_token: SecretString::from(r.git_token),
-        }
+        })
     }
 }
