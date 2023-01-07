@@ -37,7 +37,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             release_plz_core::release_pr(&request).await?;
         }
         args::Command::Release(cmd_args) => {
-            let request: ReleaseRequest = cmd_args.into();
+            let request: ReleaseRequest = cmd_args.try_into()?;
             release_plz_core::release(&request).await?;
         }
         args::Command::GenerateCompletions(cmd_args) => cmd_args.print(),

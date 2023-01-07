@@ -31,10 +31,14 @@ pub struct ReleaseRequest {
     /// Perform all checks without uploading.
     pub dry_run: bool,
     /// Publishes GitHub release.
-    pub git_release: bool,
+    pub git_release: Option<GitRelease>,
     /// GitHub repo URL.
     pub repo_url: Option<String>,
-    ///Git token used to publish release.
+}
+
+#[derive(Debug)]
+pub struct GitRelease {
+    /// Git token used to publish release.
     pub git_token: SecretString,
 }
 
@@ -139,9 +143,9 @@ async fn release_package(
 
         info!("published {}", package.name);
 
-        if input.git_release {
+        if let Some(git_release) = &input.git_release {
             let release_body = release_body(package);
-            publish_release(git_tag, input, repo, &release_body).await?;
+            publish_release(git_tag, input.repo_url.as_deref(), repo, &release_body, &git_release.git_token).await?;
         }
     }
 
@@ -169,19 +173,20 @@ fn release_body(package: &Package) -> String {
 
 async fn publish_release(
     git_tag: String,
-    input: &ReleaseRequest,
+    repo_url: Option<&str>,
     repo: Repo,
     release_body: &str,
+    git_token: &SecretString,
 ) -> anyhow::Result<()> {
-    let repo_url = match &input.repo_url {
-        Some(url) => RepoUrl::new(url.as_str()),
+    let repo_url = match repo_url {
+        Some(url) => RepoUrl::new(url),
         None => RepoUrl::from_repo(&repo),
     }?;
     if repo_url.is_on_github() {
         let github = GitHub::new(
             repo_url.clone().owner,
             repo_url.clone().name,
-            input.git_token.clone(),
+            git_token.clone(),
         );
         let github_client = GitHubClient::new(&github)?;
         let _page = github_client.create_release(&git_tag, release_body).await?;
