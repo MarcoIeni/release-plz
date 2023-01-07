@@ -145,7 +145,14 @@ async fn release_package(
 
         if let Some(git_release) = &input.git_release {
             let release_body = release_body(package);
-            publish_release(git_tag, input.repo_url.as_deref(), repo, &release_body, git_release.git_token.clone()).await?;
+            publish_release(
+                git_tag,
+                input.repo_url.as_deref(),
+                repo,
+                &release_body,
+                git_release.git_token.clone(),
+            )
+            .await?;
         }
     }
 
@@ -183,11 +190,7 @@ async fn publish_release(
         None => RepoUrl::from_repo(&repo),
     }?;
     if repo_url.is_on_github() {
-        let github = GitHub::new(
-            repo_url.clone().owner,
-            repo_url.clone().name,
-            git_token,
-        );
+        let github = GitHub::new(repo_url.clone().owner, repo_url.clone().name, git_token);
         let github_client = GitHubClient::new(&github)?;
         let _page = github_client.create_release(&git_tag, release_body).await?;
     }
