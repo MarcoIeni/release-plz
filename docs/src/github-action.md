@@ -25,6 +25,7 @@ runs two commands, one after the other:
   directory).
 - `changelog_config`: Path to the git cliff configuration file.
   (Defaults to the [keep a changelog](https://keepachangelog.com/en/1.1.0/) configuration).
+- `git_release`: Publish the GitHub release for the created git tag. (Default: `true`).
 - `args`: Release-plz additional arguments. (Default: `""`)
 
 ## Example: release-pr and release
