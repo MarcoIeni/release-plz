@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  server:
+    image: gitea/gitea:1.18.0-rootless
+    container_name: gitea
+    restart: always
+    environment:
+      - GITEA__security__INSTALL_LOCK=true
+    ports:
+      - "3000:3000"
+      - "2222:2222"
