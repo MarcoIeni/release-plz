@@ -159,7 +159,7 @@ async fn release_package(
                 repo,
                 &release_body,
                 git_release.git_token.clone(),
-                make_latest
+                make_latest,
             )
             .await?;
         }
@@ -193,7 +193,7 @@ async fn publish_release(
     repo: Repo,
     release_body: &str,
     git_token: SecretString,
-    make_latest: bool
+    make_latest: bool,
 ) -> anyhow::Result<()> {
     let repo_url = match repo_url {
         Some(url) => RepoUrl::new(url),
@@ -202,7 +202,9 @@ async fn publish_release(
     if repo_url.is_on_github() {
         let github = GitHub::new(repo_url.clone().owner, repo_url.clone().name, git_token);
         let github_client = GitHubClient::new(&github)?;
-        let _page = github_client.create_release(&git_tag, release_body, make_latest).await?;
+        let _page = github_client
+            .create_release(&git_tag, release_body, make_latest)
+            .await?;
     }
     Ok(())
 }
