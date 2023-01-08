@@ -2,7 +2,9 @@ use crate::backend::Pr;
 use anyhow::Context;
 use octocrab::{
     models::{repos, IssueState},
-    params, Octocrab, OctocrabBuilder,
+    params,
+    repos::releases::MakeLatest,
+    Octocrab, OctocrabBuilder,
 };
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument, Span};
@@ -33,12 +35,22 @@ impl<'a> GitHubClient<'a> {
     }
 
     /// Creates a GitHub release.
-    pub async fn create_release(&self, tag: &str, body: &str) -> anyhow::Result<repos::Release> {
+    pub async fn create_release(
+        &self,
+        tag: &str,
+        body: &str,
+        make_latest: bool,
+    ) -> anyhow::Result<repos::Release> {
+        let make_latest = match make_latest {
+            true => MakeLatest::True,
+            false => MakeLatest::False,
+        };
         self.client
             .repos(&self.github.owner, &self.github.repo)
             .releases()
             .create(tag)
             .name(tag)
+            .make_latest(make_latest)
             .body(body)
             .send()
             .await
