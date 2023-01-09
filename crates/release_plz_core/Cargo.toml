@@ -40,7 +40,6 @@ toml_edit.workspace = true
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }
 test_logs = { path = "../test_logs" }
 
-claim.workspace = true
 expect-test.workspace = true
 fake.workspace = true
 serde_json.workspace = true

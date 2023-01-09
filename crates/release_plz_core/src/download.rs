@@ -70,7 +70,6 @@ pub fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<Package> {
 
 #[cfg(test)]
 mod tests {
-    use claim::assert_ok;
     use fake::Fake;
     use tempfile::tempdir;
 
@@ -107,6 +106,6 @@ mod tests {
         let package: String = 15.fake();
         let temp_dir = tempdir().unwrap();
         let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
-        assert_ok!(download_packages(&[&package], directory, None));
+        download_packages(&[&package], directory, None).unwrap();
     }
 }
