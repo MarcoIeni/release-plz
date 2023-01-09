@@ -21,5 +21,4 @@ tracing.workspace = true
 git_cmd = { path = ".", features = ["test_fixture"]}
 test_logs = { path = "../test_logs" }
 
-claim.workspace = true
 tempfile.workspace = true
