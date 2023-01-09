@@ -253,7 +253,6 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
 
 #[cfg(test)]
 mod tests {
-    use claim::assert_ok;
     use std::fs;
     use tempfile::tempdir;
 
@@ -305,7 +304,7 @@ mod tests {
         test_logs::init();
         let repository_dir = tempdir().unwrap();
         let repo = Repo::init(&repository_dir);
-        assert_ok!(repo.is_clean());
+        repo.is_clean().unwrap();
     }
 
     #[test]
