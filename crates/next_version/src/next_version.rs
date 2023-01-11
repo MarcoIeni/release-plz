@@ -8,13 +8,13 @@ pub trait NextVersion {
         I: IntoIterator,
         I::Item: AsRef<str>;
 
-    /// Increments the major version number for this Version.
+    /// Increments the major version number.
     fn increment_major(&self) -> Self;
-    /// Increments the minor version number for this Version.
+    /// Increments the minor version number.
     fn increment_minor(&self) -> Self;
-    /// Increments the patch version number for this Version.
+    /// Increments the patch version number.
     fn increment_patch(&self) -> Self;
-    /// Increments the patch version number for this Version.
+    /// Increments the prerelease version number.
     fn increment_prerelease(&self) -> Self;
 }
 
