@@ -60,6 +60,22 @@
 //! assert_eq!(version.next(commits), expected);
 //!
 //! ```
+//!
+//! Build metadata isn't modified.
+//!
+//! ```rust
+//! use semver::Version;
+//! use next_version::NextVersion;
+//!
+//! let commits = vec!["my change"];
+//! let version = Version::parse("1.0.0-beta.1+1.1.0").unwrap();
+//! let expected = Version::parse("1.0.0-beta.2+1.1.0").unwrap();
+//! assert_eq!(version.next(commits.clone()), expected);
+//!
+//! let version = Version::parse("1.0.0+abcd").unwrap();
+//! let expected = Version::parse("1.0.1+abcd").unwrap();
+//! assert_eq!(version.next(commits.clone()), expected);
+//! ```
 
 mod next_version;
 mod version_increment;
