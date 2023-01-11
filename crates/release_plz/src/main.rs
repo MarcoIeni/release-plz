@@ -25,15 +25,14 @@ async fn main() -> anyhow::Result<()> {
 
 async fn check_updates() -> (bool, String) {
     const VERSION: &str = env!("CARGO_PKG_VERSION");
-    if let Some(latest_release) = octocrab::instance()
+    if let Ok(latest_release) = octocrab::instance()
         .repos("MarcoIeni", "release-plz")
         .releases()
         .get_latest()
         .await
-        .ok()
     {
         let tag_name = latest_release.tag_name;
-        return (VERSION == &tag_name[1..], tag_name);
+        (VERSION == &tag_name[1..], tag_name)
     } else {
         (true, "".to_string())
     }
