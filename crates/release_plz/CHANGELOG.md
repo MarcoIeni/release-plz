@@ -23,8 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial support for GitHub releases. You can create a GitHub release when running `release-plz release` by using the `--git-release` flag.
-  This flag will probably be removed, because in the future the GitHub release will be created by default.
-  This feature is still experimental.
 
 ### Other
 - print error kind when copying directories (#408)
