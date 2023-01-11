@@ -7,6 +7,7 @@ pub enum VersionIncrement {
     Major,
     Minor,
     Patch,
+    Prerelease,
 }
 
 impl VersionIncrement {
@@ -14,6 +15,8 @@ impl VersionIncrement {
     /// [conventional commits](https://www.conventionalcommits.org/) and
     /// [Semantic versioning](https://semver.org/).
     /// - If no commits are present, [`Option::None`] is returned, because the version should not be incremented.
+    /// - If some commits are present and [`semver::Prerelease`] is not empty, the version increment is
+    ///   [`VersionIncrement::Prerelease`].
     /// - If some commits are present, but none of them match conventional commits specification,
     ///   the version increment is [`VersionIncrement::Patch`].
     /// - If some commits match conventional commits, then the next version is calculated by using
@@ -28,6 +31,9 @@ impl VersionIncrement {
         if !are_commits_present {
             None
         } else {
+            if !current_version.pre.is_empty() {
+                return Some(VersionIncrement::Prerelease);
+            }
             // Parse commits and keep only the ones that follow conventional commits specification.
             let commits: Vec<ConventionalCommit> = commits
                 .filter_map(|c| conventional_commit_parser::parse(c.as_ref()).ok())
@@ -70,6 +76,7 @@ impl VersionIncrement {
             Self::Major => version.increment_major(),
             Self::Minor => version.increment_minor(),
             Self::Patch => version.increment_patch(),
+            Self::Prerelease => version.increment_prerelease(),
         }
     }
 }

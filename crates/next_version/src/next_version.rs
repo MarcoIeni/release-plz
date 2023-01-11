@@ -8,12 +8,14 @@ pub trait NextVersion {
         I: IntoIterator,
         I::Item: AsRef<str>;
 
-    /// Increments the major version number for this Version.
+    /// Increments the major version number.
     fn increment_major(&self) -> Self;
-    /// Increments the minor version number for this Version.
+    /// Increments the minor version number.
     fn increment_minor(&self) -> Self;
-    /// Increments the patch version number for this Version.
+    /// Increments the patch version number.
     fn increment_patch(&self) -> Self;
+    /// Increments the prerelease version number.
+    fn increment_prerelease(&self) -> Self;
 }
 
 impl NextVersion for Version {
@@ -77,5 +79,30 @@ impl NextVersion for Version {
             pre: semver::Prerelease::EMPTY,
             build: semver::BuildMetadata::EMPTY,
         }
+    }
+
+    fn increment_prerelease(&self) -> Self {
+        let next_pre = increment_last_identifier(self.pre.as_str());
+        let next_pre = semver::Prerelease::new(&next_pre).expect("pre release increment failed. Please report this issue to https://github.com/MarcoIeni/release-plz/issues");
+        Self {
+            major: self.major,
+            minor: self.minor,
+            patch: self.patch,
+            pre: next_pre,
+            build: semver::BuildMetadata::EMPTY,
+        }
+    }
+}
+
+fn increment_last_identifier(release: &str) -> String {
+    match release.rsplit_once('.') {
+        Some((left, right)) => {
+            if let Ok(right_num) = right.parse::<u32>() {
+                format!("{left}.{}", right_num + 1)
+            } else {
+                format!("{release}.1")
+            }
+        }
+        None => format!("{release}.1"),
     }
 }
