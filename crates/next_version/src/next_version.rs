@@ -55,29 +55,26 @@ impl NextVersion for Version {
             minor: 0,
             patch: 0,
             pre: semver::Prerelease::EMPTY,
-            build: semver::BuildMetadata::EMPTY,
+            build: self.build.clone(),
         }
     }
 
     // taken from https://github.com/killercup/cargo-edit/blob/643e9253a84db02c52a7fa94f07d786d281362ab/src/version.rs#L46
     fn increment_minor(&self) -> Self {
         Self {
-            major: self.major,
             minor: self.minor + 1,
             patch: 0,
             pre: semver::Prerelease::EMPTY,
-            build: semver::BuildMetadata::EMPTY,
+            ..self.clone()
         }
     }
 
     // taken from https://github.com/killercup/cargo-edit/blob/643e9253a84db02c52a7fa94f07d786d281362ab/src/version.rs#L53
     fn increment_patch(&self) -> Self {
         Self {
-            major: self.major,
-            minor: self.minor,
             patch: self.patch + 1,
             pre: semver::Prerelease::EMPTY,
-            build: semver::BuildMetadata::EMPTY,
+            ..self.clone()
         }
     }
 
@@ -85,11 +82,8 @@ impl NextVersion for Version {
         let next_pre = increment_last_identifier(self.pre.as_str());
         let next_pre = semver::Prerelease::new(&next_pre).expect("pre release increment failed. Please report this issue to https://github.com/MarcoIeni/release-plz/issues");
         Self {
-            major: self.major,
-            minor: self.minor,
-            patch: self.patch,
             pre: next_pre,
-            build: semver::BuildMetadata::EMPTY,
+            ..self.clone()
         }
     }
 }
