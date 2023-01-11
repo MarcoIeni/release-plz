@@ -1322,7 +1322,7 @@ dependencies = [
 
 [[package]]
 name = "git_cmd"
-version = "0.2.5"
+version = "0.2.6"
 dependencies = [
  "anyhow",
  "git_cmd",
@@ -1949,7 +1949,7 @@ dependencies = [
 
 [[package]]
 name = "next_version"
-version = "0.1.10"
+version = "0.2.0"
 dependencies = [
  "conventional_commit_parser",
  "semver",
@@ -2528,7 +2528,7 @@ checksum = "456c603be3e8d448b072f410900c09faf164fbce2d480456f50eea6e25f9c848"
 
 [[package]]
 name = "release-plz"
-version = "0.2.30"
+version = "0.2.31"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -2549,7 +2549,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.4.4"
+version = "0.4.5"
 dependencies = [
  "anyhow",
  "cargo-clone-core",
