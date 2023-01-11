@@ -51,8 +51,8 @@
 //!
 //! let commits = vec!["feat!: break user"];
 //! let version = Version::parse("1.0.0-alpha.1.2").unwrap();
-//! let expected = Version::parse("1.0.0-aplha.1.3").unwrap();
-//! assert_eq!(version.next(commits), expected);
+//! let expected = Version::parse("1.0.0-alpha.1.3").unwrap();
+//! assert_eq!(version.next(commits.clone()), expected);
 //!
 //! // If the pre-release doesn't contain a version, `.1` is appended.
 //! let version = Version::parse("1.0.0-beta").unwrap();
