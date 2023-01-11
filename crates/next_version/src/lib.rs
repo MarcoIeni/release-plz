@@ -41,6 +41,25 @@
 //!
 //! assert_eq!(Version::new(0, 4, 4).next(&commits), Version::new(0, 5, 0));
 //! ```
+//!
+//! Pre-release versions are incremented in the same way, independently
+//! by the type of commits:
+//!
+//! ```rust
+//! use semver::Version;
+//! use next_version::NextVersion;
+//!
+//! let commits = vec!["feat!: break user"];
+//! let version = Version::parse("1.0.0-alpha.1.2").unwrap();
+//! let expected = Version::parse("1.0.0-alpha.1.3").unwrap();
+//! assert_eq!(version.next(commits.clone()), expected);
+//!
+//! // If the pre-release doesn't contain a version, `.1` is appended.
+//! let version = Version::parse("1.0.0-beta").unwrap();
+//! let expected = Version::parse("1.0.0-beta.1").unwrap();
+//! assert_eq!(version.next(commits), expected);
+//!
+//! ```
 
 mod next_version;
 mod version_increment;
