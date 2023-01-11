@@ -10,6 +10,9 @@ use crate::args::CliArgs;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    if !check_updates().await.0 {
+        println!("A newer version ({}) is available at https://github.com/MarcoIeni/release-plz\nPlease Update.", check_updates().await.1);
+    }
     let args = CliArgs::parse();
     log::init(args.verbose);
     run(args).await.map_err(|e| {
@@ -18,6 +21,22 @@ async fn main() -> anyhow::Result<()> {
     })?;
 
     Ok(())
+}
+
+async fn check_updates() -> (bool, String) {
+    const VERSION: &str = env!("CARGO_PKG_VERSION");
+    if let Some(latest_release) = octocrab::instance()
+        .repos("MarcoIeni", "release-plz")
+        .releases()
+        .get_latest()
+        .await
+        .ok()
+    {
+        let tag_name = latest_release.tag_name;
+        return (VERSION == &tag_name[1..], tag_name);
+    } else {
+        (true, "".to_string())
+    }
 }
 
 async fn run(args: CliArgs) -> anyhow::Result<()> {

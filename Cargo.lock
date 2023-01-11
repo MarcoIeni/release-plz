@@ -2538,6 +2538,7 @@ dependencies = [
  "dirs",
  "git-cliff-core",
  "git_cmd",
+ "octocrab",
  "release_plz_core",
  "secrecy",
  "tokio",
