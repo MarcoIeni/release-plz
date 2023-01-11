@@ -84,7 +84,12 @@ fn pr_body(packages_to_update: &[(Package, UpdateResult)]) -> String {
     let header = "## 🤖 New release";
     let updates: String = packages_to_update
         .iter()
-        .map(|(package, update)| format!("\n* `{}` -> {}", package.name, update.version))
+        .map(|(package, update)| {
+            format!(
+                "\n* `{}`: {} -> {}",
+                package.name, package.version, update.version
+            )
+        })
         .collect();
     let footer =
         "---\nThis PR was generated with [release-plz](https://github.com/MarcoIeni/release-plz/).";
