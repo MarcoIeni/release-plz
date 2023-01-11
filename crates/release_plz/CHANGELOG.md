@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.31](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.30...release-plz-v0.2.31) - 2023-01-11
+
+### Added
+- don't remove build metadata (#433)
+- handle pre-releases (#425)
+
 ## [0.2.30](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.29...release-plz-v0.2.30) - 2023-01-07
 
 ### Added
@@ -18,8 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial support for GitHub releases. You can create a GitHub release when running `release-plz release` by using the `--git-release` flag.
-  This flag will probably be removed, because in the future the GitHub release will be created by default.
-  This feature is still experimental.
 
 ### Other
 - print error kind when copying directories (#408)
