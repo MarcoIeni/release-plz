@@ -85,10 +85,14 @@ fn pr_body(packages_to_update: &[(Package, UpdateResult)]) -> String {
     let updates: String = packages_to_update
         .iter()
         .map(|(package, update)| {
-            format!(
-                "\n* `{}`: {} -> {}",
-                package.name, package.version, update.version
-            )
+            if package.version != update.version {
+                format!(
+                    "\n* `{}`: {} -> {}",
+                    package.name, package.version, update.version
+                )
+            } else {
+                format!("\n* `{}`: {}", package.name, package.version)
+            }
         })
         .collect();
     let footer =
