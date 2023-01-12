@@ -1,6 +1,6 @@
 [package]
 name = "git_cmd"
-version = "0.2.5"
+version = "0.2.6"
 edition = "2021"
 description = "Wrapper around git cli"
 repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/git_cmd"
@@ -21,5 +21,4 @@ tracing.workspace = true
 git_cmd = { path = ".", features = ["test_fixture"]}
 test_logs = { path = "../test_logs" }
 
-claim.workspace = true
 tempfile.workspace = true

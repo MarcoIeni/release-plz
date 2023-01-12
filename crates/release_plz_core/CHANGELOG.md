@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.4...release_plz_core-v0.4.5) - 2023-01-11
+
+### Other
+- don't remove build metadata (#433)
+- handle pre-releases (#425)
+
 ## [0.4.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.3...release_plz_core-v0.4.4) - 2023-01-07
 
 ### Added
