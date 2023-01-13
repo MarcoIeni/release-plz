@@ -11,7 +11,7 @@ categories = ["development-tools"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cargo_utils = { path = "../cargo_utils", version = "0.1.4" }
+cargo_utils = { path = "../cargo_utils", version = "0.1.5" }
 git_cmd = { path = "../git_cmd", version = "0.2.6" }
 next_version = { path = "../next_version", version = "0.2" }
 
