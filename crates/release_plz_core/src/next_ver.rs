@@ -445,8 +445,7 @@ fn are_dependencies_updated(
     local_dependencies: &[Dependency],
 ) -> bool {
     for dep in local_dependencies {
-        // local dependencies don't have a source.
-        if dep.source.is_some() && !registry_dependencies.contains(dep) {
+        if dep.path.is_none() && !registry_dependencies.contains(dep) {
             return true;
         }
     }
