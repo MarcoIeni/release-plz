@@ -444,12 +444,9 @@ fn are_dependencies_updated(
     registry_dependencies: &[Dependency],
     local_dependencies: &[Dependency],
 ) -> bool {
-    for dep in local_dependencies {
-        if dep.path.is_none() && !registry_dependencies.contains(dep) {
-            return true;
-        }
-    }
-    false
+    local_dependencies
+        .iter()
+        .any(|d| d.path.is_none() && !registry_dependencies.contains(d))
 }
 
 pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
