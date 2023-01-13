@@ -335,7 +335,7 @@ dependencies = [
 
 [[package]]
 name = "cargo_utils"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -3175,7 +3175,7 @@ checksum = "95059e91184749cb66be6dc994f67f182b6d897cb3df74a5bf66b5e709295fd8"
 
 [[package]]
 name = "test_logs"
-version = "0.1.10"
+version = "0.1.11"
 dependencies = [
  "once_cell",
  "tracing",
