@@ -14,7 +14,7 @@ use crate::{
     github_client::GitHubClient,
     publishable_packages,
     release_order::release_order,
-    GitHub, PackagePath, RepoUrl, CHANGELOG_FILENAME,
+    GitHub, PackagePath, RepoUrl,
 };
 
 #[derive(Debug)]
