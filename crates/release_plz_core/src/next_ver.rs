@@ -10,7 +10,7 @@ use crate::{
     ChangelogBuilder, CARGO_TOML,
 };
 use anyhow::{anyhow, Context};
-use cargo_metadata::{semver::Version, Package};
+use cargo_metadata::{semver::Version, Dependency, Package};
 use cargo_utils::{upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
 use fs_extra::dir;
@@ -403,7 +403,10 @@ fn get_diff(
                 );
                 if diff.commits.is_empty() {
                     // Check if the workspace dependencies were updated.
-                    if registry_package.dependencies != package.dependencies {
+                    if are_dependencies_updated(
+                        &registry_package.dependencies,
+                        &package.dependencies,
+                    ) {
                         diff.commits.push("chore: update dependencies".to_string());
                     } else {
                         info!("{}: already up to date", package.name);
@@ -434,6 +437,21 @@ fn get_diff(
     }
     repository.checkout_head()?;
     Ok(diff)
+}
+
+/// Compare the dependencies of the registry package and the local one.
+/// Check if the dependencies of the registry package were updated.
+fn are_dependencies_updated(
+    registry_dependencies: &[Dependency],
+    local_dependencies: &[Dependency],
+) -> bool {
+    for dep in local_dependencies {
+        // local dependencies don't have a source.
+        if dep.source.is_some() && !registry_dependencies.contains(dep) {
+            return true;
+        }
+    }
+    false
 }
 
 pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
