@@ -294,7 +294,6 @@ fn packages_to_update(
         .collect();
     let dependent_packages =
         dependent_packages(&packages_to_check_for_deps, &changed_packages, req)?;
-    info!("dependents packages: {:?}", dependent_packages);
     packages_to_update.extend(dependent_packages);
     Ok(packages_to_update)
 }
