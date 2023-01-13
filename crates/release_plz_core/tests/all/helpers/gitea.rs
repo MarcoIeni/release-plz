@@ -13,12 +13,12 @@ struct TokenResponse {
 }
 
 /// Create a user and return it's token.
-async fn create_user() -> String {
+pub async fn create_user() -> String {
     let client = reqwest::Client::new();
     let username = "me";
     let admin_pwd: Option<String> = None;
     let user_pwd = "password";
-    client
+    let response: serde_json::Value = client
         .post(format!("{}/admin/users", base_url()))
         .basic_auth("root", admin_pwd.clone())
         .json(&CreateUserOption {
@@ -28,9 +28,13 @@ async fn create_user() -> String {
         })
         .send()
         .await
+        .unwrap()
+        .json()
+        .await
         .unwrap();
+    dbg!(response);
 
-    let token: TokenResponse = client
+    let token: serde_json::Value = client
         .post(format!("{}/users/{username}/tokens", base_url()))
         .basic_auth(username, Some(user_pwd))
         .send()
@@ -39,8 +43,9 @@ async fn create_user() -> String {
         .json()
         .await
         .unwrap();
-
-    token.sha1
+    dbg!(token);
+    //token.sha1
+    "token".to_string()
 }
 
 fn base_url() -> String {
