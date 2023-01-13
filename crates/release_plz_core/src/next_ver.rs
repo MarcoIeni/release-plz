@@ -229,6 +229,7 @@ impl Project {
     }
 }
 
+#[derive(Debug)]
 pub struct UpdateResult {
     pub version: Version,
     pub changelog: Option<String>,
@@ -293,6 +294,7 @@ fn packages_to_update(
         .collect();
     let dependent_packages =
         dependent_packages(&packages_to_check_for_deps, &changed_packages, req)?;
+    info!("dependents packages: {:?}", dependent_packages);
     packages_to_update.extend(dependent_packages);
     Ok(packages_to_update)
 }
@@ -402,7 +404,7 @@ fn get_diff(
                 if diff.commits.is_empty() {
                     // Check if the workspace dependencies were updated.
                     if registry_package.dependencies != package.dependencies {
-                        diff.commits.push("chore: updated dependencies".to_string());
+                        diff.commits.push("chore: update dependencies".to_string());
                     } else {
                         info!("{}: already up to date", package.name);
                     }
