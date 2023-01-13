@@ -400,7 +400,12 @@ fn get_diff(
                     "next version calculated starting from commit after `{current_commit_message}`"
                 );
                 if diff.commits.is_empty() {
-                    info!("{}: already up to date", package.name);
+                    // Check if the workspace dependencies were updated.
+                    if registry_package.dependencies != package.dependencies {
+                        diff.commits.push("chore: updated dependencies".to_string());
+                    } else {
+                        info!("{}: already up to date", package.name);
+                    }
                 }
                 // The local package is identical to the registry one, which means that
                 // the package was published at this commit, so we will not count this commit
