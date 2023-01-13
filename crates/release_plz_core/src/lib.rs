@@ -25,10 +25,10 @@ pub use gitea_client::Gitea;
 pub use github_client::GitHub;
 pub use next_ver::*;
 pub use package_compare::*;
+pub use package_path::*;
 pub use release::*;
 pub use release_pr::*;
 pub use repo_url::*;
 pub use update::*;
-pub use package_path::*;
 
 pub const CARGO_TOML: &str = "Cargo.toml";
