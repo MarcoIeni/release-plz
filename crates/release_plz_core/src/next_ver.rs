@@ -2,11 +2,12 @@ use crate::{
     diff::Diff,
     git_tag,
     package_compare::are_packages_equal,
+    package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection},
     repo_url::RepoUrl,
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
-    ChangelogBuilder, CARGO_TOML, CHANGELOG_FILENAME,
+    ChangelogBuilder, CARGO_TOML,
 };
 use anyhow::{anyhow, Context};
 use cargo_metadata::{semver::Version, Package};
@@ -457,36 +458,6 @@ impl Publishable for Package {
     }
 }
 
-pub trait PackagePath {
-    fn package_path(&self) -> anyhow::Result<&Path>;
-
-    fn changelog_path(&self) -> anyhow::Result<PathBuf> {
-        let changelog_path = self.package_path()?.join(CHANGELOG_FILENAME);
-        Ok(changelog_path)
-    }
-
-    fn canonical_path(&self) -> anyhow::Result<PathBuf> {
-        let p = fs::canonicalize(self.package_path()?)?;
-        Ok(p)
-    }
-}
-
-impl PackagePath for Package {
-    fn package_path(&self) -> anyhow::Result<&Path> {
-        manifest_dir(self.manifest_path.as_std_path())
-    }
-}
-
-fn manifest_dir(manifest: &Path) -> anyhow::Result<&Path> {
-    let manifest_dir = manifest.parent().ok_or_else(|| {
-        anyhow!(
-            "Cannot find directory where manifest {:?} is located",
-            manifest
-        )
-    })?;
-    Ok(manifest_dir)
-}
-
 pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
     let tmp_dir = tempdir().context("cannot create temporary directory")?;
     dir::copy(target, tmp_dir.as_ref(), &dir::CopyOptions::default()).map_err(|e| {
@@ -512,11 +483,7 @@ impl PackageDependencies for Package {
         updated_packages: &'a [(&Package, &Version)],
     ) -> anyhow::Result<Vec<&'a Package>> {
         let mut package_manifest = LocalManifest::try_new(self.manifest_path.as_std_path())?;
-        let package_dir = package_manifest
-            .path
-            .parent()
-            .context("at least a parent")?
-            .to_owned();
+        let package_dir = manifest_dir(&package_manifest.path)?.to_owned();
 
         let mut deps_to_update: Vec<&Package> = vec![];
         for (p, next_ver) in updated_packages {

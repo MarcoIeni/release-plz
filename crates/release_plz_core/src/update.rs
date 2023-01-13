@@ -74,8 +74,7 @@ fn set_version(
     local_manifest.set_package_version(version);
     local_manifest.write().expect("cannot update manifest");
 
-    let package_path =
-        fs::canonicalize(local_manifest.path.parent().context("at least a parent")?)?;
+    let package_path = fs::canonicalize(crate::manifest_dir(&local_manifest.path)?)?;
     update_dependencies(all_packages, version, &package_path)?;
     Ok(())
 }
@@ -88,11 +87,7 @@ fn update_dependencies(
 ) -> anyhow::Result<()> {
     for member in all_packages {
         let mut member_manifest = LocalManifest::try_new(member.manifest_path.as_std_path())?;
-        let member_dir = member_manifest
-            .path
-            .parent()
-            .context("at least a parent")?
-            .to_owned();
+        let member_dir = crate::manifest_dir(&member_manifest.path)?.to_owned();
         let deps_to_update = member_manifest
             .get_dependency_tables_mut()
             .flat_map(|t| t.iter_mut().filter_map(|(_, d)| d.as_table_like_mut()))

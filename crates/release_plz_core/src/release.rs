@@ -14,7 +14,7 @@ use crate::{
     github_client::GitHubClient,
     publishable_packages,
     release_order::release_order,
-    GitHub, RepoUrl, CHANGELOG_FILENAME,
+    GitHub, PackagePath, RepoUrl, CHANGELOG_FILENAME,
 };
 
 #[derive(Debug)]
@@ -44,9 +44,7 @@ pub struct GitRelease {
 
 impl ReleaseRequest {
     fn workspace_root(&self) -> anyhow::Result<&Path> {
-        self.local_manifest
-            .parent()
-            .context("cannot find local_manifest parent")
+        crate::manifest_dir(&self.local_manifest).context("cannot find local_manifest parent")
     }
 }
 
@@ -161,17 +159,13 @@ async fn release_package(
 
 /// Return an empty string if the changelog cannot be parsed.
 fn release_body(package: &Package) -> String {
-    let changelog_path = package
-        .manifest_path
-        .parent()
-        .expect("manifest must be in a directory")
-        .join(CHANGELOG_FILENAME);
-    match changelog_parser::last_changes(changelog_path.as_ref()) {
+    let changelog_path = package.changelog_path().unwrap();
+    match changelog_parser::last_changes(&changelog_path) {
         Ok(changes) => changes,
         Err(e) => {
             warn!(
-                "{}: failed to parse changelog at path {}: {}. The git release body will be empty.",
-                package.name, changelog_path, e
+                "{}: failed to parse changelog at path {:?}: {}. The git release body will be empty.",
+                package.name, &changelog_path, e
             );
             String::new()
         }

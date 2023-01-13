@@ -8,6 +8,7 @@ mod gitea_client;
 mod github_client;
 mod next_ver;
 mod package_compare;
+mod package_path;
 mod registry_packages;
 mod release;
 mod release_order;
@@ -28,5 +29,6 @@ pub use release::*;
 pub use release_pr::*;
 pub use repo_url::*;
 pub use update::*;
+pub use package_path::*;
 
 pub const CARGO_TOML: &str = "Cargo.toml";
