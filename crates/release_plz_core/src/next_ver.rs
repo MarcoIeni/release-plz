@@ -10,7 +10,7 @@ use crate::{
     ChangelogBuilder, CARGO_TOML,
 };
 use anyhow::{anyhow, Context};
-use cargo_metadata::{semver::Version, Package};
+use cargo_metadata::{semver::Version, Dependency, Package};
 use cargo_utils::{upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
 use fs_extra::dir;
@@ -229,6 +229,7 @@ impl Project {
     }
 }
 
+#[derive(Debug)]
 pub struct UpdateResult {
     pub version: Version,
     pub changelog: Option<String>,
@@ -400,7 +401,15 @@ fn get_diff(
                     "next version calculated starting from commit after `{current_commit_message}`"
                 );
                 if diff.commits.is_empty() {
-                    info!("{}: already up to date", package.name);
+                    // Check if the workspace dependencies were updated.
+                    if are_dependencies_updated(
+                        &registry_package.dependencies,
+                        &package.dependencies,
+                    ) {
+                        diff.commits.push("chore: update dependencies".to_string());
+                    } else {
+                        info!("{}: already up to date", package.name);
+                    }
                 }
                 // The local package is identical to the registry one, which means that
                 // the package was published at this commit, so we will not count this commit
@@ -427,6 +436,17 @@ fn get_diff(
     }
     repository.checkout_head()?;
     Ok(diff)
+}
+
+/// Compare the dependencies of the registry package and the local one.
+/// Check if the dependencies of the registry package were updated.
+fn are_dependencies_updated(
+    registry_dependencies: &[Dependency],
+    local_dependencies: &[Dependency],
+) -> bool {
+    local_dependencies
+        .iter()
+        .any(|d| d.path.is_none() && !registry_dependencies.contains(d))
 }
 
 pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
