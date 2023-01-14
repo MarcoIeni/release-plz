@@ -21,12 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - add functionalities extracted from `cargo-edit` (#375)
 
-## [0.1.2] - 2022-11-04
+## [0.1.2](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.1...cargo_utils-v0.1.2) - 2022-11-04
 
 ### Other
 - use workspace dependencies (#333)
 
-## [0.1.1] - 2022-10-24
+## [0.1.1](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.0...cargo_utils-v0.1.1) - 2022-10-24
 
 ### Other
 - *(deps)* bump anyhow from 1.0.65 to 1.0.66 (#319)
