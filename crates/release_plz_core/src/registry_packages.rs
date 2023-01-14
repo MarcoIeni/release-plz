@@ -9,7 +9,7 @@ use crate::{download, next_ver};
 pub struct PackagesCollection {
     packages: BTreeMap<String, Package>,
     /// Packages might be downloaded and stored in a temporary directory.
-    /// It is stored here so that on drop it is deleted.
+    /// The directory is stored here so that it is deleted on drop
     _temp_dir: Option<TempDir>,
 }
 
