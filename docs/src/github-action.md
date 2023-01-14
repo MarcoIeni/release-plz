@@ -112,6 +112,15 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
+## Change GitHub actions permissions
+
+In the GitHub actions [settings](https://github.com/MarcoIeni/marco-crate-example/settings/actions),
+change "Workflow permissions" to:
+- Grant read and write permissions (needed to push the PR branch);
+- Allow GitHub actions to create and approve pull requests (needed to create the PR).
+
+![](workflow_permissions.png)
+
 ## Triggering further workflow runs
 
 Pull requests created by GitHub actions using the default `GITHUB_TOKEN` cannot
