@@ -1,6 +1,5 @@
 use crate::{
     diff::Diff,
-    git_tag,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection},
@@ -159,7 +158,11 @@ impl UpdateRequest {
 pub fn next_versions(
     input: &UpdateRequest,
 ) -> anyhow::Result<(Vec<(Package, UpdateResult)>, TempRepo)> {
-    let local_project = Project::new(input)?;
+    let local_project = Project::new(&input.local_manifest, input.single_package.as_deref())?;
+    let updater = Updater {
+        project: &local_project,
+        req: input,
+    };
     let registry_packages = registry_packages::get_registry_packages(
         input.registry_manifest.as_ref(),
         &local_project.packages,
@@ -170,23 +173,26 @@ pub fn next_versions(
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
-    let packages_to_update =
-        packages_to_update(local_project, &registry_packages, &repository.repo, input)?;
+    let packages_to_update = updater.packages_to_update(&registry_packages, &repository.repo)?;
     Ok((packages_to_update, repository))
 }
 
 #[derive(Debug)]
-struct Project {
+pub struct Project {
+    /// Publishable packages.
     packages: Vec<Package>,
     /// Project root directory
     root: PathBuf,
     /// Directory containing the project manifest
     manifest_dir: PathBuf,
+    /// The project contains more than one public packages.
+    /// Not affected by `single_package` option.
+    contains_multiple_pub_packages: bool,
 }
 
 impl Project {
-    fn new(input: &UpdateRequest) -> anyhow::Result<Self> {
-        let manifest = &input.local_manifest;
+    pub fn new(local_manifest: &Path, single_package: Option<&str>) -> anyhow::Result<Self> {
+        let manifest = &local_manifest;
         let manifest_dir = manifest_dir(manifest)?.to_path_buf();
         debug!("manifest_dir: {manifest_dir:?}");
         let root = {
@@ -196,8 +202,9 @@ impl Project {
         };
         debug!("project_root: {root:?}");
         let mut packages = publishable_packages(manifest)?;
-        if let Some(pac) = &input.single_package {
-            packages.retain(|p| &p.name == pac);
+        let contains_multiple_pub_packages = packages.len() > 1;
+        if let Some(pac) = single_package {
+            packages.retain(|p| p.name == pac);
         }
 
         anyhow::ensure!(!packages.is_empty(), "no public packages found");
@@ -206,7 +213,16 @@ impl Project {
             packages,
             root,
             manifest_dir,
+            contains_multiple_pub_packages,
         })
+    }
+
+    pub fn packages(&self) -> &[Package] {
+        &self.packages
+    }
+
+    pub fn contains_multiple_pub_packages(&self) -> bool {
+        self.contains_multiple_pub_packages
     }
 
     /// Copy this project in a temporary repository and return the repository.
@@ -227,6 +243,14 @@ impl Project {
         let repository = TempRepo::new(tmp_project_root, &tmp_manifest_dir)?;
         Ok(repository)
     }
+
+    pub fn git_tag(&self, package_name: &str, version: &str) -> String {
+        if self.contains_multiple_pub_packages {
+            format!("{}-v{}", package_name, version)
+        } else {
+            format!("v{}", version)
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -235,24 +259,104 @@ pub struct UpdateResult {
     pub changelog: Option<String>,
 }
 
-impl UpdateResult {
-    /// # Args
-    /// - `release_link`: Link to the web page containing the changes of this release.
-    fn new(
+pub struct Updater<'a> {
+    pub project: &'a Project,
+    pub req: &'a UpdateRequest,
+}
+
+impl Updater<'_> {
+    #[instrument(skip_all)]
+    fn packages_to_update(
+        &self,
+        registry_packages: &PackagesCollection,
+        repository: &Repo,
+    ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
+        debug!("calculating local packages");
+        let mut packages_to_check_for_deps: Vec<&Package> = vec![];
+        let mut packages_to_update: Vec<(Package, UpdateResult)> = vec![];
+        for p in &self.project.packages {
+            let diff = get_diff(p, registry_packages, repository, &self.project.root)?;
+            let current_version = p.version.clone();
+            let next_version = p.version.next_from_diff(&diff);
+
+            debug!("diff: {:?}, next_version: {}", &diff, next_version);
+            if next_version != current_version || !diff.registry_package_exists {
+                info!("{}: next version is {next_version}", p.name);
+                let update_result = self.update_result(diff.commits.clone(), next_version, p)?;
+
+                packages_to_update.push((p.clone(), update_result));
+            } else if diff.is_version_published {
+                packages_to_check_for_deps.push(p);
+            }
+        }
+
+        let changed_packages: Vec<(&Package, &Version)> = packages_to_update
+            .iter()
+            .map(|(p, u)| (p, &u.version))
+            .collect();
+        let dependent_packages =
+            self.dependent_packages(&packages_to_check_for_deps, &changed_packages)?;
+        packages_to_update.extend(dependent_packages);
+        Ok(packages_to_update)
+    }
+
+    /// Return the packages that depend on the `changed_packages`.
+    fn dependent_packages(
+        &self,
+        packages_to_check_for_deps: &[&Package],
+        changed_packages: &[(&Package, &Version)],
+    ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
+        let packages_to_update = packages_to_check_for_deps
+            .iter()
+            .filter_map(|p| match p.dependencies_to_update(changed_packages) {
+                Ok(deps) => {
+                    if deps.is_empty() {
+                        None
+                    } else {
+                        Some((p, deps))
+                    }
+                }
+                Err(_e) => None,
+            })
+            .map(|(&p, deps)| {
+                let deps: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
+                let change = format!(
+                    "chore: updated the following local packages: {}",
+                    deps.join(", ")
+                );
+                let next_version = { p.version.increment_patch() };
+                info!(
+                    "{}: dependencies changed. Next version is {next_version}",
+                    p.name
+                );
+                Ok((
+                    p.clone(),
+                    self.update_result(vec![change], next_version, p)?,
+                ))
+            })
+            .collect::<anyhow::Result<Vec<_>>>()?;
+        Ok(packages_to_update)
+    }
+
+    fn update_result(
+        &self,
         commits: Vec<String>,
         version: Version,
-        req: &UpdateRequest,
         package: &Package,
     ) -> anyhow::Result<UpdateResult> {
         let release_link = {
-            let prev_tag = git_tag(&package.name, &package.version.to_string());
-            let next_tag = git_tag(&package.name, &version.to_string());
-            req.github_repo
+            let prev_tag = self
+                .project
+                .git_tag(&package.name, &package.version.to_string());
+            let next_tag = self.project.git_tag(&package.name, &version.to_string());
+            self.req
+                .github_repo
                 .as_ref()
                 .map(|r| r.gh_release_link(&prev_tag, &next_tag))
         };
 
-        let changelog = req
+        let changelog = self
+            .req
             .changelog_req
             .as_ref()
             .map(|r| get_changelog(commits, &version, Some(r.clone()), package, release_link))
@@ -260,80 +364,6 @@ impl UpdateResult {
 
         Ok(UpdateResult { version, changelog })
     }
-}
-
-#[instrument(skip_all)]
-fn packages_to_update(
-    project: Project,
-    registry_packages: &PackagesCollection,
-    repository: &Repo,
-    req: &UpdateRequest,
-) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
-    debug!("calculating local packages");
-    let mut packages_to_check_for_deps: Vec<&Package> = vec![];
-    let mut packages_to_update: Vec<(Package, UpdateResult)> = vec![];
-    for p in &project.packages {
-        let diff = get_diff(p, registry_packages, repository, &project.root)?;
-        let current_version = p.version.clone();
-        let next_version = p.version.next_from_diff(&diff);
-
-        debug!("diff: {:?}, next_version: {}", &diff, next_version);
-        if next_version != current_version || !diff.registry_package_exists {
-            info!("{}: next version is {next_version}", p.name);
-            let update_result = UpdateResult::new(diff.commits.clone(), next_version, req, p)?;
-
-            packages_to_update.push((p.clone(), update_result));
-        } else if diff.is_version_published {
-            packages_to_check_for_deps.push(p);
-        }
-    }
-
-    let changed_packages: Vec<(&Package, &Version)> = packages_to_update
-        .iter()
-        .map(|(p, u)| (p, &u.version))
-        .collect();
-    let dependent_packages =
-        dependent_packages(&packages_to_check_for_deps, &changed_packages, req)?;
-    packages_to_update.extend(dependent_packages);
-    Ok(packages_to_update)
-}
-
-/// Return the packages that depend on the `changed_packages`.
-fn dependent_packages(
-    packages_to_check_for_deps: &[&Package],
-    changed_packages: &[(&Package, &Version)],
-    req: &UpdateRequest,
-) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
-    let packages_to_update = packages_to_check_for_deps
-        .iter()
-        .filter_map(|p| match p.dependencies_to_update(changed_packages) {
-            Ok(deps) => {
-                if deps.is_empty() {
-                    None
-                } else {
-                    Some((p, deps))
-                }
-            }
-            Err(_e) => None,
-        })
-        .map(|(&p, deps)| {
-            let deps: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
-            let change = format!(
-                "chore: updated the following local packages: {}",
-                deps.join(", ")
-            );
-            let next_version = { p.version.increment_patch() };
-            info!(
-                "{}: dependencies changed. Next version is {next_version}",
-                p.name
-            );
-            Ok((
-                p.clone(),
-                UpdateResult::new(vec![change], next_version, req, p)?,
-            ))
-        })
-        .collect::<anyhow::Result<Vec<_>>>()?;
-    Ok(packages_to_update)
 }
 
 fn get_changelog(

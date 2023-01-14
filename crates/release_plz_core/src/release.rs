@@ -12,9 +12,8 @@ use crate::{
     cargo::{is_published, run_cargo, wait_until_published},
     changelog_parser,
     github_client::GitHubClient,
-    publishable_packages,
     release_order::release_order,
-    GitHub, PackagePath, RepoUrl,
+    GitHub, PackagePath, Project, RepoUrl,
 };
 
 #[derive(Debug)]
@@ -51,17 +50,17 @@ impl ReleaseRequest {
 /// Release the project as it is.
 #[instrument]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
-    let publishable_packages = publishable_packages(&input.local_manifest)?;
-    let pkgs = &publishable_packages.iter().collect::<Vec<_>>();
-    let release_order = release_order(pkgs);
+    let project = Project::new(&input.local_manifest, None)?;
+    let pkgs = project.packages().iter().collect::<Vec<_>>();
+    let release_order = release_order(&pkgs);
     for package in release_order {
         let workspace_root = input.workspace_root()?;
         let repo = Repo::new(workspace_root)?;
-        let git_tag = git_tag(&package.name, &package.version.to_string());
+        let git_tag = project.git_tag(&package.name, &package.version.to_string());
         if repo.tag_exists(&git_tag)? {
             info!(
                 "{} {}: Already published - Tag {} already exists",
-                package.name, package.version, git_tag
+                package.name, package.version, &git_tag
             );
             continue;
         }
@@ -71,7 +70,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
                 info!("{} {}: already published", package.name, package.version);
                 return Ok(());
             }
-            release_package(&mut index, package, input).await?;
+            release_package(&mut index, package, input, git_tag.clone()).await?;
         }
     }
     Ok(())
@@ -105,6 +104,7 @@ async fn release_package(
     index: &mut Index,
     package: &Package,
     input: &ReleaseRequest,
+    git_tag: String,
 ) -> anyhow::Result<()> {
     let mut args = vec!["publish"];
     args.push("--color");
@@ -135,7 +135,6 @@ async fn release_package(
     } else {
         wait_until_published(index, package)?;
 
-        let git_tag = git_tag(&package.name, &package.version.to_string());
         repo.tag(&git_tag)?;
         repo.push(&git_tag)?;
 
@@ -189,8 +188,4 @@ async fn publish_release(
         let _page = github_client.create_release(&git_tag, release_body).await?;
     }
     Ok(())
-}
-
-pub fn git_tag(package_name: &str, version: &str) -> String {
-    format!("{}-v{}", package_name, version)
 }
