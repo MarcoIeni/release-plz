@@ -221,10 +221,6 @@ impl Project {
         &self.packages
     }
 
-    pub fn contains_multiple_pub_packages(&self) -> bool {
-        self.contains_multiple_pub_packages
-    }
-
     /// Copy this project in a temporary repository and return the repository.
     /// We copy the project in another directory in order to avoid altering it.
     fn get_repo(&self) -> anyhow::Result<TempRepo> {
