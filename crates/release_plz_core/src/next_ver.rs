@@ -185,7 +185,7 @@ pub struct Project {
     root: PathBuf,
     /// Directory containing the project manifest
     manifest_dir: PathBuf,
-    /// The project contains more than one public packages.
+    /// The project contains more than one public package.
     /// Not affected by `single_package` option.
     contains_multiple_pub_packages: bool,
 }
