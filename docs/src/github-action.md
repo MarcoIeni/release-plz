@@ -118,7 +118,7 @@ jobs:
 
   ![](actions_settings.png)
 
-2. change "Workflow permissions" to:
+2. Change "Workflow permissions" to:
   - Grant read and write permissions (needed to push the PR branch);
   - Allow GitHub actions to create and approve pull requests
     (needed to create the PR).
