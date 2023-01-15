@@ -251,6 +251,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 </code></pre>
+<h2 id="change-github-actions-permissions"><a class="header" href="#change-github-actions-permissions">Change GitHub actions permissions</a></h2>
+<ol>
+<li>
+<p>Go to the GitHub actions settings:</p>
+<p><img src="actions_settings.png" alt="actions settings" /></p>
+</li>
+<li>
+<p>Change &quot;Workflow permissions&quot; to:</p>
+<ul>
+<li>Grant read and write permissions (needed to push the PR branch);</li>
+<li>Allow GitHub actions to create and approve pull requests
+(needed to create the PR).</li>
+</ul>
+<p><img src="workflow_permissions.png" alt="workflow permission" /></p>
+</li>
+</ol>
 <h2 id="triggering-further-workflow-runs"><a class="header" href="#triggering-further-workflow-runs">Triggering further workflow runs</a></h2>
 <p>Pull requests created by GitHub actions using the default <code>GITHUB_TOKEN</code> cannot
 trigger other workflows.
