@@ -116,7 +116,7 @@ jobs:
 
 1. Go to the GitHub actions settings:
 
-  ![actions settings](actions_settings.png)
+   ![actions settings](actions_settings.png)
 
 2. Change "Workflow permissions" to:
 
