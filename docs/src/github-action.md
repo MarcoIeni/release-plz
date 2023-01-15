@@ -114,14 +114,16 @@ jobs:
 
 ## Change GitHub actions permissions
 
-In the GitHub actions settings, change "Workflow permissions" to:
+1. Go to the GitHub actions settings:
 
-- Grant read and write permissions (needed to push the PR branch);
-- Allow GitHub actions to create and approve pull requests
-  (needed to create the PR).
+  ![](actions_settings.png)
 
-![](actions_settings.png)
-![](workflow_permissions.png)
+2. change "Workflow permissions" to:
+  - Grant read and write permissions (needed to push the PR branch);
+  - Allow GitHub actions to create and approve pull requests
+    (needed to create the PR).
+
+  ![](workflow_permissions.png)
 
 ## Triggering further workflow runs
 
