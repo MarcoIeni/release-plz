@@ -12,9 +12,8 @@ use crate::{
     cargo::{is_published, run_cargo, wait_until_published},
     changelog_parser,
     github_client::GitHubClient,
-    publishable_packages,
     release_order::release_order,
-    GitHub, RepoUrl, CHANGELOG_FILENAME,
+    GitHub, PackagePath, Project, RepoUrl,
 };
 
 #[derive(Debug)]
@@ -44,26 +43,24 @@ pub struct GitRelease {
 
 impl ReleaseRequest {
     fn workspace_root(&self) -> anyhow::Result<&Path> {
-        self.local_manifest
-            .parent()
-            .context("cannot find local_manifest parent")
+        crate::manifest_dir(&self.local_manifest).context("cannot find local_manifest parent")
     }
 }
 
 /// Release the project as it is.
 #[instrument]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
-    let publishable_packages = publishable_packages(&input.local_manifest)?;
-    let pkgs = &publishable_packages.iter().collect::<Vec<_>>();
-    let release_order = release_order(pkgs);
+    let project = Project::new(&input.local_manifest, None)?;
+    let pkgs = project.packages().iter().collect::<Vec<_>>();
+    let release_order = release_order(&pkgs);
     for package in release_order {
         let workspace_root = input.workspace_root()?;
         let repo = Repo::new(workspace_root)?;
-        let git_tag = git_tag(&package.name, &package.version.to_string());
+        let git_tag = project.git_tag(&package.name, &package.version.to_string());
         if repo.tag_exists(&git_tag)? {
             info!(
                 "{} {}: Already published - Tag {} already exists",
-                package.name, package.version, git_tag
+                package.name, package.version, &git_tag
             );
             continue;
         }
@@ -73,7 +70,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
                 info!("{} {}: already published", package.name, package.version);
                 return Ok(());
             }
-            release_package(&mut index, package, input).await?;
+            release_package(&mut index, package, input, git_tag.clone()).await?;
         }
     }
     Ok(())
@@ -107,6 +104,7 @@ async fn release_package(
     index: &mut Index,
     package: &Package,
     input: &ReleaseRequest,
+    git_tag: String,
 ) -> anyhow::Result<()> {
     let mut args = vec!["publish"];
     args.push("--color");
@@ -137,7 +135,6 @@ async fn release_package(
     } else {
         wait_until_published(index, package)?;
 
-        let git_tag = git_tag(&package.name, &package.version.to_string());
         repo.tag(&git_tag)?;
         repo.push(&git_tag)?;
 
@@ -161,17 +158,13 @@ async fn release_package(
 
 /// Return an empty string if the changelog cannot be parsed.
 fn release_body(package: &Package) -> String {
-    let changelog_path = package
-        .manifest_path
-        .parent()
-        .expect("manifest must be in a directory")
-        .join(CHANGELOG_FILENAME);
-    match changelog_parser::last_changes(changelog_path.as_ref()) {
+    let changelog_path = package.changelog_path().unwrap();
+    match changelog_parser::last_changes(&changelog_path) {
         Ok(changes) => changes,
         Err(e) => {
             warn!(
-                "{}: failed to parse changelog at path {}: {}. The git release body will be empty.",
-                package.name, changelog_path, e
+                "{}: failed to parse changelog at path {:?}: {}. The git release body will be empty.",
+                package.name, &changelog_path, e
             );
             String::new()
         }
@@ -195,8 +188,4 @@ async fn publish_release(
         let _page = github_client.create_release(&git_tag, release_body).await?;
     }
     Ok(())
-}
-
-pub fn git_tag(package_name: &str, version: &str) -> String {
-    format!("{}-v{}", package_name, version)
 }

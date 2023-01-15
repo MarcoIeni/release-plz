@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.5...cargo_utils-v0.1.6) - 2023-01-15
+
+### Other
+- add links to changelogs (#442)
+
+## [0.1.5](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.4...cargo_utils-v0.1.5) - 2023-01-13
+
+### Other
+- update dependencies
+
 ## [0.1.4](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.3...cargo_utils-v0.1.4) - 2022-12-26
 
 ### Other
@@ -16,12 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - add functionalities extracted from `cargo-edit` (#375)
 
-## [0.1.2] - 2022-11-04
+## [0.1.2](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.1...cargo_utils-v0.1.2) - 2022-11-04
 
 ### Other
 - use workspace dependencies (#333)
 
-## [0.1.1] - 2022-10-24
+## [0.1.1](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.0...cargo_utils-v0.1.1) - 2022-10-24
 
 ### Other
 - *(deps)* bump anyhow from 1.0.65 to 1.0.66 (#319)

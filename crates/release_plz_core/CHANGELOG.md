@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.7](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.6...release_plz_core-v0.4.7) - 2023-01-15
+
+### Added
+- do not prefix crate name in tag for single crate projects (#444)
+
+## [0.4.6](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.5...release_plz_core-v0.4.6) - 2023-01-12
+
+### Added
+- Include previous version in Pr Body (#430)
+
 ## [0.4.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.4...release_plz_core-v0.4.5) - 2023-01-11
 
 ### Other
