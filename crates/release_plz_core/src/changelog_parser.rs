@@ -4,18 +4,36 @@ use anyhow::Context;
 
 pub fn last_changes(changelog: &Path) -> anyhow::Result<String> {
     let changelog = read_to_string(changelog).context("can't read changelog file")?;
-    last_changes_from_str(&changelog)
+    let parser = ChangelogParser::new(&changelog)?;
+    Ok(parser.last_release()?.notes.to_string())
 }
 
-fn last_changes_from_str(changelog: &str) -> anyhow::Result<String> {
-    let changelog = parse_changelog::parse(changelog).context("can't parse changelog")?;
-    let last_release = release_at(&changelog, 0)?;
-    let last_changes = if last_release.version.to_lowercase().contains("unreleased") {
-        release_at(&changelog, 1)?.notes
-    } else {
-        last_release.notes
-    };
-    Ok(last_changes.to_string())
+pub fn last_version_from_str(changelog: &str) -> anyhow::Result<String> {
+    let parser = ChangelogParser::new(changelog)?;
+    Ok(parser.last_release()?.version.to_string())
+}
+
+pub struct ChangelogParser<'a> {
+    changelog: parse_changelog::Changelog<'a>,
+}
+
+impl<'a> ChangelogParser<'a> {
+    pub fn new(changelog_text: &'a str) -> anyhow::Result<Self> {
+        let changelog = parse_changelog::parse(changelog_text).context("can't parse changelog")?;
+        Ok(Self {
+            changelog,
+        })
+    }
+
+    fn last_release(&self) -> anyhow::Result<&parse_changelog::Release> {
+        let last_release = release_at(&self.changelog, 0)?;
+        let last_release = if last_release.version.to_lowercase().contains("unreleased") {
+            release_at(&self.changelog, 1)?
+        } else {
+            last_release
+        };
+        Ok(last_release)
+    }
 }
 
 fn release_at<'a>(
@@ -31,7 +49,12 @@ fn release_at<'a>(
 
 #[cfg(test)]
 mod tests {
-    use super::last_changes_from_str;
+    use super::*;
+
+    fn last_changes_from_str(changelog: &str) -> String {
+        let parser = ChangelogParser::new(changelog).unwrap();
+        parser.last_release().unwrap().notes.to_string()
+    }
 
     #[test]
     fn changelog_with_unreleased_section_is_parsed() {
@@ -54,7 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - improved error message
 ";
-        let changes = last_changes_from_str(changelog).unwrap();
+        let changes = last_changes_from_str(changelog);
         let expected_changes = "\
 ### Added
 - Add function to retrieve default branch (#372)";
@@ -80,7 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - improved error message
 ";
-        let changes = last_changes_from_str(changelog).unwrap();
+        let changes = last_changes_from_str(changelog);
         let expected_changes = "\
 ### Added
 - Add function to retrieve default branch (#372)";
