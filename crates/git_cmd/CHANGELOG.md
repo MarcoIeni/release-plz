@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.8](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.7...git_cmd-v0.2.8) - 2023-01-16
+
+### Added
+- error message includes git args (#452)
+
 ## [0.2.7](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.6...git_cmd-v0.2.7) - 2023-01-15
 
 ### Other
