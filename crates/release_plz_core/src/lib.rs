@@ -17,6 +17,7 @@ mod repo_url;
 mod tmp_repo;
 mod update;
 mod version;
+mod pr;
 
 pub use backend::GitBackend;
 pub use changelog::*;

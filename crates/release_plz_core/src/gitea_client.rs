@@ -1,4 +1,4 @@
-use crate::backend::Pr;
+use crate::pr::Pr;
 use crate::RepoUrl;
 use anyhow::bail;
 use reqwest::header::HeaderValue;
