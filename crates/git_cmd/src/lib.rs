@@ -52,7 +52,7 @@ impl Repo {
 
     /// Check if there are uncommitted changes.
     pub fn is_clean(&self) -> anyhow::Result<()> {
-        let changes = self.changes_expect_typechanges()?;
+        let changes = self.changes_except_typechanges()?;
         anyhow::ensure!(changes.is_empty(), "the working directory of this project has uncommitted changes. Please commit or stash these changes:\n{changes:?}");
         Ok(())
     }
@@ -68,7 +68,7 @@ impl Repo {
         Ok(())
     }
 
-    pub fn changes_expect_typechanges(&self) -> anyhow::Result<Vec<String>> {
+    pub fn changes_except_typechanges(&self) -> anyhow::Result<Vec<String>> {
         let output = self.git(&["status", "--porcelain"])?;
         let changed_files = changed_files(&output);
         Ok(changed_files)
