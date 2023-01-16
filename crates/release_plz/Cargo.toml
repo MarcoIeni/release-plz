@@ -29,4 +29,4 @@ tracing.workspace = true
 url.workspace = true
 
 [dev-dependencies]
-assert_cmd = "2.0.7"
+assert_cmd = "2.0.8"
