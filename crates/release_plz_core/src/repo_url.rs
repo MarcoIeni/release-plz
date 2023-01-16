@@ -44,15 +44,15 @@ impl RepoUrl {
 
     /// Get GitHub release link
     pub fn gh_release_link(&self, prev_tag: &str, new_tag: &str) -> String {
+        let host = format!("https://{}/{}/{}", self.host, self.owner, self.name);
+
         if prev_tag == new_tag {
             format!(
-                "https://{}/{}/{}/compare/{new_tag}",
-                self.host, self.owner, self.name
+                "{host}/releases/tag/{new_tag}"
             )
         } else {
             format!(
-                "https://{}/{}/{}/compare/{prev_tag}...{new_tag}",
-                self.host, self.owner, self.name
+                "{host}/compare/{prev_tag}...{new_tag}",
             )
         }
     }
