@@ -43,9 +43,12 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .context("cannot close old release-plz prs")?;
     if !packages_to_update.is_empty() {
         let repo = Repo::new(new_manifest_dir)?;
-        let pr = Pr::from((repo.default_branch(), packages_to_update.as_ref()));
-        create_release_branch(&repo, &pr.branch)?;
-        gh_client.open_pr(&pr).await?;
+        let there_are_commits_to_push = repo.is_clean().is_err();
+        if there_are_commits_to_push {
+            let pr = Pr::from((repo.default_branch(), packages_to_update.as_ref()));
+            create_release_branch(&repo, &pr.branch)?;
+            gh_client.open_pr(&pr).await?;
+        }
     }
 
     Ok(())

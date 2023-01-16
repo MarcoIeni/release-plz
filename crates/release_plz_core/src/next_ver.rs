@@ -383,7 +383,7 @@ fn get_changelog(
     }
     let new_changelog = changelog_builder.build();
     let changelog = match fs::read_to_string(package.changelog_path()?) {
-        Ok(old_changelog) => new_changelog.prepend(old_changelog),
+        Ok(old_changelog) => new_changelog.prepend(old_changelog)?,
         Err(_err) => new_changelog.generate(), // Old changelog doesn't exist.
     };
     Ok(changelog)

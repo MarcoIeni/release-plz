@@ -4,6 +4,7 @@ use cargo_metadata::{semver::Version, Package};
 use cargo_utils::upgrade_requirement;
 use cargo_utils::LocalManifest;
 use std::{fs, path::Path};
+use tracing::info;
 
 use tracing::{debug, instrument};
 
@@ -23,6 +24,11 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, UpdateResu
     if !packages_to_update.is_empty() {
         let local_manifest_dir = input.local_manifest_dir()?;
         update_cargo_lock(local_manifest_dir, input.should_update_dependencies())?;
+    }
+
+    let there_are_commits_to_push = repository.repo.is_clean().is_err();
+    if !there_are_commits_to_push {
+        info!("the repository is already up-to-date");
     }
     Ok((packages_to_update, repository))
 }

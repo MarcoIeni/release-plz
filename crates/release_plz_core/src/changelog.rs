@@ -1,3 +1,4 @@
+use anyhow::Context;
 use chrono::{DateTime, NaiveDate, Utc};
 use git_cliff::changelog::Changelog as GitCliffChangelog;
 use git_cliff_core::{
@@ -6,6 +7,8 @@ use git_cliff_core::{
     regex::Regex,
     release::Release,
 };
+
+use crate::changelog_parser;
 
 pub const CHANGELOG_HEADER: &str = r#"# Changelog
 All notable changes to this project will be documented in this file.
@@ -40,17 +43,29 @@ impl Changelog<'_> {
     }
 
     /// Update an existing changelog.
-    pub fn prepend(self, old_changelog: impl Into<String>) -> String {
+    pub fn prepend(self, old_changelog: impl Into<String>) -> anyhow::Result<String> {
+        let old_changelog: String = old_changelog.into();
+        if let Ok(Some(last_version)) = changelog_parser::last_version_from_str(&old_changelog) {
+            let next_version = self
+                .release
+                .version
+                .as_ref()
+                .context("current release contains no version")?;
+            if next_version == &last_version {
+                // The changelog already contains this version, so we don't update the changelog.
+                return Ok(old_changelog);
+            }
+        }
         let config = self
             .config
             .unwrap_or_else(|| default_git_cliff_config(self.release_link.as_deref()));
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
-            .expect("error while building changelog");
+            .context("error while building changelog")?;
         let mut out = Vec::new();
         changelog
-            .prepend(old_changelog.into(), &mut out)
+            .prepend(old_changelog, &mut out)
             .expect("cannot update changelog");
-        String::from_utf8(out).expect("cannot convert bytes to string")
+        String::from_utf8(out).context("cannot convert bytes to string")
     }
 }
 
@@ -343,7 +358,7 @@ mod tests {
             ### Other
             - simple update
         "####]]
-        .assert_eq(&changelog.prepend(generated_changelog));
+        .assert_eq(&changelog.prepend(generated_changelog).unwrap());
     }
 
     #[test]
@@ -361,7 +376,7 @@ mod tests {
 - complex update
 "#;
         let old = format!("{CHANGELOG_HEADER}\n{old_body}");
-        let new = changelog.prepend(old);
+        let new = changelog.prepend(old).unwrap();
         expect_test::expect![[r####"
             # Changelog
             All notable changes to this project will be documented in this file.
@@ -429,7 +444,7 @@ mod tests {
             ### other
             - complex update
         "####]]
-        .assert_eq(&new);
+        .assert_eq(&new.unwrap());
     }
 }
 
@@ -457,5 +472,26 @@ fn empty_changelog_is_updated() {
         ### Other
         - simple update
     "####]]
-    .assert_eq(&new);
+    .assert_eq(&new.unwrap());
+}
+
+#[test]
+fn same_version_is_not_added() {
+    let commits = vec!["fix: myfix", "simple update"];
+
+    // this version is already in the changelog
+    let changelog = ChangelogBuilder::new(commits, "1.1.0")
+        .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
+        .build();
+
+    let old = r#"## [1.1.0] - 1970-01-01
+
+### fix bugs
+- my awesomefix
+
+### other
+- complex update
+"#;
+    let new = changelog.prepend(old).unwrap();
+    assert_eq!(old, new)
 }
