@@ -61,7 +61,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
 
 fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {
     repository.checkout_new_branch(release_branch)?;
-    let changes_expect_typechanges = repository.changes_expect_typechanges()?;
+    let changes_expect_typechanges = repository.changes_except_typechanges()?;
     repository.add(&changes_expect_typechanges)?;
     repository.commit("chore: release")?;
     repository.push(release_branch)?;
