@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.35](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.34...release-plz-v0.2.35) - 2023-01-16
+
+### Added
+- *(release-pr)* do not include the crate name if there is only one
+  publishable package in the project (#461)
+
+### Fixed
+- wrong log line (#464)
+
 ## [0.2.34](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.33...release-plz-v0.2.34) - 2023-01-16
 
 ### Fixed
