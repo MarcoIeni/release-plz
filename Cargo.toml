@@ -7,7 +7,7 @@ cargo_metadata = "0.15.2"
 cargo-clone-core = "0.1.0"
 chrono = { version = "0.4.23", default-features = false }
 clap = "4.1.1"
-clap_complete = "4.0.7"
+clap_complete = "4.1.0"
 conventional_commit_parser = "0.9.4"
 crates-index = "0.18.11"
 dirs = "4.0.0"
