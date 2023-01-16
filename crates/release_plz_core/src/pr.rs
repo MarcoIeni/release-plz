@@ -14,11 +14,15 @@ pub struct Pr {
 }
 
 impl Pr {
-    pub fn new(default_branch: &str, packages_to_update: &[(Package, UpdateResult)]) -> Self {
+    pub fn new(
+        default_branch: &str,
+        packages_to_update: &[(Package, UpdateResult)],
+        project_contains_multiple_pub_packages: bool,
+    ) -> Self {
         Self {
             branch: release_branch(),
             base_branch: default_branch.to_string(),
-            title: pr_title(packages_to_update),
+            title: pr_title(packages_to_update, project_contains_multiple_pub_packages),
             body: pr_body(packages_to_update),
         }
     }
@@ -33,12 +37,15 @@ fn release_branch() -> String {
     format!("{BRANCH_PREFIX}{now}")
 }
 
-fn pr_title(packages_to_update: &[(Package, UpdateResult)]) -> String {
-    if packages_to_update.len() == 1 {
+fn pr_title(
+    packages_to_update: &[(Package, UpdateResult)],
+    project_contains_multiple_pub_packages: bool,
+) -> String {
+    if packages_to_update.len() > 1 || !project_contains_multiple_pub_packages {
+        "chore: release".to_string()
+    } else {
         let (package, update) = &packages_to_update[0];
         format!("chore({}): release v{}", package.name, update.version)
-    } else {
-        "chore: release".to_string()
     }
 }
 
