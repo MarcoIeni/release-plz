@@ -44,10 +44,13 @@ impl RepoUrl {
 
     /// Get GitHub release link
     pub fn gh_release_link(&self, prev_tag: &str, new_tag: &str) -> String {
-        format!(
-            "https://{}/{}/{}/compare/{prev_tag}...{new_tag}",
-            self.host, self.owner, self.name
-        )
+        let host = format!("https://{}/{}/{}", self.host, self.owner, self.name);
+
+        if prev_tag == new_tag {
+            format!("{host}/releases/tag/{new_tag}")
+        } else {
+            format!("{host}/compare/{prev_tag}...{new_tag}",)
+        }
     }
 
     pub fn gitea_api_url(&self) -> String {
@@ -56,5 +59,34 @@ impl RepoUrl {
         } else {
             format!("{}://{}/api/v1", self.scheme, self.host)
         }
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::RepoUrl;
+
+    const GITHUB_REPO_URL: &str = "https://github.com/MarcoIeni/release-plz";
+
+    #[test]
+    fn gh_release_link_works_for_first_release() {
+        let repo = RepoUrl::new(GITHUB_REPO_URL).unwrap();
+        let tag = "v0.0.1";
+        let expected_url = format!("{GITHUB_REPO_URL}/releases/tag/{tag}");
+        // when we are at the first release, we have the prev_tag and the new_tag to be
+        // the same as there is no other tag available.
+        let release_link = repo.gh_release_link(tag, tag);
+        assert_eq!(expected_url, release_link);
+    }
+
+    #[test]
+    fn gh_release_link_for_crates_already_published() {
+        let repo = RepoUrl::new(GITHUB_REPO_URL).unwrap();
+        let previous_tag = "v0.1.0";
+        let next_tag = "v0.5.0";
+        // when there is already a previous version, we should use the compare url, with the
+        // ranging between the previous tag and the newest one
+        let expected_url = format!("{GITHUB_REPO_URL}/compare/{previous_tag}...{next_tag}");
+        let release_link = repo.gh_release_link(previous_tag, next_tag);
+        assert_eq!(expected_url, release_link);
     }
 }
