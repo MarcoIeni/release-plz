@@ -9,6 +9,7 @@ mod github_client;
 mod next_ver;
 mod package_compare;
 mod package_path;
+mod pr;
 mod registry_packages;
 mod release;
 mod release_order;
@@ -17,7 +18,6 @@ mod repo_url;
 mod tmp_repo;
 mod update;
 mod version;
-mod pr;
 
 pub use backend::GitBackend;
 pub use changelog::*;
