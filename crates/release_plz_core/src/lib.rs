@@ -9,6 +9,7 @@ mod github_client;
 mod next_ver;
 mod package_compare;
 mod package_path;
+mod pr;
 mod registry_packages;
 mod release;
 mod release_order;

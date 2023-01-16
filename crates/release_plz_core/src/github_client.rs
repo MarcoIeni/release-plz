@@ -1,4 +1,3 @@
-use crate::backend::Pr;
 use anyhow::Context;
 use octocrab::{
     models::{repos, IssueState},
@@ -7,6 +6,8 @@ use octocrab::{
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument, Span};
 use url::Url;
+
+use crate::pr::Pr;
 
 #[derive(Debug)]
 pub struct GitHubClient<'a> {

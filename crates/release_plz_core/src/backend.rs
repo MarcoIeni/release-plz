@@ -1,5 +1,6 @@
 use crate::gitea_client::{Gitea, GiteaClient};
 use crate::github_client::GitHubClient;
+use crate::pr::Pr;
 use crate::GitHub;
 use tracing::instrument;
 
@@ -38,12 +39,4 @@ impl<'a> GitClient<'a> {
             GitClient::Gitea(g) => g.open_pr(pr).await,
         }
     }
-}
-
-#[derive(Debug)]
-pub struct Pr {
-    pub base_branch: String,
-    pub branch: String,
-    pub title: String,
-    pub body: String,
 }
