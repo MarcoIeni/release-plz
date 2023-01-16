@@ -26,7 +26,7 @@ pub struct Release {
     /// Perform all checks without uploading.
     #[clap(long)]
     pub dry_run: bool,
-    /// Publish GitHub release for the created git tag. (Experimental: we will probably remove this flag)
+    /// Publish GitHub release for the created git tag.
     #[clap(long)]
     pub git_release: bool,
     /// GitHub repository url.
