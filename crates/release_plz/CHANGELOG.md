@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - do not update changelog if new version exists (#452)
-- changelog: fix link to first change
+- changelog: fix link to first change (#450)
 
 ### Other
 - *(deps)* bump assert_cmd from 2.0.7 to 2.0.8 (#453)
