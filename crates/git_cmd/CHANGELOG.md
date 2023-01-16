@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.9](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.8...git_cmd-v0.2.9) - 2023-01-16
+
+### Other
+- fix typo in code (#463)
+
 ## [0.2.8](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.7...git_cmd-v0.2.8) - 2023-01-16
 
 ### Added

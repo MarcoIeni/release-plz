@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.9](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.8...release_plz_core-v0.4.9) - 2023-01-16
+
+### Added
+- *(release-pr)* do not include the crate name if no workspace (#461)
+
+### Fixed
+- wrong log line (#464)
+
+### Other
+- fix typo in code (#463)
+
 ## [0.4.8](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.7...release_plz_core-v0.4.8) - 2023-01-16
 
 ### Fixed
