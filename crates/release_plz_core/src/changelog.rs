@@ -474,3 +474,24 @@ fn empty_changelog_is_updated() {
     "####]]
     .assert_eq(&new.unwrap());
 }
+
+#[test]
+fn same_version_is_not_added() {
+    let commits = vec!["fix: myfix", "simple update"];
+
+    // this version is already in the changelog
+    let changelog = ChangelogBuilder::new(commits, "1.1.0")
+        .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
+        .build();
+
+        let old = r#"## [1.1.0] - 1970-01-01
+
+### fix bugs
+- my awesomefix
+
+### other
+- complex update
+"#;
+    let new = changelog.prepend(old).unwrap();
+    assert_eq!(old, new)
+}
