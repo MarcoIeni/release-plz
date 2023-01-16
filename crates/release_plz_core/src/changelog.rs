@@ -52,7 +52,7 @@ impl Changelog<'_> {
                 .as_ref()
                 .context("current release contains no version")?;
             if next_version == &last_version {
-                // The changelog already contains this version, so we dont' update the changelog.
+                // The changelog already contains this version, so we don't update the changelog.
                 return Ok(old_changelog);
             }
         }
