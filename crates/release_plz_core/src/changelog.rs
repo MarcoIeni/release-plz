@@ -484,7 +484,7 @@ fn same_version_is_not_added() {
         .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
         .build();
 
-        let old = r#"## [1.1.0] - 1970-01-01
+    let old = r#"## [1.1.0] - 1970-01-01
 
 ### fix bugs
 - my awesomefix
