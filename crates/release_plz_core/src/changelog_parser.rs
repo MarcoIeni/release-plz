@@ -2,15 +2,17 @@ use std::{fs::read_to_string, path::Path};
 
 use anyhow::Context;
 
-pub fn last_changes(changelog: &Path) -> anyhow::Result<String> {
+pub fn last_changes(changelog: &Path) -> anyhow::Result<Option<String>> {
     let changelog = read_to_string(changelog).context("can't read changelog file")?;
     let parser = ChangelogParser::new(&changelog)?;
-    Ok(parser.last_release()?.notes.to_string())
+    let last_release = parser.last_release().map(|r| r.notes.to_string());
+    Ok(last_release)
 }
 
-pub fn last_version_from_str(changelog: &str) -> anyhow::Result<String> {
+pub fn last_version_from_str(changelog: &str) -> anyhow::Result<Option<String>> {
     let parser = ChangelogParser::new(changelog)?;
-    Ok(parser.last_release()?.version.to_string())
+    let last_release = parser.last_release().map(|r| r.version.to_string());
+    Ok(last_release)
 }
 
 pub struct ChangelogParser<'a> {
@@ -20,31 +22,26 @@ pub struct ChangelogParser<'a> {
 impl<'a> ChangelogParser<'a> {
     pub fn new(changelog_text: &'a str) -> anyhow::Result<Self> {
         let changelog = parse_changelog::parse(changelog_text).context("can't parse changelog")?;
-        Ok(Self {
-            changelog,
-        })
+        Ok(Self { changelog })
     }
 
-    fn last_release(&self) -> anyhow::Result<&parse_changelog::Release> {
+    fn last_release(&self) -> Option<&parse_changelog::Release> {
         let last_release = release_at(&self.changelog, 0)?;
         let last_release = if last_release.version.to_lowercase().contains("unreleased") {
             release_at(&self.changelog, 1)?
         } else {
             last_release
         };
-        Ok(last_release)
+        Some(last_release)
     }
 }
 
 fn release_at<'a>(
     changelog: &'a parse_changelog::Changelog,
     index: usize,
-) -> anyhow::Result<&'a parse_changelog::Release<'a>> {
-    let release = changelog
-        .get_index(index)
-        .context("can't find latest release in changelog")?
-        .1;
-    Ok(release)
+) -> Option<&'a parse_changelog::Release<'a>> {
+    let release = changelog.get_index(index)?.1;
+    Some(release)
 }
 
 #[cfg(test)]

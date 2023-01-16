@@ -45,16 +45,16 @@ impl Changelog<'_> {
     /// Update an existing changelog.
     pub fn prepend(self, old_changelog: impl Into<String>) -> anyhow::Result<String> {
         let old_changelog: String = old_changelog.into();
-        if &changelog_parser::last_version_from_str(&old_changelog)
-            .context("cannot parse old changelog")?
-            == self
+        if let Ok(Some(last_version)) = changelog_parser::last_version_from_str(&old_changelog) {
+            let next_version = self
                 .release
                 .version
                 .as_ref()
-                .context("current release contains no version")?
-        {
-            // The changelog already contains this version, so we dont' update the changelog.
-            return Ok(old_changelog);
+                .context("current release contains no version")?;
+            if next_version == &last_version {
+                // The changelog already contains this version, so we dont' update the changelog.
+                return Ok(old_changelog);
+            }
         }
         let config = self
             .config

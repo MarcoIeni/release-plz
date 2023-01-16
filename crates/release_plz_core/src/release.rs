@@ -160,7 +160,14 @@ async fn release_package(
 fn release_body(package: &Package) -> String {
     let changelog_path = package.changelog_path().unwrap();
     match changelog_parser::last_changes(&changelog_path) {
-        Ok(changes) => changes,
+        Ok(Some(changes)) => changes,
+        Ok(None) => {
+            warn!(
+                "{}: last change not fuond in changelog at path {:?}. The git release body will be empty.",
+                package.name, &changelog_path
+            );
+            String::new()
+        }
         Err(e) => {
             warn!(
                 "{}: failed to parse changelog at path {:?}: {}. The git release body will be empty.",
