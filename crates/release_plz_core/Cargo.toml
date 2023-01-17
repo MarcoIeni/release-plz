@@ -31,7 +31,7 @@ secrecy.workspace = true
 serde = { workspace = true, features = ["derive"] }
 tempfile.workspace = true
 tracing.workspace = true
-url.workspace = true
+url = { workspace = true, features = ["serde"] }
 walkdir.workspace = true
 toml_edit.workspace = true
 serde_json.workspace = true
