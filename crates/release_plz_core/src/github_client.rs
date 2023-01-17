@@ -48,7 +48,6 @@ impl<'a> GitHubClient<'a> {
         let headers = default_headers(&github.token)?;
 
         let client = reqwest::Client::builder()
-            .user_agent("release-plz")
             .default_headers(headers)
             .build()
             .context("can't build GitHub client")?;
