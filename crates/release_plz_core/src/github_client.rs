@@ -3,7 +3,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tracing::instrument;
+use tracing::{debug, instrument};
 use url::Url;
 
 use crate::pr::Pr;
@@ -41,6 +41,13 @@ pub struct CreateReleaseOption<'a> {
 struct GitHubPr {
     number: u64,
     html_url: Url,
+    head: Commit,
+}
+
+#[derive(Deserialize)]
+struct Commit {
+    #[serde(rename = "ref")]
+    pub ref_field: String,
 }
 
 impl<'a> GitHubClient<'a> {
@@ -94,22 +101,33 @@ impl<'a> GitHubClient<'a> {
 
     /// Close all Prs which branch starts with the given `branch_prefix`.
     pub async fn close_prs_on_branches(&self, branch_prefix: &str) -> anyhow::Result<()> {
-        let release_prs: Vec<GitHubPr> = self
-            .client
-            .get(self.pulls_url())
-            .query(&[("state", "open"), ("base", branch_prefix)])
-            .send()
-            .await
-            .context("Failed to retrieve branches")?
-            .error_for_status()?
-            .json()
-            .await
-            .context("failed to parse pr")?;
-
-        for pr in release_prs {
-            self.close_pr(pr.number).await?;
+        let mut page = 1;
+        let page_size = 30;
+        loop {
+            let prs: Vec<GitHubPr> = self
+                .client
+                .get(self.pulls_url())
+                .query(&[("state", "open")])
+                .query(&[("page", page)])
+                .query(&[("per_page", page_size)])
+                .send()
+                .await
+                .context("Failed to retrieve branches")?
+                .error_for_status()?
+                .json()
+                .await
+                .context("failed to parse pr")?;
+            for pr in &prs {
+                if pr.head.ref_field.starts_with(branch_prefix) {
+                    debug!("closing pr {}", pr.number);
+                    self.close_pr(pr.number).await?;
+                }
+            }
+            if prs.len() < page_size as usize {
+                break;
+            }
+            page += 1;
         }
-
         Ok(())
     }
 
