@@ -25,16 +25,16 @@ fs_extra.workspace = true
 git-cliff.workspace = true
 git-cliff-core.workspace = true
 git-url-parse.workspace = true
-octocrab.workspace = true
 parse-changelog.workspace = true
 reqwest = { workspace = true, features = ["json"] }
 secrecy.workspace = true
 serde = { workspace = true, features = ["derive"] }
 tempfile.workspace = true
 tracing.workspace = true
-url.workspace = true
+url = { workspace = true, features = ["serde"] }
 walkdir.workspace = true
 toml_edit.workspace = true
+serde_json.workspace = true
 
 [dev-dependencies]
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }

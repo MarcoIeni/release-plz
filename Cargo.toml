@@ -18,7 +18,6 @@ fs_extra = "1.2.0"
 git-cliff = { version = "0.8.1", default_features = false }
 git-cliff-core = "0.8.1"
 git-url-parse = "0.4.4"
-octocrab = "0.18.1"
 once_cell = "1.17.0"
 parse-changelog = { version = "0.5.3", default-features = false }
 reqwest = "0.11.13"
@@ -32,6 +31,6 @@ toml_edit = { version = "0.17.1", features = ["easy", "perf"] }
 tracing = "0.1.37"
 tracing-log = "0.1.3"
 tracing-subscriber = "0.3.16"
-url = "2.3.0"
+url = { version = "2.3.1", default-features = false }
 walkdir = "2.3.2"
 wiremock = "0.5.17"

@@ -192,7 +192,7 @@ async fn publish_release(
     if repo_url.is_on_github() {
         let github = GitHub::new(repo_url.clone().owner, repo_url.clone().name, git_token);
         let github_client = GitHubClient::new(&github)?;
-        let _page = github_client.create_release(&git_tag, release_body).await?;
+        github_client.create_release(&git_tag, release_body).await?;
     }
     Ok(())
 }
