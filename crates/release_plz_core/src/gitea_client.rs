@@ -12,6 +12,7 @@ pub struct GiteaClient<'a> {
     gitea: &'a Gitea,
     client: reqwest::Client,
 }
+
 #[derive(Deserialize)]
 struct GiteaPr {
     html_url: Url,
