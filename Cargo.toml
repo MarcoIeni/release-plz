@@ -18,7 +18,6 @@ fs_extra = "1.2.0"
 git-cliff = { version = "0.8.1", default_features = false }
 git-cliff-core = "0.8.1"
 git-url-parse = "0.4.4"
-octocrab = "0.18.1"
 once_cell = "1.17.0"
 parse-changelog = { version = "0.5.3", default-features = false }
 reqwest = "0.11.13"
