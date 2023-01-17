@@ -74,7 +74,7 @@ impl<'a> GitHubClient<'a> {
         };
         self.client
             .post(format!(
-                "{}/repos/{}/{}/releases",
+                "{}repos/{}/{}/releases",
                 self.base_url, self.github.owner, self.github.repo
             ))
             .json(&create_release_options)
@@ -87,7 +87,7 @@ impl<'a> GitHubClient<'a> {
 
     pub fn pulls_url(&self) -> String {
         format!(
-            "{}/repos/{}/{}/pulls",
+            "{}repos/{}/{}/pulls",
             self.base_url, self.github.owner, self.github.repo
         )
     }
