@@ -70,7 +70,8 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
                 info!("{} {}: already published", package.name, package.version);
                 return Ok(());
             }
-            release_package(&mut index, package, input, git_tag.clone()).await?;
+            let make_latest = !project.contains_multiple_pub_packages;
+            release_package(&mut index, package, input, git_tag.clone(), make_latest).await?;
         }
     }
     Ok(())
@@ -105,6 +106,7 @@ async fn release_package(
     package: &Package,
     input: &ReleaseRequest,
     git_tag: String,
+    make_latest: bool,
 ) -> anyhow::Result<()> {
     let mut args = vec!["publish"];
     args.push("--color");
@@ -148,6 +150,7 @@ async fn release_package(
                 repo,
                 &release_body,
                 git_release.git_token.clone(),
+                make_latest,
             )
             .await?;
         }
@@ -184,6 +187,7 @@ async fn publish_release(
     repo: Repo,
     release_body: &str,
     git_token: SecretString,
+    make_latest: bool,
 ) -> anyhow::Result<()> {
     let repo_url = match repo_url {
         Some(url) => RepoUrl::new(url),
@@ -192,7 +196,9 @@ async fn publish_release(
     if repo_url.is_on_github() {
         let github = GitHub::new(repo_url.clone().owner, repo_url.clone().name, git_token);
         let github_client = GitHubClient::new(&github)?;
-        github_client.create_release(&git_tag, release_body).await?;
+        github_client
+            .create_release(&git_tag, release_body, make_latest)
+            .await?;
     }
     Ok(())
 }

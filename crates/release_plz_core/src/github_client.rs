@@ -35,6 +35,7 @@ pub struct CreateReleaseOption<'a> {
     tag_name: &'a str,
     body: &'a str,
     name: &'a str,
+    make_latest: &'a str,
 }
 
 #[derive(Deserialize)]
@@ -73,11 +74,17 @@ impl<'a> GitHubClient<'a> {
     }
 
     /// Creates a GitHub release.
-    pub async fn create_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
+    pub async fn create_release(
+        &self,
+        tag: &str,
+        body: &str,
+        make_latest: bool,
+    ) -> anyhow::Result<()> {
         let create_release_options = CreateReleaseOption {
             tag_name: tag,
             body,
             name: tag,
+            make_latest: &make_latest.to_string(),
         };
         self.client
             .post(format!(
