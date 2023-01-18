@@ -164,6 +164,54 @@ impl<'a> GitHubClient<'a> {
 
         Ok(pr.html_url)
     }
+
+    async fn pr_commits(&self, pr_number: u64) -> anyhow::Result<Vec<PrCommit>> {
+        self.client
+            .get(format!("{}/{}/commits", self.pulls_url(), pr_number))
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await
+            .context("can't parse commits")
+    }
+
+    /// Returns the list of contributors for the given PR,
+    /// excluding the PR author and bots.
+    pub async fn pr_contributors(&self, pr_number: u64) -> anyhow::Result<Vec<String>> {
+        let mut commits = self
+            .pr_commits(pr_number)
+            .await
+            .context("can't retrieve commits")?;
+
+        // TODO if there's at least one non bot among the contributors, close the pr, otherwise, update.
+        // TODO improvement: check how many lines the commit added, if no lines (for example a merge to update the branch),
+        //      then don't count it as a contributor.
+        Ok(contributors_from_commits(&commits))
+    }
+}
+
+fn contributors_from_commits(commits: &[PrCommit]) -> Vec<String> {
+    let mut contributors = commits
+        .into_iter()
+        .skip(1) // skip pr author
+        .flat_map(|commit| &commit.author)
+        .map(|author| author.login.as_str())
+        .filter(|login| !login.ends_with("[bot]")) // ignore bots
+        .map(|login| login.to_string())
+        .collect::<Vec<_>>();
+    contributors.dedup();
+    contributors
+}
+
+#[derive(Deserialize)]
+struct PrCommit {
+    author: Option<Author>,
+}
+
+#[derive(Deserialize)]
+struct Author {
+    login: String,
 }
 
 #[derive(Debug)]
@@ -189,5 +237,34 @@ impl GitHub {
             base_url: Some(base_url),
             ..self
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn contributors_are_extracted_from_commits() {
+        let commits = vec![
+            PrCommit {
+                author: Some(Author {
+                    login: "bob".to_string(),
+                }),
+            },
+            PrCommit {
+                author: Some(Author {
+                    login: "marco".to_string(),
+                }),
+            },
+            PrCommit {
+                author: Some(Author {
+                    login: "release[bot]".to_string(),
+                }),
+            },
+            PrCommit { author: None },
+        ];
+        let contributors = contributors_from_commits(&commits);
+        assert_eq!(contributors, vec!["marco"]);
     }
 }
