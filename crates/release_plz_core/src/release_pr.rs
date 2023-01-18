@@ -1,14 +1,17 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
+use cargo_metadata::Package;
 use git_cmd::Repo;
 
 use anyhow::{anyhow, Context};
 use tracing::instrument;
 
 use crate::backend::GitClient;
+use crate::github_client::{contributors_from_commits, GitHubPr, PrCommit};
 use crate::pr::{Pr, BRANCH_PREFIX};
 use crate::{
-    copy_to_temp_dir, publishable_packages, update, GitBackend, UpdateRequest, CARGO_TOML,
+    copy_to_temp_dir, publishable_packages, update, GitBackend, UpdateRequest, UpdateResult,
+    CARGO_TOML,
 };
 
 #[derive(Debug)]
@@ -35,27 +38,126 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .set_local_manifest(&local_manifest)
         .context("can't find temporary project")?;
     let (packages_to_update, _temp_repository) = update(&new_update_request)?;
-    let gh_client = GitClient::new(&input.git)?;
-    gh_client
-        .close_prs_on_branches(BRANCH_PREFIX)
-        .await
-        .context("cannot close old release-plz prs")?;
+    let git_client = GitClient::new(&input.git)?;
     if !packages_to_update.is_empty() {
         let repo = Repo::new(new_manifest_dir)?;
         let there_are_commits_to_push = repo.is_clean().is_err();
         if there_are_commits_to_push {
-            let project_contains_multiple_pub_packages =
-                publishable_packages(local_manifest)?.len() > 1;
-            let pr = Pr::new(
-                repo.default_branch(),
-                packages_to_update.as_ref(),
-                project_contains_multiple_pub_packages,
-            );
-            create_release_branch(&repo, &pr.branch)?;
-            gh_client.open_pr(&pr).await?;
+            match &git_client {
+                GitClient::GitHub(gh_client) => {
+                    let opened_release_prs = gh_client
+                        .opened_prs(BRANCH_PREFIX)
+                        .await
+                        .context("cannot get opened release-plz prs")?;
+                    // Close old release-plz prs, expect one.
+                    for pr in &opened_release_prs[1..] {
+                        gh_client
+                            .close_pr(pr.number)
+                            .await
+                            .context("cannot close old release-plz prs")?;
+                    }
+
+                    match opened_release_prs.first() {
+                        Some(pr) => {
+                            let pr_commits = gh_client
+                                .pr_commits(pr.number)
+                                .await
+                                .context("cannot get commits of release-plz pr")?;
+                            let pr_contributors = contributors_from_commits(&pr_commits);
+                            // There's a contributor, so we don't want to force-push in this PR.
+                            // We close it because we want to save the contributor's work.
+                            // TODO improvement: check how many lines the commit added, if no lines (for example a merge to update the branch),
+                            //      then don't count it as a contributor.
+                            if !pr_contributors.is_empty() {
+                                gh_client
+                                    .close_pr(pr.number)
+                                    .await
+                                    .context("cannot close old release-plz prs")?;
+                            } else {
+                                if let Err(e) = update_pr(
+                                    &pr,
+                                    &pr_commits[0],
+                                    &repo,
+                                    &packages_to_update,
+                                    &local_manifest,
+                                ) {
+                                    tracing::error!("cannot update release-plz pr: {}", e);
+                                    gh_client
+                                        .close_pr(pr.number)
+                                        .await
+                                        .context("cannot close old release-plz prs")?;
+                                    create_pr(
+                                        &git_client,
+                                        &repo,
+                                        &packages_to_update,
+                                        &local_manifest,
+                                    )
+                                    .await?
+                                }
+                            }
+                        }
+                        None => {
+                            create_pr(&git_client, &repo, &packages_to_update, &local_manifest)
+                                .await?
+                        }
+                    }
+                }
+                GitClient::Gitea(_) => {
+                    close_old_prs(&git_client).await?;
+                    create_pr(&git_client, &repo, &packages_to_update, &local_manifest).await?;
+                }
+            }
         }
     }
 
+    Ok(())
+}
+
+async fn close_old_prs(git_client: &GitClient<'_>) -> anyhow::Result<()> {
+    git_client
+        .close_prs_on_branches(BRANCH_PREFIX)
+        .await
+        .context("cannot close old release-plz prs")?;
+    Ok(())
+}
+
+async fn create_pr(
+    git_client: &GitClient<'_>,
+    repo: &Repo,
+    packages_to_update: &[(Package, UpdateResult)],
+    local_manifest: &Path,
+) -> anyhow::Result<()> {
+    let project_contains_multiple_pub_packages = publishable_packages(local_manifest)?.len() > 1;
+    let pr = Pr::new(
+        repo.default_branch(),
+        packages_to_update.as_ref(),
+        project_contains_multiple_pub_packages,
+    );
+    create_release_branch(&repo, &pr.branch)?;
+    git_client.open_pr(&pr).await?;
+    Ok(())
+}
+
+fn update_pr(
+    pr: &GitHubPr,
+    first_pr_commit: &PrCommit,
+    repository: &Repo,
+    packages_to_update: &[(Package, UpdateResult)],
+    local_manifest: &Path,
+) -> anyhow::Result<()> {
+    // save local work
+    repository.git(&["stash"])?;
+    // sanity check to avoid doing bad things on the default branch
+    anyhow::ensure!(pr.branch().starts_with(BRANCH_PREFIX), "wrong branch name");
+    let parent_sha = first_pr_commit
+        .parent()
+        .context("can't determine parent sha")?;
+    repository.checkout(&parent_sha)?;
+    repository.git(&["stash", "pop"])?;
+    let changes_expect_typechanges = repository.changes_except_typechanges()?;
+    repository.add(&changes_expect_typechanges)?;
+    repository.commit("chore: release")?;
+    repository.force_push(pr.branch())?;
     Ok(())
 }
 

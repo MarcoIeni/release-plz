@@ -92,6 +92,11 @@ impl Repo {
         Ok(())
     }
 
+    pub fn force_push(&self, obj: &str) -> anyhow::Result<()> {
+        self.git(&["push", "origin", obj, "--force"])?;
+        Ok(())
+    }
+
     pub fn checkout_head(&self) -> anyhow::Result<()> {
         self.git(&["checkout", &self.default_branch])?;
         Ok(())
@@ -130,7 +135,7 @@ impl Repo {
     }
 
     /// Run a git command in the repository git directory
-    fn git(&self, args: &[&str]) -> anyhow::Result<String> {
+    pub fn git(&self, args: &[&str]) -> anyhow::Result<String> {
         git_in_dir(&self.directory, args)
     }
 
@@ -156,7 +161,7 @@ impl Repo {
     }
 
     #[instrument(skip(self))]
-    fn checkout(&self, object: &str) -> anyhow::Result<()> {
+    pub fn checkout(&self, object: &str) -> anyhow::Result<()> {
         self.git(&["checkout", object])?;
         Ok(())
     }

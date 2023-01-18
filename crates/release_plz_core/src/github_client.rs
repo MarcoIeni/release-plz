@@ -38,16 +38,23 @@ pub struct CreateReleaseOption<'a> {
 }
 
 #[derive(Deserialize)]
-struct GitHubPr {
-    number: u64,
+pub struct GitHubPr {
+    pub number: u64,
     html_url: Url,
-    head: Commit,
+    pub head: Commit,
+}
+
+impl GitHubPr {
+    pub fn branch(&self) -> &str {
+        self.head.ref_field.as_str()
+    }
 }
 
 #[derive(Deserialize)]
-struct Commit {
+pub struct Commit {
     #[serde(rename = "ref")]
     pub ref_field: String,
+    pub sha: String,
 }
 
 impl<'a> GitHubClient<'a> {
@@ -99,10 +106,10 @@ impl<'a> GitHubClient<'a> {
         )
     }
 
-    /// Close all Prs which branch starts with the given `branch_prefix`.
-    pub async fn close_prs_on_branches(&self, branch_prefix: &str) -> anyhow::Result<()> {
+    pub async fn opened_prs(&self, branch_prefix: &str) -> anyhow::Result<Vec<GitHubPr>> {
         let mut page = 1;
         let page_size = 30;
+        let mut release_prs: Vec<GitHubPr> = vec![];
         loop {
             let prs: Vec<GitHubPr> = self
                 .client
@@ -117,21 +124,30 @@ impl<'a> GitHubClient<'a> {
                 .json()
                 .await
                 .context("failed to parse pr")?;
-            for pr in &prs {
-                if pr.head.ref_field.starts_with(branch_prefix) {
-                    debug!("closing pr {}", pr.number);
-                    self.close_pr(pr.number).await?;
-                }
-            }
-            if prs.len() < page_size as usize {
+            let prs_len = prs.len();
+            let current_release_prs: Vec<GitHubPr> = prs
+                .into_iter()
+                .filter(|pr| pr.head.ref_field.starts_with(branch_prefix))
+                .collect();
+            release_prs.extend(current_release_prs);
+            if prs_len < page_size as usize {
                 break;
             }
             page += 1;
         }
+        Ok(release_prs)
+    }
+
+    /// Close all Prs which branch starts with the given `branch_prefix`.
+    pub async fn close_prs_on_branches(&self, branch_prefix: &str) -> anyhow::Result<()> {
+        for pr in self.opened_prs(branch_prefix).await? {
+            debug!("closing pr {}", pr.number);
+            self.close_pr(pr.number).await?;
+        }
         Ok(())
     }
 
-    async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
+    pub async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
         self.client
             .patch(format!("{}/{}", self.pulls_url(), pr_number))
             .json(&json!({
@@ -165,7 +181,7 @@ impl<'a> GitHubClient<'a> {
         Ok(pr.html_url)
     }
 
-    async fn pr_commits(&self, pr_number: u64) -> anyhow::Result<Vec<PrCommit>> {
+    pub async fn pr_commits(&self, pr_number: u64) -> anyhow::Result<Vec<PrCommit>> {
         self.client
             .get(format!("{}/{}/commits", self.pulls_url(), pr_number))
             .send()
@@ -175,23 +191,11 @@ impl<'a> GitHubClient<'a> {
             .await
             .context("can't parse commits")
     }
-
-    /// Returns the list of contributors for the given PR,
-    /// excluding the PR author and bots.
-    pub async fn pr_contributors(&self, pr_number: u64) -> anyhow::Result<Vec<String>> {
-        let mut commits = self
-            .pr_commits(pr_number)
-            .await
-            .context("can't retrieve commits")?;
-
-        // TODO if there's at least one non bot among the contributors, close the pr, otherwise, update.
-        // TODO improvement: check how many lines the commit added, if no lines (for example a merge to update the branch),
-        //      then don't count it as a contributor.
-        Ok(contributors_from_commits(&commits))
-    }
 }
 
-fn contributors_from_commits(commits: &[PrCommit]) -> Vec<String> {
+/// Returns the list of contributors for the given commits,
+/// excluding the PR author and bots.
+pub fn contributors_from_commits(commits: &[PrCommit]) -> Vec<String> {
     let mut contributors = commits
         .into_iter()
         .skip(1) // skip pr author
@@ -205,12 +209,24 @@ fn contributors_from_commits(commits: &[PrCommit]) -> Vec<String> {
 }
 
 #[derive(Deserialize)]
-struct PrCommit {
-    author: Option<Author>,
+pub struct PrCommit {
+    pub author: Option<Author>,
+    parents: Vec<CommitParent>,
+}
+
+impl PrCommit {
+    pub fn parent(&self) -> Option<&str> {
+        self.parents.get(0).map(|c| c.sha.as_str())
+    }
 }
 
 #[derive(Deserialize)]
-struct Author {
+pub struct CommitParent {
+    pub sha: String,
+}
+
+#[derive(Deserialize)]
+pub struct Author {
     login: String,
 }
 
@@ -251,18 +267,28 @@ mod tests {
                 author: Some(Author {
                     login: "bob".to_string(),
                 }),
+                parents: vec![CommitParent {
+                    sha: "123".to_string(),
+                }],
             },
             PrCommit {
                 author: Some(Author {
                     login: "marco".to_string(),
                 }),
+                parents: vec![CommitParent {
+                    sha: "123".to_string(),
+                }],
             },
             PrCommit {
                 author: Some(Author {
                     login: "release[bot]".to_string(),
                 }),
+                parents: vec![],
             },
-            PrCommit { author: None },
+            PrCommit {
+                author: None,
+                parents: vec![],
+            },
         ];
         let contributors = contributors_from_commits(&commits);
         assert_eq!(contributors, vec!["marco"]);
