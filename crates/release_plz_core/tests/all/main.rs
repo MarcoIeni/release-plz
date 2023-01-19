@@ -1,7 +1,7 @@
+mod gitea_client;
 mod helpers;
 mod release_pr;
 mod update;
-mod gitea_client;
 
 use std::{path::Path, process::Command};
 
