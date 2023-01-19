@@ -21,7 +21,7 @@ pub async fn get_latest_version() -> String {
             .ok()
             .unwrap()
             .tag_name;
-        return tag_name;
+        tag_name
     } else {
         "".to_string()
     }

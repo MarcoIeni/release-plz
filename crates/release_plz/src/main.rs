@@ -11,7 +11,7 @@ use crate::args::CliArgs;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     const VERSION: &str = env!("CARGO_PKG_VERSION");
-    if !(&get_latest_version().await[13..] == VERSION) {
+    if &get_latest_version().await[13..] != VERSION {
         println!("A newer version ({}) is available at https://github.com/MarcoIeni/release-plz\nPlease Update.", get_latest_version().await);
     }
     let args = CliArgs::parse();
