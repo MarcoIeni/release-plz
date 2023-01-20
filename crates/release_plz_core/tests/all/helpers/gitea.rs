@@ -1,3 +1,4 @@
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Default, Serialize)]
@@ -21,6 +22,7 @@ struct TokenResponse {
 #[derive(Clone, Debug, PartialEq, Default, Serialize)]
 struct CreateRepoRequest<'a> {
     name: &'a str,
+    auto_init: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Default, Deserialize)]
@@ -28,10 +30,14 @@ struct CreateRepoResponse {
     html_url: String,
 }
 
+#[derive(Clone, Debug, PartialEq, Default, Serialize)]
+struct CreateBranchRequest<'a> {
+    new_branch_name: &'a str,
+}
+
 /// Create a user and return it's token.
-pub async fn create_user() -> String {
+pub async fn create_user(username: &str) -> String {
     let client = reqwest::Client::new();
-    let username = "me";
     let user_pwd = "password";
 
     let response = client
@@ -51,43 +57,74 @@ pub async fn create_user() -> String {
         .unwrap();
     dbg!(response);
 
-    let token: TokenResponse = client
+    let response = client
         .post(format!("{}/users/{username}/tokens", base_api_url()))
         .basic_auth(username, Some(user_pwd))
-        //TODO name must be unique
         .json(&TokenRequest { name: "test" })
         .send()
         .await
-        .unwrap()
-        .json()
-        .await
         .unwrap();
-    dbg!(&token);
 
+    let token: TokenResponse = check_status_code(response, "error while creating token").await;
     token.sha1
 }
 
 /// create a repo and returns its url
 pub async fn create_repo(token: &str, repo_name: &str) -> String {
     let client = reqwest::Client::new();
-    let repo: CreateRepoResponse = client
+    let response = client
         .post(format!("{}/user/repos", base_api_url()))
         .header(reqwest::header::AUTHORIZATION, format!("token {token}"))
-        .json(&CreateRepoRequest { name: repo_name })
+        .json(&CreateRepoRequest {
+            name: repo_name,
+            auto_init: true,
+        })
+        .send()
+        .await
+        .unwrap();
+
+    let repo: CreateRepoResponse = check_status_code(response, "could not create a new repo").await;
+
+    repo.html_url
+}
+
+/// creates a branch based on main
+pub async fn create_branch(token: &str, repo: &str, owner: &str, new_branch_name: &str) {
+    let client = reqwest::Client::new();
+    let repo: serde_json::Value = client
+        .post(format!("{}/repos/{owner}/{repo}/branches", base_api_url()))
+        .header(reqwest::header::AUTHORIZATION, format!("token {token}"))
+        .json(&CreateBranchRequest { new_branch_name })
         .send()
         .await
         .unwrap()
         .json()
         .await
         .unwrap();
-
-    repo.html_url
+    //TODO
+    dbg!(repo);
 }
 
 fn base_api_url() -> String {
     format!("{}/api/v1", base_url())
 }
 
-fn base_url() -> String {
+pub fn base_url() -> String {
     "http://localhost:3000".to_string()
+}
+
+async fn check_status_code<T: DeserializeOwned>(
+    response: reqwest::Response,
+    error_message: &str,
+) -> T {
+    let status = response.status();
+    if status != 201 {
+        match response.text().await {
+            Ok(txt) => panic!("{error_message}, status_code: {status}, response: {txt}"),
+            Err(e) => panic!(
+                "{error_message}, status_code: {status}, could not retrieve response as text: {e}"
+            ),
+        }
+    }
+    response.json().await.unwrap()
 }
