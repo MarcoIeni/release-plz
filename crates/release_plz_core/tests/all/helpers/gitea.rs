@@ -91,17 +91,16 @@ pub async fn create_repo(token: &str, repo_name: &str) -> String {
 /// creates a branch based on main
 pub async fn create_branch(token: &str, repo: &str, owner: &str, new_branch_name: &str) {
     let client = reqwest::Client::new();
-    let repo: serde_json::Value = client
+    let response = client
         .post(format!("{}/repos/{owner}/{repo}/branches", base_api_url()))
         .header(reqwest::header::AUTHORIZATION, format!("token {token}"))
         .json(&CreateBranchRequest { new_branch_name })
         .send()
         .await
-        .unwrap()
-        .json()
-        .await
         .unwrap();
-    //TODO
+
+    let repo: serde_json::Value =
+        check_status_code(response, "could not create a new branch based on main").await;
     dbg!(repo);
 }
 
