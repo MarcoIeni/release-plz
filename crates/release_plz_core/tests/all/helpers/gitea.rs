@@ -40,6 +40,7 @@ pub async fn create_user(username: &str) -> String {
     let client = reqwest::Client::new();
     let user_pwd = "password";
 
+    // using the sign form and not the api
     let response = client
         .post(format!("{}/user/sign_up", base_url()))
         .header("cookie", "lang=en-US; i_like_gitea=8e2779a79e7d3e28; _csrf=uBwdvQ2EKSS69kVzPIGOPI1OmoU6MTU5NDMxMTk2NzA1ODIxMjgzNw")
@@ -57,6 +58,8 @@ pub async fn create_user(username: &str) -> String {
         .unwrap();
     dbg!(response);
 
+    // this must be called with username + password instead of a token
+    // since there is no token created
     let response = client
         .post(format!("{}/users/{username}/tokens", base_api_url()))
         .basic_auth(username, Some(user_pwd))
@@ -71,17 +74,15 @@ pub async fn create_user(username: &str) -> String {
 
 /// create a repo and returns its url
 pub async fn create_repo(token: &str, repo_name: &str) -> String {
-    let client = reqwest::Client::new();
-    let response = client
-        .post(format!("{}/user/repos", base_api_url()))
-        .header(reqwest::header::AUTHORIZATION, format!("token {token}"))
-        .json(&CreateRepoRequest {
+    let response = do_gitea_request(
+        "user/repos",
+        token,
+        &CreateRepoRequest {
             name: repo_name,
             auto_init: true,
-        })
-        .send()
-        .await
-        .unwrap();
+        },
+    )
+    .await;
 
     let repo: CreateRepoResponse = check_status_code(response, "could not create a new repo").await;
 
@@ -90,14 +91,12 @@ pub async fn create_repo(token: &str, repo_name: &str) -> String {
 
 /// creates a branch based on main
 pub async fn create_branch(token: &str, repo: &str, owner: &str, new_branch_name: &str) {
-    let client = reqwest::Client::new();
-    let response = client
-        .post(format!("{}/repos/{owner}/{repo}/branches", base_api_url()))
-        .header(reqwest::header::AUTHORIZATION, format!("token {token}"))
-        .json(&CreateBranchRequest { new_branch_name })
-        .send()
-        .await
-        .unwrap();
+    let response = do_gitea_request(
+        format!("repos/{owner}/{repo}/branches").as_str(),
+        token,
+        &CreateBranchRequest { new_branch_name },
+    )
+    .await;
 
     let repo: serde_json::Value =
         check_status_code(response, "could not create a new branch based on main").await;
@@ -110,6 +109,17 @@ fn base_api_url() -> String {
 
 pub fn base_url() -> String {
     "http://localhost:3000".to_string()
+}
+
+async fn do_gitea_request<T: Serialize>(api: &str, token: &str, request: &T) -> reqwest::Response {
+    let client = reqwest::Client::new();
+    client
+        .post(format!("{}/{api}", base_api_url()))
+        .header(reqwest::header::AUTHORIZATION, format!("token {token}"))
+        .json(request)
+        .send()
+        .await
+        .unwrap()
 }
 
 async fn check_status_code<T: DeserializeOwned>(
