@@ -200,9 +200,8 @@ pub fn contributors_from_commits(commits: &[PrCommit]) -> Vec<String> {
         .into_iter()
         .skip(1) // skip pr author
         .flat_map(|commit| &commit.author)
-        .map(|author| author.login.as_str())
-        .filter(|login| !login.ends_with("[bot]")) // ignore bots
-        .map(|login| login.to_string())
+        .filter(|author| !author.login.ends_with("[bot]")) // ignore bots
+        .map(|author| author.login.clone())
         .collect::<Vec<_>>();
     contributors.dedup();
     contributors
@@ -215,6 +214,7 @@ pub struct PrCommit {
 }
 
 impl PrCommit {
+    /// Get the parent commit sha.
     pub fn parent(&self) -> Option<&str> {
         self.parents.get(0).map(|c| c.sha.as_str())
     }

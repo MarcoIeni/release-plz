@@ -78,8 +78,6 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
                                     &pr,
                                     &pr_commits[0],
                                     &repo,
-                                    &packages_to_update,
-                                    &local_manifest,
                                 ) {
                                     tracing::error!("cannot update release-plz pr: {}", e);
                                     gh_client
@@ -142,8 +140,6 @@ fn update_pr(
     pr: &GitHubPr,
     first_pr_commit: &PrCommit,
     repository: &Repo,
-    packages_to_update: &[(Package, UpdateResult)],
-    local_manifest: &Path,
 ) -> anyhow::Result<()> {
     // save local work
     repository.git(&["stash"])?;
