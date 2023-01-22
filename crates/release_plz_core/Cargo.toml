@@ -17,7 +17,7 @@ next_version = { path = "../next_version", version = "0.2" }
 
 anyhow.workspace = true
 cargo_metadata.workspace = true
-cargo-clone-core.workspace = true
+cargo.workspace = true
 chrono = { workspace = true, features = ["clock"] }
 crates-index.workspace = true
 dunce.workspace = true
@@ -26,6 +26,7 @@ git-cliff.workspace = true
 git-cliff-core.workspace = true
 git-url-parse.workspace = true
 parse-changelog.workspace = true
+regex.workspace = true
 reqwest = { workspace = true, features = ["json"] }
 secrecy.workspace = true
 serde = { workspace = true, features = ["derive"] }
@@ -43,5 +44,6 @@ test_logs = { path = "../test_logs" }
 expect-test.workspace = true
 fake.workspace = true
 serde_json.workspace = true
+tempfile.workspace = true
 tokio = { workspace = true, features = ["macros"] }
 wiremock.workspace = true
