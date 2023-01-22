@@ -21,7 +21,9 @@ clap = { workspace = true, features = ["derive", "env"] }
 clap_complete.workspace = true
 dirs.workspace = true
 git-cliff-core.workspace = true
+reqwest.workspace = true
 secrecy.workspace = true
+serde.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tracing-log.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
