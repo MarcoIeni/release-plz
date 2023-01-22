@@ -12,7 +12,10 @@ pub async fn check_update() -> anyhow::Result<()> {
         .await
         .context("error while checking for updates")?;
     if latest_version != CURRENT_VERSION {
-        println!("A newer version (v{}) is available at https://github.com/MarcoIeni/release-plz - Please Update.", latest_version);
+        println!(
+            "A newer version (v{}) is available at https://github.com/MarcoIeni/release-plz",
+            latest_version
+        );
     }
     Ok(())
 }
