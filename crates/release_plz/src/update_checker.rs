@@ -17,6 +17,9 @@ pub async fn check_update() -> anyhow::Result<()> {
             latest_version
         );
     }
+    else {
+        println!("Your release-plz version ({CURRENT_VERSION}) is up to date");
+    }
     Ok(())
 }
 
