@@ -4,9 +4,9 @@ use git_cliff::changelog::Changelog as GitCliffChangelog;
 use git_cliff_core::{
     commit::Commit,
     config::{ChangelogConfig, CommitParser, Config, GitConfig},
-    regex::Regex,
     release::Release,
 };
+use regex::Regex;
 
 use crate::changelog_parser;
 
@@ -163,8 +163,11 @@ fn default_git_config() -> GitConfig {
         filter_commits: Some(true),
         tag_pattern: None,
         skip_tags: None,
+        split_commits: None,
+        protect_breaking_commits: None,
+        topo_order: None,
         ignore_tags: None,
-        date_order: None,
+        limit_commits: None,
         sort_commits: None,
         commit_preprocessors: None,
         link_parsers: None,
