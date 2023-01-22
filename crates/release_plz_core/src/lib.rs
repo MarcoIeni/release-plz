@@ -2,6 +2,7 @@ mod backend;
 mod cargo;
 mod changelog;
 mod changelog_parser;
+mod clone;
 mod diff;
 mod download;
 mod gitea_client;
