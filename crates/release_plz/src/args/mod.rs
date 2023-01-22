@@ -39,7 +39,7 @@ pub enum Command {
     /// Generate command autocompletions for various shells.
     GenerateCompletions(GenerateCompletions),
     /// Check if a newer version of release-plz is available.
-    CheckUpdates
+    CheckUpdates,
 }
 
 fn local_manifest(project_manifest: Option<&Path>) -> PathBuf {
