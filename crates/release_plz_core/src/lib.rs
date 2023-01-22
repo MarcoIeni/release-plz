@@ -2,6 +2,7 @@ mod backend;
 mod cargo;
 mod changelog;
 mod changelog_parser;
+mod clone;
 mod diff;
 mod download;
 mod gitea_client;
@@ -18,7 +19,6 @@ mod repo_url;
 mod tmp_repo;
 mod update;
 mod version;
-mod clone;
 
 pub use backend::GitBackend;
 pub use changelog::*;
