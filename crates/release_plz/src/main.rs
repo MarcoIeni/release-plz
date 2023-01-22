@@ -3,13 +3,17 @@ mod log;
 
 use anyhow::Context;
 use clap::Parser;
-use release_plz_core::{ReleasePrRequest, ReleaseRequest};
+use release_plz_core::{update_checker::get_latest_version, ReleasePrRequest, ReleaseRequest};
 use tracing::error;
 
 use crate::args::CliArgs;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    const VERSION: &str = env!("CARGO_PKG_VERSION");
+    if !get_latest_version().await.is_empty() && &get_latest_version().await[13..] != VERSION {
+        println!("A newer version ({}) is available at https://github.com/MarcoIeni/release-plz\nPlease Update.", get_latest_version().await);
+    }
     let args = CliArgs::parse();
     log::init(args.verbose);
     run(args).await.map_err(|e| {
