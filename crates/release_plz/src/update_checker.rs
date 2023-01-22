@@ -13,7 +13,7 @@ pub async fn check_update() -> anyhow::Result<()> {
         .context("error while checking for updates")?;
     if latest_version != CURRENT_VERSION {
         println!(
-            "A newer version (v{}) is available at https://github.com/MarcoIeni/release-plz",
+            "Your release-plz version is {CURRENT_VERSION}. A newer version ({}) is available at https://github.com/MarcoIeni/release-plz",
             latest_version
         );
     }
