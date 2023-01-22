@@ -27,12 +27,12 @@ pub fn download_packages(
         .iter()
         .map(|&package_name| Crate::new(package_name.to_string(), None))
         .collect();
-    let cloner = Cloner::builder()
+    Cloner::builder()
         .with_directory(directory)
         .with_source(source.clone())
         .build()
-        .expect("can't build cloner");
-    cloner.clone(&crates)?;
+        .context("can't build cloner")?
+        .clone(&crates)?;
     let pkgs = packages
         .iter()
         .map(|&package_name| {
