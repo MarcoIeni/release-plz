@@ -9,6 +9,7 @@ mod source;
 pub use cloner_builder::*;
 pub use source::*;
 
+use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
@@ -71,7 +72,7 @@ impl Cloner {
     pub fn clone(&self, crates: &[Crate]) -> CargoResult<()> {
         let _lock = self.config.acquire_package_cache_lock()?;
 
-        let mut src = get_source(&self.srcid, &self.config)?;
+        let mut src = get_source(self.srcid, &self.config)?;
 
         for crate_ in crates {
             let mut dest_path = self.directory.clone();
@@ -133,13 +134,13 @@ impl Cloner {
     }
 }
 
-fn get_source<'a>(srcid: &SourceId, config: &'a Config) -> CargoResult<Box<dyn Source + 'a>> {
+fn get_source<'a>(srcid: SourceId, config: &'a Config) -> CargoResult<Box<dyn Source + 'a>> {
     let mut source = if srcid.is_path() {
         let path = srcid.url().to_file_path().expect("path must be valid");
-        Box::new(PathSource::new(&path, *srcid, config))
+        Box::new(PathSource::new(&path, srcid, config))
     } else {
         let map = SourceConfigMap::new(config)?;
-        map.load(*srcid, &Default::default())?
+        map.load(srcid, &HashSet::default())?
     };
 
     source.invalidate_cache();
@@ -197,7 +198,7 @@ fn clone_directory(from: &Path, to: &Path) -> CargoResult<()> {
             continue;
         }
 
-        if file_type.is_file() {
+        if !file_type.is_dir() {
             // .cargo-ok is not wanted in this context
             fs::copy(entry.path(), &dest_path)?;
         } else if file_type.is_dir() {

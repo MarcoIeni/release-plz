@@ -29,7 +29,7 @@ pub fn download_packages(
         .collect();
     Cloner::builder()
         .with_directory(directory)
-        .with_source(source.clone())
+        .with_source(source)
         .build()
         .context("can't build cloner")?
         .clone(&crates)?;
