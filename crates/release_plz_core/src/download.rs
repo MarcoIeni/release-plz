@@ -23,33 +23,32 @@ pub fn download_packages(
         Some(registry) => ClonerSource::registry(registry),
         None => ClonerSource::crates_io(),
     };
-    packages
+    let crates: Vec<Crate> = packages
         .iter()
-        .map(|&package_name| (package_name, Crate::new(package_name.to_string(), None)))
-        .filter_map(|(package_name, package)| {
-            let packages = &[package];
+        .map(|&package_name| Crate::new(package_name.to_string(), None))
+        .collect();
+    let cloner = Cloner::builder()
+        .with_directory(directory)
+        .with_source(source.clone())
+        .build()
+        .expect("can't build cloner");
+    cloner.clone(&crates)?;
+    let pkgs = packages
+        .iter()
+        .map(|&package_name| {
             let dir_path: &Path = directory.as_ref();
             let package_path = dir_path.join(package_name);
-            let package_path = package_path
-                .as_path()
-                .as_os_str()
-                .to_str()
-                .expect("can't convert os string into string");
-            let cloner = Cloner::builder()
-                .with_directory(directory)
-                .with_source(source.clone())
-                .build()
-                .expect("can't build cloner");
-            // Filter non-existing packages.
-            // Unfortunately, we also filters packages we couldn't
-            // download due to other issues, such as network.
-            cloner
-                .clone(packages)
-                .map(|()| (read_package(package_path)))
+            (package_name, package_path)
+        })
+        .filter_map(|(package_name, package_path)| {
+            read_package(package_path)
                 .map_err(|e| warn!("can't download {}: {}", package_name, e))
+                // Filter non-existing packages.
+                // Unfortunately we filter also packages that we couldn't download due to network issues.
                 .ok()
         })
-        .collect()
+        .collect();
+    Ok(pkgs)
 }
 
 /// Read a package from file system
