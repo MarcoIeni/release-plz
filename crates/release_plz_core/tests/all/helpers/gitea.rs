@@ -111,6 +111,10 @@ pub fn base_url() -> String {
     "http://localhost:3000".to_string()
 }
 
+pub fn git_cred_url(username: &str, repo_name: &str) -> String {
+    format!("http://{username}:{DEFAULT_PASSWORD}@localhost:3000/{username}/{repo_name}");
+}
+
 async fn do_gitea_request<T: Serialize>(api: &str, token: &str, request: &T) -> reqwest::Response {
     let client = reqwest::Client::new();
     client

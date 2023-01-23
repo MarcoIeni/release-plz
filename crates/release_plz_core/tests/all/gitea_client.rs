@@ -18,11 +18,8 @@ async fn setup(project_dir: &PathBuf, username: String, repo_name: String) -> Gi
     let token = gitea::create_user(&username).await;
     gitea::create_repo(&token, &repo_name).await;
 
-    //TODO move domain from here
-    let git_url: String = format!(
-        "http://{username}:{}@localhost:3000/{username}/{repo_name}",
-        gitea::DEFAULT_PASSWORD
-    );
+    let git_url = gitea::git_cred_url(&username, &repo_name);
+
     init_repo(project_dir, &git_url);
 
     let url_repo: String = format!("{}/{}/{}", gitea::base_url(), username, repo_name);
