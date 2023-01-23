@@ -1,5 +1,4 @@
 use release_plz_core::Gitea;
-use secrecy::ExposeSecret;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
@@ -102,7 +101,6 @@ pub async fn create_repo(token: &str, repo_name: &str) -> String {
 
     repo.html_url
 }
-
 
 /// list all open pull requests for the repo
 pub async fn list_pull_requests(gitea_info: &Gitea) -> Vec<PullRequest> {
