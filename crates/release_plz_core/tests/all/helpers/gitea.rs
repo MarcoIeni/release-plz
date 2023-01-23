@@ -46,7 +46,6 @@ pub struct PullRequest {
 }
 
 fn create_user_docker_exec(username: &str) {
-    // docker exec gitea gitea admin user create --username root --password admin1234 --email admin@example.com
     let response = Command::new("docker")
         .arg("exec")
         .arg("gitea")
