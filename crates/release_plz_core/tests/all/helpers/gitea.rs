@@ -2,6 +2,7 @@ use release_plz_core::Gitea;
 use secrecy::ExposeSecret;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use std::process::Command;
 
 pub const DEFAULT_PASSWORD: &str = "password";
 
@@ -39,8 +40,28 @@ struct CreateBranchRequest<'a> {
     new_branch_name: &'a str,
 }
 
-/// Create a user and return it's token.
-pub async fn create_user(username: &str) -> String {
+fn create_user_docker_exec(username: &str) {
+    // docker exec gitea gitea admin user create --username root --password admin1234 --email admin@example.com
+    let response = Command::new("docker")
+        .arg("exec")
+        .arg("gitea")
+        .arg("gitea")
+        .arg("admin")
+        .arg("user")
+        .arg("create")
+        .arg("--username")
+        .arg(username)
+        .arg("--password")
+        .arg(DEFAULT_PASSWORD)
+        .arg("--email")
+        .arg("me@example.com")
+        .output()
+        .unwrap();
+
+    dbg!(response);
+}
+
+async fn create_user_api_call(username: &str) {
     let client = reqwest::Client::new();
 
     // using the sign form and not the api
@@ -59,9 +80,14 @@ pub async fn create_user(username: &str) -> String {
         .text()
         .await
         .unwrap();
+}
 
+/// Create a user and return it's token.
+pub async fn create_user(username: &str) -> String {
+    create_user_docker_exec(username);
     // this must be called with username + password instead of a token
     // since there is no token created
+    let client = reqwest::Client::new();
     let response = client
         .post(format!("{}/users/{username}/tokens", base_api_url()))
         .basic_auth(username, Some(DEFAULT_PASSWORD))
@@ -106,6 +132,7 @@ pub async fn create_branch(gitea_info: &Gitea, new_branch_name: &str) {
     dbg!(repo);
 }
 
+/// list all open pull requests for the repo
 pub async fn list_pull_requests(gitea_info: &Gitea) -> () {
     //TODO
     let client = reqwest::Client::new();
