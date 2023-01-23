@@ -67,27 +67,6 @@ fn create_user_docker_exec(username: &str) {
     dbg!(response);
 }
 
-async fn create_user_api_call(username: &str) {
-    let client = reqwest::Client::new();
-
-    // using the sign form and not the api
-    client
-        .post(format!("{}/user/sign_up", base_url()))
-        .header("cookie", "lang=en-US; i_like_gitea=8e2779a79e7d3e28; _csrf=uBwdvQ2EKSS69kVzPIGOPI1OmoU6MTU5NDMxMTk2NzA1ODIxMjgzNw")
-        .form(&CreateUserOption {
-            email: "me@example.com",
-            password: DEFAULT_PASSWORD,
-            retype: DEFAULT_PASSWORD,
-            user_name: username,
-        })
-        .send()
-        .await
-        .unwrap()
-        .text()
-        .await
-        .unwrap();
-}
-
 /// Create a user and return it's token.
 pub async fn create_user(username: &str) -> String {
     create_user_docker_exec(username);
@@ -124,19 +103,6 @@ pub async fn create_repo(token: &str, repo_name: &str) -> String {
     repo.html_url
 }
 
-/// creates a branch based on main
-pub async fn create_branch(gitea_info: &Gitea, new_branch_name: &str) {
-    let response = do_gitea_request(
-        format!("repos/{}/{}/branches", gitea_info.owner, gitea_info.repo).as_str(),
-        gitea_info.token.expose_secret(),
-        &CreateBranchRequest { new_branch_name },
-    )
-    .await;
-
-    let repo: serde_json::Value =
-        deserialize_response(response, "could not create a new branch based on main").await;
-    dbg!(repo);
-}
 
 /// list all open pull requests for the repo
 pub async fn list_pull_requests(gitea_info: &Gitea) -> Vec<PullRequest> {
