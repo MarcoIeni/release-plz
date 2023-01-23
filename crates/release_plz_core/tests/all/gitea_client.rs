@@ -6,13 +6,20 @@ use release_plz_core::CARGO_TOML;
 use release_plz_core::{
     ChangelogRequest, GitBackend, Gitea, ReleasePrRequest, RepoUrl, UpdateRequest,
 };
-use secrecy::ExposeSecret;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tempfile::tempdir;
 
 const TEST_REPO: &str = "test_repo";
 const USERNAME: &str = "me";
+
+fn copy_gitea(original: &Gitea) -> Gitea {
+    Gitea::new(
+        RepoUrl::new(gitea::repo_url(&original.owner, &original.repo).as_str()).unwrap(),
+        original.token.clone(),
+    )
+    .unwrap()
+}
 
 async fn setup(project_dir: &PathBuf, username: String, repo_name: String) -> Gitea {
     let token = gitea::create_user(&username).await;
@@ -22,7 +29,7 @@ async fn setup(project_dir: &PathBuf, username: String, repo_name: String) -> Gi
 
     init_repo(project_dir, &git_url);
 
-    let url_repo: String = format!("{}/{}/{}", gitea::base_url(), username, repo_name);
+    let url_repo: String = gitea::repo_url(&username, &repo_name);
     Gitea::new(RepoUrl::new(&url_repo).unwrap(), token.clone().into()).unwrap()
 }
 
@@ -51,14 +58,16 @@ async fn gitea_client_creates_pr() {
 
     let user = setup(&local_project, USERNAME.into(), TEST_REPO.into()).await;
 
-    let release_pr_request = gitea_release_pr_request(user, local_project.as_ref()).unwrap();
+    let release_pr_request =
+        gitea_release_pr_request(copy_gitea(&user), local_project.as_ref()).unwrap();
 
     release_plz_core::release_pr(&release_pr_request)
         .await
         .context("could not release PR")
         .unwrap();
 
-    //TODO check if PR was released
+    //TODO check if PR was released chore(test_repo): release v0.1.1
+    gitea::list_pull_requests(&user);
 }
 
 fn gitea_release_pr_request(user: Gitea, project: &Path) -> anyhow::Result<ReleasePrRequest> {

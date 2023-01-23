@@ -1,3 +1,5 @@
+use release_plz_core::Gitea;
+use secrecy::ExposeSecret;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
@@ -68,7 +70,7 @@ pub async fn create_user(username: &str) -> String {
         .await
         .unwrap();
 
-    let token: TokenResponse = check_status_code(response, "error while creating token").await;
+    let token: TokenResponse = deserialize_response(response, "error while creating token").await;
     token.sha1
 }
 
@@ -84,23 +86,42 @@ pub async fn create_repo(token: &str, repo_name: &str) -> String {
     )
     .await;
 
-    let repo: CreateRepoResponse = check_status_code(response, "could not create a new repo").await;
+    let repo: CreateRepoResponse =
+        deserialize_response(response, "could not create a new repo").await;
 
     repo.html_url
 }
 
 /// creates a branch based on main
-pub async fn create_branch(token: &str, repo: &str, owner: &str, new_branch_name: &str) {
+pub async fn create_branch(gitea_info: &Gitea, new_branch_name: &str) {
     let response = do_gitea_request(
-        format!("repos/{owner}/{repo}/branches").as_str(),
-        token,
+        format!("repos/{}/{}/branches", gitea_info.owner, gitea_info.repo).as_str(),
+        gitea_info.token.expose_secret(),
         &CreateBranchRequest { new_branch_name },
     )
     .await;
 
     let repo: serde_json::Value =
-        check_status_code(response, "could not create a new branch based on main").await;
+        deserialize_response(response, "could not create a new branch based on main").await;
     dbg!(repo);
+}
+
+pub async fn list_pull_requests(gitea_info: &Gitea) -> () {
+    //TODO
+    let client = reqwest::Client::new();
+    client
+        .get(format!(
+            "{}/repos/{}/{}/pulls?state=open",
+            base_api_url(),
+            gitea_info.owner,
+            gitea_info.repo,
+        ))
+        .header("accept", "application/json")
+        .send()
+        .await
+        .unwrap();
+    ()
+    //TODO
 }
 
 fn base_api_url() -> String {
@@ -112,7 +133,11 @@ pub fn base_url() -> String {
 }
 
 pub fn git_cred_url(username: &str, repo_name: &str) -> String {
-    format!("http://{username}:{DEFAULT_PASSWORD}@localhost:3000/{username}/{repo_name}");
+    format!("http://{username}:{DEFAULT_PASSWORD}@localhost:3000/{username}/{repo_name}")
+}
+
+pub fn repo_url(username: &str, repo: &str) -> String {
+    format!("{}/{username}/{repo}", base_url())
 }
 
 async fn do_gitea_request<T: Serialize>(api: &str, token: &str, request: &T) -> reqwest::Response {
@@ -126,12 +151,12 @@ async fn do_gitea_request<T: Serialize>(api: &str, token: &str, request: &T) -> 
         .unwrap()
 }
 
-async fn check_status_code<T: DeserializeOwned>(
+async fn deserialize_response<T: DeserializeOwned>(
     response: reqwest::Response,
     error_message: &str,
 ) -> T {
     let status = response.status();
-    if status != 201 {
+    if status != 201 && status != 200 {
         match response.text().await {
             Ok(txt) => panic!("{error_message}, status_code: {status}, response: {txt}"),
             Err(e) => panic!(
