@@ -231,7 +231,7 @@ dependencies = [
  "filetime",
  "flate2",
  "fwdansi",
- "git2 0.16.1",
+ "git2",
  "git2-curl",
  "glob",
  "hex 0.4.3",
@@ -613,11 +613,11 @@ dependencies = [
 
 [[package]]
 name = "crates-index"
-version = "0.18.11"
+version = "0.18.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "599f67b56f40863598cb30450427049935d05de2e36c61d33c050f04d7ec8cf2"
+checksum = "b655ece026c6f8088979ec131e922243801f0b52d2e8ecae805f56519511e69c"
 dependencies = [
- "git2 0.15.0",
+ "git2",
  "hex 0.4.3",
  "home",
  "memchr",
@@ -1244,7 +1244,7 @@ checksum = "6de20192d884d5b304616127a19fe23bc1ff656464bd5035f30c7dca41c873ed"
 dependencies = [
  "config",
  "git-conventional",
- "git2 0.16.1",
+ "git2",
  "glob",
  "indexmap",
  "lazy-regex",
@@ -1286,21 +1286,6 @@ dependencies = [
 
 [[package]]
 name = "git2"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2994bee4a3a6a51eb90c218523be382fd7ea09b16380b9312e9dbe955ff7c7d1"
-dependencies = [
- "bitflags",
- "libc",
- "libgit2-sys",
- "log",
- "openssl-probe",
- "openssl-sys",
- "url",
-]
-
-[[package]]
-name = "git2"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ccf7f68c2995f392c49fffb4f95ae2c873297830eb25c6bc4c114ce8f4562acc"
@@ -1321,7 +1306,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7577f4e6341ba7c90d883511130a45b956c274ba5f4d205d9f9da990f654cd33"
 dependencies = [
  "curl",
- "git2 0.16.1",
+ "git2",
  "log",
  "url",
 ]
