@@ -53,6 +53,7 @@ fn init_repo(project_dir: &PathBuf, git_url: &str) {
 
 #[tokio::test]
 async fn gitea_client_creates_pr() {
+    let expected_pr_title = "chore(test_repo): release v0.1.1";
     let local_project_dir = tempdir().unwrap();
     let local_project = local_project_dir.as_ref().join(TEST_REPO);
 
@@ -66,8 +67,13 @@ async fn gitea_client_creates_pr() {
         .context("could not release PR")
         .unwrap();
 
-    //TODO check if PR was released chore(test_repo): release v0.1.1
-    gitea::list_pull_requests(&user);
+    //TODO check if PR was released
+    let pulls = gitea::list_pull_requests(&user).await;
+    let matching_pull_len = pulls
+        .iter()
+        .filter(|p| p.title.as_str() == expected_pr_title)
+        .count();
+    assert_eq!(1, matching_pull_len);
 }
 
 fn gitea_release_pr_request(user: Gitea, project: &Path) -> anyhow::Result<ReleasePrRequest> {

@@ -40,6 +40,12 @@ struct CreateBranchRequest<'a> {
     new_branch_name: &'a str,
 }
 
+#[derive(Clone, Debug, PartialEq, Default, Deserialize)]
+pub struct PullRequest {
+    pub html_url: String,
+    pub title: String,
+}
+
 fn create_user_docker_exec(username: &str) {
     // docker exec gitea gitea admin user create --username root --password admin1234 --email admin@example.com
     let response = Command::new("docker")
@@ -65,7 +71,7 @@ async fn create_user_api_call(username: &str) {
     let client = reqwest::Client::new();
 
     // using the sign form and not the api
-    let response = client
+    client
         .post(format!("{}/user/sign_up", base_url()))
         .header("cookie", "lang=en-US; i_like_gitea=8e2779a79e7d3e28; _csrf=uBwdvQ2EKSS69kVzPIGOPI1OmoU6MTU5NDMxMTk2NzA1ODIxMjgzNw")
         .form(&CreateUserOption {
@@ -133,10 +139,10 @@ pub async fn create_branch(gitea_info: &Gitea, new_branch_name: &str) {
 }
 
 /// list all open pull requests for the repo
-pub async fn list_pull_requests(gitea_info: &Gitea) -> () {
+pub async fn list_pull_requests(gitea_info: &Gitea) -> Vec<PullRequest> {
     //TODO
     let client = reqwest::Client::new();
-    client
+    let response = client
         .get(format!(
             "{}/repos/{}/{}/pulls?state=open",
             base_api_url(),
@@ -147,8 +153,8 @@ pub async fn list_pull_requests(gitea_info: &Gitea) -> () {
         .send()
         .await
         .unwrap();
-    ()
-    //TODO
+
+    deserialize_response(response, "could not list all pull requests").await
 }
 
 fn base_api_url() -> String {
