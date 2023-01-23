@@ -67,7 +67,6 @@ async fn gitea_client_creates_pr() {
         .context("could not release PR")
         .unwrap();
 
-    //TODO check if PR was released
     let pulls = gitea::list_pull_requests(&user).await;
     let matching_pull_len = pulls
         .iter()

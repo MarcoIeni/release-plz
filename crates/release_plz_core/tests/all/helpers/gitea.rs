@@ -104,7 +104,6 @@ pub async fn create_repo(token: &str, repo_name: &str) -> String {
 
 /// list all open pull requests for the repo
 pub async fn list_pull_requests(gitea_info: &Gitea) -> Vec<PullRequest> {
-    //TODO
     let client = reqwest::Client::new();
     let response = client
         .get(format!(
