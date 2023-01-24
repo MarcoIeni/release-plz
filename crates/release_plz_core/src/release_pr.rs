@@ -73,21 +73,19 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
                                     .close_pr(pr.number)
                                     .await
                                     .context("cannot close old release-plz prs")?;
-                            } else {
-                                if let Err(e) = update_pr(&pr, &pr_commits[0], &repo) {
-                                    tracing::error!("cannot update release-plz pr: {}", e);
-                                    gh_client
-                                        .close_pr(pr.number)
-                                        .await
-                                        .context("cannot close old release-plz prs")?;
-                                    create_pr(
-                                        &git_client,
-                                        &repo,
-                                        &packages_to_update,
-                                        &local_manifest,
-                                    )
-                                    .await?
-                                }
+                            } else if let Err(e) = update_pr(pr, &pr_commits[0], &repo) {
+                                tracing::error!("cannot update release-plz pr: {}", e);
+                                gh_client
+                                    .close_pr(pr.number)
+                                    .await
+                                    .context("cannot close old release-plz prs")?;
+                                create_pr(
+                                    &git_client,
+                                    &repo,
+                                    &packages_to_update,
+                                    &local_manifest,
+                                )
+                                .await?
                             }
                         }
                         None => {
@@ -124,10 +122,10 @@ async fn create_pr(
     let project_contains_multiple_pub_packages = publishable_packages(local_manifest)?.len() > 1;
     let pr = Pr::new(
         repo.default_branch(),
-        packages_to_update.as_ref(),
+        packages_to_update,
         project_contains_multiple_pub_packages,
     );
-    create_release_branch(&repo, &pr.branch)?;
+    create_release_branch(repo, &pr.branch)?;
     git_client.open_pr(&pr).await?;
     Ok(())
 }
@@ -140,7 +138,7 @@ fn update_pr(pr: &GitHubPr, first_pr_commit: &PrCommit, repository: &Repo) -> an
     let parent_sha = first_pr_commit
         .parent()
         .context("can't determine parent sha")?;
-    repository.checkout(&parent_sha)?;
+    repository.checkout(parent_sha)?;
     repository.git(&["stash", "pop"])?;
     let changes_expect_typechanges = repository.changes_except_typechanges()?;
     repository.add(&changes_expect_typechanges)?;

@@ -130,7 +130,7 @@ impl<'a> GitHubClient<'a> {
                 .filter(|pr| pr.head.ref_field.starts_with(branch_prefix))
                 .collect();
             release_prs.extend(current_release_prs);
-            if prs_len < page_size as usize {
+            if prs_len < page_size {
                 break;
             }
             page += 1;
@@ -197,7 +197,7 @@ impl<'a> GitHubClient<'a> {
 /// excluding the PR author and bots.
 pub fn contributors_from_commits(commits: &[PrCommit]) -> Vec<String> {
     let mut contributors = commits
-        .into_iter()
+        .iter()
         .skip(1) // skip pr author
         .flat_map(|commit| &commit.author)
         .filter(|author| !author.login.ends_with("[bot]")) // ignore bots
