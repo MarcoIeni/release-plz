@@ -63,8 +63,9 @@ async fn open_or_update_release_pr<'a>(
                 .opened_prs(BRANCH_PREFIX)
                 .await
                 .context("cannot get opened release-plz prs")?;
-            // Close old release-plz prs, except one.
-            for pr in &opened_release_prs[1..] {
+            // Close all release-plz prs, except one.
+            let old_release_prs = opened_release_prs.iter().skip(1);
+            for pr in old_release_prs {
                 gh_client
                     .close_pr(pr.number)
                     .await
