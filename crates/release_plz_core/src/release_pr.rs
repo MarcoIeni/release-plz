@@ -138,7 +138,7 @@ async fn create_pr(
 fn update_pr(pr: &GitHubPr, first_pr_commit: &PrCommit, repository: &Repo) -> anyhow::Result<()> {
     // save local work
     repository.git(&["stash"])?;
-    // sanity check to avoid doing bad things on the default branch
+    // sanity check to avoid doing bad things on non-release-plz branches
     anyhow::ensure!(pr.branch().starts_with(BRANCH_PREFIX), "wrong branch name");
     let parent_sha = first_pr_commit
         .parent()
