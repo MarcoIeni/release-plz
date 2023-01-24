@@ -89,8 +89,7 @@ async fn open_or_update_release_pr<'a>(
                                 .close_pr(pr.number)
                                 .await
                                 .context("cannot close old release-plz prs")?;
-                            create_pr(git_client, repo, packages_to_update, local_manifest)
-                                .await?
+                            create_pr(git_client, repo, packages_to_update, local_manifest).await?
                         }
                     } else {
                         // There's a contributor, so we don't want to force-push in this PR.
