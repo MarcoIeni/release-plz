@@ -106,6 +106,7 @@ impl<'a> GitHubClient<'a> {
         )
     }
 
+    /// Get all opened Prs which branch starts with the given `branch_prefix`.
     pub async fn opened_prs(&self, branch_prefix: &str) -> anyhow::Result<Vec<GitHubPr>> {
         let mut page = 1;
         let page_size = 30;
