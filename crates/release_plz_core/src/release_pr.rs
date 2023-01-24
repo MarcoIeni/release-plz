@@ -64,16 +64,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
                                 .await
                                 .context("cannot get commits of release-plz pr")?;
                             let pr_contributors = contributors_from_commits(&pr_commits);
-                            // There's a contributor, so we don't want to force-push in this PR.
-                            // We close it because we want to save the contributor's work.
-                            // TODO improvement: check how many lines the commit added, if no lines (for example a merge to update the branch),
-                            //      then don't count it as a contributor.
-                            if !pr_contributors.is_empty() {
-                                gh_client
-                                    .close_pr(pr.number)
-                                    .await
-                                    .context("cannot close old release-plz prs")?;
-                            } else {
+                            if pr_contributors.is_empty() {
                                 let update_outcome = update_pr(pr, &pr_commits[0], &repo);
                                 if let Err(e) = update_outcome {
                                     tracing::error!("cannot update release-plz pr: {}", e);
@@ -89,6 +80,15 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
                                     )
                                     .await?
                                 }
+                            } else {
+                                // There's a contributor, so we don't want to force-push in this PR.
+                                // We close it because we want to save the contributor's work.
+                                // TODO improvement: check how many lines the commit added, if no lines (for example a merge to update the branch),
+                                //      then don't count it as a contributor.
+                                gh_client
+                                    .close_pr(pr.number)
+                                    .await
+                                    .context("cannot close old release-plz prs")?;
                             }
                         }
                         None => {
