@@ -97,10 +97,12 @@ async fn open_or_update_release_pr<'a>(
                         // We close it because we want to save the contributor's work.
                         // TODO improvement: check how many lines the commit added, if no lines (for example a merge to update the branch),
                         //      then don't count it as a contributor.
+                        info!("closing pr {} to preserve git history", pr.html_url);
                         gh_client
                             .close_pr(pr.number)
                             .await
                             .context("cannot close old release-plz prs")?;
+                        create_pr(&git_client, &repo, &packages_to_update, &local_manifest).await?
                     }
                 }
                 None => create_pr(&git_client, &repo, &packages_to_update, &local_manifest).await?,
