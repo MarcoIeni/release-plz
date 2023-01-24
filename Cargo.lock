@@ -572,7 +572,7 @@ dependencies = [
  "nom",
  "pathdiff",
  "serde",
- "toml",
+ "toml 0.5.11",
  "yaml-rust",
 ]
 
@@ -613,9 +613,9 @@ dependencies = [
 
 [[package]]
 name = "crates-index"
-version = "0.18.12"
+version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b655ece026c6f8088979ec131e922243801f0b52d2e8ecae805f56519511e69c"
+checksum = "75096e85e0ce07c430da88f21b404734f81c873d107177004f2ca97fc4baa267"
 dependencies = [
  "git2",
  "hex 0.4.3",
@@ -629,7 +629,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "smartstring",
- "toml",
+ "toml 0.6.0",
 ]
 
 [[package]]
@@ -1255,7 +1255,7 @@ dependencies = [
  "serde_regex",
  "tera",
  "thiserror",
- "toml",
+ "toml 0.5.11",
 ]
 
 [[package]]
@@ -2820,6 +2820,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_spanned"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c68e921cef53841b8925c2abadd27c9b891d9613bdc43d6b823062866df38e8"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "serde_urlencoded"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3184,6 +3193,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "toml"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fb9d890e4dc9298b70f740f615f2e05b9db37dce531f6b24fb77ac993f9f217"
+dependencies = [
+ "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "toml_edit 0.18.0",
+]
+
+[[package]]
 name = "toml_datetime"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3217,6 +3238,19 @@ dependencies = [
  "kstring",
  "nom8",
  "serde",
+ "toml_datetime",
+]
+
+[[package]]
+name = "toml_edit"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "729bfd096e40da9c001f778f5cdecbd2957929a24e10e5883d9392220a751581"
+dependencies = [
+ "indexmap",
+ "nom8",
+ "serde",
+ "serde_spanned",
  "toml_datetime",
 ]
 
