@@ -49,7 +49,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
                         .opened_prs(BRANCH_PREFIX)
                         .await
                         .context("cannot get opened release-plz prs")?;
-                    // Close old release-plz prs, expect one.
+                    // Close old release-plz prs, except one.
                     for pr in &opened_release_prs[1..] {
                         gh_client
                             .close_pr(pr.number)
