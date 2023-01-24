@@ -65,9 +65,11 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
                                 .context("cannot get commits of release-plz pr")?;
                             let pr_contributors = contributors_from_commits(&pr_commits);
                             if pr_contributors.is_empty() {
+                                // There are no contributors, so we can force-push
+                                // in this PR, because we don't care about the git history.
                                 let update_outcome = update_pr(pr, &pr_commits[0], &repo);
                                 if let Err(e) = update_outcome {
-                                    tracing::error!("cannot update release-plz pr: {}", e);
+                                    tracing::error!("cannot update release pr {}: {}. I'm closing it and opening a new one", pr.number, e);
                                     gh_client
                                         .close_pr(pr.number)
                                         .await
