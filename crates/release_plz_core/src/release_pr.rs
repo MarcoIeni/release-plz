@@ -73,19 +73,22 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
                                     .close_pr(pr.number)
                                     .await
                                     .context("cannot close old release-plz prs")?;
-                            } else if let Err(e) = update_pr(pr, &pr_commits[0], &repo) {
-                                tracing::error!("cannot update release-plz pr: {}", e);
-                                gh_client
-                                    .close_pr(pr.number)
-                                    .await
-                                    .context("cannot close old release-plz prs")?;
-                                create_pr(
-                                    &git_client,
-                                    &repo,
-                                    &packages_to_update,
-                                    &local_manifest,
-                                )
-                                .await?
+                            } else {
+                                let update_outcome = update_pr(pr, &pr_commits[0], &repo);
+                                if let Err(e) = update_outcome {
+                                    tracing::error!("cannot update release-plz pr: {}", e);
+                                    gh_client
+                                        .close_pr(pr.number)
+                                        .await
+                                        .context("cannot close old release-plz prs")?;
+                                    create_pr(
+                                        &git_client,
+                                        &repo,
+                                        &packages_to_update,
+                                        &local_manifest,
+                                    )
+                                    .await?
+                                }
                             }
                         }
                         None => {
