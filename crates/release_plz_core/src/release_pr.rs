@@ -52,8 +52,8 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
 }
 
 async fn open_or_update_release_pr<'a>(
-    local_manifest: &PathBuf,
-    packages_to_update: &Vec<(Package, UpdateResult)>,
+    local_manifest: &Path,
+    packages_to_update: &[(Package, UpdateResult)],
     git_client: &GitClient<'a>,
     repo: &Repo,
 ) -> anyhow::Result<()> {
