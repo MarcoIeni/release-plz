@@ -6,6 +6,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.12](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.11...release_plz_core-v0.4.12) - 2023-01-24
+
+### Fixed
+- fix
+- fix
+- fix
+- fix
+- fix test
+
+### Other
+- clippy
+- clippy
+- clippy
+- refactor
+- change strategy
+- comment
+- wip
+- move
+- wip
+- comment
+- comment
+- clippy
+- fmt
+- Merge branch 'main' into edit-pr
+
 ## [0.4.11](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.10...release_plz_core-v0.4.11) - 2023-01-22
 
 ### Other
