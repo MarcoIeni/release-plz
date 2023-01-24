@@ -4,10 +4,10 @@ use cargo_metadata::Package;
 use git_cmd::Repo;
 
 use anyhow::{anyhow, Context};
-use tracing::instrument;
+use tracing::{info, instrument};
 
 use crate::backend::GitClient;
-use crate::github_client::{contributors_from_commits, GitHubPr, PrCommit};
+use crate::github_client::{contributors_from_commits, GitHubPr};
 use crate::pr::{Pr, BRANCH_PREFIX};
 use crate::{
     copy_to_temp_dir, publishable_packages, update, GitBackend, UpdateRequest, UpdateResult,
@@ -67,7 +67,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
                             if pr_contributors.is_empty() {
                                 // There are no contributors, so we can force-push
                                 // in this PR, because we don't care about the git history.
-                                let update_outcome = update_pr(pr, &pr_commits[0], &repo);
+                                let update_outcome = update_pr(pr, pr_commits.len(), &repo);
                                 if let Err(e) = update_outcome {
                                     tracing::error!("cannot update release pr {}: {}. I'm closing it and opening a new one", pr.number, e);
                                     gh_client
@@ -135,20 +135,20 @@ async fn create_pr(
     Ok(())
 }
 
-fn update_pr(pr: &GitHubPr, first_pr_commit: &PrCommit, repository: &Repo) -> anyhow::Result<()> {
+fn update_pr(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow::Result<()> {
     // save local work
     repository.git(&["stash"])?;
     // sanity check to avoid doing bad things on non-release-plz branches
     anyhow::ensure!(pr.branch().starts_with(BRANCH_PREFIX), "wrong branch name");
-    let parent_sha = first_pr_commit
-        .parent()
-        .context("can't determine parent sha")?;
-    repository.checkout(parent_sha)?;
+    repository.checkout(pr.branch())?;
+    let head = format!("HEAD~{}", commits_number);
+    repository.git(&["reset", "--hard", &head])?;
     repository.git(&["stash", "pop"])?;
     let changes_expect_typechanges = repository.changes_except_typechanges()?;
     repository.add(&changes_expect_typechanges)?;
     repository.commit("chore: release")?;
     repository.force_push(pr.branch())?;
+    info!("updated pr {}", pr.html_url);
     Ok(())
 }
 

@@ -40,7 +40,7 @@ pub struct CreateReleaseOption<'a> {
 #[derive(Deserialize)]
 pub struct GitHubPr {
     pub number: u64,
-    html_url: Url,
+    pub html_url: Url,
     pub head: Commit,
 }
 
@@ -211,14 +211,6 @@ pub fn contributors_from_commits(commits: &[PrCommit]) -> Vec<String> {
 #[derive(Deserialize)]
 pub struct PrCommit {
     pub author: Option<Author>,
-    parents: Vec<CommitParent>,
-}
-
-impl PrCommit {
-    /// Get the parent commit sha.
-    pub fn parent(&self) -> Option<&str> {
-        self.parents.get(0).map(|c| c.sha.as_str())
-    }
 }
 
 #[derive(Deserialize)]
@@ -268,28 +260,18 @@ mod tests {
                 author: Some(Author {
                     login: "bob".to_string(),
                 }),
-                parents: vec![CommitParent {
-                    sha: "123".to_string(),
-                }],
             },
             PrCommit {
                 author: Some(Author {
                     login: "marco".to_string(),
                 }),
-                parents: vec![CommitParent {
-                    sha: "123".to_string(),
-                }],
             },
             PrCommit {
                 author: Some(Author {
                     login: "release[bot]".to_string(),
                 }),
-                parents: vec![],
             },
-            PrCommit {
-                author: None,
-                parents: vec![],
-            },
+            PrCommit { author: None },
         ];
         let contributors = contributors_from_commits(&commits);
         assert_eq!(contributors, vec!["marco"]);

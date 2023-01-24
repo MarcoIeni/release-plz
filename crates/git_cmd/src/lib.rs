@@ -234,7 +234,7 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
         .with_context(|| {
             format!("error while running git in directory `{dir:?}` with args `{args:?}`")
         })?;
-    trace!("git output = {:?}", output);
+    trace!("git {:?}: output = {:?}", args, output);
     let stdout = cmd::string_from_bytes(output.stdout)?;
     if output.status.success() {
         Ok(stdout)
