@@ -88,7 +88,7 @@ impl Update {
             Some(url) => RepoUrl::new(url),
             None => {
                 let project_manifest = self.project_manifest();
-                let project_dir = project_manifest.parent().context("at least a parent")?;
+                let project_dir = release_plz_core::manifest_dir(&project_manifest)?;
                 let repo = Repo::new(project_dir)?;
                 RepoUrl::from_repo(&repo)
             }

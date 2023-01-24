@@ -52,7 +52,7 @@ impl Repo {
 
     /// Check if there are uncommitted changes.
     pub fn is_clean(&self) -> anyhow::Result<()> {
-        let changes = self.changes_expect_typechanges()?;
+        let changes = self.changes_except_typechanges()?;
         anyhow::ensure!(changes.is_empty(), "the working directory of this project has uncommitted changes. Please commit or stash these changes:\n{changes:?}");
         Ok(())
     }
@@ -68,7 +68,7 @@ impl Repo {
         Ok(())
     }
 
-    pub fn changes_expect_typechanges(&self) -> anyhow::Result<Vec<String>> {
+    pub fn changes_except_typechanges(&self) -> anyhow::Result<Vec<String>> {
         let output = self.git(&["status", "--porcelain"])?;
         let changed_files = changed_files(&output);
         Ok(changed_files)
@@ -234,7 +234,7 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
     if output.status.success() {
         Ok(stdout)
     } else {
-        let mut error = "error while running git".to_string();
+        let mut error = format!("error while running git with args `{args:?}");
         let stderr = cmd::string_from_bytes(output.stderr)?;
         if !stdout.is_empty() || !stderr.is_empty() {
             error.push_str(":\n");

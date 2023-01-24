@@ -1,7 +1,8 @@
 use crate::gitea_client::{Gitea, GiteaClient};
 use crate::github_client::GitHubClient;
+use crate::pr::Pr;
 use crate::GitHub;
-use tracing::instrument;
+use tracing::{info, instrument};
 
 #[derive(Debug)]
 pub enum GitBackend {
@@ -33,17 +34,12 @@ impl<'a> GitClient<'a> {
 
     #[instrument(skip(pr))]
     pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<()> {
-        match self {
+        let html_url = match self {
             GitClient::GitHub(g) => g.open_pr(pr).await,
             GitClient::Gitea(g) => g.open_pr(pr).await,
-        }
-    }
-}
+        }?;
 
-#[derive(Debug)]
-pub struct Pr {
-    pub base_branch: String,
-    pub branch: String,
-    pub title: String,
-    pub body: String,
+        info!("opened pr: {}", html_url);
+        Ok(())
+    }
 }

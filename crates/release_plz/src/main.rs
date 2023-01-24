@@ -1,5 +1,6 @@
 mod args;
 mod log;
+mod update_checker;
 
 use anyhow::Context;
 use clap::Parser;
@@ -41,6 +42,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             release_plz_core::release(&request).await?;
         }
         args::Command::GenerateCompletions(cmd_args) => cmd_args.print(),
+        args::Command::CheckUpdates => update_checker::check_update().await?,
     }
     Ok(())
 }

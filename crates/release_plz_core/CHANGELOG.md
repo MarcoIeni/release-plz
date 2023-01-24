@@ -6,6 +6,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.11](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.10...release_plz_core-v0.4.11) - 2023-01-22
+
+### Other
+- update cargo (#473)
+
+## [0.4.10](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.9...release_plz_core-v0.4.10) - 2023-01-17
+
+### Other
+- remove `octocrab` dependency (#467)
+
+## [0.4.9](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.8...release_plz_core-v0.4.9) - 2023-01-16
+
+### Added
+- *(release-pr)* do not include the crate name if no workspace (#461)
+
+### Fixed
+- wrong log line (#464)
+
+### Other
+- fix typo in code (#463)
+
+## [0.4.8](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.7...release_plz_core-v0.4.8) - 2023-01-16
+
+### Fixed
+- do not update changelog if new version exists (#452)
+- changelog: fix link to first change (#450)
+
+## [0.4.7](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.6...release_plz_core-v0.4.7) - 2023-01-15
+
+### Added
+- do not prefix crate name in tag for single crate projects (#444)
+
+## [0.4.6](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.5...release_plz_core-v0.4.6) - 2023-01-12
+
+### Added
+- Include previous version in Pr Body (#430)
+
 ## [0.4.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.4...release_plz_core-v0.4.5) - 2023-01-11
 
 ### Other

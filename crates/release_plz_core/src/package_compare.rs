@@ -38,7 +38,7 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyh
             if dir1.count() != dir2.count() {
                 return Ok(false);
             }
-        } else if !entry.file_type().is_dir() {
+        } else {
             if !file_in_second_path.is_file() {
                 return Ok(false);
             }

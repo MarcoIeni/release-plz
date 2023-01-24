@@ -1,8 +1,8 @@
-use crate::backend::Pr;
+use crate::pr::Pr;
 use crate::RepoUrl;
 use anyhow::bail;
-use reqwest::header::HeaderValue;
 use reqwest::Method;
+use reqwest::{header::HeaderValue, Url};
 use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, instrument};
@@ -11,6 +11,11 @@ use tracing::{debug, instrument};
 pub struct GiteaClient<'a> {
     gitea: &'a Gitea,
     client: reqwest::Client,
+}
+
+#[derive(Deserialize)]
+struct GiteaPr {
+    html_url: Url,
 }
 
 impl<'a> GiteaClient<'a> {
@@ -80,7 +85,7 @@ impl<'a> GiteaClient<'a> {
     }
 
     #[instrument(skip(pr))]
-    pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<()> {
+    pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<Url> {
         let req_body = OpenPrBody {
             title: &pr.title,
             body: &pr.body,
@@ -104,8 +109,14 @@ impl<'a> GiteaClient<'a> {
             "Opening PR in {}/{}: {:?}",
             self.gitea.owner, self.gitea.repo, req
         );
-        self.client.execute(req).await?.error_for_status()?;
-        Ok(())
+        let pr: GiteaPr = self
+            .client
+            .execute(req)
+            .await?
+            .error_for_status()?
+            .json()
+            .await?;
+        Ok(pr.html_url)
     }
 
     fn get_token_header(&self) -> anyhow::Result<HeaderValue> {

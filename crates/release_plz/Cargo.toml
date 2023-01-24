@@ -1,6 +1,6 @@
 [package]
 name = "release-plz"
-version = "0.2.31"
+version = "0.2.38"
 edition = "2021"
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz"
@@ -12,8 +12,8 @@ categories = ["command-line-utilities", "development-tools"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-git_cmd = { path = "../git_cmd", version = "0.2.6" }
-release_plz_core = { path = "../release_plz_core", version = "0.4.5" }
+git_cmd = { path = "../git_cmd", version = "0.2.9" }
+release_plz_core = { path = "../release_plz_core", version = "0.4.11" }
 
 anyhow.workspace = true
 chrono = { workspace = true, features = ["clock"] }
@@ -21,7 +21,9 @@ clap = { workspace = true, features = ["derive", "env"] }
 clap_complete.workspace = true
 dirs.workspace = true
 git-cliff-core.workspace = true
+reqwest.workspace = true
 secrecy.workspace = true
+serde.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tracing-log.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
@@ -29,4 +31,4 @@ tracing.workspace = true
 url.workspace = true
 
 [dev-dependencies]
-assert_cmd = "2.0.7"
+assert_cmd = "2.0.8"
