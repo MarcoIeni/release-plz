@@ -144,6 +144,21 @@ async fn create_pr(
 fn update_pr(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow::Result<()> {
     // save local work
     repository.git(&["stash"])?;
+
+    reset_branch(pr, commits_number, repository).map_err(|e| {
+        // restore local work
+        if let Err(e) = repository.git(&["stash", "pop"]) {
+            tracing::error!("cannot restore local work: {}", e);
+        }
+        e
+    })?;
+    repository.git(&["stash", "pop"])?;
+    force_push(pr, repository)?;
+    info!("updated pr {}", pr.html_url);
+    Ok(())
+}
+
+fn reset_branch(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow::Result<()> {
     // sanity check to avoid doing bad things on non-release-plz branches
     anyhow::ensure!(pr.branch().starts_with(BRANCH_PREFIX), "wrong branch name");
 
@@ -154,12 +169,14 @@ fn update_pr(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow:
 
     let head = format!("HEAD~{}", commits_number);
     repository.git(&["reset", "--hard", &head])?;
-    repository.git(&["stash", "pop"])?;
+    Ok(())
+}
+
+fn force_push(pr: &GitHubPr, repository: &Repo) -> anyhow::Result<()> {
     let changes_expect_typechanges = repository.changes_except_typechanges()?;
     repository.add(&changes_expect_typechanges)?;
     repository.commit("chore: release")?;
     repository.force_push(pr.branch())?;
-    info!("updated pr {}", pr.html_url);
     Ok(())
 }
 
