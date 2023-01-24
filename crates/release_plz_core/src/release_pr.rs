@@ -74,11 +74,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
                                     .await
                                     .context("cannot close old release-plz prs")?;
                             } else {
-                                if let Err(e) = update_pr(
-                                    &pr,
-                                    &pr_commits[0],
-                                    &repo,
-                                ) {
+                                if let Err(e) = update_pr(&pr, &pr_commits[0], &repo) {
                                     tracing::error!("cannot update release-plz pr: {}", e);
                                     gh_client
                                         .close_pr(pr.number)
@@ -136,11 +132,7 @@ async fn create_pr(
     Ok(())
 }
 
-fn update_pr(
-    pr: &GitHubPr,
-    first_pr_commit: &PrCommit,
-    repository: &Repo,
-) -> anyhow::Result<()> {
+fn update_pr(pr: &GitHubPr, first_pr_commit: &PrCommit, repository: &Repo) -> anyhow::Result<()> {
     // save local work
     repository.git(&["stash"])?;
     // sanity check to avoid doing bad things on the default branch
