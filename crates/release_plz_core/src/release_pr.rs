@@ -110,7 +110,7 @@ async fn open_or_update_release_pr<'a>(
         }
         GitClient::Gitea(_) => {
             close_old_prs(&git_client).await?;
-            create_pr(&git_client, &repo, &packages_to_update, &local_manifest).await?;
+            create_pr(&git_client, &repo, packages_to_update, local_manifest).await?;
         }
     }
     Ok(())
