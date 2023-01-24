@@ -43,70 +43,73 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         let repo = Repo::new(new_manifest_dir)?;
         let there_are_commits_to_push = repo.is_clean().is_err();
         if there_are_commits_to_push {
-            match &git_client {
-                GitClient::GitHub(gh_client) => {
-                    let opened_release_prs = gh_client
-                        .opened_prs(BRANCH_PREFIX)
+            open_or_update_release_pr(&local_manifest, &packages_to_update, &git_client, &repo)
+                .await?;
+        }
+    }
+
+    Ok(())
+}
+
+async fn open_or_update_release_pr<'a>(
+    local_manifest: &PathBuf,
+    packages_to_update: &Vec<(Package, UpdateResult)>,
+    git_client: &GitClient<'a>,
+    repo: &Repo,
+) -> anyhow::Result<()> {
+    match &git_client {
+        GitClient::GitHub(gh_client) => {
+            let opened_release_prs = gh_client
+                .opened_prs(BRANCH_PREFIX)
+                .await
+                .context("cannot get opened release-plz prs")?;
+            // Close old release-plz prs, except one.
+            for pr in &opened_release_prs[1..] {
+                gh_client
+                    .close_pr(pr.number)
+                    .await
+                    .context("cannot close old release-plz prs")?;
+            }
+
+            match opened_release_prs.first() {
+                Some(pr) => {
+                    let pr_commits = gh_client
+                        .pr_commits(pr.number)
                         .await
-                        .context("cannot get opened release-plz prs")?;
-                    // Close old release-plz prs, except one.
-                    for pr in &opened_release_prs[1..] {
+                        .context("cannot get commits of release-plz pr")?;
+                    let pr_contributors = contributors_from_commits(&pr_commits);
+                    if pr_contributors.is_empty() {
+                        // There are no contributors, so we can force-push
+                        // in this PR, because we don't care about the git history.
+                        let update_outcome = update_pr(pr, pr_commits.len(), &repo);
+                        if let Err(e) = update_outcome {
+                            tracing::error!("cannot update release pr {}: {}. I'm closing it and opening a new one", pr.number, e);
+                            gh_client
+                                .close_pr(pr.number)
+                                .await
+                                .context("cannot close old release-plz prs")?;
+                            create_pr(&git_client, &repo, &packages_to_update, &local_manifest)
+                                .await?
+                        }
+                    } else {
+                        // There's a contributor, so we don't want to force-push in this PR.
+                        // We close it because we want to save the contributor's work.
+                        // TODO improvement: check how many lines the commit added, if no lines (for example a merge to update the branch),
+                        //      then don't count it as a contributor.
                         gh_client
                             .close_pr(pr.number)
                             .await
                             .context("cannot close old release-plz prs")?;
                     }
-
-                    match opened_release_prs.first() {
-                        Some(pr) => {
-                            let pr_commits = gh_client
-                                .pr_commits(pr.number)
-                                .await
-                                .context("cannot get commits of release-plz pr")?;
-                            let pr_contributors = contributors_from_commits(&pr_commits);
-                            if pr_contributors.is_empty() {
-                                // There are no contributors, so we can force-push
-                                // in this PR, because we don't care about the git history.
-                                let update_outcome = update_pr(pr, pr_commits.len(), &repo);
-                                if let Err(e) = update_outcome {
-                                    tracing::error!("cannot update release pr {}: {}. I'm closing it and opening a new one", pr.number, e);
-                                    gh_client
-                                        .close_pr(pr.number)
-                                        .await
-                                        .context("cannot close old release-plz prs")?;
-                                    create_pr(
-                                        &git_client,
-                                        &repo,
-                                        &packages_to_update,
-                                        &local_manifest,
-                                    )
-                                    .await?
-                                }
-                            } else {
-                                // There's a contributor, so we don't want to force-push in this PR.
-                                // We close it because we want to save the contributor's work.
-                                // TODO improvement: check how many lines the commit added, if no lines (for example a merge to update the branch),
-                                //      then don't count it as a contributor.
-                                gh_client
-                                    .close_pr(pr.number)
-                                    .await
-                                    .context("cannot close old release-plz prs")?;
-                            }
-                        }
-                        None => {
-                            create_pr(&git_client, &repo, &packages_to_update, &local_manifest)
-                                .await?
-                        }
-                    }
                 }
-                GitClient::Gitea(_) => {
-                    close_old_prs(&git_client).await?;
-                    create_pr(&git_client, &repo, &packages_to_update, &local_manifest).await?;
-                }
+                None => create_pr(&git_client, &repo, &packages_to_update, &local_manifest).await?,
             }
         }
+        GitClient::Gitea(_) => {
+            close_old_prs(&git_client).await?;
+            create_pr(&git_client, &repo, &packages_to_update, &local_manifest).await?;
+        }
     }
-
     Ok(())
 }
 
