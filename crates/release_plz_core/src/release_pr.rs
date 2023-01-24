@@ -146,7 +146,12 @@ fn update_pr(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow:
     repository.git(&["stash"])?;
     // sanity check to avoid doing bad things on non-release-plz branches
     anyhow::ensure!(pr.branch().starts_with(BRANCH_PREFIX), "wrong branch name");
+
+    if repository.checkout(pr.branch()).is_err() {
+        repository.git(&["pull"])?;
+    };
     repository.checkout(pr.branch())?;
+
     let head = format!("HEAD~{}", commits_number);
     repository.git(&["reset", "--hard", &head])?;
     repository.git(&["stash", "pop"])?;
