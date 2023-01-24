@@ -82,14 +82,14 @@ async fn open_or_update_release_pr<'a>(
                     if pr_contributors.is_empty() {
                         // There are no contributors, so we can force-push
                         // in this PR, because we don't care about the git history.
-                        let update_outcome = update_pr(pr, pr_commits.len(), &repo);
+                        let update_outcome = update_pr(pr, pr_commits.len(), repo);
                         if let Err(e) = update_outcome {
                             tracing::error!("cannot update release pr {}: {}. I'm closing it and opening a new one", pr.number, e);
                             gh_client
                                 .close_pr(pr.number)
                                 .await
                                 .context("cannot close old release-plz prs")?;
-                            create_pr(&git_client, &repo, &packages_to_update, &local_manifest)
+                            create_pr(git_client, repo, packages_to_update, local_manifest)
                                 .await?
                         }
                     } else {
@@ -102,15 +102,15 @@ async fn open_or_update_release_pr<'a>(
                             .close_pr(pr.number)
                             .await
                             .context("cannot close old release-plz prs")?;
-                        create_pr(&git_client, &repo, &packages_to_update, &local_manifest).await?
+                        create_pr(git_client, repo, packages_to_update, local_manifest).await?
                     }
                 }
-                None => create_pr(&git_client, &repo, &packages_to_update, &local_manifest).await?,
+                None => create_pr(git_client, repo, packages_to_update, local_manifest).await?,
             }
         }
         GitClient::Gitea(_) => {
-            close_old_prs(&git_client).await?;
-            create_pr(&git_client, &repo, packages_to_update, local_manifest).await?;
+            close_old_prs(git_client).await?;
+            create_pr(git_client, repo, packages_to_update, local_manifest).await?;
         }
     }
     Ok(())
