@@ -34,7 +34,7 @@ impl GiteaMockServer {
     }
 
     /// Return an empty list of PRs.
-    pub async fn no_prs(&self) {
+    pub async fn _no_prs(&self) {
         let no_prs = {
             let empty_body = serde_json::Value::Array(vec![]);
             ResponseTemplate::new(200).set_body_json(empty_body)
