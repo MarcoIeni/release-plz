@@ -25,7 +25,7 @@ jobs:
           profile: minimal
           override: true
       - uses: Swatinem/rust-cache@v2
-      - run: apt update && apt install libssl-dev
+      - run: sudo apt update && sudo apt install -y libssl-dev
       - uses: actions-rs/cargo@v1
         with:
           command: test
