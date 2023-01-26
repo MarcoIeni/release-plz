@@ -17,7 +17,7 @@ fn cargo_cmd() -> Command {
     Command::new(cargo)
 }
 
-pub fn run_cargo<'a>(root: &Path, args: &[&'a str]) -> anyhow::Result<(String, String)> {
+pub fn run_cargo(root: &Path, args: &[&str]) -> anyhow::Result<(String, String)> {
     debug!("cargo {}", args.join(" "));
 
     let mut stderr_lines = vec![];
@@ -36,7 +36,7 @@ pub fn run_cargo<'a>(root: &Path, args: &[&'a str]) -> anyhow::Result<(String, S
         for line in BufReader::new(stderr).lines() {
             let line = line?;
 
-            eprintln!("{}", line);
+            eprintln!("{line}");
             stderr_lines.push(line);
         }
     }
