@@ -56,7 +56,7 @@ mod tests {
     fn https_github_url_is_parsed() {
         let expected_owner = "MarcoIeni";
         let expected_repo = "release-plz";
-        let url = format!("https://{GITHUB_COM}/{}/{}", expected_owner, expected_repo);
+        let url = format!("https://{GITHUB_COM}/{expected_owner}/{expected_repo}");
         let repo = RepoUrl::new(&url).unwrap();
         assert_eq!(expected_owner, repo.owner);
         assert_eq!(expected_repo, repo.name);
@@ -68,7 +68,7 @@ mod tests {
     fn git_github_url_is_parsed() {
         let expected_owner = "MarcoIeni";
         let expected_repo = "release-plz";
-        let url = format!("git@github.com:{}/{}.git", expected_owner, expected_repo);
+        let url = format!("git@github.com:{expected_owner}/{expected_repo}.git");
         let repo = RepoUrl::new(&url).unwrap();
         assert_eq!(expected_owner, repo.owner);
         assert_eq!(expected_repo, repo.name);
