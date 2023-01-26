@@ -242,9 +242,9 @@ impl Project {
 
     pub fn git_tag(&self, package_name: &str, version: &str) -> String {
         if self.contains_multiple_pub_packages {
-            format!("{}-v{}", package_name, version)
+            format!("{package_name}-v{version}")
         } else {
-            format!("v{}", version)
+            format!("v{version}")
         }
     }
 }
