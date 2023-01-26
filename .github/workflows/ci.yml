@@ -25,7 +25,7 @@ jobs:
           profile: minimal
           override: true
       - uses: Swatinem/rust-cache@v2
-      - run: sudo apt update && sudo apt install -y libgit2
+      - run: sudo apt update && sudo apt install -y libgit2-dev
       - uses: actions-rs/cargo@v1
         with:
           command: test
