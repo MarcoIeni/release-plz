@@ -17,11 +17,11 @@ impl RepoUrl {
             .map_err(|err| anyhow!("cannot parse git url {}: {}", git_host_url, err))?;
         let owner = git_url
             .owner
-            .with_context(|| format!("cannot find owner in git url {}", git_host_url))?;
+            .with_context(|| format!("cannot find owner in git url {git_host_url}"))?;
         let name = git_url.name;
         let host = git_url
             .host
-            .with_context(|| format!("cannot find host in git url {}", git_host_url))?;
+            .with_context(|| format!("cannot find host in git url {git_host_url}"))?;
         let port = git_url.port;
         let scheme = git_url.scheme.to_string();
         Ok(RepoUrl {

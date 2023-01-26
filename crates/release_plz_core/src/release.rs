@@ -92,7 +92,7 @@ fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Resu
         .collect::<anyhow::Result<Vec<Url>>>()?;
     let mut registry_indexes = registry_urls
         .iter()
-        .map(|u| Index::from_url(&format!("registry+{}", u)))
+        .map(|u| Index::from_url(&format!("registry+{u}")))
         .collect::<Result<Vec<Index>, crates_index::Error>>()?;
     if registry_indexes.is_empty() {
         registry_indexes.push(Index::new_cargo_default()?)
