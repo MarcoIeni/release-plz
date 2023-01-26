@@ -41,9 +41,7 @@ async fn get_latest_version() -> anyhow::Result<String> {
 
     extract_version(&tag_name)
         .with_context(|| {
-            format!(
-                "can't extract latest release-plz version from tag name {tag_name}"
-            )
+            format!("can't extract latest release-plz version from tag name {tag_name}")
         })
         .map(|v| v.to_string())
 }
