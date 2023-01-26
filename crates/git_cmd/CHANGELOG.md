@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.10](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.9...git_cmd-v0.2.10) - 2023-01-26
 
 ### Added
-- edit pr (#470)
+- add `git`, `force_push` and `checkout` functions (#470)
 
 ## [0.2.9](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.8...git_cmd-v0.2.9) - 2023-01-16
 
