@@ -30,6 +30,6 @@ files of the crate or one of its dependencies.
 
 ### What if a commit doesn't follow the conventional-commits format?
 
-It will be categorized under the section `### Other`.
+By default, it will be listed under the section `### Other`.
 Remember you can customize the changelog format by providing a
 [git-cliff](https://github.com/orhun/git-cliff) config file.
