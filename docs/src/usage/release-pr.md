@@ -20,7 +20,7 @@ To learn more, run `release-plz release-pr --help`.
 
 ## Pr update
 
-If there's already a release PR open:
+If there's already an open release PR:
 
 - if the PR contains commits that are not from bots (except the first one),
   release-plz closes the PR to preserve the git history.
