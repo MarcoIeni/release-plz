@@ -370,6 +370,14 @@ on <a href="https://www.conventionalcommits.org/en/v1.0.0/">conventional commits
 unpublished changes.</p>
 <p><img src="https://user-images.githubusercontent.com/11428655/160762832-54300ddb-ec9c-4538-a611-c66490c47333.gif" alt="release-plz update" /></p>
 <p>To learn more, run <code>release-plz update --help</code>.</p>
+<h2 id="faq"><a class="header" href="#faq">FAQ</a></h2>
+<h3 id="does-the-changelog-include-the-commits-from-the-whole-repo"><a class="header" href="#does-the-changelog-include-the-commits-from-the-whole-repo">Does the changelog include the commits from the whole repo?</a></h3>
+<p>The changelog of each crate includes the commit that changed one of the
+files of the crate or one of its dependencies.</p>
+<h3 id="what-if-a-commit-doesnt-follow-the-conventional-commits-format"><a class="header" href="#what-if-a-commit-doesnt-follow-the-conventional-commits-format">What if a commit doesn't follow the conventional-commits format?</a></h3>
+<p>By default, it will be listed under the section <code>### Other</code>.
+Remember you can customize the changelog format by providing a
+<a href="https://github.com/orhun/git-cliff">git-cliff</a> config file.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="release-pr"><a class="header" href="#release-pr">Release PR</a></h1>
 <p>The <code>release-plz release-pr</code> command runs <a href="usage/update.html"><code>release-plz update</code></a> and
 opens a GitHub Pull Request that prepares the next release.</p>
@@ -383,6 +391,14 @@ itself.
 packages with unpublished changes.</p>
 <p><img src="https://user-images.githubusercontent.com/11428655/160772903-544c7578-7c17-4311-b6ca-a1aefeabe799.gif" alt="release-plz release-pr" /></p>
 <p>To learn more, run <code>release-plz release-pr --help</code>.</p>
+<h2 id="pr-update"><a class="header" href="#pr-update">Pr update</a></h2>
+<p>If there's already an open release PR:</p>
+<ul>
+<li>if the PR contains commits that are not from bots (except the first one),
+release-plz closes the PR to preserve the git history.
+(Not available on Gitea).</li>
+<li>otherwise, release-plz closes the old PR and opens a new one.</li>
+</ul>
 <h2 id="gitea"><a class="header" href="#gitea">Gitea</a></h2>
 <p><code>release-plz release-pr</code> also supports creating PRs for repositories hosted on
 Gitea with the <code>--backend</code> flag:</p>

@@ -165,6 +165,14 @@ on <a href="https://www.conventionalcommits.org/en/v1.0.0/">conventional commits
 unpublished changes.</p>
 <p><img src="https://user-images.githubusercontent.com/11428655/160762832-54300ddb-ec9c-4538-a611-c66490c47333.gif" alt="release-plz update" /></p>
 <p>To learn more, run <code>release-plz update --help</code>.</p>
+<h2 id="faq"><a class="header" href="#faq">FAQ</a></h2>
+<h3 id="does-the-changelog-include-the-commits-from-the-whole-repo"><a class="header" href="#does-the-changelog-include-the-commits-from-the-whole-repo">Does the changelog include the commits from the whole repo?</a></h3>
+<p>The changelog of each crate includes the commit that changed one of the
+files of the crate or one of its dependencies.</p>
+<h3 id="what-if-a-commit-doesnt-follow-the-conventional-commits-format"><a class="header" href="#what-if-a-commit-doesnt-follow-the-conventional-commits-format">What if a commit doesn't follow the conventional-commits format?</a></h3>
+<p>By default, it will be listed under the section <code>### Other</code>.
+Remember you can customize the changelog format by providing a
+<a href="https://github.com/orhun/git-cliff">git-cliff</a> config file.</p>
 
                     </main>
 
