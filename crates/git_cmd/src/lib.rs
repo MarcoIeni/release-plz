@@ -242,7 +242,7 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
         let mut error = format!("error while running git with args `{args:?}");
         let stderr = cmd::string_from_bytes(output.stderr)?;
         if !stdout.is_empty() || !stderr.is_empty() {
-            error.push_str(":");
+            error.push(':');
         }
         if !stdout.is_empty() {
             error.push_str("\n- stdout: ");
