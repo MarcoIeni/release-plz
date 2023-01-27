@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.13](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.12...release_plz_core-v0.4.13) - 2023-01-27
 
 ### Fixed
-- when stash, include untracked files (#498)
+- fix edit pr when a new file is present (#498)
 
 ### Other
 - improve logging (#500)
