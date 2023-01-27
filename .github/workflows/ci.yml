@@ -25,7 +25,7 @@ jobs:
           profile: minimal
           override: true
       - uses: Swatinem/rust-cache@v2
-      - run: sudo apt update && sudo apt install -y libgit2-dev libssl-dev libssl1.1 libc6-dev ca-certificates openssl gcc-multilib libopenssl
+      - run: sudo apt update && sudo apt install -y libgit2-dev libssl-dev libssl1.1 libc6-dev ca-certificates openssl gcc-multilib libssl3
       - uses: actions-rs/cargo@v1
         with:
           command: test
