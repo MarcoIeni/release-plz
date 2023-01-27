@@ -84,7 +84,7 @@ async fn open_or_update_release_pr<'a>(
                         // in this PR, because we don't care about the git history.
                         let update_outcome = update_pr(pr, pr_commits.len(), repo);
                         if let Err(e) = update_outcome {
-                            tracing::error!("cannot update release pr {}: {}. I'm closing it and opening a new one", pr.number, e);
+                            tracing::error!("cannot update release pr {}: {}. I'm closing the old release pr and opening a new one", pr.number, e);
                             gh_client
                                 .close_pr(pr.number)
                                 .await
@@ -142,7 +142,7 @@ async fn create_pr(
 
 fn update_pr(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow::Result<()> {
     // save local work
-    repository.git(&["stash"])?;
+    repository.git(&["stash", "--include-untracked"])?;
 
     reset_branch(pr, commits_number, repository).map_err(|e| {
         // restore local work
