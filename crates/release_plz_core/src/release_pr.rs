@@ -52,7 +52,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
 }
 
 async fn open_or_update_release_pr<'a>(
-    local_manifest: &Path,
+        local_manifest: &Path,
     packages_to_update: &[(Package, UpdateResult)],
     git_client: &GitClient<'a>,
     repo: &Repo,
@@ -142,7 +142,7 @@ async fn create_pr(
 
 fn update_pr(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow::Result<()> {
     // save local work
-    repository.git(&["stash"])?;
+    repository.git(&["stash", "--include-untracked"])?;
 
     reset_branch(pr, commits_number, repository).map_err(|e| {
         // restore local work
