@@ -8,8 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.40](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.39...release-plz-v0.2.40) - 2023-01-27
 
+### Fixed
+- fix edit pr when a new file is present (#498)
+
 ### Other
-- updated the following local packages: git_cmd, release_plz_core
+- improve logging (#500)
 
 ## [0.2.39](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.38...release-plz-v0.2.39) - 2023-01-26
 
