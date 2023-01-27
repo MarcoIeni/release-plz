@@ -25,7 +25,7 @@ If there's already an open release PR:
 - if the PR contains commits that are not from bots (except the first one),
   release-plz closes the PR to preserve the git history.
   (Not available on Gitea).
-- otherwise, release-plz closes the old PR and opens a new one
+- otherwise, release-plz closes the old PR and opens a new one.
 
 ## Gitea
 
