@@ -24,7 +24,7 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
-    # - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
       - run: sudo apt update && sudo apt install -y librust-openssl-dev
       - uses: actions-rs/cargo@v1
         with:
