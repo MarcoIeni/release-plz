@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install -y librust-openssl-dev
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -25,8 +27,6 @@ jobs:
           profile: minimal
           override: true
       - uses: Swatinem/rust-cache@v2
-      - name: Install dependencies
-        run: sudo apt update && sudo apt install -y librust-openssl-dev
       - uses: actions-rs/cargo@v1
         with:
           command: test
