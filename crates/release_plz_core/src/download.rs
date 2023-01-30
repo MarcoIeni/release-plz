@@ -43,7 +43,7 @@ pub fn download_packages(
         })
         .filter_map(|(package_name, package_path)| {
             read_package(package_path)
-                .map_err(|e| warn!("can't download {}: {}", package_name, e))
+                .map_err(|e| warn!("can't download {}: {:?}", package_name, e))
                 // Filter non-existing packages.
                 // Unfortunately we filter also packages that we couldn't download due to network issues.
                 .ok()
