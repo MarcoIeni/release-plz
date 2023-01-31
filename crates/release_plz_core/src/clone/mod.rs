@@ -82,9 +82,9 @@ impl Cloner {
 
             dest_path.push(&crate_.name);
 
-            if let Some(pks) = self.clone_in(crate_, &dest_path, &mut src)? {
-                cloned_pkgs.push((pks, dest_path));
-            }
+            self.clone_in(crate_, &dest_path, &mut src)?.map(|pkg| {
+                cloned_pkgs.push((pkg, dest_path));
+            });
         }
 
         Ok(cloned_pkgs)
