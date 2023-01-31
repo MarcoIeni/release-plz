@@ -8,6 +8,7 @@ mod source;
 
 pub use cloner_builder::*;
 pub use source::*;
+use tracing::warn;
 
 use std::collections::HashSet;
 use std::fs;
@@ -145,7 +146,10 @@ impl Cloner {
                 }
                 Some(pkg)
             }
-            None => None,
+            None => {
+                warn!("Package `{}` not found", crate_.name);
+                None
+            }
         };
         Ok(pkg)
     }
