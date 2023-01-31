@@ -70,7 +70,7 @@ impl Cloner {
     /// Clone the specified crates from registry or git repository.
     /// Each crate is cloned in a subdirectory named as the crate name.
     /// Returns the cloned packages.
-    pub fn clone(&self, crates: &[Crate]) -> CargoResult<Vec<Package>> {
+    pub fn clone(&self, crates: &[Crate]) -> CargoResult<Vec<(Package, PathBuf)>> {
         let _lock = self.config.acquire_package_cache_lock()?;
 
         let mut src = get_source(self.srcid, &self.config)?;
@@ -82,7 +82,7 @@ impl Cloner {
             dest_path.push(&crate_.name);
 
             if let Some(pks) = self.clone_in(crate_, &dest_path, &mut src)? {
-                cloned_pkgs.push(pks);
+                cloned_pkgs.push((pks, dest_path));
             }
         }
 
