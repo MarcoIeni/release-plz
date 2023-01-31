@@ -70,7 +70,7 @@ impl Cloner {
 
     /// Clone the specified crates from registry or git repository.
     /// Each crate is cloned in a subdirectory named as the crate name.
-    /// Returns the cloned packages.
+    /// Returns the cloned packages and the path where they are cloned.
     pub fn clone(&self, crates: &[Crate]) -> CargoResult<Vec<(Package, PathBuf)>> {
         let _lock = self.config.acquire_package_cache_lock()?;
 
