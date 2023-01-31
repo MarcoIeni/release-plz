@@ -147,10 +147,7 @@ impl Cloner {
                 }
                 Some(pkg)
             }
-            None => {
-                warn!("Package `{}` not found", crate_.name);
-                None
-            }
+            None => None,
         };
         Ok(pkg)
     }
@@ -200,7 +197,10 @@ where
             let pkg = Box::new(src).download_now(l.package_id(), config)?;
             Some(pkg)
         }
-        None => None,
+        None => {
+            warn!("Package `{}@{}` not found", name, vers.unwrap_or("*.*.*"));
+            None
+        }
     };
     Ok(pkg)
 }
