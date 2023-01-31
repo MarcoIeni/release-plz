@@ -35,22 +35,10 @@ pub fn download_packages(
         .clone(&crates)
         .context("error while downloading packages")?;
 
-    let pkgs = downloaded_packages
+    downloaded_packages
         .iter()
-        .map(|package| {
-            let dir_path: &Path = directory.as_ref();
-            let package_path = dir_path.join(package.name());
-            (package.name(), package_path)
-        })
-        .filter_map(|(package_name, package_path)| {
-            read_package(package_path)
-                .map_err(|e| warn!("can't download {}: {:?}", package_name, e))
-                // Filter non-existing packages.
-                // Unfortunately we filter also packages that we couldn't download due to network issues.
-                .ok()
-        })
-        .collect();
-    Ok(pkgs)
+        .map(|(_package, path)| read_package(path))
+        .collect()
 }
 
 /// Read a package from file system
