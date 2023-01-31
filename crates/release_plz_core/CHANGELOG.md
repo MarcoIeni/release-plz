@@ -9,10 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.14](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.13...release_plz_core-v0.4.14) - 2023-01-31
 
 ### Fixed
-- handle new crate correctly (#509)
+- handle new crate correctly (#509, #511)
 
 ### Other
-- clone warning reports version (#511)
 - improve log (#502)
 
 ## [0.4.13](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.12...release_plz_core-v0.4.13) - 2023-01-27

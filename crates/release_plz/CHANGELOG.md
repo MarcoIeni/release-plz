@@ -8,8 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.41](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.40...release-plz-v0.2.41) - 2023-01-31
 
+### Fixed
+- handle new crate correctly (#509, #511)
+
 ### Other
-- update dependencies
+- improve log (#502)
 
 ## [0.2.40](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.39...release-plz-v0.2.40) - 2023-01-27
 
