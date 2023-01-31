@@ -192,16 +192,17 @@ where
 
     let latest = summaries.iter().max_by_key(|s| s.version());
 
-    match latest {
+    let pkg = match latest {
         Some(l) => {
             config
                 .shell()
                 .note(format!("Downloading {} {}", name, l.version()))?;
             let pkg = Box::new(src).download_now(l.package_id(), config)?;
-            Ok(Some(pkg))
+            Some(pkg)
         }
-        None => Ok(None),
-    }
+        None => None,
+    };
+    Ok(pkg)
 }
 
 // clone_directory copies the contents of one directory into another directory, which must
