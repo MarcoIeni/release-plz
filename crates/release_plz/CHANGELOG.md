@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.42](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.41...release-plz-v0.2.42) - 2023-01-31
+
+### Other
+- *(release)* trust github workspace dir (#512)
+
 ## [0.2.41](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.40...release-plz-v0.2.41) - 2023-01-31
 
 ### Fixed
