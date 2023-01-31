@@ -17,7 +17,7 @@ use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use std::{
-    fs, io,
+    env, fs, io,
     path::{Path, PathBuf},
 };
 use tempfile::{tempdir, TempDir};
@@ -197,7 +197,29 @@ impl Project {
         debug!("manifest_dir: {manifest_dir:?}");
         let root = {
             let project_root =
-                git_cmd::git_in_dir(&manifest_dir, &["rev-parse", "--show-toplevel"])?;
+                match git_cmd::git_in_dir(&manifest_dir, &["rev-parse", "--show-toplevel"]) {
+                    Ok(project_root) => project_root,
+                    Err(e) => {
+                        if format!("{e}").contains("detected dubious ownership in repository")
+                            && env::var("GITHUB_ACTIONS") == Ok("true".to_string())
+                        {
+                            info!("trusting /github/workspace as safe directory");
+                            git_cmd::git_in_dir(
+                                &manifest_dir,
+                                &[
+                                    "config",
+                                    "--global",
+                                    "--add",
+                                    "safe.directory",
+                                    "/github/workspace",
+                                ],
+                            )?;
+                            git_cmd::git_in_dir(&manifest_dir, &["rev-parse", "--show-toplevel"])?
+                        } else {
+                            anyhow::bail!(e);
+                        }
+                    }
+                };
             PathBuf::from(project_root)
         };
         debug!("project_root: {root:?}");
