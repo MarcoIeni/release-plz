@@ -33,6 +33,8 @@ pub struct ReleaseRequest {
     pub git_release: Option<GitRelease>,
     /// GitHub repo URL.
     pub repo_url: Option<String>,
+    /// Extra flags for  `cargo publish`.
+    pub publish_flags: Option<String>,
 }
 
 #[derive(Debug)]
@@ -110,6 +112,11 @@ async fn release_package(
     args.push("--color");
     args.push("always");
     args.push("--manifest-path");
+    if let Some(publish_flags) = &input.publish_flags {
+        for flag in publish_flags.split(" ") {
+            args.push(flag);
+        }
+    }
     args.push(package.manifest_path.as_ref());
     if let Some(token) = &input.token {
         args.push("--token");

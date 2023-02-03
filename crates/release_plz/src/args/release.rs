@@ -29,6 +29,9 @@ pub struct Release {
     /// Publish GitHub release for the created git tag.
     #[clap(long)]
     pub git_release: bool,
+    /// Flags to pass to `cargo publish`
+    #[clap(long)]
+    pub publish_flags: Option<String>,
     /// GitHub repository url.
     #[clap(long, value_parser = NonEmptyStringValueParser::new())]
     pub repo_url: Option<String>,
@@ -59,6 +62,7 @@ impl TryFrom<Release> for ReleaseRequest {
             dry_run: r.dry_run,
             git_release,
             repo_url: r.repo_url,
+            publish_flags: r.publish_flags,
         })
     }
 }
