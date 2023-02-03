@@ -109,14 +109,14 @@ async fn release_package(
     git_tag: String,
 ) -> anyhow::Result<()> {
     let mut args = vec!["publish"];
-    args.push("--color");
-    args.push("always");
-    args.push("--manifest-path");
     if let Some(publish_flags) = &input.publish_flags {
         for flag in publish_flags.split(" ") {
             args.push(flag);
         }
-    }
+    }   
+    args.push("--color");
+    args.push("always");
+    args.push("--manifest-path");
     args.push(package.manifest_path.as_ref());
     if let Some(token) = &input.token {
         args.push("--token");
