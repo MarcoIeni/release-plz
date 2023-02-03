@@ -33,7 +33,7 @@ pub struct ReleaseRequest {
     pub git_release: Option<GitRelease>,
     /// GitHub repo URL.
     pub repo_url: Option<String>,
-    /// Extra flags for  `cargo publish`.
+    /// Extra flags for `cargo publish`.
     pub publish_flags: Option<String>,
 }
 
