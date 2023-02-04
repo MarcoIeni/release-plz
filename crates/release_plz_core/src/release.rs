@@ -34,7 +34,7 @@ pub struct ReleaseRequest {
     /// GitHub repo URL.
     pub repo_url: Option<String>,
     /// Extra flags for `cargo publish`.
-    pub publish_flags: Option<String>,
+    pub publish_flags: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -109,11 +109,9 @@ async fn release_package(
     git_tag: String,
 ) -> anyhow::Result<()> {
     let mut args = vec!["publish"];
-    if let Some(publish_flags) = &input.publish_flags {
-        for flag in publish_flags.split(" ") {
-            args.push(flag);
-        }
-    }   
+    for flag in &input.publish_flags {
+        args.push(flag);
+    }
     args.push("--color");
     args.push("always");
     args.push("--manifest-path");

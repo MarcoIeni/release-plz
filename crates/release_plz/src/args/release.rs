@@ -30,8 +30,8 @@ pub struct Release {
     #[clap(long)]
     pub git_release: bool,
     /// Flags to pass to `cargo publish`
-    #[clap(long)]
-    pub publish_flags: Option<String>,
+    #[clap(long, value_delimiter = ' ')]
+    pub publish_flags: Vec<String>,
     /// GitHub repository url.
     #[clap(long, value_parser = NonEmptyStringValueParser::new())]
     pub repo_url: Option<String>,
