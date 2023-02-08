@@ -146,12 +146,12 @@ fn update_pr(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow:
 
     reset_branch(pr, commits_number, repository).map_err(|e| {
         // restore local work
-        if let Err(e) = repository.git(&["stash", "pop"]) {
+        if let Err(e) = repository.checkout_stash() {
             tracing::error!("cannot restore local work: {}", e);
         }
         e
     })?;
-    repository.git(&["stash", "pop"])?;
+    repository.checkout_stash()?;
     force_push(pr, repository)?;
     info!("updated pr {}", pr.html_url);
     Ok(())
