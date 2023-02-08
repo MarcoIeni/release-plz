@@ -138,7 +138,7 @@ async fn release_package(
         repo.tag(&git_tag)?;
         repo.push(&git_tag)?;
 
-        info!("published {}", package.name);
+        info!("published {} {}", package.name, package.version);
 
         if let Some(git_release) = &input.git_release {
             let release_body = release_body(package);
