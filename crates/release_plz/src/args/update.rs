@@ -34,7 +34,7 @@ pub struct Update {
         value_parser = NonEmptyStringValueParser::new()
     )]
     package: Option<String>,
-    /// Don't create changelog.
+    /// Don't create/update changelog.
     #[clap(long, conflicts_with("release_date"))]
     no_changelog: bool,
     /// Date of the release. Format: %Y-%m-%d. It defaults to current Utc date.
@@ -71,7 +71,7 @@ pub struct Update {
     /// The uncommitted changes will be part of the update.
     #[clap(long)]
     allow_dirty: bool,
-    /// GitHub repository url where your project is hosted.
+    /// GitHub/Gitea repository url where your project is hosted.
     /// It is used to generate the changelog release link.
     /// It defaults to the `origin` url.
     #[clap(long, value_parser = NonEmptyStringValueParser::new())]
@@ -104,9 +104,7 @@ impl Update {
             .with_allow_dirty(self.allow_dirty);
         match self.repo_url() {
             Ok(repo_url) => {
-                if repo_url.is_on_github() {
-                    update = update.with_repo_url(repo_url);
-                }
+                update = update.with_repo_url(repo_url);
             }
             Err(e) => tracing::warn!("Cannot determine repo url. The changelog won't contain the release link. Error: {}", e),
         }

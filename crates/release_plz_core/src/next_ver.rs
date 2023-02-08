@@ -370,7 +370,7 @@ impl Updater<'_> {
             self.req
                 .repo_url
                 .as_ref()
-                .map(|r| r.gh_release_link(&prev_tag, &next_tag))
+                .map(|r| r.git_release_link(&prev_tag, &next_tag))
         };
 
         let changelog = self
