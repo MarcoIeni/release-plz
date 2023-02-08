@@ -34,7 +34,7 @@ pub struct Update {
         value_parser = NonEmptyStringValueParser::new()
     )]
     package: Option<String>,
-    /// Don't create changelog.
+    /// Don't create/update changelog.
     #[clap(long, conflicts_with("release_date"))]
     no_changelog: bool,
     /// Date of the release. Format: %Y-%m-%d. It defaults to current Utc date.
@@ -71,7 +71,7 @@ pub struct Update {
     /// The uncommitted changes will be part of the update.
     #[clap(long)]
     allow_dirty: bool,
-    /// GitHub repository url where your project is hosted.
+    /// GitHub/Gitea repository url where your project is hosted.
     /// It is used to generate the changelog release link.
     /// It defaults to the `origin` url.
     #[clap(long, value_parser = NonEmptyStringValueParser::new())]
