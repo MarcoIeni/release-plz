@@ -104,9 +104,7 @@ impl Update {
             .with_allow_dirty(self.allow_dirty);
         match self.repo_url() {
             Ok(repo_url) => {
-                if repo_url.is_on_github() {
-                    update = update.with_repo_url(repo_url);
-                }
+                update = update.with_repo_url(repo_url);
             }
             Err(e) => tracing::warn!("Cannot determine repo url. The changelog won't contain the release link. Error: {}", e),
         }
