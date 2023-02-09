@@ -146,12 +146,12 @@ fn update_pr(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow:
 
     reset_branch(pr, commits_number, repository).map_err(|e| {
         // restore local work
-        if let Err(e) = repository.git(&["stash", "pop"]) {
+        if let Err(e) = repository.checkout_stash() {
             tracing::error!("cannot restore local work: {}", e);
         }
         e
     })?;
-    repository.git(&["stash", "pop"])?;
+    repository.checkout_stash()?;
     force_push(pr, repository)?;
     info!("updated pr {}", pr.html_url);
     Ok(())
@@ -163,11 +163,17 @@ fn reset_branch(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyh
 
     if repository.checkout(pr.branch()).is_err() {
         repository.git(&["pull"])?;
+        repository.checkout(pr.branch())?;
     };
-    repository.checkout(pr.branch())?;
 
     let head = format!("HEAD~{commits_number}");
     repository.git(&["reset", "--hard", &head])?;
+
+    // Update PR branch with latest changes from the default branch.
+    if let Err(e) = repository.git(&["rebase", repository.default_branch()]) {
+        tracing::error!("cannot rebase from default branch: {}", e);
+    }
+
     Ok(())
 }
 
