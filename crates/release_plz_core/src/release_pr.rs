@@ -163,8 +163,8 @@ fn reset_branch(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyh
 
     if repository.checkout(pr.branch()).is_err() {
         repository.git(&["pull"])?;
+        repository.checkout(pr.branch())?;
     };
-    repository.checkout(pr.branch())?;
 
     let head = format!("HEAD~{commits_number}");
     repository.git(&["reset", "--hard", &head])?;
