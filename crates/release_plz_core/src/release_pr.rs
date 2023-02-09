@@ -151,10 +151,6 @@ fn update_pr(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow:
         }
         e
     })?;
-    // Update PR branch with latest changes from the default branch.
-    if let Err(e) = repository.git(&["rebase", repository.default_branch()]) {
-        tracing::error!("cannot rebase from default branch: {}", e);
-    }
     repository.checkout_stash()?;
     force_push(pr, repository)?;
     info!("updated pr {}", pr.html_url);
@@ -172,6 +168,12 @@ fn reset_branch(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyh
 
     let head = format!("HEAD~{commits_number}");
     repository.git(&["reset", "--hard", &head])?;
+
+    // Update PR branch with latest changes from the default branch.
+    if let Err(e) = repository.git(&["rebase", repository.default_branch()]) {
+        tracing::error!("cannot rebase from default branch: {}", e);
+    }
+
     Ok(())
 }
 
