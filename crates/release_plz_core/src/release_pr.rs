@@ -151,6 +151,9 @@ fn update_pr(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow:
         }
         e
     })?;
+    if let Err(e) = repository.git(&["rebase", repository.default_branch()]) {
+        tracing::error!("cannot rebase from default branch: {}", e);
+    }
     repository.checkout_stash()?;
     force_push(pr, repository)?;
     info!("updated pr {}", pr.html_url);
