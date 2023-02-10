@@ -105,6 +105,7 @@ impl GitClient {
 
     #[instrument(skip(self))]
     pub async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
+        debug!("closing pr");
         self.client
             .patch(format!("{}/{}", self.pulls_url(), pr_number))
             .json(&json!({
