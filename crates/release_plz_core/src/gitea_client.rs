@@ -1,7 +1,7 @@
 use crate::RepoUrl;
 use anyhow::{bail, Context};
 use reqwest::header::HeaderMap;
-use reqwest::{header::HeaderValue};
+use reqwest::header::HeaderValue;
 use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 

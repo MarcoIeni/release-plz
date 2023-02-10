@@ -84,5 +84,4 @@ impl GitClient {
             BackendType::Gitea => "limit",
         }
     }
-
 }
