@@ -139,8 +139,8 @@ impl Repo {
         git_in_dir(&self.directory, args)
     }
 
-    pub fn checkout_stash(&self) -> anyhow::Result<()> {
-        self.git(&["checkout", "stash", "--", "."])?;
+    pub fn stash_pop(&self) -> anyhow::Result<()> {
+        self.git(&["stash", "pop"])?;
         Ok(())
     }
 

@@ -37,7 +37,7 @@ impl ReleasePr {
             GitBackendKind::Github => {
                 anyhow::ensure!(
                     repo.is_on_github(),
-                    "Can't create PR: the repository is not hosted in GitHub"
+                    "Can't create PR: the repository is not hosted in GitHub. Please select a different backend."
                 );
                 GitBackend::Github(GitHub::new(repo.owner, repo.name, token))
             }
@@ -88,6 +88,6 @@ mod tests {
         assert_eq!(host, repo.host);
         assert_eq!("https", repo.scheme);
         assert!(!repo.is_on_github());
-        assert_eq!(format!("https://{host}/api/v1"), repo.gitea_api_url());
+        assert_eq!(format!("https://{host}/api/v1/"), repo.gitea_api_url());
     }
 }
