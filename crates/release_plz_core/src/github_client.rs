@@ -3,32 +3,10 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tracing::{debug, instrument};
+use tracing::{debug, info, instrument};
 use url::Url;
 
-use crate::pr::Pr;
-
-#[derive(Debug)]
-pub struct GitHubClient<'a> {
-    github: &'a GitHub,
-    client: reqwest::Client,
-    base_url: Url,
-}
-
-const GITHUB_BASE_URL: &str = "https://api.github.com";
-
-fn default_headers(token: &SecretString) -> anyhow::Result<HeaderMap> {
-    let mut headers = HeaderMap::new();
-    let header_value: HeaderValue = format!("Bearer {}", token.expose_secret())
-        .parse()
-        .context("invalid GitHub token")?;
-    headers.insert(
-        reqwest::header::ACCEPT,
-        HeaderValue::from_static("application/vnd.github+json"),
-    );
-    headers.insert(reqwest::header::AUTHORIZATION, header_value);
-    Ok(headers)
-}
+use crate::{backend::GitClient, pr::Pr};
 
 #[derive(Serialize)]
 pub struct CreateReleaseOption<'a> {
@@ -57,29 +35,9 @@ pub struct Commit {
     pub sha: String,
 }
 
-impl<'a> GitHubClient<'a> {
-    pub fn new(github: &'a GitHub) -> anyhow::Result<Self> {
-        let headers = default_headers(&github.token)?;
-
-        let client = reqwest::Client::builder()
-            .user_agent("release-plz")
-            .default_headers(headers)
-            .build()
-            .context("can't build GitHub client")?;
-
-        let base_url = github
-            .base_url
-            .clone()
-            .unwrap_or_else(|| Url::parse(GITHUB_BASE_URL).unwrap());
-
-        Ok(Self {
-            github,
-            client,
-            base_url,
-        })
-    }
-
-    /// Creates a GitHub release.
+impl GitClient {
+    /// TODO: same for gitea
+    /// Creates a GitHub/Gitea release.
     pub async fn create_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
         let create_release_options = CreateReleaseOption {
             tag_name: tag,
@@ -89,7 +47,7 @@ impl<'a> GitHubClient<'a> {
         self.client
             .post(format!(
                 "{}repos/{}/{}/releases",
-                self.base_url, self.github.owner, self.github.repo
+                self.remote.base_url, self.remote.owner, self.remote.repo
             ))
             .json(&create_release_options)
             .send()
@@ -102,22 +60,27 @@ impl<'a> GitHubClient<'a> {
     pub fn pulls_url(&self) -> String {
         format!(
             "{}repos/{}/{}/pulls",
-            self.base_url, self.github.owner, self.github.repo
+            self.remote.base_url, self.remote.owner, self.remote.repo
         )
     }
 
     /// Get all opened Prs which branch starts with the given `branch_prefix`.
+    /// TODO: for gitea it's `limit` instead of `per_page`.
     pub async fn opened_prs(&self, branch_prefix: &str) -> anyhow::Result<Vec<GitHubPr>> {
         let mut page = 1;
         let page_size = 30;
         let mut release_prs: Vec<GitHubPr> = vec![];
         loop {
+            debug!(
+                "Loading prs from {}/{}, page {page}",
+                self.remote.owner, self.remote.repo
+            );
             let prs: Vec<GitHubPr> = self
                 .client
                 .get(self.pulls_url())
                 .query(&[("state", "open")])
                 .query(&[("page", page)])
-                .query(&[("per_page", page_size)])
+                .query(&[(self.per_page(), page_size)])
                 .send()
                 .await
                 .context("Failed to retrieve branches")?
@@ -139,15 +102,7 @@ impl<'a> GitHubClient<'a> {
         Ok(release_prs)
     }
 
-    /// Close all Prs which branch starts with the given `branch_prefix`.
-    pub async fn close_prs_on_branches(&self, branch_prefix: &str) -> anyhow::Result<()> {
-        for pr in self.opened_prs(branch_prefix).await? {
-            debug!("closing pr {}", pr.number);
-            self.close_pr(pr.number).await?;
-        }
-        Ok(())
-    }
-
+    #[instrument(skip(self))]
     pub async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
         self.client
             .patch(format!("{}/{}", self.pulls_url(), pr_number))
@@ -160,8 +115,10 @@ impl<'a> GitHubClient<'a> {
         Ok(())
     }
 
+    /// TODO: Same for gitea
     #[instrument(skip(self, pr))]
-    pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<Url> {
+    pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<()> {
+        debug!("Opening PR in {}/{}", self.remote.owner, self.remote.repo);
         let pr: GitHubPr = self
             .client
             .post(self.pulls_url())
@@ -179,9 +136,11 @@ impl<'a> GitHubClient<'a> {
             .await
             .context("Failed to parse PR")?;
 
-        Ok(pr.html_url)
+        info!("opened pr: {}", pr.html_url);
+        Ok(())
     }
 
+    /// TODO: Same for gitea
     pub async fn pr_commits(&self, pr_number: u64) -> anyhow::Result<Vec<PrCommit>> {
         self.client
             .get(format!("{}/{}/commits", self.pulls_url(), pr_number))
@@ -223,12 +182,12 @@ pub struct Author {
     login: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GitHub {
     pub owner: String,
     pub repo: String,
     pub token: SecretString,
-    base_url: Option<Url>,
+    pub base_url: Url,
 }
 
 impl GitHub {
@@ -237,15 +196,25 @@ impl GitHub {
             owner,
             repo,
             token,
-            base_url: None,
+            base_url: "https://api.github.com".parse().unwrap(),
         }
     }
 
     pub fn with_base_url(self, base_url: Url) -> Self {
-        Self {
-            base_url: Some(base_url),
-            ..self
-        }
+        Self { base_url, ..self }
+    }
+
+    pub fn default_headers(&self) -> anyhow::Result<HeaderMap> {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            reqwest::header::ACCEPT,
+            HeaderValue::from_static("application/vnd.github+json"),
+        );
+        let auth_header: HeaderValue = format!("Bearer {}", self.token.expose_secret())
+            .parse()
+            .context("invalid GitHub token")?;
+        headers.insert(reqwest::header::AUTHORIZATION, auth_header);
+        Ok(headers)
     }
 }
 
