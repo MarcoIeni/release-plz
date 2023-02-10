@@ -1,8 +1,8 @@
 use crate::RepoUrl;
 use anyhow::{bail, Context};
-use reqwest::Url;
 use reqwest::header::HeaderMap;
 use reqwest::header::HeaderValue;
+use reqwest::Url;
 use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 
@@ -23,8 +23,12 @@ impl Gitea {
             ),
         }
 
+        let api_url = url
+            .gitea_api_url()
+            .parse()
+            .context("invalid Gitea API URL")?;
         Ok(Self {
-            api_url: url.gitea_api_url(),
+            api_url,
             owner: url.owner,
             repo: url.name,
             token,

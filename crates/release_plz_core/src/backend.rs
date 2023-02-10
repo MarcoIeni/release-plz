@@ -2,6 +2,7 @@ use crate::gitea_client::Gitea;
 use crate::GitHub;
 
 use anyhow::Context;
+use reqwest::Url;
 use reqwest::header::HeaderMap;
 use secrecy::SecretString;
 
@@ -38,7 +39,7 @@ pub struct Remote {
     pub owner: String,
     pub repo: String,
     pub token: SecretString,
-    pub base_url: String,
+    pub base_url: Url,
 }
 
 impl GitClient {
@@ -58,7 +59,7 @@ impl GitClient {
                     owner: g.owner,
                     repo: g.repo,
                     token: g.token,
-                    base_url: g.base_url.to_string(),
+                    base_url: g.base_url,
                 },
             ),
             GitBackend::Gitea(g) => (
