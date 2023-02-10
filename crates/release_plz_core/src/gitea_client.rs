@@ -1,5 +1,6 @@
 use crate::RepoUrl;
 use anyhow::{bail, Context};
+use reqwest::Url;
 use reqwest::header::HeaderMap;
 use reqwest::header::HeaderValue;
 use secrecy::{ExposeSecret, SecretString};
@@ -10,7 +11,7 @@ pub struct Gitea {
     pub owner: String,
     pub repo: String,
     pub token: SecretString,
-    pub api_url: String,
+    pub api_url: Url,
 }
 
 impl Gitea {
