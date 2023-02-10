@@ -2,8 +2,8 @@ use crate::gitea_client::Gitea;
 use crate::GitHub;
 
 use anyhow::Context;
-use reqwest::Url;
 use reqwest::header::HeaderMap;
+use reqwest::Url;
 use secrecy::SecretString;
 
 #[derive(Debug, Clone)]
