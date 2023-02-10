@@ -6,7 +6,7 @@ use git_cmd::Repo;
 use anyhow::{anyhow, Context};
 use tracing::{info, instrument};
 
-use crate::backend::{GitClient, contributors_from_commits, GitHubPr};
+use crate::backend::{contributors_from_commits, GitClient, GitPr};
 use crate::pr::{Pr, BRANCH_PREFIX};
 use crate::{
     copy_to_temp_dir, publishable_packages, update, GitBackend, UpdateRequest, UpdateResult,
@@ -123,7 +123,7 @@ async fn create_pr(
     Ok(())
 }
 
-fn update_pr(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow::Result<()> {
+fn update_pr(pr: &GitPr, commits_number: usize, repository: &Repo) -> anyhow::Result<()> {
     // save local work
     repository.git(&["stash", "--include-untracked"])?;
 
@@ -140,7 +140,7 @@ fn update_pr(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow:
     Ok(())
 }
 
-fn reset_branch(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyhow::Result<()> {
+fn reset_branch(pr: &GitPr, commits_number: usize, repository: &Repo) -> anyhow::Result<()> {
     // sanity check to avoid doing bad things on non-release-plz branches
     anyhow::ensure!(pr.branch().starts_with(BRANCH_PREFIX), "wrong branch name");
 
@@ -160,7 +160,7 @@ fn reset_branch(pr: &GitHubPr, commits_number: usize, repository: &Repo) -> anyh
     Ok(())
 }
 
-fn force_push(pr: &GitHubPr, repository: &Repo) -> anyhow::Result<()> {
+fn force_push(pr: &GitPr, repository: &Repo) -> anyhow::Result<()> {
     let changes_expect_typechanges = repository.changes_except_typechanges()?;
     repository.add(&changes_expect_typechanges)?;
     repository.commit("chore: release")?;

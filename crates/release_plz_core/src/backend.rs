@@ -69,13 +69,13 @@ pub struct CreateReleaseOption<'a> {
 }
 
 #[derive(Deserialize)]
-pub struct GitHubPr {
+pub struct GitPr {
     pub number: u64,
     pub html_url: Url,
     pub head: Commit,
 }
 
-impl GitHubPr {
+impl GitPr {
     pub fn branch(&self) -> &str {
         self.head.ref_field.as_str()
     }
@@ -95,7 +95,7 @@ impl GitClient {
             .user_agent("release-plz")
             .default_headers(headers)
             .build()
-            .context("can't build GitHub client")?;
+            .context("can't build Git client")?;
 
         let (backend, remote) = match backend {
             GitBackend::Github(g) => (BackendType::Github, g.remote),
@@ -143,16 +143,16 @@ impl GitClient {
     }
 
     /// Get all opened Prs which branch starts with the given `branch_prefix`.
-    pub async fn opened_prs(&self, branch_prefix: &str) -> anyhow::Result<Vec<GitHubPr>> {
+    pub async fn opened_prs(&self, branch_prefix: &str) -> anyhow::Result<Vec<GitPr>> {
         let mut page = 1;
         let page_size = 30;
-        let mut release_prs: Vec<GitHubPr> = vec![];
+        let mut release_prs: Vec<GitPr> = vec![];
         loop {
             debug!(
                 "Loading prs from {}/{}, page {page}",
                 self.remote.owner, self.remote.repo
             );
-            let prs: Vec<GitHubPr> = self
+            let prs: Vec<GitPr> = self
                 .client
                 .get(self.pulls_url())
                 .query(&[("state", "open")])
@@ -166,7 +166,7 @@ impl GitClient {
                 .await
                 .context("failed to parse pr")?;
             let prs_len = prs.len();
-            let current_release_prs: Vec<GitHubPr> = prs
+            let current_release_prs: Vec<GitPr> = prs
                 .into_iter()
                 .filter(|pr| pr.head.ref_field.starts_with(branch_prefix))
                 .collect();
@@ -196,7 +196,7 @@ impl GitClient {
     #[instrument(skip(self, pr))]
     pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<()> {
         debug!("Opening PR in {}/{}", self.remote.owner, self.remote.repo);
-        let pr: GitHubPr = self
+        let pr: GitPr = self
             .client
             .post(self.pulls_url())
             .json(&json!({
