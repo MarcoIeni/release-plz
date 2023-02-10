@@ -36,7 +36,6 @@ pub struct Commit {
 }
 
 impl GitClient {
-    /// TODO: same for gitea
     /// Creates a GitHub/Gitea release.
     pub async fn create_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
         let create_release_options = CreateReleaseOption {
@@ -65,7 +64,6 @@ impl GitClient {
     }
 
     /// Get all opened Prs which branch starts with the given `branch_prefix`.
-    /// TODO: for gitea it's `limit` instead of `per_page`.
     pub async fn opened_prs(&self, branch_prefix: &str) -> anyhow::Result<Vec<GitHubPr>> {
         let mut page = 1;
         let page_size = 30;
@@ -115,7 +113,6 @@ impl GitClient {
         Ok(())
     }
 
-    /// TODO: Same for gitea
     #[instrument(skip(self, pr))]
     pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<()> {
         debug!("Opening PR in {}/{}", self.remote.owner, self.remote.repo);
@@ -140,7 +137,6 @@ impl GitClient {
         Ok(())
     }
 
-    /// TODO: Same for gitea
     pub async fn pr_commits(&self, pr_number: u64) -> anyhow::Result<Vec<PrCommit>> {
         self.client
             .get(format!("{}/{}/commits", self.pulls_url(), pr_number))
