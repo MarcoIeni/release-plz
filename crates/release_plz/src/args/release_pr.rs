@@ -88,6 +88,6 @@ mod tests {
         assert_eq!(host, repo.host);
         assert_eq!("https", repo.scheme);
         assert!(!repo.is_on_github());
-        assert_eq!(format!("https://{host}/api/v1"), repo.gitea_api_url());
+        assert_eq!(format!("https://{host}/api/v1/"), repo.gitea_api_url());
     }
 }

@@ -54,7 +54,7 @@ impl RepoUrl {
     }
 
     pub fn gitea_api_url(&self) -> String {
-        let v1 = "api/v1";
+        let v1 = "api/v1/";
         if let Some(port) = self.port {
             format!("{}://{}:{}/{v1}", self.scheme, self.host, port)
         } else {

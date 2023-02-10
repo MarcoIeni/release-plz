@@ -123,10 +123,7 @@ impl GitClient {
             name: tag,
         };
         self.client
-            .post(format!(
-                "{}repos/{}/{}/releases",
-                self.remote.base_url, self.remote.owner, self.remote.repo
-            ))
+            .post(format!("{}/releases", self.repo_url()))
             .json(&create_release_options)
             .send()
             .await
@@ -136,8 +133,12 @@ impl GitClient {
     }
 
     pub fn pulls_url(&self) -> String {
+        format!("{}/pulls", self.repo_url())
+    }
+
+    fn repo_url(&self) -> String {
         format!(
-            "{}repos/{}/{}/pulls",
+            "{}repos/{}/{}",
             self.remote.base_url, self.remote.owner, self.remote.repo
         )
     }
