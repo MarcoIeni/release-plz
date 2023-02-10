@@ -9,9 +9,9 @@ use tracing::{info, instrument, warn};
 use url::Url;
 
 use crate::{
+    backend::GitClient,
     cargo::{is_published, run_cargo, wait_until_published},
     changelog_parser,
-    github_client::GitHubClient,
     release_order::release_order,
     GitHub, PackagePath, Project, RepoUrl,
 };
@@ -191,8 +191,8 @@ async fn publish_release(
     }?;
     if repo_url.is_on_github() {
         let github = GitHub::new(repo_url.clone().owner, repo_url.clone().name, git_token);
-        let github_client = GitHubClient::new(&github)?;
-        github_client.create_release(&git_tag, release_body).await?;
+        let git_client = GitClient::new(crate::GitBackend::Github(github))?;
+        git_client.create_release(&git_tag, release_body).await?;
     }
     Ok(())
 }

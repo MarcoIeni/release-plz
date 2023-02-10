@@ -139,6 +139,11 @@ impl Repo {
         git_in_dir(&self.directory, args)
     }
 
+    pub fn stash_pop(&self) -> anyhow::Result<()> {
+        self.git(&["stash", "pop"])?;
+        Ok(())
+    }
+
     /// Checkout to the latest commit.
     pub fn checkout_last_commit_at_path(&self, path: &Path) -> anyhow::Result<()> {
         let previous_commit = self.last_commit_at_path(path)?;
