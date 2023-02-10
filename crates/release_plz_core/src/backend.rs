@@ -34,7 +34,7 @@ pub struct GitClient {
     pub client: reqwest::Client,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Remote {
     pub owner: String,
     pub repo: String,
@@ -55,21 +55,11 @@ impl GitClient {
         let (backend, remote) = match backend {
             GitBackend::Github(g) => (
                 BackendType::Github,
-                Remote {
-                    owner: g.owner,
-                    repo: g.repo,
-                    token: g.token,
-                    base_url: g.base_url,
-                },
+                g.remote
             ),
             GitBackend::Gitea(g) => (
                 BackendType::Gitea,
-                Remote {
-                    owner: g.owner,
-                    repo: g.repo,
-                    token: g.token,
-                    base_url: g.api_url,
-                },
+                g.remote
             ),
         };
         Ok(Self {

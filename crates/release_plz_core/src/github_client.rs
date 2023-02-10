@@ -6,7 +6,10 @@ use serde_json::json;
 use tracing::{debug, info, instrument};
 use url::Url;
 
-use crate::{backend::GitClient, pr::Pr};
+use crate::{
+    backend::{GitClient, Remote},
+    pr::Pr,
+};
 
 #[derive(Serialize)]
 pub struct CreateReleaseOption<'a> {
@@ -180,24 +183,28 @@ pub struct Author {
 
 #[derive(Debug, Clone)]
 pub struct GitHub {
-    pub owner: String,
-    pub repo: String,
-    pub token: SecretString,
-    pub base_url: Url,
+    pub remote: Remote,
 }
 
 impl GitHub {
     pub fn new(owner: String, repo: String, token: SecretString) -> Self {
         Self {
-            owner,
-            repo,
-            token,
-            base_url: "https://api.github.com".parse().unwrap(),
+            remote: Remote {
+                owner,
+                repo,
+                token,
+                base_url: "https://api.github.com".parse().unwrap(),
+            },
         }
     }
 
     pub fn with_base_url(self, base_url: Url) -> Self {
-        Self { base_url, ..self }
+        Self {
+            remote: Remote {
+                base_url,
+                ..self.remote
+            },
+        }
     }
 
     pub fn default_headers(&self) -> anyhow::Result<HeaderMap> {
@@ -206,7 +213,7 @@ impl GitHub {
             reqwest::header::ACCEPT,
             HeaderValue::from_static("application/vnd.github+json"),
         );
-        let auth_header: HeaderValue = format!("Bearer {}", self.token.expose_secret())
+        let auth_header: HeaderValue = format!("Bearer {}", self.remote.token.expose_secret())
             .parse()
             .context("invalid GitHub token")?;
         headers.insert(reqwest::header::AUTHORIZATION, auth_header);

@@ -1,17 +1,14 @@
+use crate::backend::Remote;
 use crate::RepoUrl;
 use anyhow::{bail, Context};
 use reqwest::header::HeaderMap;
 use reqwest::header::HeaderValue;
-use reqwest::Url;
 use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
 pub struct Gitea {
-    pub owner: String,
-    pub repo: String,
-    pub token: SecretString,
-    pub api_url: Url,
+    pub remote: Remote,
 }
 
 impl Gitea {
@@ -23,21 +20,23 @@ impl Gitea {
             ),
         }
 
-        let api_url = url
+        let base_url = url
             .gitea_api_url()
             .parse()
             .context("invalid Gitea API URL")?;
         Ok(Self {
-            api_url,
-            owner: url.owner,
-            repo: url.name,
-            token,
+            remote: Remote {
+                base_url,
+                owner: url.owner,
+                repo: url.name,
+                token,
+            },
         })
     }
 
     pub fn default_headers(&self) -> anyhow::Result<HeaderMap> {
         let mut headers = HeaderMap::new();
-        let auth_header: HeaderValue = format!("token {}", self.token.expose_secret())
+        let auth_header: HeaderValue = format!("token {}", self.remote.token.expose_secret())
             .parse()
             .context("invalid Gitea token")?;
         headers.insert(reqwest::header::AUTHORIZATION, auth_header);
