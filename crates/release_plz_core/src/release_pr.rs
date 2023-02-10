@@ -54,17 +54,17 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
 async fn open_or_update_release_pr(
     local_manifest: &Path,
     packages_to_update: &[(Package, UpdateResult)],
-    gh_client: &GitClient,
+    git_client: &GitClient,
     repo: &Repo,
 ) -> anyhow::Result<()> {
-    let opened_release_prs = gh_client
+    let opened_release_prs = git_client
         .opened_prs(BRANCH_PREFIX)
         .await
         .context("cannot get opened release-plz prs")?;
     // Close all release-plz prs, except one.
     let old_release_prs = opened_release_prs.iter().skip(1);
     for pr in old_release_prs {
-        gh_client
+        git_client
             .close_pr(pr.number)
             .await
             .context("cannot close old release-plz prs")?;
@@ -72,7 +72,7 @@ async fn open_or_update_release_pr(
 
     match opened_release_prs.first() {
         Some(pr) => {
-            let pr_commits = gh_client
+            let pr_commits = git_client
                 .pr_commits(pr.number)
                 .await
                 .context("cannot get commits of release-plz pr")?;
@@ -83,11 +83,11 @@ async fn open_or_update_release_pr(
                 let update_outcome = update_pr(pr, pr_commits.len(), repo);
                 if let Err(e) = update_outcome {
                     tracing::error!("cannot update release pr {}: {}. I'm closing the old release pr and opening a new one", pr.number, e);
-                    gh_client
+                    git_client
                         .close_pr(pr.number)
                         .await
                         .context("cannot close old release-plz prs")?;
-                    create_pr(gh_client, repo, packages_to_update, local_manifest).await?
+                    create_pr(git_client, repo, packages_to_update, local_manifest).await?
                 }
             } else {
                 // There's a contributor, so we don't want to force-push in this PR.
@@ -95,14 +95,14 @@ async fn open_or_update_release_pr(
                 // TODO improvement: check how many lines the commit added, if no lines (for example a merge to update the branch),
                 //      then don't count it as a contributor.
                 info!("closing pr {} to preserve git history", pr.html_url);
-                gh_client
+                git_client
                     .close_pr(pr.number)
                     .await
                     .context("cannot close old release-plz prs")?;
-                create_pr(gh_client, repo, packages_to_update, local_manifest).await?
+                create_pr(git_client, repo, packages_to_update, local_manifest).await?
             }
         }
-        None => create_pr(gh_client, repo, packages_to_update, local_manifest).await?,
+        None => create_pr(git_client, repo, packages_to_update, local_manifest).await?,
     }
     Ok(())
 }
