@@ -37,7 +37,7 @@ impl ReleasePr {
             GitBackendKind::Github => {
                 anyhow::ensure!(
                     repo.is_on_github(),
-                    "Can't create PR: the repository is not hosted in GitHub"
+                    "Can't create PR: the repository is not hosted in GitHub. Please select a different backend."
                 );
                 GitBackend::Github(GitHub::new(repo.owner, repo.name, token))
             }
