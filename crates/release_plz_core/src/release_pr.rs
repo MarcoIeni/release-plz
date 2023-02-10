@@ -6,8 +6,7 @@ use git_cmd::Repo;
 use anyhow::{anyhow, Context};
 use tracing::{info, instrument};
 
-use crate::backend::GitClient;
-use crate::github_client::{contributors_from_commits, GitHubPr};
+use crate::backend::{GitClient, contributors_from_commits, GitHubPr};
 use crate::pr::{Pr, BRANCH_PREFIX};
 use crate::{
     copy_to_temp_dir, publishable_packages, update, GitBackend, UpdateRequest, UpdateResult,
