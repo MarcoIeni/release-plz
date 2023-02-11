@@ -33,6 +33,12 @@ pub struct ReleaseRequest {
     pub git_release: Option<GitRelease>,
     /// GitHub repo URL.
     pub repo_url: Option<String>,
+    /// Don't verify the contents by building them.
+    /// If true, `release-plz` adds the `--no-verify` flag to `cargo publish`.
+    pub no_verify: bool,
+    /// Allow dirty working directories to be packaged.
+    /// If true, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
+    pub allow_dirty: bool,
 }
 
 #[derive(Debug)]
@@ -117,6 +123,12 @@ async fn release_package(
     }
     if input.dry_run {
         args.push("--dry-run");
+    }
+    if input.allow_dirty {
+        args.push("--allow-dirty");
+    }
+    if input.no_verify {
+        args.push("--no-verify");
     }
     let workspace_root = input.workspace_root()?;
 
