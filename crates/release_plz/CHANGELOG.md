@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.45](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.44...release-plz-v0.2.45) - 2023-02-11
+
+### Added
+- *(release)* add the possibility to add `--no-verify` and `--allow-dirty` as cargo publish flags (#532)
+
 ## [0.2.44](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.43...release-plz-v0.2.44) - 2023-02-10
 
 ### Added
