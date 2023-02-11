@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - update pr in gitea (#530)
 
 ### Fixed
-- force git stash (#528)
+- update branch from main before updating PR (#528)
 
 ## [0.4.16](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.15...release_plz_core-v0.4.16) - 2023-02-08
 
