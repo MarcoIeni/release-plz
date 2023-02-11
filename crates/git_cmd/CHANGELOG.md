@@ -9,10 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.13](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.12...git_cmd-v0.2.13) - 2023-02-10
 
 ### Added
-- update pr in gitea (#530)
-
-### Fixed
-- force git stash (#528)
+- `stash_pop` function
 
 ## [0.2.12](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.11...git_cmd-v0.2.12) - 2023-02-08
 
