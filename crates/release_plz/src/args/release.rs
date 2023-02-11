@@ -26,6 +26,14 @@ pub struct Release {
     /// Perform all checks without uploading.
     #[clap(long)]
     pub dry_run: bool,
+    /// Don't verify the contents by building them.
+    /// When you pass this flag, `release-plz` adds the `--no-verify` flag to `cargo publish`.
+    #[clap(long)]
+    pub no_verify: bool,
+    /// Allow dirty working directories to be packaged.
+    /// When you pass this flag, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
+    #[clap(long)]
+    pub allow_dirty: bool,
     /// Publish GitHub release for the created git tag.
     #[clap(long)]
     pub git_release: bool,
@@ -59,6 +67,8 @@ impl TryFrom<Release> for ReleaseRequest {
             dry_run: r.dry_run,
             git_release,
             repo_url: r.repo_url,
+            allow_dirty: r.allow_dirty,
+            no_verify: r.no_verify,
         })
     }
 }
