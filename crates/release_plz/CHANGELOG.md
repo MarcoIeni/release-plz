@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.44](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.43...release-plz-v0.2.44) - 2023-02-10
+
+### Added
+- update pr in gitea (#530)
+
+### Fixed
+- update branch from main before updating PR (#528)
+
 ## [0.2.43](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.42...release-plz-v0.2.43) - 2023-02-08
 
 ### Added
