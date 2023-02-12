@@ -33,6 +33,10 @@ runs two commands, one after the other:
 ```yaml
 name: Release-plz
 
+permissions:
+  pull-requests: write
+  contents: write
+
 on:
   push:
     branches:
@@ -62,6 +66,10 @@ jobs:
 ```yaml
 name: Release-plz
 
+permissions:
+  pull-requests: write
+  contents: write
+
 on:
   push:
     branches:
@@ -88,6 +96,10 @@ jobs:
 
 ```yaml
 name: Release-plz
+
+permissions:
+  pull-requests: write
+  contents: write
 
 on:
   push:
@@ -118,11 +130,8 @@ jobs:
 
    ![actions settings](actions_settings.png)
 
-2. Change "Workflow permissions" to:
-
-   - Grant read and write permissions (needed to push the PR branch);
-   - Allow GitHub actions to create and approve pull requests
-     (needed to create the PR).
+2. Change "Workflow permissions" to allow GitHub actions to create and approve
+   pull requests (needed to create and update the PR).
 
    ![workflow permission](workflow_permissions.png)
 
