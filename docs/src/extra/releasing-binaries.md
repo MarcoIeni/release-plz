@@ -6,7 +6,7 @@
 > make sense for it to build the binaries of the project and publish
 > them to the release assets? 🤔
 
-Releasing binaries requires setting a CI job different
+Not really. Releasing binaries requires setting a CI job different
 from the one used to run `release-plz release` because:
 - `release-plz release` should run once (for example on an `ubuntu` CI image);
 - building binaries requires a different CI image for each platform
