@@ -14,10 +14,8 @@ from the one used to run `release-plz release` because:
 
 Since users have to set up an additional CI job to build binaries, using release-plz
 would not be more convenient than using a different tool.
-
 Plus, releasing binaries is a complex task, which is already well-handled by other tools
 in the Rust ecosystem.
-
 For these reasons, release-plz doesn't build and release binaries.
 
 The next section explains how to use other tools to build and release binaries after
