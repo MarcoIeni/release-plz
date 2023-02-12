@@ -1,5 +1,9 @@
 name: Release-plz
 
+permissions:
+  pull-requests: write
+  contents: write
+
 on:
   push:
     branches:
