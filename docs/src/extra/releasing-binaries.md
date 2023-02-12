@@ -8,14 +8,15 @@
 
 Not really. Releasing binaries requires setting a CI job different
 from the one used to run `release-plz release` because:
+
 - `release-plz release` should run once (for example on an `ubuntu` CI image);
 - building binaries requires a different CI image for each platform
   (e.g. `ubuntu`, `macos`, `windows`).
 
 Since users have to set up an additional CI job to build binaries, using release-plz
 would not be more convenient than using a different tool.
-Plus, releasing binaries is a complex task, which is already well-handled by other tools
-in the Rust ecosystem.
+Plus, releasing binaries is a complex task, which is already well-handled by
+other tools in the Rust ecosystem.
 For these reasons, release-plz doesn't build and release binaries.
 
 The next section explains how to use other tools to build and release binaries after
@@ -31,6 +32,7 @@ For example,
 is how release-plz releases binaries for the `release-plz` project itself.
 
 Some projects to consider for this task:
+
 - [upload-rust-binary-action](https://github.com/taiki-e/upload-rust-binary-action):
   GitHub Action for building and uploading Rust binary to GitHub Releases.
 - [cargo-dist](https://crates.io/crates/cargo-dist):
