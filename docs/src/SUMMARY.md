@@ -11,3 +11,6 @@
   - [shell-completions](usage/shell-completions.md)
 - [Changelog format](changelog-format.md)
 - [Why yet another release tool](why.md)
+- [Why yet another release tool](why.md)
+- [Extra](extra/README.md)
+  - [Releasing binaries](extra/releasing-binaries.md)
