@@ -1,104 +1,73 @@
 name: CD # Continuous Deployment
 
+permissions:
+  # TODO: once `releases: write` is supported, use it instead.
+  contents: write
+
 on:
-  push:
-    tags:
-      - '[v]?[0-9]+.[0-9]+.[0-9]+'
+  release:
+    types: [published]
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_GIT_FETCH_WITH_CLI: true
+  CARGO_NET_RETRY: 10
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  RUSTFLAGS: -D warnings
+  RUSTUP_MAX_RETRIES: 10
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
-
-  publish:
-    name: Publishing for ${{ matrix.job.os }}
-    runs-on: ${{ matrix.job.os }}
+  upload-assets:
+    name: ${{ matrix.target }}
+    if: github.repository_owner == 'MarcoIeni' && startsWith(github.event.release.name, 'release-plz-v')
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: [stable]
-        job:
-          - os: macos-latest
-            os-name: macos
-            target: x86_64-apple-darwin
-            architecture: x86_64
-            binary-postfix: ""
-            use-cross: false
-          - os: ubuntu-22.04
-            os-name: linux
-            target: x86_64-unknown-linux-gnu
-            architecture: x86_64
-            binary-postfix: ""
-            use-cross: false
-          - os: windows-latest
-            os-name: windows
-            target: x86_64-pc-windows-msvc
-            architecture: x86_64
-            binary-postfix: ".exe"
-            use-cross: false
-          - os: ubuntu-22.04
-            os-name: linux
-            target: aarch64-unknown-linux-gnu
-            architecture: arm64
-            binary-postfix: ""
-            use-cross: true
-          - os: ubuntu-22.04
-            os-name: linux
-            target: i686-unknown-linux-gnu
-            architecture: i686
-            binary-postfix: ""
-            use-cross: true
-
+        # When updating this list, the reminder to update the target list in ci.yml.
+        include:
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-22.04
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-22.04
+          - target: aarch64-apple-darwin
+            os: macos-11
+          - target: aarch64-pc-windows-msvc
+            os: windows-2019
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-22.04
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-22.04
+          - target: x86_64-apple-darwin
+            os: macos-11
+          - target: x86_64-pc-windows-msvc
+            os: windows-2019
+          - target: x86_64-unknown-freebsd
+            os: ubuntu-22.04
+          - target: universal-apple-darwin
+            os: macos-11
+    timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/setup-cross-toolchain-action@v1
         with:
-          toolchain: ${{ matrix.rust }}
-          profile: minimal
-          override: true
-      - uses: Swatinem/rust-cache@v2
-      - name: Cargo build
-        uses: actions-rs/cargo@v1
+          target: ${{ matrix.target }}
+        if: startsWith(matrix.os, 'ubuntu') && !contains(matrix.target, '-musl')
+      - uses: taiki-e/install-action@cross
+        if: contains(matrix.target, '-musl')
+      - run: echo "RUSTFLAGS=${RUSTFLAGS} -C target-feature=+crt-static" >> "${GITHUB_ENV}"
+        if: endsWith(matrix.target, 'windows-msvc')
+      - uses: taiki-e/upload-rust-binary-action@v1
         with:
-          command: build
-          use-cross: ${{ matrix.job.use-cross }}
-          toolchain: ${{ matrix.rust }}
-          args: --release --target ${{ matrix.job.target }}
-
-      - name: install strip command
-        shell: bash
-        run: |
-          if [[ ${{ matrix.job.target }} == aarch64-unknown-linux-gnu ]]; then
-              sudo apt update
-              sudo apt-get install -y binutils-aarch64-linux-gnu
-          fi
-      - name: Packaging final binary
-        shell: bash
-        run: |
-          cd target/${{ matrix.job.target }}/release
-
-          ####### reduce binary size by removing debug symbols #######
-          BINARY_NAME=release-plz${{ matrix.job.binary-postfix }}
-          if [[ ${{ matrix.job.target }} == aarch64-unknown-linux-gnu ]]; then
-            GCC_PREFIX="aarch64-linux-gnu-"
-          else
-            GCC_PREFIX=""
-          fi
-          "$GCC_PREFIX"strip $BINARY_NAME
-
-          ########## create tar.gz ##########
-          RELEASE_NAME=release-plz-${GITHUB_REF/refs\/tags\//}-${{ matrix.job.os-name }}-${{ matrix.job.architecture }}
-          tar czvf $RELEASE_NAME.tar.gz $BINARY_NAME
-
-          ########## create sha256 ##########
-          if [[ ${{ runner.os }} == 'Windows' ]]; then
-            certutil -hashfile $RELEASE_NAME.tar.gz sha256 | grep -E [A-Fa-f0-9]{64} > $RELEASE_NAME.sha256
-          else
-            shasum -a 256 $RELEASE_NAME.tar.gz > $RELEASE_NAME.sha256
-          fi
-      - name: Releasing assets
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            target/${{ matrix.job.target }}/release/release-plz-*.tar.gz
-            target/${{ matrix.job.target }}/release/release-plz-*.sha256
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          bin: release-plz
+          target: ${{ matrix.target }}
+          tar: all
+          zip: windows
+          token: ${{ secrets.GITHUB_TOKEN }}
