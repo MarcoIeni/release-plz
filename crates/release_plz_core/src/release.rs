@@ -13,7 +13,7 @@ use crate::{
     cargo::{is_published, run_cargo, wait_until_published},
     changelog_parser,
     release_order::release_order,
-    GitHub, PackagePath, Project, RepoUrl,
+    GitBackend, PackagePath, Project, RepoUrl,
 };
 
 #[derive(Debug)]
@@ -45,6 +45,8 @@ pub struct ReleaseRequest {
 pub struct GitRelease {
     /// Git token used to publish release.
     pub git_token: SecretString,
+    ///Kind of Git Backend.
+    pub backend: GitBackend,
 }
 
 impl ReleaseRequest {
@@ -154,12 +156,14 @@ async fn release_package(
 
         if let Some(git_release) = &input.git_release {
             let release_body = release_body(package);
+            let backend = input.git_release.unwrap().backend;
             publish_release(
                 git_tag,
                 input.repo_url.as_deref(),
                 repo,
                 &release_body,
                 git_release.git_token.clone(),
+                backend,
             )
             .await?;
         }
@@ -196,15 +200,21 @@ async fn publish_release(
     repo: Repo,
     release_body: &str,
     git_token: SecretString,
+    backend: GitBackend,
 ) -> anyhow::Result<()> {
     let repo_url = match repo_url {
         Some(url) => RepoUrl::new(url),
         None => RepoUrl::from_repo(&repo),
     }?;
-    if repo_url.is_on_github() {
-        let github = GitHub::new(repo_url.clone().owner, repo_url.clone().name, git_token);
-        let git_client = GitClient::new(crate::GitBackend::Github(github))?;
-        git_client.create_release(&git_tag, release_body).await?;
+    match backend {
+        GitBackend::Github(github) => {
+            let git_client = GitClient::new(crate::GitBackend::Github(github))?;
+            git_client.create_release(&git_tag, release_body).await?;
+        }
+        GitBackend::Gitea(gitea) => {
+            let git_client = GitClient::new(GitBackend::Gitea(gitea))?;
+            git_client.create_release(&git_tag, release_body).await?;
+        }
     }
     Ok(())
 }

@@ -21,7 +21,7 @@ pub struct ReleasePr {
 }
 
 #[derive(ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]
-enum GitBackendKind {
+pub enum GitBackendKind {
     #[value(name = "github")]
     Github,
     #[value(name = "gitea")]
