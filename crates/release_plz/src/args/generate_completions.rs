@@ -4,7 +4,7 @@ use clap_complete::Shell;
 #[derive(clap::Parser, Debug)]
 pub struct GenerateCompletions {
     /// Shell option
-    #[clap(default_value = "bash")]
+    #[arg(default_value = "bash")]
     shell: Shell,
 }
 
