@@ -8,7 +8,7 @@ use secrecy::SecretString;
 
 use super::{local_manifest, release_pr::GitBackendKind};
 
-#[derive(clap::Parser, Debug, Clone)]
+#[derive(clap::Parser, Debug)]
 pub struct Release {
     /// Path to the Cargo.toml of the project you want to release.
     /// If not provided, release-plz will use the Cargo.toml of the current directory.
@@ -53,23 +53,22 @@ impl TryFrom<Release> for ReleaseRequest {
     type Error = anyhow::Error;
 
     fn try_from(r: Release) -> Result<Self, Self::Error> {
-        let git_token = SecretString::from(
-            r.clone()
-                .git_token
-                .context("git_token is required for git_release")?,
-        );
         let git_release = if r.git_release {
+            let git_token = SecretString::from(
+                r.git_token
+                    .clone()
+                    .context("git_token is required for git_release")?,
+            );
+            let repo_url = r.repo_url()?;
             let release = release_plz_core::GitRelease {
                 git_token: git_token.clone(),
                 backend: match r.backend {
                     GitBackendKind::Gitea => {
                         GitBackend::Gitea(Gitea::new(r.repo_url()?, git_token)?)
                     }
-                    GitBackendKind::Github => GitBackend::Github(GitHub::new(
-                        r.repo_url()?.name,
-                        r.repo_url()?.owner,
-                        git_token,
-                    )),
+                    GitBackendKind::Github => {
+                        GitBackend::Github(GitHub::new(repo_url.name, repo_url.owner, git_token))
+                    }
                 },
             };
             Some(release)

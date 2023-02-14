@@ -13,7 +13,7 @@ use crate::{
     cargo::{is_published, run_cargo, wait_until_published},
     changelog_parser,
     release_order::release_order,
-    GitBackend, PackagePath, Project, RepoUrl,
+    GitBackend, PackagePath, Project,
 };
 
 #[derive(Debug)]
@@ -45,7 +45,7 @@ pub struct ReleaseRequest {
 pub struct GitRelease {
     /// Git token used to publish release.
     pub git_token: SecretString,
-    ///Kind of Git Backend.
+    /// Kind of Git Backend.
     pub backend: GitBackend,
 }
 
@@ -156,16 +156,7 @@ async fn release_package(
 
         if let Some(git_release) = &input.git_release {
             let release_body = release_body(package);
-            let backend = input.git_release.unwrap().backend;
-            publish_release(
-                git_tag,
-                input.repo_url.as_deref(),
-                repo,
-                &release_body,
-                git_release.git_token.clone(),
-                backend,
-            )
-            .await?;
+            publish_release(git_tag, &release_body, &git_release.backend).await?;
         }
     }
 
@@ -196,23 +187,16 @@ fn release_body(package: &Package) -> String {
 
 async fn publish_release(
     git_tag: String,
-    repo_url: Option<&str>,
-    repo: Repo,
     release_body: &str,
-    git_token: SecretString,
-    backend: GitBackend,
+    backend: &GitBackend,
 ) -> anyhow::Result<()> {
-    let repo_url = match repo_url {
-        Some(url) => RepoUrl::new(url),
-        None => RepoUrl::from_repo(&repo),
-    }?;
     match backend {
         GitBackend::Github(github) => {
-            let git_client = GitClient::new(crate::GitBackend::Github(github))?;
+            let git_client = GitClient::new(crate::GitBackend::Github(github.clone()))?;
             git_client.create_release(&git_tag, release_body).await?;
         }
         GitBackend::Gitea(gitea) => {
-            let git_client = GitClient::new(GitBackend::Gitea(gitea))?;
+            let git_client = GitClient::new(GitBackend::Gitea(gitea.clone()))?;
             git_client.create_release(&git_tag, release_body).await?;
         }
     }
