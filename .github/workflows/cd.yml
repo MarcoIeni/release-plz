@@ -61,6 +61,9 @@ jobs:
         with:
           target: ${{ matrix.target }}
         if: startsWith(matrix.os, 'ubuntu') && !contains(matrix.target, '-musl')
+      - name: Install OpenSSL
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt update && sudo apt install -y libssl-dev
       - uses: taiki-e/install-action@cross
         if: contains(matrix.target, '-musl')
       - run: echo "RUSTFLAGS=${RUSTFLAGS} -C target-feature=+crt-static" >> "${GITHUB_ENV}"
