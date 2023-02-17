@@ -63,9 +63,7 @@ impl TryFrom<Release> for ReleaseRequest {
             let release = release_plz_core::GitRelease {
                 git_token: git_token.clone(),
                 backend: match r.backend {
-                    GitBackendKind::Gitea => {
-                        GitBackend::Gitea(Gitea::new(repo_url, git_token)?)
-                    }
+                    GitBackendKind::Gitea => GitBackend::Gitea(Gitea::new(repo_url, git_token)?),
                     GitBackendKind::Github => {
                         GitBackend::Github(GitHub::new(repo_url.name, repo_url.owner, git_token))
                     }
