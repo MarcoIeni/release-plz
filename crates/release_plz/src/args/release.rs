@@ -2,10 +2,11 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
-use release_plz_core::ReleaseRequest;
+use git_cmd::Repo;
+use release_plz_core::{GitBackend, GitHub, Gitea, ReleaseRequest, RepoUrl};
 use secrecy::SecretString;
 
-use super::local_manifest;
+use super::{local_manifest, release_pr::GitBackendKind};
 
 #[derive(clap::Parser, Debug)]
 pub struct Release {
@@ -43,6 +44,9 @@ pub struct Release {
     /// Git token used to publish the GitHub release.
     #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     pub git_token: Option<String>,
+    /// Kind of git backend
+    #[arg(long, value_enum, default_value_t = GitBackendKind::Github)]
+    backend: GitBackendKind,
 }
 
 impl TryFrom<Release> for ReleaseRequest {
@@ -50,11 +54,20 @@ impl TryFrom<Release> for ReleaseRequest {
 
     fn try_from(r: Release) -> Result<Self, Self::Error> {
         let git_release = if r.git_release {
+            let git_token = SecretString::from(
+                r.git_token
+                    .clone()
+                    .context("git_token is required for git_release")?,
+            );
+            let repo_url = r.repo_url()?;
             let release = release_plz_core::GitRelease {
-                git_token: SecretString::from(
-                    r.git_token
-                        .context("git_token is required for git_release")?,
-                ),
+                git_token: git_token.clone(),
+                backend: match r.backend {
+                    GitBackendKind::Gitea => GitBackend::Gitea(Gitea::new(repo_url, git_token)?),
+                    GitBackendKind::Github => {
+                        GitBackend::Github(GitHub::new(repo_url.name, repo_url.owner, git_token))
+                    }
+                },
             };
             Some(release)
         } else {
@@ -70,5 +83,22 @@ impl TryFrom<Release> for ReleaseRequest {
             allow_dirty: r.allow_dirty,
             no_verify: r.no_verify,
         })
+    }
+}
+
+impl Release {
+    pub fn project_manifest(&self) -> PathBuf {
+        super::local_manifest(self.project_manifest.as_deref())
+    }
+    pub fn repo_url(&self) -> anyhow::Result<RepoUrl> {
+        match &self.repo_url {
+            Some(url) => RepoUrl::new(url.as_str()),
+            None => {
+                let project_manifest = self.project_manifest();
+                let project_dir = project_manifest.parent().context("At least a parent")?;
+                let repo = Repo::new(project_dir)?;
+                RepoUrl::from_repo(&repo)
+            }
+        }
     }
 }
