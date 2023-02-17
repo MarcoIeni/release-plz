@@ -15,7 +15,7 @@ pub struct Update {
     /// Path to the Cargo.toml of the project you want to update.
     /// If not provided, release-plz will use the Cargo.toml of the current directory.
     /// Both Cargo workspaces and single packages are supported.
-    #[clap(long, value_parser = PathBufValueParser::new())]
+    #[arg(long, value_parser = PathBufValueParser::new())]
     project_manifest: Option<PathBuf>,
     /// Path to the Cargo.toml contained in the released version of the project you want to update.
     /// If not provided, the packages of your project will be compared with the
@@ -24,21 +24,21 @@ pub struct Update {
     /// your project is already available locally.
     /// For example, it could be the path to the project with a `git checkout` on its latest tag.
     /// The git history of this project should be behind the one of the project you want to update.
-    #[clap(long, value_parser = PathBufValueParser::new())]
+    #[arg(long, value_parser = PathBufValueParser::new())]
     registry_project_manifest: Option<PathBuf>,
     /// Package to update. Use it when you want to update a single package rather than all the
     /// packages contained in the workspace.
-    #[clap(
+    #[arg(
         short,
         long,
         value_parser = NonEmptyStringValueParser::new()
     )]
     package: Option<String>,
     /// Don't create/update changelog.
-    #[clap(long, conflicts_with("release_date"))]
+    #[arg(long, conflicts_with("release_date"))]
     no_changelog: bool,
     /// Date of the release. Format: %Y-%m-%d. It defaults to current Utc date.
-    #[clap(
+    #[arg(
         long,
         conflicts_with("no_changelog"),
         value_parser = NonEmptyStringValueParser::new()
@@ -47,7 +47,7 @@ pub struct Update {
     /// Registry where the packages are stored.
     /// The registry name needs to be present in the Cargo config.
     /// If unspecified, crates.io is used.
-    #[clap(
+    #[arg(
         long,
         conflicts_with("registry_project_manifest"),
         value_parser = NonEmptyStringValueParser::new()
@@ -55,11 +55,11 @@ pub struct Update {
     registry: Option<String>,
     /// Update all the dependencies in the Cargo.lock file by running `cargo update`.
     /// If this flag is not specified, only update the workspace packages by running `cargo update --workspace`.
-    #[clap(short, long)]
+    #[arg(short, long)]
     update_deps: bool,
     /// Path to the git cliff configuration file.
     /// If not provided, `dirs::config_dir()/git-cliff/cliff.toml` is used if present.
-    #[clap(
+    #[arg(
         long,
         env = "GIT_CLIFF_CONFIG",
         value_name = "PATH",
@@ -69,12 +69,12 @@ pub struct Update {
     changelog_config: Option<PathBuf>,
     /// Allow dirty working directories to be updated.
     /// The uncommitted changes will be part of the update.
-    #[clap(long)]
+    #[arg(long)]
     allow_dirty: bool,
     /// GitHub/Gitea repository url where your project is hosted.
     /// It is used to generate the changelog release link.
     /// It defaults to the `origin` url.
-    #[clap(long, value_parser = NonEmptyStringValueParser::new())]
+    #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     repo_url: Option<String>,
 }
 

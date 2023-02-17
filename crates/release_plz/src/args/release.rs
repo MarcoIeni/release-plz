@@ -13,36 +13,36 @@ pub struct Release {
     /// Path to the Cargo.toml of the project you want to release.
     /// If not provided, release-plz will use the Cargo.toml of the current directory.
     /// Both Cargo workspaces and single packages are supported.
-    #[clap(long, value_parser = PathBufValueParser::new())]
+    #[arg(long, value_parser = PathBufValueParser::new())]
     project_manifest: Option<PathBuf>,
     /// Registry where you want to publish the packages.
     /// The registry name needs to be present in the Cargo config.
     /// If unspecified, the `publish` field of the package manifest is used.
     /// If the `publish` field is empty, crates.io is used.
-    #[clap(long)]
+    #[arg(long)]
     registry: Option<String>,
     /// Token used to publish to the cargo registry.
-    #[clap(long, value_parser = NonEmptyStringValueParser::new())]
+    #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     token: Option<String>,
     /// Perform all checks without uploading.
-    #[clap(long)]
+    #[arg(long)]
     pub dry_run: bool,
     /// Don't verify the contents by building them.
     /// When you pass this flag, `release-plz` adds the `--no-verify` flag to `cargo publish`.
-    #[clap(long)]
+    #[arg(long)]
     pub no_verify: bool,
     /// Allow dirty working directories to be packaged.
     /// When you pass this flag, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
-    #[clap(long)]
+    #[arg(long)]
     pub allow_dirty: bool,
     /// Publish GitHub release for the created git tag.
-    #[clap(long)]
+    #[arg(long)]
     pub git_release: bool,
     /// GitHub repository url.
-    #[clap(long, value_parser = NonEmptyStringValueParser::new())]
+    #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     pub repo_url: Option<String>,
     /// Git token used to publish the GitHub release.
-    #[clap(long, value_parser = NonEmptyStringValueParser::new())]
+    #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     pub git_token: Option<String>,
     /// Kind of git backend
     #[arg(long, value_enum, default_value_t = GitBackendKind::Github)]
