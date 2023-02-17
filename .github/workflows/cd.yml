@@ -49,8 +49,8 @@ jobs:
             os: windows-2019
           - target: x86_64-unknown-freebsd
             os: ubuntu-22.04
-          - target: universal-apple-darwin
-            os: macos-11
+          # - target: universal-apple-darwin
+          #   os: macos-11
     timeout-minutes: 60
     steps:
       - name: Checkout repository
