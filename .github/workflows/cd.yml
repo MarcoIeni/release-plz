@@ -5,8 +5,9 @@ permissions:
   contents: write
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - binaries
 
 env:
   CARGO_INCREMENTAL: 0
