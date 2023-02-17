@@ -72,4 +72,4 @@ jobs:
           tar: all
           zip: windows
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: refs/heads/binaries
+          ref: refs/tags/release-plz-v0.2.45
