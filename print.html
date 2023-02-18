@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="why.html"><strong aria-hidden="true">5.</strong> Why yet another release tool</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="why.html"><strong aria-hidden="true">5.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="extra/index.html"><strong aria-hidden="true">6.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="extra/releasing-binaries.html"><strong aria-hidden="true">6.1.</strong> Releasing binaries</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -189,14 +189,16 @@ request &quot;merge&quot; button.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
 <p>Make sure you have <code>git</code> and <code>openssl</code> installed when running <code>release-plz</code>.</p>
 <p><code>release-plz</code> is a rust binary that can be installed in different ways.</p>
-<h2 id="docker"><a class="header" href="#docker">Docker</a></h2>
-<p><code>docker pull marcoieni/release-plz</code></p>
+<h2 id="download-prebuilt-binary"><a class="header" href="#download-prebuilt-binary">Download prebuilt binary</a></h2>
+<p>The latest release is on <a href="https://github.com/MarcoIeni/release-plz/releases/latest">GitHub</a>.</p>
 <h2 id="cargo"><a class="header" href="#cargo">Cargo</a></h2>
 <ul>
 <li>Install the rust toolchain in order to have cargo installed by following
 <a href="https://www.rust-lang.org/tools/install">this</a> guide.</li>
-<li>run <code>cargo install release-plz --locked</code></li>
+<li>Run <code>cargo install release-plz --locked</code>.</li>
 </ul>
+<h2 id="docker"><a class="header" href="#docker">Docker</a></h2>
+<p>Run <code>docker pull marcoieni/release-plz</code>.</p>
 <h2 id="aur"><a class="header" href="#aur">AUR</a></h2>
 <p><code>release-plz</code> can be installed from available
 <a href="https://aur.archlinux.org/packages?O=0&amp;SeB=b&amp;K=release-plz&amp;outdated=&amp;SB=n&amp;SO=a&amp;PP=50&amp;submit=Go">AUR packages</a>
@@ -236,6 +238,10 @@ directory).</li>
 <h2 id="example-release-pr-and-release"><a class="header" href="#example-release-pr-and-release">Example: release-pr and release</a></h2>
 <pre><code class="language-yaml">name: Release-plz
 
+permissions:
+  pull-requests: write
+  contents: write
+
 on:
   push:
     branches:
@@ -263,6 +269,10 @@ determine the next version and build the changelog.</li>
 <h2 id="example-release-pr"><a class="header" href="#example-release-pr">Example: release-pr</a></h2>
 <pre><code class="language-yaml">name: Release-plz
 
+permissions:
+  pull-requests: write
+  contents: write
+
 on:
   push:
     branches:
@@ -286,6 +296,10 @@ jobs:
 </code></pre>
 <h2 id="example-release"><a class="header" href="#example-release">Example: release</a></h2>
 <pre><code class="language-yaml">name: Release-plz
+
+permissions:
+  pull-requests: write
+  contents: write
 
 on:
   push:
@@ -316,12 +330,8 @@ jobs:
 <p><img src="actions_settings.png" alt="actions settings" /></p>
 </li>
 <li>
-<p>Change &quot;Workflow permissions&quot; to:</p>
-<ul>
-<li>Grant read and write permissions (needed to push the PR branch);</li>
-<li>Allow GitHub actions to create and approve pull requests
-(needed to create the PR).</li>
-</ul>
+<p>Change &quot;Workflow permissions&quot; to allow GitHub actions to create and approve
+pull requests (needed to create and update the PR).</p>
 <p><img src="workflow_permissions.png" alt="workflow permission" /></p>
 </li>
 </ol>
@@ -507,6 +517,45 @@ See <a href="https://github.com/crate-ci/cargo-release/issues/231">this</a> issu
 comment from the author).</li>
 </ul>
 </li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="extra"><a class="header" href="#extra">Extra</a></h1>
+<p>This section contains information about use cases not covered directly by
+release-plz.
+You will learn how to use release-plz with other tools, to achieve awesome
+things.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="releasing-binaries"><a class="header" href="#releasing-binaries">Releasing binaries</a></h1>
+<h2 id="why-release-plz-doesnt-release-binaries"><a class="header" href="#why-release-plz-doesnt-release-binaries">Why release-plz doesn't release binaries</a></h2>
+<blockquote>
+<p>Since release-plz already publishes GitHub releases, would it
+make sense for it to build the binaries of the project and publish
+them to the release assets? 🤔</p>
+</blockquote>
+<p>Not really. Releasing binaries requires setting a CI job different
+from the one used to run <code>release-plz release</code> because:</p>
+<ul>
+<li><code>release-plz release</code> should run once (for example on an <code>ubuntu</code> CI image);</li>
+<li>building binaries requires a different CI image for each platform
+(e.g. <code>ubuntu</code>, <code>macos</code>, <code>windows</code>).</li>
+</ul>
+<p>Since users have to set up an additional CI job to build binaries, using release-plz
+would not be more convenient than using a different tool.
+Plus, releasing binaries is a complex task, which is already well-handled by
+other tools in the Rust ecosystem.
+For these reasons, release-plz doesn't build and release binaries.</p>
+<p>The next section explains how to use other tools to build and release binaries after
+release-plz released the new version of your project.</p>
+<h2 id="releasing-binaries-after-release"><a class="header" href="#releasing-binaries-after-release">Releasing binaries after release</a></h2>
+<p>If you are using release-plz to release your project, you can
+run a CI job on the &quot;tag&quot; or &quot;release&quot; events to build and release the binaries.</p>
+<p>For example,
+<a href="https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/cd.yml">here</a>
+is how release-plz releases binaries for the <code>release-plz</code> project itself.</p>
+<p>Some projects to consider for this task:</p>
+<ul>
+<li><a href="https://github.com/taiki-e/upload-rust-binary-action">upload-rust-binary-action</a>:
+GitHub Action for building and uploading Rust binary to GitHub Releases.</li>
+<li><a href="https://crates.io/crates/cargo-dist">cargo-dist</a>:
+shippable application packaging for Rust.</li>
 </ul>
 
                     </main>
