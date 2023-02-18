@@ -64,7 +64,7 @@ impl TryFrom<Release> for ReleaseRequest {
                 backend: match r.backend {
                     GitBackendKind::Gitea => GitBackend::Gitea(Gitea::new(repo_url, git_token)?),
                     GitBackendKind::Github => {
-                        GitBackend::Github(GitHub::new(repo_url.name, repo_url.owner, git_token))
+                        GitBackend::Github(GitHub::new(repo_url.owner, repo_url.name, git_token))
                     }
                 },
             };
