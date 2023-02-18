@@ -43,8 +43,6 @@ pub struct ReleaseRequest {
 
 #[derive(Debug)]
 pub struct GitRelease {
-    /// Git token used to publish release.
-    pub git_token: SecretString,
     /// Kind of Git Backend.
     pub backend: GitBackend,
 }
