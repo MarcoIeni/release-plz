@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.14](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.13...git_cmd-v0.2.14) - 2023-02-18
 
 ### Fixed
-- *(release)* trust gh workspace (#553)
+- trust gh workspace if needed (#553)
 
 ## [0.2.13](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.12...git_cmd-v0.2.13) - 2023-02-10
 
