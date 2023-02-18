@@ -4,15 +4,19 @@ Make sure you have `git` and `openssl` installed when running `release-plz`.
 
 `release-plz` is a rust binary that can be installed in different ways.
 
-## Docker
+## Download prebuilt binary
 
-`docker pull marcoieni/release-plz`
+The latest release is on [GitHub](https://github.com/MarcoIeni/release-plz/releases/latest)
 
 ## Cargo
 
 * Install the rust toolchain in order to have cargo installed by following
   [this](https://www.rust-lang.org/tools/install) guide.
-* run `cargo install release-plz --locked`
+* Run `cargo install release-plz --locked`
+
+## Docker
+
+`docker pull marcoieni/release-plz`
 
 ## AUR
 
