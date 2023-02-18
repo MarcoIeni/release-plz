@@ -30,30 +30,34 @@ jobs:
       matrix:
         # When updating this list, the reminder to update the target list in ci.yml.
         include:
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-22.04
-          - target: aarch64-unknown-linux-musl
-            os: ubuntu-22.04
-          - target: aarch64-apple-darwin
-            os: macos-11
           - target: aarch64-pc-windows-msvc
             os: windows-2019
           - target: x86_64-unknown-linux-gnu
-            os: ubuntu-22.04
-          - target: x86_64-unknown-linux-musl
             os: ubuntu-22.04
           - target: x86_64-apple-darwin
             os: macos-11
           - target: x86_64-pc-windows-msvc
             os: windows-2019
-          - target: x86_64-unknown-freebsd
-            os: ubuntu-22.04
-          - target: universal-apple-darwin
-            os: macos-11
+          # TODO: these targets don't work yet
+          # - target: x86_64-unknown-linux-musl
+          #   os: ubuntu-22.04
+          # - target: aarch64-unknown-linux-gnu
+          #   os: ubuntu-22.04
+          # - target: aarch64-unknown-linux-musl
+          #   os: ubuntu-22.04
+          # - target: aarch64-apple-darwin
+          #   os: macos-11
+          # - target: x86_64-unknown-freebsd
+          #   os: ubuntu-22.04
+          # - target: universal-apple-darwin
+          #   os: macos-11
     timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Install OpenSSL
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt update && sudo apt install -y libssl-dev
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/setup-cross-toolchain-action@v1
