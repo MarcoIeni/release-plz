@@ -26,7 +26,7 @@ runs two commands, one after the other:
 - `changelog_config`: Path to the git cliff configuration file.
   (Defaults to the [keep a changelog](https://keepachangelog.com/en/1.1.0/) configuration).
 - `git_release`: Publish the GitHub release for the created git tag. (Default: `true`).
-- `args`: Release-plz additional arguments. (Default: `""`)
+- `version`: Release-plz version to use. (Default: `"latest"`).
 
 ## Example: release-pr and release
 
@@ -51,8 +51,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@main
+        uses: MarcoIeni/release-plz-action@0.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -84,8 +86,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@main
+        uses: MarcoIeni/release-plz-action@0.4
         with:
           command: release-pr
         env:
@@ -115,8 +119,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@main
+        uses: MarcoIeni/release-plz-action@0.4
         with:
           command: release
         env:
