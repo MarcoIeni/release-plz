@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.20](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.19...release_plz_core-v0.4.20) - 2023-02-18
+
+### Fixed
+- *(release)* trust gh workspace (#553)
+
+## [0.4.19](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.18...release_plz_core-v0.4.19) - 2023-02-18
+
+### Other
+- `release-plz release` creates a release in Gitea, too (#539)
+
 ## [0.4.18](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.17...release_plz_core-v0.4.18) - 2023-02-11
 
 ### Added
