@@ -55,7 +55,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@0.4
+        uses: MarcoIeni/release-plz-action@v0.4.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -90,7 +90,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@0.4
+        uses: MarcoIeni/release-plz-action@v0.4.0
         with:
           command: release-pr
         env:
@@ -123,7 +123,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@0.4
+        uses: MarcoIeni/release-plz-action@v0.4.0
         with:
           command: release
         env:
