@@ -26,7 +26,8 @@ runs two commands, one after the other:
 - `changelog_config`: Path to the git cliff configuration file.
   (Defaults to the [keep a changelog](https://keepachangelog.com/en/1.1.0/) configuration).
 - `git_release`: Publish the GitHub release for the created git tag. (Default: `true`).
-- `version`: Release-plz version to use. It must be an existing git tag name. For example `release-plz-v0.2.45`. (Default: `"latest"`).
+- `version`: Release-plz version to use. It must be an existing git tag name.
+  For example `release-plz-v0.2.45`. (Default: `"latest"`).
 
 ## Example: release-pr and release
 
