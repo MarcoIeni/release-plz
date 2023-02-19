@@ -197,29 +197,7 @@ impl Project {
         debug!("manifest_dir: {manifest_dir:?}");
         let root = {
             let project_root =
-                match git_cmd::git_in_dir(&manifest_dir, &["rev-parse", "--show-toplevel"]) {
-                    Ok(project_root) => project_root,
-                    Err(e) => {
-                        if format!("{e}").contains("detected dubious ownership in repository")
-                            && env::var("GITHUB_ACTIONS") == Ok("true".to_string())
-                        {
-                            info!("trusting /github/workspace as safe directory");
-                            git_cmd::git_in_dir(
-                                &manifest_dir,
-                                &[
-                                    "config",
-                                    "--global",
-                                    "--add",
-                                    "safe.directory",
-                                    "/github/workspace",
-                                ],
-                            )?;
-                            git_cmd::git_in_dir(&manifest_dir, &["rev-parse", "--show-toplevel"])?
-                        } else {
-                            anyhow::bail!(e);
-                        }
-                    }
-                };
+                git_cmd::git_in_dir(&manifest_dir, &["rev-parse", "--show-toplevel"])?;
             PathBuf::from(project_root)
         };
         debug!("project_root: {root:?}");

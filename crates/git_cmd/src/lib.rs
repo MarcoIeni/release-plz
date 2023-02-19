@@ -26,30 +26,8 @@ impl Repo {
     pub fn new(directory: impl AsRef<Path>) -> anyhow::Result<Self> {
         debug!("initializing directory {:?}", directory.as_ref());
 
-        let current_branch = match Self::get_current_branch(&directory) {
-            Ok(project_root) => project_root,
-            Err(e) => {
-                if format!("{e}").contains("detected dubious ownership in repository")
-                    && env::var("GITHUB_ACTIONS") == Ok("true".to_string())
-                {
-                    tracing::info!("trusting /github/workspace as safe directory");
-                    crate::git_in_dir(
-                        directory.as_ref(),
-                        &[
-                            "config",
-                            "--global",
-                            "--add",
-                            "safe.directory",
-                            "/github/workspace",
-                        ],
-                    )?;
-                    Self::get_current_branch(&directory)
-                        .context("cannot determine current branch")?
-                } else {
-                    anyhow::bail!(e);
-                }
-            }
-        };
+        let current_branch =
+            Self::get_current_branch(&directory).context("cannot determine current branch")?;
 
         Ok(Self {
             directory: directory.as_ref().to_path_buf(),
