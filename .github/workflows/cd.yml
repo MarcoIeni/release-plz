@@ -28,7 +28,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # When updating this list, the reminder to update the target list in ci.yml.
         include:
           - target: aarch64-pc-windows-msvc
             os: windows-2019
