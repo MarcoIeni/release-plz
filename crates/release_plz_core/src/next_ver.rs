@@ -17,7 +17,7 @@ use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use std::{
-    env, fs, io,
+    fs, io,
     path::{Path, PathBuf},
 };
 use tempfile::{tempdir, TempDir};
