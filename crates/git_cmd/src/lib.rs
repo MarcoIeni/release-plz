@@ -5,7 +5,7 @@ mod cmd;
 pub mod test_fixture;
 
 use std::{
-    env, fmt,
+    fmt,
     path::{Path, PathBuf},
     process::Command,
 };
