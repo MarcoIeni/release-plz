@@ -1,6 +1,5 @@
 use std::path::{Path, PathBuf};
 
-use cargo_metadata::Package;
 use git_cmd::Repo;
 
 use anyhow::{anyhow, Context};
@@ -9,8 +8,8 @@ use tracing::{info, instrument};
 use crate::backend::{contributors_from_commits, GitClient, GitPr};
 use crate::pr::{Pr, BRANCH_PREFIX};
 use crate::{
-    copy_to_temp_dir, publishable_packages, update, GitBackend, UpdateRequest, UpdateResult,
-    CARGO_TOML,
+    copy_to_temp_dir, publishable_packages, update, GitBackend, UpdateRequest,
+    CARGO_TOML, PackagesUpdate,
 };
 
 #[derive(Debug)]
@@ -38,7 +37,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .context("can't find temporary project")?;
     let (packages_to_update, _temp_repository) = update(&new_update_request)?;
     let git_client = GitClient::new(input.git.clone())?;
-    if !packages_to_update.is_empty() {
+    if !packages_to_update.updates.is_empty() {
         let repo = Repo::new(new_manifest_dir)?;
         let there_are_commits_to_push = repo.is_clean().is_err();
         if there_are_commits_to_push {
@@ -52,7 +51,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
 
 async fn open_or_update_release_pr(
     local_manifest: &Path,
-    packages_to_update: &[(Package, UpdateResult)],
+    packages_to_update: &PackagesUpdate,
     git_client: &GitClient,
     repo: &Repo,
 ) -> anyhow::Result<()> {
@@ -109,7 +108,7 @@ async fn open_or_update_release_pr(
 async fn create_pr(
     git_client: &GitClient,
     repo: &Repo,
-    packages_to_update: &[(Package, UpdateResult)],
+    packages_to_update: &PackagesUpdate,
     local_manifest: &Path,
 ) -> anyhow::Result<()> {
     let project_contains_multiple_pub_packages = publishable_packages(local_manifest)?.len() > 1;

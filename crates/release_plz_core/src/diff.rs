@@ -8,6 +8,8 @@ pub(crate) struct Diff {
     /// Whether the current local version is published to the registry.
     /// If the current version is still unpublished, the package will not be processed.
     pub is_version_published: bool,
+    /// Semver incompatible changes.
+    pub incompatibilities: Option<String>,
 }
 
 impl Diff {
@@ -16,6 +18,7 @@ impl Diff {
             commits: vec![],
             registry_package_exists,
             is_version_published: true,
+            incompatibilities: None,
         }
     }
 
@@ -25,5 +28,9 @@ impl Diff {
 
     pub fn set_version_unpublished(&mut self) {
         self.is_version_published = false
+    }
+
+    pub fn set_incompatibilities(&mut self, incompatibilities: String) {
+        self.incompatibilities = Some(incompatibilities)
     }
 }

@@ -16,6 +16,7 @@ mod release;
 mod release_order;
 mod release_pr;
 mod repo_url;
+mod semver_check;
 mod tmp_repo;
 mod update;
 mod version;

@@ -119,7 +119,7 @@ struct Registry {
 fn cargo_home() -> anyhow::Result<PathBuf> {
     let default_cargo_home = dirs::home_dir()
         .map(|x| x.join(".cargo"))
-        .with_context(|| anyhow::format_err!("Failed to read home directory"))?;
+        .context("Failed to read home directory")?;
     let cargo_home = std::env::var("CARGO_HOME")
         .map(PathBuf::from)
         .unwrap_or(default_cargo_home);

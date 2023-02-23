@@ -9,9 +9,43 @@ use tracing::info;
 
 use tracing::{debug, instrument};
 
+pub struct PackagesUpdate {
+    pub updates: Vec<(Package, UpdateResult)>,
+}
+
+impl PackagesUpdate {
+    pub fn summary(&self) -> String {
+        let updates: String = self
+            .updates
+            .iter()
+            .map(|(package, update)| {
+                if package.version != update.version {
+                    format!(
+                        "\n* `{}`: {} -> {}",
+                        package.name, package.version, update.version
+                    )
+                } else {
+                    format!("\n* `{}`: {}", package.name, package.version)
+                }
+            })
+            .collect();
+
+        let breaking_changes: String =
+            self.updates
+                .iter()
+                .filter_map(|(package, update)| {
+                    update.incompatibilities.as_ref().map(|incomp| {
+                        format!("\n### ⚠️ {} breaking changes\n{}", package.name, incomp)
+                    })
+                })
+                .collect();
+        format!("{updates}{breaking_changes}")
+    }
+}
+
 /// Update a local rust project
 #[instrument]
-pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, UpdateResult)>, TempRepo)> {
+pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
     let (packages_to_update, repository) = crate::next_versions(input)?;
     let all_packages =
         cargo_utils::workspace_members(Some(input.local_manifest())).map_err(|e| {
@@ -22,7 +56,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, UpdateResu
         })?;
     update_versions(&all_packages, &packages_to_update)?;
     update_changelogs(&packages_to_update)?;
-    if !packages_to_update.is_empty() {
+    if !packages_to_update.updates.is_empty() {
         let local_manifest_dir = input.local_manifest_dir()?;
         update_cargo_lock(local_manifest_dir, input.should_update_dependencies())?;
 
@@ -38,9 +72,9 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, UpdateResu
 #[instrument(skip_all)]
 fn update_versions(
     all_packages: &[Package],
-    packages_to_update: &[(Package, UpdateResult)],
+    packages_to_update: &PackagesUpdate,
 ) -> anyhow::Result<()> {
-    for (package, update) in packages_to_update {
+    for (package, update) in &packages_to_update.updates {
         let package_path = package.package_path()?;
         set_version(all_packages, package_path, &update.version)?;
     }
@@ -48,8 +82,8 @@ fn update_versions(
 }
 
 #[instrument(skip_all)]
-fn update_changelogs(local_packages: &[(Package, UpdateResult)]) -> anyhow::Result<()> {
-    for (package, update) in local_packages {
+fn update_changelogs(local_packages: &PackagesUpdate) -> anyhow::Result<()> {
+    for (package, update) in &local_packages.updates {
         if let Some(changelog) = update.changelog.as_ref() {
             let changelog_path = package.changelog_path()?;
             fs::write(&changelog_path, changelog)

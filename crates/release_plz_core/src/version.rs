@@ -1,5 +1,5 @@
 use cargo_metadata::semver::Version;
-use next_version::NextVersion;
+use next_version::{NextVersion, VersionIncrement};
 
 use crate::diff::Diff;
 
@@ -13,6 +13,9 @@ impl NextVersionFromDiff for Version {
     fn next_from_diff(&self, diff: &Diff) -> Self {
         if !diff.should_update_version() {
             self.clone()
+        } else if diff.incompatibilities.is_some() {
+            let increment = VersionIncrement::breaking(self);
+            increment.bump(self)
         } else {
             self.next(&diff.commits)
         }
@@ -37,6 +40,7 @@ mod tests {
             registry_package_exists: true,
             commits: vec!["my change".to_string()],
             is_version_published: true,
+            incompatibilities: None,
         };
         let version = Version::new(1, 2, 3);
         assert_eq!(version.next_from_diff(&diff), Version::new(1, 2, 4));
