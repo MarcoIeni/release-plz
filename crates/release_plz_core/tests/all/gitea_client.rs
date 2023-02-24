@@ -15,8 +15,9 @@ const USERNAME: &str = "me";
 
 fn copy_gitea(original: &Gitea) -> Gitea {
     Gitea::new(
-        RepoUrl::new(gitea::repo_url(&original.owner, &original.repo).as_str()).unwrap(),
-        original.token.clone(),
+        RepoUrl::new(gitea::repo_url(&original.remote.owner, &original.remote.repo).as_str())
+            .unwrap(),
+        original.remote.token.clone(),
     )
     .unwrap()
 }
@@ -53,7 +54,7 @@ fn init_repo(project_dir: &PathBuf, git_url: &str) {
 
 #[tokio::test]
 async fn gitea_client_creates_pr() {
-    let expected_pr_title = "chore(test_repo): release v0.1.1";
+    let expected_pr_title = "chore: release";
     let local_project_dir = tempdir().unwrap();
     let local_project = local_project_dir.as_ref().join(TEST_REPO);
 
@@ -72,6 +73,7 @@ async fn gitea_client_creates_pr() {
         .iter()
         .filter(|p| p.title.as_str() == expected_pr_title)
         .count();
+
     assert_eq!(1, matching_pull_len);
 }
 

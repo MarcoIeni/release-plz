@@ -108,8 +108,8 @@ pub async fn list_pull_requests(gitea_info: &Gitea) -> Vec<PullRequest> {
         .get(format!(
             "{}/repos/{}/{}/pulls?state=open",
             base_api_url(),
-            gitea_info.owner,
-            gitea_info.repo,
+            gitea_info.remote.owner,
+            gitea_info.remote.repo,
         ))
         .header("accept", "application/json")
         .send()
