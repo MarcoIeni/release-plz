@@ -13,8 +13,7 @@ pub async fn check_update() -> anyhow::Result<()> {
         .context("error while checking for updates")?;
     if latest_version != CURRENT_VERSION {
         println!(
-            "Your release-plz version is {CURRENT_VERSION}. A newer version ({}) is available at https://github.com/MarcoIeni/release-plz",
-            latest_version
+            "Your release-plz version is {CURRENT_VERSION}. A newer version ({latest_version}) is available at https://github.com/MarcoIeni/release-plz"
         );
     } else {
         println!("Your release-plz version ({CURRENT_VERSION}) is up to date");
@@ -42,10 +41,7 @@ async fn get_latest_version() -> anyhow::Result<String> {
 
     extract_version(&tag_name)
         .with_context(|| {
-            format!(
-                "can't extract latest release-plz version from tag name {}",
-                tag_name
-            )
+            format!("can't extract latest release-plz version from tag name {tag_name}")
         })
         .map(|v| v.to_string())
 }

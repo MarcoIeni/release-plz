@@ -13,13 +13,13 @@ use self::{
 };
 
 #[derive(clap::Parser, Debug)]
-#[clap(about, version, author)]
+#[command(about, version, author)]
 pub struct CliArgs {
-    #[clap(subcommand)]
+    #[command(subcommand)]
     pub command: Command,
     /// Print source location and additional information in logs.
     /// To change the log level, use the `RUST_FLAG` environment variable.
-    #[clap(short, long)]
+    #[arg(short, long)]
     pub verbose: bool,
 }
 

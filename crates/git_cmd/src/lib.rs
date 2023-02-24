@@ -25,6 +25,7 @@ impl Repo {
     #[instrument(skip_all)]
     pub fn new(directory: impl AsRef<Path>) -> anyhow::Result<Self> {
         debug!("initializing directory {:?}", directory.as_ref());
+
         let current_branch =
             Self::get_current_branch(&directory).context("cannot determine current branch")?;
 
@@ -139,6 +140,11 @@ impl Repo {
         git_in_dir(&self.directory, args)
     }
 
+    pub fn stash_pop(&self) -> anyhow::Result<()> {
+        self.git(&["stash", "pop"])?;
+        Ok(())
+    }
+
     /// Checkout to the latest commit.
     pub fn checkout_last_commit_at_path(&self, path: &Path) -> anyhow::Result<()> {
         let previous_commit = self.last_commit_at_path(path)?;
@@ -242,14 +248,14 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
         let mut error = format!("error while running git with args `{args:?}");
         let stderr = cmd::string_from_bytes(output.stderr)?;
         if !stdout.is_empty() || !stderr.is_empty() {
-            error.push_str(":\n");
+            error.push(':');
         }
         if !stdout.is_empty() {
-            error.push_str("- stdout: ");
+            error.push_str("\n- stdout: ");
             error.push_str(&stdout);
         }
         if !stderr.is_empty() {
-            error.push_str("- stderr: ");
+            error.push_str("\n- stderr: ");
             error.push_str(&stderr);
         }
         Err(anyhow!(error))

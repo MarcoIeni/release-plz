@@ -43,9 +43,9 @@ pub struct UpdateRequest {
     /// Allow dirty working directories to be updated.
     /// The uncommitted changes will be part of the update.
     allow_dirty: bool,
-    /// If present, the new changelog entry contains a link to the diff between the old and new version.
+    /// Repository Url. If present, the new changelog entry contains a link to the diff between the old and new version.
     /// Format: `https://{repo_host}/{repo_owner}/{repo_name}/compare/{old_tag}...{new_tag}`.
-    github_repo: Option<RepoUrl>,
+    repo_url: Option<RepoUrl>,
 }
 
 #[derive(Debug, Clone)]
@@ -73,7 +73,7 @@ impl UpdateRequest {
             registry: None,
             update_dependencies: false,
             allow_dirty: false,
-            github_repo: None,
+            repo_url: None,
         })
     }
 
@@ -115,7 +115,7 @@ impl UpdateRequest {
 
     pub fn with_repo_url(self, repo_url: RepoUrl) -> Self {
         Self {
-            github_repo: Some(repo_url),
+            repo_url: Some(repo_url),
             ..self
         }
     }
@@ -242,9 +242,9 @@ impl Project {
 
     pub fn git_tag(&self, package_name: &str, version: &str) -> String {
         if self.contains_multiple_pub_packages {
-            format!("{}-v{}", package_name, version)
+            format!("{package_name}-v{version}")
         } else {
-            format!("v{}", version)
+            format!("v{version}")
         }
     }
 }
@@ -346,9 +346,9 @@ impl Updater<'_> {
                 .git_tag(&package.name, &package.version.to_string());
             let next_tag = self.project.git_tag(&package.name, &version.to_string());
             self.req
-                .github_repo
+                .repo_url
                 .as_ref()
-                .map(|r| r.gh_release_link(&prev_tag, &next_tag))
+                .map(|r| r.git_release_link(&prev_tag, &next_tag))
         };
 
         let changelog = self

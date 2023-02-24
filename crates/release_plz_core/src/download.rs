@@ -27,29 +27,18 @@ pub fn download_packages(
         .iter()
         .map(|&package_name| Crate::new(package_name.to_string(), None))
         .collect();
-    // TODO: check if there's a way to distinguish between network errors and non-existing packages.
-    let _err = Cloner::builder()
+    let downloaded_packages = Cloner::builder()
         .with_directory(directory)
         .with_source(source)
         .build()
         .context("can't build cloner")?
-        .clone(&crates);
-    let pkgs = packages
+        .clone(&crates)
+        .context("error while downloading packages")?;
+
+    downloaded_packages
         .iter()
-        .map(|&package_name| {
-            let dir_path: &Path = directory.as_ref();
-            let package_path = dir_path.join(package_name);
-            (package_name, package_path)
-        })
-        .filter_map(|(package_name, package_path)| {
-            read_package(package_path)
-                .map_err(|e| warn!("can't download {}: {}", package_name, e))
-                // Filter non-existing packages.
-                // Unfortunately we filter also packages that we couldn't download due to network issues.
-                .ok()
-        })
-        .collect();
-    Ok(pkgs)
+        .map(|(_package, path)| read_package(path))
+        .collect()
 }
 
 /// Read a package from file system

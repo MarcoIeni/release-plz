@@ -1,5 +1,8 @@
 name: Book CD # Continuous Deployment
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:  # Allow manual triggers
   push:

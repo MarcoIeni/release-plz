@@ -2,8 +2,8 @@ name: Docker
 
 on:
   push:
-    tags:
-      - "release-plz-v*.*.*"
+    branches:
+      - main
 
 jobs:
   build-and-push:
@@ -27,10 +27,7 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=sha
-            type=raw,value=latest
-            type=match,pattern=release-plz-v(\d+),group=1
-            type=match,pattern=release-plz-v(\d+.\d+),group=1
-            type=match,pattern=release-plz-v(\d+.\d+.\d+),group=1
+            type=raw,value=develop
 
       - name: Cache Docker layers
         uses: actions/cache@v3

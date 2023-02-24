@@ -8,6 +8,7 @@ mod source;
 
 pub use cloner_builder::*;
 pub use source::*;
+use tracing::warn;
 
 use std::collections::HashSet;
 use std::fs;
@@ -69,23 +70,33 @@ impl Cloner {
 
     /// Clone the specified crates from registry or git repository.
     /// Each crate is cloned in a subdirectory named as the crate name.
-    pub fn clone(&self, crates: &[Crate]) -> CargoResult<()> {
+    /// Returns the cloned crates and the path where they are cloned.
+    /// If a crate doesn't exist, is not returned.
+    pub fn clone(&self, crates: &[Crate]) -> CargoResult<Vec<(Package, PathBuf)>> {
         let _lock = self.config.acquire_package_cache_lock()?;
 
         let mut src = get_source(self.srcid, &self.config)?;
+        let mut cloned_pkgs = vec![];
 
         for crate_ in crates {
             let mut dest_path = self.directory.clone();
 
             dest_path.push(&crate_.name);
 
-            self.clone_in(crate_, &dest_path, &mut src)?;
+            if let Some(pkg) = self.clone_in(crate_, &dest_path, &mut src)? {
+                cloned_pkgs.push((pkg, dest_path));
+            }
         }
 
-        Ok(())
+        Ok(cloned_pkgs)
     }
 
-    fn clone_in<'a, T>(&self, crate_: &Crate, dest_path: &Path, src: &mut T) -> CargoResult<()>
+    fn clone_in<'a, T>(
+        &self,
+        crate_: &Crate,
+        dest_path: &Path,
+        src: &mut T,
+    ) -> CargoResult<Option<Package>>
     where
         T: Source + 'a,
     {
@@ -109,28 +120,36 @@ impl Cloner {
         self.clone_single(crate_, dest_path, src)
     }
 
-    fn clone_single<'a, T>(&self, crate_: &Crate, dest_path: &Path, src: &mut T) -> CargoResult<()>
+    fn clone_single<'a, T>(
+        &self,
+        crate_: &Crate,
+        dest_path: &Path,
+        src: &mut T,
+    ) -> CargoResult<Option<Package>>
     where
         T: Source + 'a,
     {
-        let pkg = select_pkg(&self.config, src, &crate_.name, crate_.version.as_deref())?;
+        let pkg = match select_pkg(&self.config, src, &crate_.name, crate_.version.as_deref())? {
+            Some(pkg) => {
+                if self.use_git {
+                    let repo = &pkg.manifest().metadata().repository;
 
-        if self.use_git {
-            let repo = &pkg.manifest().metadata().repository;
-
-            if repo.is_none() {
-                bail!(
+                    if repo.is_none() {
+                        bail!(
                     "Cannot clone {} from git repo because it is not specified in package's manifest.",
                     &crate_.name
                 )
+                    }
+
+                    clone_git_repo(repo.as_ref().unwrap(), dest_path)?;
+                } else {
+                    clone_directory(pkg.root(), dest_path)?;
+                }
+                Some(pkg)
             }
-
-            clone_git_repo(repo.as_ref().unwrap(), dest_path)?;
-        } else {
-            clone_directory(pkg.root(), dest_path)?;
-        }
-
-        Ok(())
+            None => None,
+        };
+        Ok(pkg)
     }
 }
 
@@ -152,7 +171,7 @@ fn select_pkg<'a, T>(
     src: &mut T,
     name: &str,
     vers: Option<&str>,
-) -> CargoResult<Package>
+) -> CargoResult<Option<Package>>
 where
     T: Source + 'a,
 {
@@ -170,16 +189,20 @@ where
 
     let latest = summaries.iter().max_by_key(|s| s.version());
 
-    match latest {
+    let pkg = match latest {
         Some(l) => {
             config
                 .shell()
                 .note(format!("Downloading {} {}", name, l.version()))?;
             let pkg = Box::new(src).download_now(l.package_id(), config)?;
-            Ok(pkg)
+            Some(pkg)
         }
-        None => bail!("Package `{}@{}` not found", name, vers.unwrap_or("*.*.*")),
-    }
+        None => {
+            warn!("Package `{}@{}` not found", name, vers.unwrap_or("*.*.*"));
+            None
+        }
+    };
+    Ok(pkg)
 }
 
 // clone_directory copies the contents of one directory into another directory, which must

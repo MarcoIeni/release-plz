@@ -6,6 +6,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.15](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.14...git_cmd-v0.2.15) - 2023-02-20
+
+### Other
+- remove unused check (#559)
+
+## [0.2.14](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.13...git_cmd-v0.2.14) - 2023-02-18
+
+### Fixed
+- trust gh workspace if needed (#553)
+
+## [0.2.13](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.12...git_cmd-v0.2.13) - 2023-02-10
+
+### Added
+- `stash_pop` function
+
+## [0.2.12](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.11...git_cmd-v0.2.12) - 2023-02-08
+
+### Other
+- update dependencies
+
+## [0.2.11](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.10...git_cmd-v0.2.11) - 2023-01-27
+
+### Other
+- improve logging (#500)
+
+## [0.2.10](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.9...git_cmd-v0.2.10) - 2023-01-26
+
+### Added
+- add `git`, `force_push` and `checkout` functions (#470)
+
 ## [0.2.9](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.8...git_cmd-v0.2.9) - 2023-01-16
 
 ### Other

@@ -17,11 +17,11 @@ impl RepoUrl {
             .map_err(|err| anyhow!("cannot parse git url {}: {}", git_host_url, err))?;
         let owner = git_url
             .owner
-            .with_context(|| format!("cannot find owner in git url {}", git_host_url))?;
+            .with_context(|| format!("cannot find owner in git url {git_host_url}"))?;
         let name = git_url.name;
         let host = git_url
             .host
-            .with_context(|| format!("cannot find host in git url {}", git_host_url))?;
+            .with_context(|| format!("cannot find host in git url {git_host_url}"))?;
         let port = git_url.port;
         let scheme = git_url.scheme.to_string();
         Ok(RepoUrl {
@@ -42,8 +42,8 @@ impl RepoUrl {
         self.host.contains("github")
     }
 
-    /// Get GitHub release link
-    pub fn gh_release_link(&self, prev_tag: &str, new_tag: &str) -> String {
+    /// Get GitHub/Gitea release link
+    pub fn git_release_link(&self, prev_tag: &str, new_tag: &str) -> String {
         let host = format!("https://{}/{}/{}", self.host, self.owner, self.name);
 
         if prev_tag == new_tag {
@@ -54,10 +54,11 @@ impl RepoUrl {
     }
 
     pub fn gitea_api_url(&self) -> String {
+        let v1 = "api/v1/";
         if let Some(port) = self.port {
-            format!("{}://{}:{}/api/v1", self.scheme, self.host, port)
+            format!("{}://{}:{}/{v1}", self.scheme, self.host, port)
         } else {
-            format!("{}://{}/api/v1", self.scheme, self.host)
+            format!("{}://{}/{v1}", self.scheme, self.host)
         }
     }
 }
@@ -74,7 +75,7 @@ mod tests {
         let expected_url = format!("{GITHUB_REPO_URL}/releases/tag/{tag}");
         // when we are at the first release, we have the prev_tag and the new_tag to be
         // the same as there is no other tag available.
-        let release_link = repo.gh_release_link(tag, tag);
+        let release_link = repo.git_release_link(tag, tag);
         assert_eq!(expected_url, release_link);
     }
 
@@ -86,7 +87,7 @@ mod tests {
         // when there is already a previous version, we should use the compare url, with the
         // ranging between the previous tag and the newest one
         let expected_url = format!("{GITHUB_REPO_URL}/compare/{previous_tag}...{next_tag}");
-        let release_link = repo.gh_release_link(previous_tag, next_tag);
+        let release_link = repo.git_release_link(previous_tag, next_tag);
         assert_eq!(expected_url, release_link);
     }
 }

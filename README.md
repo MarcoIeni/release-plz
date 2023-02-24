@@ -18,7 +18,7 @@ Learn how to use release-plz in the mdbook [docs](https://marcoieni.github.io/re
 
 ## Users
 
-[This](https://cs.github.com/?scopeName=All+repos&scope=&q=path%3A*.yml+OR+path%3A*.yml+MarcoIeni%2Frelease-plz)
+[This](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action)
 GitHub search shows the public repositories using release-plz in CI.
 
 ## Similar projects
@@ -53,7 +53,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Credits
 
 Parts of the codebase are inspired by:
-- [cargo-workspaces](https://github.com/pksunkara/cargo-workspaces)
-- [cargo-release](https://github.com/crate-ci/cargo-release)
+- [cargo-clone](https://github.com/JanLikar/cargo-clone)
 - [cargo-edit](https://github.com/killercup/cargo-edit)
+- [cargo-release](https://github.com/crate-ci/cargo-release)
+- [cargo-workspaces](https://github.com/pksunkara/cargo-workspaces)
 - [git-cliff](https://github.com/orhun/git-cliff)

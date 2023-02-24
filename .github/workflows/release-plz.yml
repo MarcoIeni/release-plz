@@ -1,5 +1,9 @@
 name: Release-plz
 
+permissions:
+  pull-requests: write
+  contents: write
+
 on:
   push:
     branches:
@@ -9,7 +13,7 @@ jobs:
 
   release-plz:
     name: Release-plz
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       # Generating a GitHub token, so that PRs and tags created by
       # the release-plz-action can trigger actions workflows.

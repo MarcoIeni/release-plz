@@ -6,6 +6,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.11](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.10...cargo_utils-v0.1.11) - 2023-02-20
+
+### Other
+- update dependencies (#566)
+
+## [0.1.10](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.9...cargo_utils-v0.1.10) - 2023-02-08
+
+### Other
+- update dependencies
+
+## [0.1.9](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.8...cargo_utils-v0.1.9) - 2023-01-31
+
+### Other
+- update dependencies
+
+## [0.1.8](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.7...cargo_utils-v0.1.8) - 2023-01-26
+
+### Other
+- fix cargo clippy (#489)
+
 ## [0.1.7](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.6...cargo_utils-v0.1.7) - 2023-01-17
 
 ### Other

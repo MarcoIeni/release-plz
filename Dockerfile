@@ -1,4 +1,4 @@
-FROM lukemathwalker/cargo-chef:0.1.45-rust-slim-bullseye AS chef
+FROM lukemathwalker/cargo-chef:0.1.51-rust-bullseye AS chef
 WORKDIR /app
 
 FROM chef as planner
@@ -23,8 +23,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH
 
-# The dependency cargo-edit needs the cargo binary installed
-# copied from https://github.com/rust-lang/docker-rust/blob/aa8bed3870cb14ecf49f127bae0a212adebc2384/1.60.0/bullseye/slim/Dockerfile#L8
+# copied from https://github.com/rust-lang/docker-rust/blob/40a40c6881a5e85ea4e7b334b53e4b2e4217dd89/1.66.1/bullseye/slim/Dockerfile#L8
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
@@ -36,17 +35,18 @@ RUN set -eux; \
         libc6-dev \
         libssl1.1 \
         ssh-client \
+        libcurl4 \
         git \
         ; \
     dpkgArch="$(dpkg --print-architecture)"; \
     case "${dpkgArch##*-}" in \
-        amd64) rustArch='x86_64-unknown-linux-gnu'; rustupSha256='3dc5ef50861ee18657f9db2eeb7392f9c2a6c95c90ab41e45ab4ca71476b4338' ;; \
-        armhf) rustArch='armv7-unknown-linux-gnueabihf'; rustupSha256='67777ac3bc17277102f2ed73fd5f14c51f4ca5963adadf7f174adf4ebc38747b' ;; \
-        arm64) rustArch='aarch64-unknown-linux-gnu'; rustupSha256='32a1532f7cef072a667bac53f1a5542c99666c4071af0c9549795bbdb2069ec1' ;; \
-        i386) rustArch='i686-unknown-linux-gnu'; rustupSha256='e50d1deb99048bc5782a0200aa33e4eea70747d49dffdc9d06812fd22a372515' ;; \
+        amd64) rustArch='x86_64-unknown-linux-gnu'; rustupSha256='5cc9ffd1026e82e7fb2eec2121ad71f4b0f044e88bca39207b3f6b769aaa799c' ;; \
+        armhf) rustArch='armv7-unknown-linux-gnueabihf'; rustupSha256='48c5ecfd1409da93164af20cf4ac2c6f00688b15eb6ba65047f654060c844d85' ;; \
+        arm64) rustArch='aarch64-unknown-linux-gnu'; rustupSha256='e189948e396d47254103a49c987e7fb0e5dd8e34b200aa4481ecc4b8e41fb929' ;; \
+        i386) rustArch='i686-unknown-linux-gnu'; rustupSha256='0e0be29c560ad958ba52fcf06b3ea04435cb3cd674fbe11ce7d954093b9504fd' ;; \
         *) echo >&2 "unsupported architecture: ${dpkgArch}"; exit 1 ;; \
     esac; \
-    url="https://static.rust-lang.org/rustup/archive/1.24.3/${rustArch}/rustup-init"; \
+    url="https://static.rust-lang.org/rustup/archive/1.25.1/${rustArch}/rustup-init"; \
     wget "$url"; \
     echo "${rustupSha256} *rustup-init" | sha256sum -c -; \
     chmod +x rustup-init; \
