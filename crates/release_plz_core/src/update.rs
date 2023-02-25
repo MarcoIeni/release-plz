@@ -30,16 +30,20 @@ impl PackagesUpdate {
             })
             .collect();
 
-        let breaking_changes: String =
-            self.updates
-                .iter()
-                .filter_map(|(package, update)| {
-                    update.incompatibilities.as_ref().map(|incomp| {
-                        format!("\n### ⚠️ {} breaking changes\n{}", package.name, incomp)
-                    })
-                })
-                .collect();
+        let breaking_changes = self.breaking_changes();
         format!("{updates}\n{breaking_changes}")
+    }
+
+    pub fn breaking_changes(&self) -> String {
+        self.updates
+            .iter()
+            .filter_map(|(package, update)| {
+                update
+                    .incompatibilities
+                    .as_ref()
+                    .map(|incomp| format!("\n### ⚠️ {} breaking changes\n{}", package.name, incomp))
+            })
+            .collect()
     }
 }
 
