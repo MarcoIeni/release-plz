@@ -1,37 +1,45 @@
-use std::{path::Path, process::Command};
+use std::{
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 use anyhow::Context;
 
 use crate::CARGO_TOML;
 
-const CARGO_LOCK: &str = "Cargo.lock";
-
-fn cargo_lock_exists(path: &Path) -> bool {
-    path.join(CARGO_LOCK).exists()
+fn target_dir(path: &Path) -> PathBuf {
+    path.join("target")
 }
 
-fn target_dir_exists(path: &Path) -> bool {
-    path.join("target").exists()
+fn cargo_lock(path: &Path) -> PathBuf {
+    path.join("Cargo.lock")
+}
+
+fn is_cargo_semver_checks_installed() -> bool {
+    Command::new("cargo-semver-checks")
+        .arg("--version")
+        .output()
+        .map(|output| output.status.success())
+        .unwrap_or(false)
 }
 
 pub fn get_incompatibilities(
     local_package: &Path,
     registry_package: &Path,
 ) -> anyhow::Result<Option<String>> {
-    let is_cargo_semver_checks_installed = Command::new("cargo-semver-checks")
-        .arg("--version")
-        .output()
-        .map(|output| output.status.success())
-        .unwrap_or(false);
-
-    if !is_cargo_semver_checks_installed {
+    if !is_cargo_semver_checks_installed() {
         return Ok(None);
     }
 
-    let local_package_contained_cargo_lock = cargo_lock_exists(local_package);
-    let registry_package_contained_cargo_lock = cargo_lock_exists(registry_package);
-    let local_package_contained_target = target_dir_exists(local_package);
-    let registry_package_contained_target = target_dir_exists(registry_package);
+    let local_cargo_lock = cargo_lock(local_package);
+    let registry_cargo_lock = cargo_lock(registry_package);
+    let local_target_dir = target_dir(local_package);
+    let registry_target_dir = target_dir(registry_package);
+
+    let local_package_contained_cargo_lock = local_cargo_lock.exists();
+    let registry_package_contained_cargo_lock = registry_cargo_lock.exists();
+    let local_package_contained_target = local_target_dir.exists();
+    let registry_package_contained_target = registry_target_dir.exists();
 
     let output = Command::new("cargo-semver-checks")
         .args(["semver-checks", "check-release"])
@@ -43,17 +51,18 @@ pub fn get_incompatibilities(
         .with_context(|| format!("error while running cargo-semver-checks on {local_package:?}"))?;
 
     // Delete Cargo.lock file if cargo-semver-checks created it.
-    if !local_package_contained_cargo_lock && cargo_lock_exists(local_package) {
-        std::fs::remove_file(local_package.join(CARGO_LOCK))?;
+    if !local_package_contained_cargo_lock && local_cargo_lock.exists() {
+        std::fs::remove_file(local_cargo_lock)?;
     }
-    if !registry_package_contained_cargo_lock && cargo_lock_exists(registry_package) {
-        std::fs::remove_file(registry_package.join(CARGO_LOCK))?;
+    if !registry_package_contained_cargo_lock && registry_cargo_lock.exists() {
+        std::fs::remove_file(registry_cargo_lock)?;
     }
-    if !local_package_contained_target && target_dir_exists(local_package) {
-        std::fs::remove_dir_all(local_package.join("target"))?;
+    // Delete target dir if cargo-semver-checks created it.
+    if !local_package_contained_target && local_target_dir.exists() {
+        std::fs::remove_dir_all(local_target_dir)?;
     }
-    if !registry_package_contained_target && target_dir_exists(registry_package) {
-        std::fs::remove_dir_all(registry_package.join("target"))?;
+    if !registry_package_contained_target && registry_target_dir.exists() {
+        std::fs::remove_dir_all(registry_target_dir)?;
     }
 
     if output.status.success() {
