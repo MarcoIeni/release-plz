@@ -26,7 +26,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         args::Command::Update(cmd_args) => {
             let update_request = cmd_args.update_request()?;
             let updates = release_plz_core::update(&update_request)?;
-            println!("{}", updates.0.breaking_changes());
+            println!("{}", updates.0.summary());
         }
         args::Command::ReleasePr(cmd_args) => {
             let update_request = cmd_args.update.update_request()?;

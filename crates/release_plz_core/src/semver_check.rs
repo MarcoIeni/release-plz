@@ -34,6 +34,16 @@ pub enum SemverCheck {
     Skipped,
 }
 
+impl SemverCheck {
+    pub fn outcome_str(&self) -> &'static str {
+        match self {
+            SemverCheck::Compatible => " (✅ semver check passed)",
+            SemverCheck::Incompatible(_) => " (⚠️ breaking)",
+            SemverCheck::Skipped => "",
+        }
+    }
+}
+
 pub fn run_semver_check(
     local_package: &Path,
     registry_package: &Path,

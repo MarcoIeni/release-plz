@@ -22,8 +22,11 @@ impl PackagesUpdate {
             .map(|(package, update)| {
                 if package.version != update.version {
                     format!(
-                        "\n* `{}`: {} -> {}",
-                        package.name, package.version, update.version
+                        "\n* `{}`: {} -> {}{}",
+                        package.name,
+                        package.version,
+                        update.version,
+                        update.semver_check.outcome_str()
                     )
                 } else {
                     format!("\n* `{}`: {}", package.name, package.version)
@@ -35,15 +38,14 @@ impl PackagesUpdate {
         format!("{updates}\n{breaking_changes}")
     }
 
-    pub fn breaking_changes(&self) -> String {
+    fn breaking_changes(&self) -> String {
         self.updates
             .iter()
             .map(|(package, update)| match &update.semver_check {
                 SemverCheck::Incompatible(incomp) => {
                     format!("\n### ⚠️ {} breaking changes\n{}", package.name, incomp)
                 }
-                SemverCheck::Compatible
-                | SemverCheck::Skipped => "".to_string(),
+                SemverCheck::Compatible | SemverCheck::Skipped => "".to_string(),
             })
             .collect()
     }

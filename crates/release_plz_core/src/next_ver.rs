@@ -277,12 +277,11 @@ impl Updater<'_> {
 
             debug!("diff: {:?}, next_version: {}", &diff, next_version);
             if next_version != current_version || !diff.registry_package_exists {
-                let breaking_warn = match diff.semver_check {
-                    SemverCheck::Compatible => " (✅ semver check passed)",
-                    SemverCheck::Incompatible(_) => " (⚠️ breaking)",
-                    SemverCheck::Skipped => "",
-                };
-                info!("{}: next version is {next_version}{breaking_warn}", p.name);
+                info!(
+                    "{}: next version is {next_version}{}",
+                    p.name,
+                    diff.semver_check.outcome_str()
+                );
                 let update_result =
                     self.update_result(diff.commits, next_version, p, diff.semver_check)?;
 
