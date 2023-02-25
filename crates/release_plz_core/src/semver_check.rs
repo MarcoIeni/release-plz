@@ -37,7 +37,7 @@ pub enum SemverCheck {
 impl SemverCheck {
     pub fn outcome_str(&self) -> &'static str {
         match self {
-            SemverCheck::Compatible => " (✅ semver check passed)",
+            SemverCheck::Compatible => " (✓ semver check passed)",
             SemverCheck::Incompatible(_) => " (⚠️ breaking)",
             SemverCheck::Skipped => "",
         }
