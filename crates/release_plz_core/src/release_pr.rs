@@ -8,8 +8,8 @@ use tracing::{info, instrument};
 use crate::backend::{contributors_from_commits, GitClient, GitPr};
 use crate::pr::{Pr, BRANCH_PREFIX};
 use crate::{
-    copy_to_temp_dir, publishable_packages, update, GitBackend, UpdateRequest,
-    CARGO_TOML, PackagesUpdate,
+    copy_to_temp_dir, publishable_packages, update, GitBackend, PackagesUpdate, UpdateRequest,
+    CARGO_TOML,
 };
 
 #[derive(Debug)]
