@@ -10,6 +10,10 @@ fn cargo_lock_exists(path: &Path) -> bool {
     path.join(CARGO_LOCK).exists()
 }
 
+fn target_dir_exists(path: &Path) -> bool {
+    path.join("target").exists()
+}
+
 pub fn get_incompatibilities(
     local_package: &Path,
     registry_package: &Path,
@@ -25,7 +29,9 @@ pub fn get_incompatibilities(
     }
 
     let local_package_contained_cargo_lock = cargo_lock_exists(local_package);
-    let registry_package_contained_cargo_lock = cargo_lock_exists(local_package);
+    let registry_package_contained_cargo_lock = cargo_lock_exists(registry_package);
+    let local_package_contained_target = target_dir_exists(local_package);
+    let registry_package_contained_target = target_dir_exists(registry_package);
 
     let output = Command::new("cargo-semver-checks")
         .args(["semver-checks", "check-release"])
@@ -42,6 +48,12 @@ pub fn get_incompatibilities(
     }
     if !registry_package_contained_cargo_lock && cargo_lock_exists(registry_package) {
         std::fs::remove_file(registry_package.join(CARGO_LOCK))?;
+    }
+    if !local_package_contained_target && target_dir_exists(local_package) {
+        std::fs::remove_dir_all(local_package.join("target"))?;
+    }
+    if !registry_package_contained_target && target_dir_exists(registry_package) {
+        std::fs::remove_dir_all(registry_package.join("target"))?;
     }
 
     if output.status.success() {
