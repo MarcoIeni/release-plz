@@ -1,3 +1,4 @@
+use crate::semver_check::SemverCheck;
 use crate::{tmp_repo::TempRepo, PackagePath, UpdateRequest, UpdateResult};
 use anyhow::{anyhow, Context};
 use cargo_metadata::{semver::Version, Package};
@@ -38,11 +39,11 @@ impl PackagesUpdate {
         self.updates
             .iter()
             .map(|(package, update)| match &update.semver_check {
-                crate::semver_check::SemverCheck::Incompatible(incomp) => {
+                SemverCheck::Incompatible(incomp) => {
                     format!("\n### ⚠️ {} breaking changes\n{}", package.name, incomp)
                 }
-                crate::semver_check::SemverCheck::Compatible
-                | crate::semver_check::SemverCheck::Skipped => "".to_string(),
+                SemverCheck::Compatible
+                | SemverCheck::Skipped => "".to_string(),
             })
             .collect()
     }
