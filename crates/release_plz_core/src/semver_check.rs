@@ -23,12 +23,23 @@ fn is_cargo_semver_checks_installed() -> bool {
         .unwrap_or(false)
 }
 
-pub fn get_incompatibilities(
+/// Outcome of semver check.
+#[derive(Debug)]
+pub enum SemverCheck {
+    /// Semver check done. No incompatibilities found.
+    Compatible,
+    /// Semver check done. Incompatibilities found.
+    Incompatible(String),
+    /// Semver check skipped. This is normal for binaries.
+    Skipped,
+}
+
+pub fn run_semver_check(
     local_package: &Path,
     registry_package: &Path,
-) -> anyhow::Result<Option<String>> {
+) -> anyhow::Result<SemverCheck> {
     if !is_cargo_semver_checks_installed() {
-        return Ok(None);
+        return Ok(SemverCheck::Skipped);
     }
 
     let local_cargo_lock = cargo_lock(local_package);
@@ -66,7 +77,7 @@ pub fn get_incompatibilities(
     }
 
     if output.status.success() {
-        Ok(None)
+        Ok(SemverCheck::Compatible)
     } else {
         let stderr = String::from_utf8(output.stderr)?;
         if stderr.contains("semver requires new major version") {
@@ -74,9 +85,9 @@ pub fn get_incompatibilities(
             if stdout.is_empty() {
                 anyhow::bail!("unknown source of semver incompatibility");
             }
-            Ok(Some(stdout))
+            Ok(SemverCheck::Incompatible(stdout))
         } else {
-            Ok(None)
+            Ok(SemverCheck::Compatible)
         }
     }
 }

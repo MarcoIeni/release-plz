@@ -4,7 +4,7 @@ use crate::{
     package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection},
     repo_url::RepoUrl,
-    semver_check,
+    semver_check::{self, SemverCheck},
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
     ChangelogBuilder, PackagesUpdate, CARGO_TOML,
@@ -252,7 +252,7 @@ impl Project {
 pub struct UpdateResult {
     pub version: Version,
     pub changelog: Option<String>,
-    pub incompatibilities: Option<String>,
+    pub semver_check: SemverCheck,
 }
 
 pub struct Updater<'a> {
@@ -277,14 +277,14 @@ impl Updater<'_> {
 
             debug!("diff: {:?}, next_version: {}", &diff, next_version);
             if next_version != current_version || !diff.registry_package_exists {
-                let breaking_warn = if diff.incompatibilities.is_some() {
-                    " (⚠️ breaking)"
-                } else {
-                    ""
+                let breaking_warn = match diff.semver_check {
+                    SemverCheck::Compatible => " (✅ semver check passed)",
+                    SemverCheck::Incompatible(_) => " (⚠️ breaking)",
+                    SemverCheck::Skipped => "",
                 };
                 info!("{}: next version is {next_version}{breaking_warn}", p.name);
                 let update_result =
-                    self.update_result(diff.commits, next_version, p, diff.incompatibilities)?;
+                    self.update_result(diff.commits, next_version, p, diff.semver_check)?;
 
                 packages_to_update.updates.push((p.clone(), update_result));
             } else if diff.is_version_published {
@@ -334,7 +334,7 @@ impl Updater<'_> {
                 );
                 Ok((
                     p.clone(),
-                    self.update_result(vec![change], next_version, p, None)?,
+                    self.update_result(vec![change], next_version, p, SemverCheck::Skipped)?,
                 ))
             })
             .collect::<anyhow::Result<Vec<_>>>()?;
@@ -346,7 +346,7 @@ impl Updater<'_> {
         commits: Vec<String>,
         version: Version,
         package: &Package,
-        incompatibilities: Option<String>,
+        semver_check: SemverCheck,
     ) -> anyhow::Result<UpdateResult> {
         let release_link = {
             let prev_tag = self
@@ -369,7 +369,7 @@ impl Updater<'_> {
         Ok(UpdateResult {
             version,
             changelog,
-            incompatibilities,
+            semver_check,
         })
     }
 }
@@ -427,12 +427,9 @@ fn get_diff(
     }
     if let Some(registry_package) = registry_package {
         if is_library(package) {
-            if let Some(incompatibilities) = semver_check::get_incompatibilities(
-                &package_path,
-                registry_package.package_path()?,
-            )? {
-                diff.set_incompatibilities(incompatibilities)
-            }
+            let semver_check =
+                semver_check::run_semver_check(&package_path, registry_package.package_path()?)?;
+            diff.set_semver_check(semver_check);
         }
     }
     loop {

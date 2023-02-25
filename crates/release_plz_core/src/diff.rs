@@ -1,3 +1,5 @@
+use crate::semver_check::SemverCheck;
+
 /// Difference between local and registry package (i.e. the last released version)
 #[derive(Debug)]
 pub(crate) struct Diff {
@@ -9,7 +11,7 @@ pub(crate) struct Diff {
     /// If the current version is still unpublished, the package will not be processed.
     pub is_version_published: bool,
     /// Semver incompatible changes.
-    pub incompatibilities: Option<String>,
+    pub semver_check: SemverCheck,
 }
 
 impl Diff {
@@ -18,7 +20,7 @@ impl Diff {
             commits: vec![],
             registry_package_exists,
             is_version_published: true,
-            incompatibilities: None,
+            semver_check: SemverCheck::Skipped,
         }
     }
 
@@ -30,7 +32,7 @@ impl Diff {
         self.is_version_published = false
     }
 
-    pub fn set_incompatibilities(&mut self, incompatibilities: String) {
-        self.incompatibilities = Some(incompatibilities)
+    pub fn set_semver_check(&mut self, semver_check: SemverCheck) {
+        self.semver_check = semver_check
     }
 }

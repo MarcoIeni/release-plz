@@ -37,11 +37,12 @@ impl PackagesUpdate {
     pub fn breaking_changes(&self) -> String {
         self.updates
             .iter()
-            .filter_map(|(package, update)| {
-                update
-                    .incompatibilities
-                    .as_ref()
-                    .map(|incomp| format!("\n### ⚠️ {} breaking changes\n{}", package.name, incomp))
+            .map(|(package, update)| match &update.semver_check {
+                crate::semver_check::SemverCheck::Incompatible(incomp) => {
+                    format!("\n### ⚠️ {} breaking changes\n{}", package.name, incomp)
+                }
+                crate::semver_check::SemverCheck::Compatible
+                | crate::semver_check::SemverCheck::Skipped => "".to_string(),
             })
             .collect()
     }
