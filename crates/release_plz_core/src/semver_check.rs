@@ -38,14 +38,14 @@ pub fn get_incompatibilities(
         Ok(None)
     } else {
         let stderr = String::from_utf8(output.stderr)?;
-        if !stderr.is_empty() {
-            anyhow::bail!(stderr);
+        if stderr.contains("semver requires new major version") {
+            let stdout = String::from_utf8(output.stdout)?;
+            if stdout.is_empty() {
+                anyhow::bail!("unknown source of semver incompatibility");
+            }
+            Ok(Some(stdout))
+        } else {
+            Ok(None)
         }
-        let stdout = String::from_utf8(output.stdout)?;
-        if stdout.is_empty() {
-            anyhow::bail!("cargo-semver-checks returned an error but no stderr and stdout");
-        }
-
-        Ok(Some(stdout))
     }
 }
