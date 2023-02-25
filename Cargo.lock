@@ -2534,7 +2534,6 @@ dependencies = [
  "regex",
  "reqwest",
  "secrecy",
- "semver",
  "serde",
  "serde_json",
  "tempfile",
