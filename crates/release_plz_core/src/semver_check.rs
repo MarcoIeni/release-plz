@@ -14,6 +14,16 @@ pub fn get_incompatibilities(
     local_package: &Path,
     registry_package: &Path,
 ) -> anyhow::Result<Option<String>> {
+    let is_cargo_semver_checks_installed = Command::new("cargo-semver-checks")
+        .arg("--version")
+        .output()
+        .map(|output| output.status.success())
+        .unwrap_or(false);
+
+    if !is_cargo_semver_checks_installed {
+        return Ok(None);
+    }
+
     let local_package_contained_cargo_lock = cargo_lock_exists(local_package);
     let registry_package_contained_cargo_lock = cargo_lock_exists(local_package);
 
