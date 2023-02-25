@@ -39,7 +39,7 @@ impl PackagesUpdate {
                     })
                 })
                 .collect();
-        format!("{updates}{breaking_changes}")
+        format!("{updates}\n{breaking_changes}")
     }
 }
 
