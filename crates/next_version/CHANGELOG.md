@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1](https://github.com/MarcoIeni/release-plz/compare/next_version-v0.2.0...next_version-v0.2.1) - 2023-02-26
+
+### Added
+- cargo-semver-checks integration (#568)
+
 ## [0.2.0](https://github.com/MarcoIeni/release-plz/compare/next_version-v0.1.10...next_version-v0.2.0) - 2023-01-11
 
 ### Added

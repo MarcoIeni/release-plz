@@ -1,6 +1,6 @@
 [package]
 name = "release_plz_core"
-version = "0.4.21"
+version = "0.5.0"
 edition = "2021"
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/release_plz_core"
@@ -11,8 +11,8 @@ categories = ["development-tools"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cargo_utils = { path = "../cargo_utils", version = "0.1.11" }
-git_cmd = { path = "../git_cmd", version = "0.2.15" }
+cargo_utils = { path = "../cargo_utils", version = "0.1.12" }
+git_cmd = { path = "../git_cmd", version = "0.2.16" }
 next_version = { path = "../next_version", version = "0.2" }
 
 anyhow.workspace = true
