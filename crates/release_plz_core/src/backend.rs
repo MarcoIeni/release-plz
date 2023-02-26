@@ -73,6 +73,8 @@ pub struct GitPr {
     pub number: u64,
     pub html_url: Url,
     pub head: Commit,
+    pub title: String,
+    pub body: String,
 }
 
 impl GitPr {
@@ -87,6 +89,38 @@ pub struct Commit {
     pub ref_field: String,
     pub sha: String,
 }
+
+#[derive(Serialize, Default)]
+pub struct PrEdit {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    body: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    state: Option<String>,
+}
+
+impl PrEdit {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_title(mut self, title: impl Into<String>) -> Self {
+        self.title = Some(title.into());
+        self
+    }
+
+    pub fn with_body(mut self, body: impl Into<String>) -> Self {
+        self.body = Some(body.into());
+        self
+    }
+
+    pub fn with_state(mut self, state: impl Into<String>) -> Self {
+        self.state = Some(state.into());
+        self
+    }
+}
+
 impl GitClient {
     pub fn new(backend: GitBackend) -> anyhow::Result<Self> {
         let headers = backend.default_headers()?;
@@ -183,14 +217,21 @@ impl GitClient {
     #[instrument(skip(self))]
     pub async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
         debug!("closing pr");
-        self.client
-            .patch(format!("{}/{}", self.pulls_url(), pr_number))
-            .json(&json!({
-                "state": "closed",
-            }))
-            .send()
+        let edit = PrEdit::new().with_state("closed");
+        self.edit_pr(pr_number, &edit)
             .await
             .with_context(|| format!("cannot close pr {pr_number}"))?;
+        Ok(())
+    }
+
+    pub async fn edit_pr(&self, pr_number: u64, pr_edit: &PrEdit) -> anyhow::Result<()> {
+        debug!("editing pr");
+        self.client
+            .patch(format!("{}/{}", self.pulls_url(), pr_number))
+            .json(pr_edit)
+            .send()
+            .await
+            .with_context(|| format!("cannot edit pr {pr_number}"))?;
         Ok(())
     }
 
