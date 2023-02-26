@@ -19,9 +19,9 @@ easily release changes more frequently, without the fear of
 doing typos or other
 subtle manual mistakes you can make when releasing from your terminal.
 
-<!-- TODO: make screenshot of pr opened by release-plz bot, not github actions. -->
+Here's an example of a release Pull Request created on the release-plz repository itself:
 
-![pr](https://www.marcoieni.com/2023/01/2022-recap-2023-goals/pr.png)
+![pr](assets/pr.png)
 
 ## Release-plz features
 
