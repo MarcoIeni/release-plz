@@ -135,12 +135,12 @@ jobs:
 
 1. Go to the GitHub actions settings:
 
-   ![actions settings](actions_settings.png)
+   ![actions settings](assets/actions_settings.png)
 
 2. Change "Workflow permissions" to allow GitHub actions to create and approve
    pull requests (needed to create and update the PR).
 
-   ![workflow permission](workflow_permissions.png)
+   ![workflow permission](assets/workflow_permissions.png)
 
 ## Triggering further workflow runs
 
