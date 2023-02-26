@@ -16,12 +16,12 @@ pub struct PackagesUpdate {
 
 impl PackagesUpdate {
     pub fn summary(&self) -> String {
-        let updates = self.updates();
+        let updates = self.updates_summary();
         let breaking_changes = self.breaking_changes();
         format!("{updates}\n{breaking_changes}")
     }
 
-    fn updates(&self) -> String {
+    fn updates_summary(&self) -> String {
         self.updates
             .iter()
             .map(|(package, update)| {
