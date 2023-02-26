@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.50](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.49...release-plz-v0.2.50) - 2023-02-26
 
 ### Added
-- cargo-semver-checks integration (#568)
+- Add cargo-semver-checks integration. If the `cargo-semver-checks` binary is present, release-plz uses
+  it to check semver compatibility. If `cargo-semver-checks` detects an API breaking change, release-plz
+  updates the major version. (#568)
 
 ## [0.2.49](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.48...release-plz-v0.2.49) - 2023-02-20
 

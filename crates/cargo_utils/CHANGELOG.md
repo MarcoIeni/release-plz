@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.12](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.11...cargo_utils-v0.1.12) - 2023-02-26
 
-### Added
-- cargo-semver-checks integration (#568)
+### Other
+- remove allocation (#568)
 
 ## [0.1.11](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.10...cargo_utils-v0.1.11) - 2023-02-20
 
