@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.21...release_plz_core-v0.5.0) - 2023-02-26
+
+### Added
+- Add cargo-semver-checks integration. If the `cargo-semver-checks` binary is present, release-plz uses
+  it to check semver compatibility. If `cargo-semver-checks` detects an API breaking change, release-plz
+  updates the major version. (#568)
+
+### Fixed
+- when editing a release-pr, update pr title and body (#571)
+
 ## [0.4.21](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.20...release_plz_core-v0.4.21) - 2023-02-20
 
 ### Other
