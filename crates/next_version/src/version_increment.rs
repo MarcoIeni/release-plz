@@ -3,6 +3,7 @@ use semver::Version;
 
 use crate::NextVersion;
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum VersionIncrement {
     Major,
     Minor,
@@ -40,6 +41,30 @@ impl VersionIncrement {
                 .collect();
 
             Some(Self::from_conventional_commits(current_version, &commits))
+        }
+    }
+
+    /// Increments the version to take into account breaking changes.
+    /// ```rust
+    /// use next_version::VersionIncrement;
+    /// use semver::Version;
+    ///
+    /// let increment = VersionIncrement::breaking(&Version::new(0, 3, 3));
+    /// assert_eq!(increment, VersionIncrement::Minor);
+    ///
+    /// let increment = VersionIncrement::breaking(&Version::new(1, 3, 3));
+    /// assert_eq!(increment, VersionIncrement::Major);
+    ///
+    /// let increment = VersionIncrement::breaking(&Version::parse("1.3.3-alpha.1").unwrap());
+    /// assert_eq!(increment, VersionIncrement::Prerelease);
+    /// ```
+    pub fn breaking(current_version: &Version) -> Self {
+        if !current_version.pre.is_empty() {
+            Self::Prerelease
+        } else if current_version.major == 0 {
+            Self::Minor
+        } else {
+            Self::Major
         }
     }
 
