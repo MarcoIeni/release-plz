@@ -16,8 +16,13 @@ pub struct PackagesUpdate {
 
 impl PackagesUpdate {
     pub fn summary(&self) -> String {
-        let updates: String = self
-            .updates
+        let updates = self.updates();
+        let breaking_changes = self.breaking_changes();
+        format!("{updates}\n{breaking_changes}")
+    }
+
+    fn updates(&self) -> String {
+        self.updates
             .iter()
             .map(|(package, update)| {
                 if package.version != update.version {
@@ -32,10 +37,7 @@ impl PackagesUpdate {
                     format!("\n* `{}`: {}", package.name, package.version)
                 }
             })
-            .collect();
-
-        let breaking_changes = self.breaking_changes();
-        format!("{updates}\n{breaking_changes}")
+            .collect()
     }
 
     fn breaking_changes(&self) -> String {
