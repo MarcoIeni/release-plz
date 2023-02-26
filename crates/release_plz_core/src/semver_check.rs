@@ -30,7 +30,7 @@ pub enum SemverCheck {
     Compatible,
     /// Semver check done. Incompatibilities found.
     Incompatible(String),
-    /// Semver check skipped. This is normal for binaries.
+    /// Semver check skipped. This is the expected state for binaries.
     Skipped,
 }
 
