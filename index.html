@@ -158,20 +158,21 @@ For every package you want to release, you need to:</p>
 <li>Publish the package in the cargo registry (for example, <a href="https://crates.io">crates.io</a>).</li>
 <li>Create and push a git tag.</li>
 </ul>
-<p>Meet <a href="https://github.com/MarcoIeni/release-plz">release-plz</a>: a Rust open-source
+<p>Meet <a href="https://github.com/MarcoIeni/release-plz">release-plz</a>, a Rust open-source
 project that automates these tasks, allowing developers to release Rust packages
 without the command line.</p>
 <p>Release-plz creates a fully automated release pipeline, allowing you to
 easily release changes more frequently, without the fear of
 doing typos or other
 subtle manual mistakes you can make when releasing from your terminal.</p>
-<!-- TODO: make screenshot of pr opened by release-plz bot, not github actions. -->
-<p><img src="https://www.marcoieni.com/2023/01/2022-recap-2023-goals/pr.png" alt="pr" /></p>
+<p>Here's an example of a release Pull Request created on the release-plz repository itself:</p>
+<p><img src="assets/pr.png" alt="pr" /></p>
 <h2 id="release-plz-features"><a class="header" href="#release-plz-features">Release-plz features</a></h2>
 <ul>
 <li>Version update based on <a href="https://www.conventionalcommits.org/en/v1.0.0/">conventional commits</a>.</li>
 <li>Changelog update with <a href="https://github.com/orhun/git-cliff">git-cliff</a>,
 using the <a href="https://keepachangelog.com/en/1.1.0/">keep a changelog</a> format by default.</li>
+<li>API breaking changes detection with <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>.</li>
 <li>Cargo workspaces support.</li>
 <li>No configuration required.</li>
 <li>Optional <code>cargo update</code> before releasing.</li>

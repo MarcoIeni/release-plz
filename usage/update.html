@@ -155,6 +155,10 @@ packages of a local workspace.</p>
 <ul>
 <li>Downloads the packages of the project from the cargo registry.</li>
 <li>Compares the local packages with the downloaded ones to determine the new commits.</li>
+<li>Checks for API breaking changes in libraries if
+<a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>
+is installed.
+<em>Warning:</em> <code>cargo-semver-checks</code> doesn't catch every semver violation.</li>
 <li>Updates the packages versions based on the messages of the new commits (based
 on <a href="https://www.conventionalcommits.org/en/v1.0.0/">conventional commits</a> and
 <a href="https://semver.org/">semantic versioning</a>).</li>
