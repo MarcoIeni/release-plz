@@ -119,6 +119,10 @@ impl PrEdit {
         self.state = Some(state.into());
         self
     }
+
+    pub fn contains_edit(&self) -> bool {
+        self.title.is_some() || self.body.is_some() || self.state.is_some()
+    }
 }
 
 impl GitClient {
