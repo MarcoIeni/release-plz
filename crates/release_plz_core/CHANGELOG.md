@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   updates the major version. (#568)
 
 ### Fixed
-- update pr title and body (#571)
+- when editing a release-pr, update pr title and body (#571)
 
 ## [0.4.21](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.20...release_plz_core-v0.4.21) - 2023-02-20
 

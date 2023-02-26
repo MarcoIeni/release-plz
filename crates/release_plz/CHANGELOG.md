@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it to check semver compatibility. If `cargo-semver-checks` detects an API breaking change, release-plz
   updates the major version. (#568)
 
+### Fixed
+- when editing a release-pr, update pr title and body (#571)
+
 ## [0.2.49](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.48...release-plz-v0.2.49) - 2023-02-20
 
 ### Other
