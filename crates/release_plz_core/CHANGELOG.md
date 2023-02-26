@@ -6,6 +6,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.21...release_plz_core-v0.5.0) - 2023-02-26
+
+### Added
+- cargo-semver-checks integration
+
+### Fixed
+- fix
+
+### Other
+- wip
+- wip
+- wip
+- wip
+- wip
+- wip
+- wip
+- wip
+- wip
+- different checkmark
+- wip
+- wip
+- switch to enum
+- refactor
+- check
+- wip
+- wip
+- wip
+- wip
+- fmt
+
 ## [0.4.21](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.20...release_plz_core-v0.4.21) - 2023-02-20
 
 ### Other
