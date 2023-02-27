@@ -36,6 +36,7 @@ url = { workspace = true, features = ["serde"] }
 walkdir.workspace = true
 toml_edit.workspace = true
 serde_json.workspace = true
+strip-ansi-escapes.workspace = true
 
 [dev-dependencies]
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }

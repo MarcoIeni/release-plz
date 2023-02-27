@@ -2516,6 +2516,7 @@ dependencies = [
  "secrecy",
  "serde",
  "serde_json",
+ "strip-ansi-escapes",
  "tempfile",
  "test_logs",
  "tokio",
