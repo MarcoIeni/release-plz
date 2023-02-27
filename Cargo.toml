@@ -26,6 +26,7 @@ secrecy = "0.8.0"
 semver = "1.0.16"
 serde = "1.0.152"
 serde_json = "1.0.93"
+strip-ansi-escapes = "0.1.1"
 tempfile = "3.4.0"
 tokio = "1.25.0"
 toml = { version = "0.7.2" }
