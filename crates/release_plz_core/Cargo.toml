@@ -13,7 +13,7 @@ categories = ["development-tools"]
 [dependencies]
 cargo_utils = { path = "../cargo_utils", version = "0.1.12" }
 git_cmd = { path = "../git_cmd", version = "0.2.16" }
-next_version = { path = "../next_version", version = "0.2" }
+next_version = { path = "../next_version", version = "0.2.1" }
 
 anyhow.workspace = true
 cargo_metadata.workspace = true
