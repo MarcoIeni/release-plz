@@ -71,10 +71,7 @@ impl VersionIncrement {
     }
 
     /// If no conventional commits are present, the version is incremented as a Patch
-    fn from_conventional_commits(
-        current: &Version,
-        commits: &[ConventionalCommit],
-    ) -> Self {
+    fn from_conventional_commits(current: &Version, commits: &[ConventionalCommit]) -> Self {
         let is_there_a_feature = || {
             commits
                 .iter()
@@ -87,9 +84,7 @@ impl VersionIncrement {
 
         let is_minor_bump = || {
             (current.major != 0 && is_there_a_feature())
-                || (current.major == 0
-                    && current.minor != 0
-                    && is_there_a_breaking_change())
+                || (current.major == 0 && current.minor != 0 && is_there_a_breaking_change())
         };
 
         if is_major_bump() {
