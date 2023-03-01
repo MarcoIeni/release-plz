@@ -58,7 +58,7 @@ impl ReleaseRequest {
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     let project = Project::new(&input.local_manifest, None)?;
     let pkgs = project.packages().iter().collect::<Vec<_>>();
-    let release_order = release_order(&pkgs);
+    let release_order = release_order(&pkgs).context("cant' determine release order")?;
     for package in release_order {
         let workspace_root = input.workspace_root()?;
         let repo = Repo::new(workspace_root)?;
