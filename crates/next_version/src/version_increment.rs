@@ -61,6 +61,8 @@ impl VersionIncrement {
     pub fn breaking(current_version: &Version) -> Self {
         if !current_version.pre.is_empty() {
             Self::Prerelease
+        } else if current_version.major == 0 && current_version.minor == 0 {
+            Self::Patch
         } else if current_version.major == 0 {
             Self::Minor
         } else {
@@ -70,19 +72,24 @@ impl VersionIncrement {
 
     /// If no conventional commits are present, the version is incremented as a Patch
     fn from_conventional_commits(
-        current_version: &Version,
+        current: &Version,
         commits: &[ConventionalCommit],
     ) -> Self {
-        let is_there_a_breaking_change = commits.iter().any(|commit| commit.is_breaking_change);
+        let is_there_a_feature = || {
+            commits
+                .iter()
+                .any(|commit| commit.commit_type == CommitType::Feature)
+        };
 
-        let is_major_bump = || current_version.major != 0 && is_there_a_breaking_change;
+        let is_there_a_breaking_change = || commits.iter().any(|commit| commit.is_breaking_change);
+
+        let is_major_bump = || current.major != 0 && is_there_a_breaking_change();
 
         let is_minor_bump = || {
-            current_version.major != 0
-                && commits
-                    .iter()
-                    .any(|commit| commit.commit_type == CommitType::Feature)
-                || current_version.major == 0 && is_there_a_breaking_change
+            (current.major != 0 && is_there_a_feature())
+                || (current.major == 0
+                    && current.minor != 0
+                    && is_there_a_breaking_change())
         };
 
         if is_major_bump() {

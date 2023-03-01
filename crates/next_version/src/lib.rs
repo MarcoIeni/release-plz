@@ -42,6 +42,19 @@
 //! assert_eq!(Version::new(0, 4, 4).next(&commits), Version::new(0, 5, 0));
 //! ```
 //!
+//! In 0.0.x versions the patch is always incremented:
+//!
+//! ```rust
+//! use semver::Version;
+//! use next_version::NextVersion;
+//!
+//! let commits = vec!["my change"];
+//! assert_eq!(Version::new(0, 0, 4).next(&commits), Version::new(0, 0, 5));
+//!
+//! let commits = vec!["feat!: break user"];
+//! assert_eq!(Version::new(0, 0, 1).next(&commits), Version::new(0, 0, 2));
+//! ```
+//!
 //! Pre-release versions are incremented in the same way, independently
 //! by the type of commits:
 //!
