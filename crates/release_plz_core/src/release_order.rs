@@ -19,26 +19,28 @@ fn _release_order<'a>(
     passed: &mut Vec<&'a Package>,
 ) -> anyhow::Result<()> {
     // TODO: check for circular dependencies
-    passed.push(pkg);
     if visited.contains(&pkg) {
         return Ok(());
     }
+    passed.push(pkg);
 
     for d in &pkg.dependencies {
         // Check if the dependency is part of the packages we are releasing.
-        if let Some(dep) = packages.iter().find(|p| d.name == p.name) {
-            match d.kind {
-                DependencyKind::Normal | DependencyKind::Build => {
-                    if !passed.contains(&dep) {
-                        _release_order(packages, dep, visited, passed)?;
-                    }
-                }
-                DependencyKind::Development | DependencyKind::Unknown => {}
-            }
+        if let Some(dep) = packages
+            .iter()
+            .find(|p| d.name == p.name && p.name != pkg.name)
+        {
+            anyhow::ensure!(
+                !passed.contains(dep),
+                "Circular dependency detected: {} -> {}",
+                pkg.name, dep.name
+            );
+            _release_order(packages, dep, visited, passed)?;
         }
     }
 
     visited.push(pkg);
+    passed.clear();
     Ok(())
 }
 
@@ -86,12 +88,19 @@ mod tests {
         .unwrap()
     }
 
-    // Test the package release order in the release-plz workspace itself.
     #[test]
     fn single_package_is_returned() {
         let p: Package = pkg("aaa", &[dep("bbb")]);
         let pkgs = vec![&p];
         let ordered = release_order(&pkgs).unwrap();
         assert_eq!(ordered[0].name, "aaa");
+    }
+
+    #[test]
+    fn cycle_is_detected() {
+        let aaa: Package = pkg("aaa", &[dep("bbb")]);
+        let bbb: Package = pkg("bbb", &[dep("aaa")]);
+        let pkgs = vec![&aaa, &bbb];
+        release_order(&pkgs).unwrap_err();
     }
 }
