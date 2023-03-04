@@ -1,5 +1,5 @@
 use cargo_metadata::{DependencyKind, Package};
-use tracing::info;
+use tracing::debug;
 
 /// Return packages in an order they can be released.
 /// In the result, the packages are placed after all their dependencies.
@@ -10,7 +10,7 @@ pub fn release_order<'a>(packages: &'a [&Package]) -> anyhow::Result<Vec<&'a Pac
     for p in packages {
         _release_order(packages, p, &mut order, &mut passed)?;
     }
-    info!(
+    debug!(
         "Release order: {:?}",
         order.iter().map(|p| &p.name).collect::<Vec<_>>()
     );
