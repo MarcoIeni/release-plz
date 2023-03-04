@@ -13,7 +13,7 @@ categories = ["development-tools"]
 [dependencies]
 cargo_utils = { path = "../cargo_utils", version = "0.1.12" }
 git_cmd = { path = "../git_cmd", version = "0.2.16" }
-next_version = { path = "../next_version", version = "0.2" }
+next_version = { path = "../next_version", version = "0.2.1" }
 
 anyhow.workspace = true
 cargo_metadata.workspace = true
@@ -44,6 +44,5 @@ test_logs = { path = "../test_logs" }
 
 expect-test.workspace = true
 fake.workspace = true
-serde_json.workspace = true
 tokio = { workspace = true, features = ["macros"] }
 wiremock.workspace = true
