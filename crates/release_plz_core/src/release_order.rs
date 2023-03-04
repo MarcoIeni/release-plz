@@ -12,14 +12,20 @@ pub fn release_order<'a>(packages: &'a [&Package]) -> anyhow::Result<Vec<&'a Pac
     Ok(visited)
 }
 
+/// Return true if the package is part of a packages array.
+/// This function exists because `package.contains(pkg)` is expensive,
+/// because it compares the whole package struct.
+fn is_package_in(pkg: &Package, packages: &[&Package]) -> bool {
+    packages.iter().any(|p| p.name == pkg.name)
+}
+
 fn _release_order<'a>(
     packages: &[&'a Package],
     pkg: &'a Package,
     visited: &mut Vec<&'a Package>,
     passed: &mut Vec<&'a Package>,
 ) -> anyhow::Result<()> {
-    // TODO: check for circular dependencies
-    if visited.contains(&pkg) {
+    if is_package_in(pkg, visited) {
         return Ok(());
     }
     passed.push(pkg);
@@ -31,10 +37,10 @@ fn _release_order<'a>(
             .find(|p| d.name == p.name && p.name != pkg.name)
         {
             anyhow::ensure!(
-                !passed.contains(dep),
+                !is_package_in(dep, passed),
                 "Circular dependency detected: {} -> {}",
+                dep.name,
                 pkg.name,
-                dep.name
             );
             _release_order(packages, dep, visited, passed)?;
         }
