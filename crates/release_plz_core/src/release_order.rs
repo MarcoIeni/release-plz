@@ -1,4 +1,4 @@
-use cargo_metadata::Package;
+use cargo_metadata::{DependencyKind, Package};
 use tracing::info;
 
 /// Return packages in an order they can be released.
@@ -37,10 +37,13 @@ fn _release_order<'a>(
 
     for d in &pkg.dependencies {
         // Check if the dependency is part of the packages we are releasing.
-        if let Some(dep) = packages
-            .iter()
-            .find(|p| d.name == p.name && p.name != pkg.name)
-        {
+        if let Some(dep) = packages.iter().find(|p| {
+            d.name == p.name
+              // Exclude the current package.
+              && p.name != pkg.name
+              // Ignore development dependencies. They don't need to be published before.
+              && matches!(d.kind, DependencyKind::Normal | DependencyKind::Build)
+        }) {
             anyhow::ensure!(
                 !is_package_in(dep, passed),
                 "Circular dependency detected: {} -> {}",
@@ -72,8 +75,8 @@ mod tests {
             order(pkgs),
             [
                 "cargo_utils",
-                "test_logs",
                 "git_cmd",
+                "test_logs",
                 "next_version",
                 "release_plz_core",
                 "release-plz"
@@ -113,7 +116,7 @@ mod tests {
         serde_json::from_value(serde_json::json!({
             "name": name,
             "req": "0.1.0",
-            "kind": "normal",
+            "kind": "dev",
             "optional": false,
             "uses_default_features": true,
             "features": [],
@@ -158,7 +161,11 @@ mod tests {
     #[test]
     fn two_packages_dev_cycle_is_ok() {
         let pkgs = [&pkg("a", &[dev_dep("b")]), &pkg("b", &[dep("a")])];
-        assert_eq!(order(&pkgs), ["b", "a"]);
+        assert_eq!(order(&pkgs), ["a", "b"]);
+
+        // check if the order of the vector matters.
+        let pkgs = [&pkg("b", &[dep("a")]), &pkg("a", &[dev_dep("b")])];
+        assert_eq!(order(&pkgs), ["a", "b"]);
     }
 
     /// ┌─────┐
