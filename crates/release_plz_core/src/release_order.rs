@@ -95,28 +95,62 @@ mod tests {
         .unwrap()
     }
 
+    // Diagrams created with https://asciiflow.com/
+
+    fn order<'a>(pkgs: &'a [&'a Package]) -> Vec<&'a str> {
+        release_order(pkgs)
+            .unwrap()
+            .iter()
+            .map(|p| p.name.as_str())
+            .collect()
+    }
+
+    /// A─►B
     #[test]
     fn single_package_is_returned() {
-        let p: Package = pkg("aaa", &[dep("bbb")]);
-        let pkgs = vec![&p];
-        let ordered = release_order(&pkgs).unwrap();
-        assert_eq!(ordered[0].name, "aaa");
+        let pkgs = [&pkg("a", &[dep("b")])];
+        assert_eq!(order(&pkgs), ["a"]);
     }
 
+    /// ┌──┐
+    /// │  ▼
+    /// A  B
+    /// ▲  │
+    /// └──┘
     #[test]
     fn two_packages_cycle_is_detected() {
-        let aaa: Package = pkg("aaa", &[dep("bbb")]);
-        let bbb: Package = pkg("bbb", &[dep("aaa")]);
-        let pkgs = vec![&aaa, &bbb];
-        release_order(&pkgs).unwrap_err();
+        let pkgs = [&pkg("a", &[dep("b")]), &pkg("b", &[dep("a")])];
+        expect_test::expect!["Circular dependency detected: a -> b"]
+            .assert_eq(&release_order(&pkgs).unwrap_err().to_string());
     }
 
+    /// ┌─────┐
+    /// ▼     │
+    /// A────►B
+    /// │     ▲
+    /// └─►C──┘
     #[test]
     fn three_packages_cycle_is_detected() {
-        let aaa: Package = pkg("aaa", &[dep("bbb")]);
-        let ccc: Package = pkg("ccc", &[dep("bbb")]);
-        let bbb: Package = pkg("bbb", &[dep("aaa")]);
-        let pkgs = vec![&aaa, &bbb, &ccc];
-        release_order(&pkgs).unwrap_err();
+        let pkgs = [
+            &pkg("a", &[dep("b")]),
+            &pkg("a", &[dep("c")]),
+            &pkg("b", &[dep("a")]),
+            &pkg("c", &[dep("b")]),
+        ];
+        expect_test::expect!["Circular dependency detected: a -> b"]
+            .assert_eq(&release_order(&pkgs).unwrap_err().to_string());
+    }
+
+    /// A────►C
+    /// │     ▲
+    /// └─►B──┘
+    #[test]
+    fn three_packages_are_ordered() {
+        let pkgs = [
+            &pkg("a", &[dep("b")]),
+            &pkg("b", &[dep("c")]),
+            &pkg("c", &[]),
+        ];
+        assert_eq!(order(&pkgs), ["c", "b", "a"]);
     }
 }
