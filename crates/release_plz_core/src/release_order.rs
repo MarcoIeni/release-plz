@@ -100,23 +100,19 @@ mod tests {
 
     /// Dependency
     fn dep(name: &str) -> Dependency {
-        serde_json::from_value(serde_json::json!({
-            "name": name,
-            "req": "0.1.0",
-            "kind": "normal",
-            "optional": false,
-            "uses_default_features": true,
-            "features": [],
-        }))
-        .unwrap()
+        dependency(name, "normal")
     }
 
     /// Development dependency
     fn dev_dep(name: &str) -> Dependency {
+        dependency(name, "dev")
+    }
+
+    fn dependency(name: &str, dev_type: &str) -> Dependency {
         serde_json::from_value(serde_json::json!({
             "name": name,
             "req": "0.1.0",
-            "kind": "dev",
+            "kind": dev_type,
             "optional": false,
             "uses_default_features": true,
             "features": [],
