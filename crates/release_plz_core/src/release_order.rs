@@ -60,6 +60,7 @@ fn is_package_in(pkg: &Package, packages: &[&Package]) -> bool {
     packages.iter().any(|p| p.name == pkg.name)
 }
 
+/// Check if the dependency is enabled in features.
 fn is_dep_in_features(pkg: &Package, dep: &str) -> bool {
     pkg.features
         // Discard features name.
