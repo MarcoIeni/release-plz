@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.52](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.51...release-plz-v0.2.52) - 2023-03-04
+
+### Added
+- detect circular dependency (#581)
+
 ## [0.2.51](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.50...release-plz-v0.2.51) - 2023-02-27
 
 ### Fix
