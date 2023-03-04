@@ -63,9 +63,7 @@ mod tests {
     fn workspace_release_order_is_correct() {
         let public_packages = publishable_packages("../../Cargo.toml").unwrap();
         let pkgs = &public_packages.iter().collect::<Vec<_>>();
-        let ordered = release_order(pkgs).unwrap();
-        assert_eq!(ordered[ordered.len() - 1].name, "release-plz");
-        assert_eq!(ordered[ordered.len() - 2].name, "release_plz_core");
+        assert_eq!(order(pkgs), ["cargo_utils", "test_logs", "git_cmd", "next_version", "release_plz_core", "release-plz"]);
     }
 
     /// Package
