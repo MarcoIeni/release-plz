@@ -122,8 +122,6 @@ mod tests {
         .unwrap()
     }
 
-    // Diagrams created with https://asciiflow.com/
-
     fn order<'a>(pkgs: &'a [&'a Package]) -> Vec<&'a str> {
         release_order(pkgs)
             .unwrap()
@@ -131,6 +129,8 @@ mod tests {
             .map(|p| p.name.as_str())
             .collect()
     }
+
+    // Diagrams created with https://asciiflow.com/
 
     /// A─►B
     #[test]
