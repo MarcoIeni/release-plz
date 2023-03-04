@@ -24,6 +24,8 @@ fn is_package_in(pkg: &Package, packages: &[&Package]) -> bool {
     packages.iter().any(|p| p.name == pkg.name)
 }
 
+/// The `passed` argument is used to track packages that you already visited to
+/// detect circular dependencies.
 fn _release_order<'a>(
     packages: &[&'a Package],
     pkg: &'a Package,
