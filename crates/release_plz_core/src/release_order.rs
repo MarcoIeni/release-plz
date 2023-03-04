@@ -17,34 +17,6 @@ pub fn release_order<'a>(packages: &'a [&Package]) -> anyhow::Result<Vec<&'a Pac
     Ok(order)
 }
 
-/// Return true if the package is part of a packages array.
-/// This function exists because `package.contains(pkg)` is expensive,
-/// because it compares the whole package struct.
-fn is_package_in(pkg: &Package, packages: &[&Package]) -> bool {
-    packages.iter().any(|p| p.name == pkg.name)
-}
-
-fn is_dep_in_features(pkg: &Package, dep: &str) -> bool {
-    pkg.features
-        // Discard features name.
-        .values()
-        // Any feature contains the dependency in the format `dep/feature`.
-        .any(|enabled_features| {
-            enabled_features.iter()
-                .filter_map(|feature| feature.split_once('/').map(|split| split.0))
-                .any(|enabled_dependency| enabled_dependency == dep)
-        })
-}
-
-/// Check if the dependency should be released before the current package.
-fn should_dep_be_released_before(dep: &Dependency, pkg: &Package) -> bool {
-    // Ignore development dependencies. They don't need to be published before the current package...
-    matches!(dep.kind, DependencyKind::Normal | DependencyKind::Build)
-      // ...unless they are in features. In fact, `cargo-publish` compiles crates that are in features
-      // and dev-dependencies, even if they are not present in normal dependencies.
-      || is_dep_in_features(pkg, &dep.name)
-}
-
 /// The `passed` argument is used to track packages that you already visited to
 /// detect circular dependencies.
 fn release_order_inner<'a>(
@@ -79,6 +51,35 @@ fn release_order_inner<'a>(
     order.push(pkg);
     passed.clear();
     Ok(())
+}
+
+/// Return true if the package is part of a packages array.
+/// This function exists because `package.contains(pkg)` is expensive,
+/// because it compares the whole package struct.
+fn is_package_in(pkg: &Package, packages: &[&Package]) -> bool {
+    packages.iter().any(|p| p.name == pkg.name)
+}
+
+fn is_dep_in_features(pkg: &Package, dep: &str) -> bool {
+    pkg.features
+        // Discard features name.
+        .values()
+        // Any feature contains the dependency in the format `dep/feature`.
+        .any(|enabled_features| {
+            enabled_features
+                .iter()
+                .filter_map(|feature| feature.split_once('/').map(|split| split.0))
+                .any(|enabled_dependency| enabled_dependency == dep)
+        })
+}
+
+/// Check if the dependency should be released before the current package.
+fn should_dep_be_released_before(dep: &Dependency, pkg: &Package) -> bool {
+    // Ignore development dependencies. They don't need to be published before the current package...
+    matches!(dep.kind, DependencyKind::Normal | DependencyKind::Build)
+      // ...unless they are in features. In fact, `cargo-publish` compiles crates that are in features
+      // and dev-dependencies, even if they are not present in normal dependencies.
+      || is_dep_in_features(pkg, &dep.name)
 }
 
 #[cfg(test)]
