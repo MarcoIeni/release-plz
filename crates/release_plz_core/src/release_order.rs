@@ -1,15 +1,20 @@
 use cargo_metadata::Package;
+use tracing::info;
 
 /// Return packages in an order they can be released.
 /// In the result, the packages are placed after all their dependencies.
 /// Return an error if a circular dependency is detected.
 pub fn release_order<'a>(packages: &'a [&Package]) -> anyhow::Result<Vec<&'a Package>> {
-    let mut visited = vec![];
+    let mut order = vec![];
     let mut passed = vec![];
     for p in packages {
-        _release_order(packages, p, &mut visited, &mut passed)?;
+        _release_order(packages, p, &mut order, &mut passed)?;
     }
-    Ok(visited)
+    info!(
+        "Release order: {:?}",
+        order.iter().map(|p| &p.name).collect::<Vec<_>>()
+    );
+    Ok(order)
 }
 
 /// Return true if the package is part of a packages array.
@@ -22,10 +27,10 @@ fn is_package_in(pkg: &Package, packages: &[&Package]) -> bool {
 fn _release_order<'a>(
     packages: &[&'a Package],
     pkg: &'a Package,
-    visited: &mut Vec<&'a Package>,
+    order: &mut Vec<&'a Package>,
     passed: &mut Vec<&'a Package>,
 ) -> anyhow::Result<()> {
-    if is_package_in(pkg, visited) {
+    if is_package_in(pkg, order) {
         return Ok(());
     }
     passed.push(pkg);
@@ -42,11 +47,11 @@ fn _release_order<'a>(
                 dep.name,
                 pkg.name,
             );
-            _release_order(packages, dep, visited, passed)?;
+            _release_order(packages, dep, order, passed)?;
         }
     }
 
-    visited.push(pkg);
+    order.push(pkg);
     passed.clear();
     Ok(())
 }
@@ -63,7 +68,17 @@ mod tests {
     fn workspace_release_order_is_correct() {
         let public_packages = publishable_packages("../../Cargo.toml").unwrap();
         let pkgs = &public_packages.iter().collect::<Vec<_>>();
-        assert_eq!(order(pkgs), ["cargo_utils", "test_logs", "git_cmd", "next_version", "release_plz_core", "release-plz"]);
+        assert_eq!(
+            order(pkgs),
+            [
+                "cargo_utils",
+                "test_logs",
+                "git_cmd",
+                "next_version",
+                "release_plz_core",
+                "release-plz"
+            ]
+        );
     }
 
     /// Package
@@ -82,6 +97,19 @@ mod tests {
 
     /// Dependency
     fn dep(name: &str) -> Dependency {
+        serde_json::from_value(serde_json::json!({
+            "name": name,
+            "req": "0.1.0",
+            "kind": "normal",
+            "optional": false,
+            "uses_default_features": true,
+            "features": [],
+        }))
+        .unwrap()
+    }
+
+    /// Development dependency
+    fn dev_dep(name: &str) -> Dependency {
         serde_json::from_value(serde_json::json!({
             "name": name,
             "req": "0.1.0",
@@ -120,6 +148,17 @@ mod tests {
         let pkgs = [&pkg("a", &[dep("b")]), &pkg("b", &[dep("a")])];
         expect_test::expect!["Circular dependency detected: a -> b"]
             .assert_eq(&release_order(&pkgs).unwrap_err().to_string());
+    }
+
+    /// ┌──┐
+    /// │  ▼
+    /// A  B (dev dependency)
+    /// ▲  │
+    /// └──┘
+    #[test]
+    fn two_packages_dev_cycle_is_ok() {
+        let pkgs = [&pkg("a", &[dev_dep("b")]), &pkg("b", &[dep("a")])];
+        assert_eq!(order(&pkgs), ["b", "a"]);
     }
 
     /// ┌─────┐

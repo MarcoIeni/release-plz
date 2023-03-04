@@ -14,7 +14,7 @@ async fn main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
     log::init(args.verbose);
     run(args).await.map_err(|e| {
-        error!("{}", e);
+        error!("{:?}", e);
         e
     })?;
 
