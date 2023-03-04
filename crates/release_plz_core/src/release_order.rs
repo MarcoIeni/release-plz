@@ -8,7 +8,7 @@ pub fn release_order<'a>(packages: &'a [&Package]) -> anyhow::Result<Vec<&'a Pac
     let mut order = vec![];
     let mut passed = vec![];
     for p in packages {
-        _release_order(packages, p, &mut order, &mut passed)?;
+        release_order_inner(packages, p, &mut order, &mut passed)?;
     }
     debug!(
         "Release order: {:?}",
@@ -26,7 +26,7 @@ fn is_package_in(pkg: &Package, packages: &[&Package]) -> bool {
 
 /// The `passed` argument is used to track packages that you already visited to
 /// detect circular dependencies.
-fn _release_order<'a>(
+fn release_order_inner<'a>(
     packages: &[&'a Package],
     pkg: &'a Package,
     order: &mut Vec<&'a Package>,
@@ -52,7 +52,7 @@ fn _release_order<'a>(
                 dep.name,
                 pkg.name,
             );
-            _release_order(packages, dep, order, passed)?;
+            release_order_inner(packages, dep, order, passed)?;
         }
     }
 
