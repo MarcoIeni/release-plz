@@ -1,4 +1,4 @@
-use cargo_metadata::{DependencyKind, Package};
+use cargo_metadata::Package;
 
 /// Return packages in an order they can be released.
 /// In the result, the packages are placed after all their dependencies.
@@ -33,7 +33,8 @@ fn _release_order<'a>(
             anyhow::ensure!(
                 !passed.contains(dep),
                 "Circular dependency detected: {} -> {}",
-                pkg.name, dep.name
+                pkg.name,
+                dep.name
             );
             _release_order(packages, dep, visited, passed)?;
         }
@@ -97,10 +98,19 @@ mod tests {
     }
 
     #[test]
-    fn cycle_is_detected() {
+    fn two_packages_cycle_is_detected() {
         let aaa: Package = pkg("aaa", &[dep("bbb")]);
         let bbb: Package = pkg("bbb", &[dep("aaa")]);
         let pkgs = vec![&aaa, &bbb];
+        release_order(&pkgs).unwrap_err();
+    }
+
+    #[test]
+    fn three_packages_cycle_is_detected() {
+        let aaa: Package = pkg("aaa", &[dep("bbb")]);
+        let ccc: Package = pkg("ccc", &[dep("bbb")]);
+        let bbb: Package = pkg("bbb", &[dep("aaa")]);
+        let pkgs = vec![&aaa, &bbb, &ccc];
         release_order(&pkgs).unwrap_err();
     }
 }
