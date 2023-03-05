@@ -28,6 +28,8 @@ git-url-parse.workspace = true
 parse-changelog.workspace = true
 regex.workspace = true
 reqwest = { workspace = true, features = ["json"] }
+reqwest-middleware.workspace = true
+reqwest-retry.workspace = true
 secrecy.workspace = true
 serde = { workspace = true, features = ["derive"] }
 tempfile.workspace = true

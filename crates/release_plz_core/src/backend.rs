@@ -5,6 +5,8 @@ use crate::pr::Pr;
 use anyhow::Context;
 use reqwest::header::HeaderMap;
 use reqwest::Url;
+use reqwest_middleware::ClientBuilder;
+use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -35,7 +37,7 @@ pub enum BackendType {
 pub struct GitClient {
     backend: BackendType,
     pub remote: Remote,
-    pub client: reqwest::Client,
+    pub client: reqwest_middleware::ClientWithMiddleware,
 }
 
 #[derive(Debug, Clone)]
@@ -127,13 +129,20 @@ impl PrEdit {
 
 impl GitClient {
     pub fn new(backend: GitBackend) -> anyhow::Result<Self> {
-        let headers = backend.default_headers()?;
+        let client = {
+            let headers = backend.default_headers()?;
+            let reqwest_client = reqwest::Client::builder()
+                .user_agent("release-plz")
+                .default_headers(headers)
+                .build()
+                .context("can't build Git client")?;
 
-        let client = reqwest::Client::builder()
-            .user_agent("release-plz")
-            .default_headers(headers)
-            .build()
-            .context("can't build Git client")?;
+            let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
+            ClientBuilder::new(reqwest_client)
+                // Retry failed requests.
+                .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+                .build()
+        };
 
         let (backend, remote) = match backend {
             GitBackend::Github(g) => (BackendType::Github, g.remote),
