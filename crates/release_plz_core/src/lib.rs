@@ -27,6 +27,7 @@ pub use changelog::*;
 pub use download::read_package;
 pub use gitea_client::Gitea;
 pub use github_client::GitHub;
+pub use gitlab_client::GitLab;
 pub use next_ver::*;
 pub use package_compare::*;
 pub use package_path::*;
