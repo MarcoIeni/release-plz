@@ -1,5 +1,5 @@
-use crate::gitea_client::Gitea;
 use crate::GitHub;
+use crate::{gitea_client::Gitea, gitlab_client::GitLab};
 
 use crate::pr::Pr;
 use anyhow::Context;
@@ -16,6 +16,14 @@ use tracing::{debug, info, instrument};
 pub enum GitBackend {
     Github(GitHub),
     Gitea(Gitea),
+    Gitlab(GitLab),
+}
+
+#[derive(Serialize)]
+pub struct GitlabReleaseOption<'a> {
+    //id: &'a str,
+    tag_name: &'a str,
+    description: &'a str,
 }
 
 impl GitBackend {
@@ -23,6 +31,7 @@ impl GitBackend {
         match self {
             GitBackend::Github(g) => g.default_headers(),
             GitBackend::Gitea(g) => g.default_headers(),
+            GitBackend::Gitlab(g) => g.default_headers(),
         }
     }
 }
@@ -31,6 +40,7 @@ impl GitBackend {
 pub enum BackendType {
     Github,
     Gitea,
+    Gitlab,
 }
 
 #[derive(Debug)]
@@ -147,6 +157,7 @@ impl GitClient {
         let (backend, remote) = match backend {
             GitBackend::Github(g) => (BackendType::Github, g.remote),
             GitBackend::Gitea(g) => (BackendType::Gitea, g.remote),
+            GitBackend::Gitlab(g) => (BackendType::Gitlab, g.remote),
         };
         Ok(Self {
             remote,
@@ -159,6 +170,7 @@ impl GitClient {
         match self.backend {
             BackendType::Github => "per_page",
             BackendType::Gitea => "limit",
+            BackendType::Gitlab => "per_page",
         }
     }
 
@@ -169,6 +181,24 @@ impl GitClient {
             body,
             name: tag,
         };
+
+        if matches!(self.backend, BackendType::Gitlab) {
+            let gitlab_release_options = GitlabReleaseOption {
+                tag_name: tag,
+                description: body,
+            };
+            self.client
+                .post(format!(
+                    "{}/projects/{}%2F{}/releases",
+                    self.remote.base_url, self.remote.owner, self.remote.repo
+                ))
+                .json(&gitlab_release_options)
+                .send()
+                .await
+                .context("Failed to create a release")?
+                .error_for_status()?;
+            return Ok(());
+        }
         self.client
             .post(format!("{}/releases", self.repo_url()))
             .json(&create_release_options)

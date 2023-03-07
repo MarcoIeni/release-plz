@@ -7,6 +7,7 @@ mod diff;
 mod download;
 mod gitea_client;
 mod github_client;
+mod gitlab_client;
 mod next_ver;
 mod package_compare;
 mod package_path;
