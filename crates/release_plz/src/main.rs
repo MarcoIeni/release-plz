@@ -1,4 +1,5 @@
 mod args;
+mod config;
 mod log;
 mod update_checker;
 
@@ -22,14 +23,15 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn run(args: CliArgs) -> anyhow::Result<()> {
+    let config = args.config()?;
     match args.command {
         args::Command::Update(cmd_args) => {
-            let update_request = cmd_args.update_request()?;
+            let update_request = cmd_args.update_request(config)?;
             let updates = release_plz_core::update(&update_request)?;
             println!("{}", updates.0.summary());
         }
         args::Command::ReleasePr(cmd_args) => {
-            let update_request = cmd_args.update.update_request()?;
+            let update_request = cmd_args.update.update_request(config)?;
             let request = ReleasePrRequest {
                 git: cmd_args
                     .git_backend()

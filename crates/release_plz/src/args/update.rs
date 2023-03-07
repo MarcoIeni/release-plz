@@ -5,7 +5,9 @@ use chrono::NaiveDate;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::Repo;
-use release_plz_core::{ChangelogRequest, RepoUrl, UpdateRequest, CARGO_TOML};
+use release_plz_core::{ChangelogRequest, RepoUrl, UpdateRequest};
+
+use crate::config::Config;
 
 /// Update your project locally, without opening a PR.
 /// If `repo_url` contains a GitHub URL, release-plz uses it to add a release
@@ -95,13 +97,22 @@ impl Update {
         }
     }
 
-    pub fn update_request(&self) -> anyhow::Result<UpdateRequest> {
-        let mut update = UpdateRequest::new(self.project_manifest())
+    fn update_dependencies(&self, config: &Config) -> bool {
+        self.update_deps || config.update.update_dependencies
+    }
+
+    fn allow_dirty(&self, config: &Config) -> bool {
+        self.allow_dirty || config.update.allow_dirty
+    }
+
+    pub fn update_request(&self, config: Config) -> anyhow::Result<UpdateRequest> {
+        let project_manifest = self.project_manifest();
+        let mut update = UpdateRequest::new(project_manifest.clone())
             .with_context(|| {
-                format!("cannot find {CARGO_TOML} file. Make sure you are inside a rust project")
+                format!("Cannot find file {project_manifest:?}. Make sure you are inside a rust project or that --project-manifest points to a valid Cargo.toml file.")
             })?
-            .with_update_dependencies(self.update_deps)
-            .with_allow_dirty(self.allow_dirty);
+            .with_update_dependencies(self.update_dependencies(&config))
+            .with_allow_dirty(self.allow_dirty(&config));
         match self.repo_url() {
             Ok(repo_url) => {
                 update = update.with_repo_url(repo_url);
