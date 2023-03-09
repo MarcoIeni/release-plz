@@ -985,6 +985,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "fake_package"
+version = "0.1.0"
+dependencies = [
+ "cargo_metadata",
+ "serde_json",
+]
+
+[[package]]
 name = "fastrand"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2514,6 +2522,7 @@ dependencies = [
  "dunce",
  "expect-test",
  "fake",
+ "fake_package",
  "fs_extra",
  "git-cliff",
  "git-cliff-core",
