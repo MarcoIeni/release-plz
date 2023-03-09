@@ -85,7 +85,7 @@ fn should_dep_be_released_before(dep: &Dependency, pkg: &Package) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use cargo_metadata::Dependency;
+    use fake_package::{FakeDependency, FakePackage};
 
     use super::*;
     use crate::publishable_packages;
@@ -109,39 +109,20 @@ mod tests {
     }
 
     /// Package
-    fn pkg(name: &str, deps: &[Dependency]) -> Package {
-        serde_json::from_value(serde_json::json!({
-            "name": name,
-            "version": "0.1.0",
-            "id": name,
-            "dependencies": deps,
-            "features": {},
-            "manifest_path": format!("{name}/Cargo.toml"),
-            "targets": [],
-        }))
-        .unwrap()
+    fn pkg(name: &str, deps: &[FakeDependency]) -> Package {
+        FakePackage::new(name)
+            .with_dependencies(deps.to_vec())
+            .into()
     }
 
     /// Dependency
-    fn dep(name: &str) -> Dependency {
-        dependency(name, "normal")
+    fn dep(name: &str) -> FakeDependency {
+        FakeDependency::new(name)
     }
 
     /// Development dependency
-    fn dev_dep(name: &str) -> Dependency {
-        dependency(name, "dev")
-    }
-
-    fn dependency(name: &str, dev_type: &str) -> Dependency {
-        serde_json::from_value(serde_json::json!({
-            "name": name,
-            "req": "0.1.0",
-            "kind": dev_type,
-            "optional": false,
-            "uses_default_features": true,
-            "features": [],
-        }))
-        .unwrap()
+    fn dev_dep(name: &str) -> FakeDependency {
+        FakeDependency::new(name).dev()
     }
 
     fn order<'a>(pkgs: &'a [&'a Package]) -> Vec<&'a str> {

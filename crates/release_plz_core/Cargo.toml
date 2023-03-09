@@ -43,6 +43,7 @@ strip-ansi-escapes.workspace = true
 [dev-dependencies]
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }
 test_logs = { path = "../test_logs" }
+fake_package = { path = "../fake_package" }
 
 expect-test.workspace = true
 fake.workspace = true
