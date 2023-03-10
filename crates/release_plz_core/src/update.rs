@@ -6,7 +6,7 @@ use cargo_utils::upgrade_requirement;
 use cargo_utils::LocalManifest;
 use git_cmd::Repo;
 use std::{fs, path::Path};
-use tracing::info;
+use tracing::{info, warn};
 
 use tracing::{debug, instrument};
 
@@ -35,6 +35,29 @@ impl PackagesUpdate {
                     )
                 } else {
                     format!("\n* `{}`: {}", package.name, package.version)
+                }
+            })
+            .collect()
+    }
+
+    pub fn changes(&self) -> String {
+        self.updates
+            .iter()
+            .map(|(package, update)| match update.last_changes() {
+                Ok(Some(c)) => format!("## `{}`\n\n{}\n", package.name, c),
+                Ok(None) => {
+                    warn!(
+                        "no changes detected in changelog of package {}",
+                        package.name
+                    );
+                    "".to_string()
+                }
+                Err(e) => {
+                    warn!(
+                        "can't determine changes in changelog of package {}: {e}",
+                        package.name
+                    );
+                    "".to_string()
                 }
             })
             .collect()
