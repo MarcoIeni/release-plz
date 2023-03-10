@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.3...release_plz_core-v0.5.4) - 2023-03-10
+
+### Other
+- add fake_package crate for testing purposes (#594)
+
 ## [0.5.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.2...release_plz_core-v0.5.3) - 2023-03-09
 
 ### Added
