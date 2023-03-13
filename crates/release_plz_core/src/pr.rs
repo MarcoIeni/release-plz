@@ -54,7 +54,6 @@ fn pr_title(
 
 fn pr_body(
     packages_to_update: &PackagesUpdate,
-
     project_contains_multiple_pub_packages: bool,
 ) -> String {
     let header = "## 🤖 New release";
