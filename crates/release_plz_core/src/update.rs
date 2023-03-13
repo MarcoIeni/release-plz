@@ -263,21 +263,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             ],
         };
         expect_test::expect![[r#"
-            ## `foo`: [1.1.1] - 2015-05-15
+            ## `foo`
+            <blockquote>
+
+            ## [1.1.1] - 2015-05-15
 
             ### Fixed
             - myfix
 
             ### Other
             - simple update
+            </blockquote>
 
-            ## `bar`: [1.1.1] - 2015-05-15
+            ## `bar`
+            <blockquote>
+
+            ## [1.1.1] - 2015-05-15
 
             ### Fixed
             - myfix
 
             ### Other
             - simple update
+            </blockquote>
 
         "#]]
         .assert_eq(&pkgs.changes(true));
@@ -323,6 +331,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             )],
         };
         expect_test::expect![[r#"
+            <blockquote>
+
             ## [1.1.1] - 2015-05-15
 
             ### Fixed
@@ -330,6 +340,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
             ### Other
             - simple update
+            </blockquote>
 
         "#]]
         .assert_eq(&pkgs.changes(false));
