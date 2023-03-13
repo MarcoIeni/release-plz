@@ -46,12 +46,12 @@ impl PackagesUpdate {
             .map(|(package, update)| match update.last_changes() {
                 Ok(Some(release)) => {
                     let entry_prefix = if project_contains_multiple_pub_packages {
-                        format!(" `{}`:", package.name)
+                        format!("## `{}`\n", package.name)
                     } else {
                         "".to_string()
                     };
                     format!(
-                        "##{} {}\n\n{}\n\n",
+                        "{}<blockquote>\n\n## {}\n\n{}\n</blockquote>\n\n",
                         entry_prefix,
                         release.title(),
                         release.notes()

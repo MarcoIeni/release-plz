@@ -63,7 +63,7 @@ fn pr_body(
     let changes = {
         let changes = packages_to_update.changes(project_contains_multiple_pub_packages);
         format!(
-            "<details><summary>Changelog</summary><p>\n\n{}\n</p></details>\n",
+            "<details><summary><i><b>Changelog</b></i></summary><p>\n\n{}\n</p></details>\n",
             changes
         )
     };
