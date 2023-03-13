@@ -22,7 +22,7 @@ impl Pr {
             branch: release_branch(),
             base_branch: default_branch.to_string(),
             title: pr_title(packages_to_update, project_contains_multiple_pub_packages),
-            body: pr_body(packages_to_update),
+            body: pr_body(packages_to_update, project_contains_multiple_pub_packages),
         }
     }
 }
@@ -40,20 +40,34 @@ fn pr_title(
     packages_to_update: &PackagesUpdate,
     project_contains_multiple_pub_packages: bool,
 ) -> String {
-    if packages_to_update.updates.len() > 1 || !project_contains_multiple_pub_packages {
+    if packages_to_update.updates.len() > 1 {
         "chore: release".to_string()
     } else {
         let (package, update) = &packages_to_update.updates[0];
-        format!("chore({}): release v{}", package.name, update.version)
+        if project_contains_multiple_pub_packages {
+            format!("chore({}): release v{}", package.name, update.version)
+        } else {
+            format!("chore: release v{}", update.version)
+        }
     }
 }
 
-fn pr_body(packages_to_update: &PackagesUpdate) -> String {
+fn pr_body(
+    packages_to_update: &PackagesUpdate,
+    project_contains_multiple_pub_packages: bool,
+) -> String {
     let header = "## 🤖 New release";
 
     let summary = packages_to_update.summary();
+    let changes = {
+        let changes = packages_to_update.changes(project_contains_multiple_pub_packages);
+        format!(
+            "<details><summary><i><b>Changelog</b></i></summary><p>\n\n{}\n</p></details>\n",
+            changes
+        )
+    };
 
     let footer =
         "---\nThis PR was generated with [release-plz](https://github.com/MarcoIeni/release-plz/).";
-    format!("{header}{summary}\n{footer}")
+    format!("{header}{summary}\n{changes}\n{footer}")
 }

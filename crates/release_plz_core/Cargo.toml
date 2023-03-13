@@ -1,6 +1,6 @@
 [package]
 name = "release_plz_core"
-version = "0.5.2"
+version = "0.5.5"
 edition = "2021"
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/release_plz_core"
@@ -11,9 +11,9 @@ categories = ["development-tools"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cargo_utils = { path = "../cargo_utils", version = "0.1.12" }
+cargo_utils = { path = "../cargo_utils", version = "0.1.14" }
 git_cmd = { path = "../git_cmd", version = "0.2.16" }
-next_version = { path = "../next_version", version = "0.2.2" }
+next_version = { path = "../next_version", version = "0.2.3" }
 
 anyhow.workspace = true
 cargo_metadata.workspace = true
@@ -43,6 +43,7 @@ strip-ansi-escapes.workspace = true
 [dev-dependencies]
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }
 test_logs = { path = "../test_logs" }
+fake_package = { path = "../fake_package" }
 
 expect-test.workspace = true
 fake.workspace = true
