@@ -40,6 +40,7 @@ impl PackagesUpdate {
             .collect()
     }
 
+    /// Return the list of changes in the changelog of the updated packages
     pub fn changes(&self, project_contains_multiple_pub_packages: bool) -> String {
         self.updates
             .iter()
