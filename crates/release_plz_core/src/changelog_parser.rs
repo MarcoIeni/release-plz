@@ -21,9 +21,7 @@ pub fn last_version_from_str(changelog: &str) -> anyhow::Result<Option<String>> 
 
 pub fn last_release_from_str(changelog: &str) -> anyhow::Result<Option<ChangelogRelease>> {
     let parser = ChangelogParser::new(changelog)?;
-    let last_release = parser
-        .last_release()
-        .map(ChangelogRelease::from_release);
+    let last_release = parser.last_release().map(ChangelogRelease::from_release);
     Ok(last_release)
 }
 
