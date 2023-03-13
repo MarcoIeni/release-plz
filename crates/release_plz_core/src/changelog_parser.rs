@@ -19,6 +19,36 @@ pub fn last_version_from_str(changelog: &str) -> anyhow::Result<Option<String>> 
     Ok(last_release)
 }
 
+pub fn last_release_from_str(changelog: &str) -> anyhow::Result<Option<ChangelogRelease>> {
+    let parser = ChangelogParser::new(changelog)?;
+    let last_release = parser
+        .last_release()
+        .map(ChangelogRelease::from_release);
+    Ok(last_release)
+}
+
+pub struct ChangelogRelease {
+    title: String,
+    notes: String,
+}
+
+impl ChangelogRelease {
+    fn from_release(release: &parse_changelog::Release) -> Self {
+        Self {
+            title: release.title.to_string(),
+            notes: release.notes.to_string(),
+        }
+    }
+
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn notes(&self) -> &str {
+        &self.notes
+    }
+}
+
 pub struct ChangelogParser<'a> {
     changelog: parse_changelog::Changelog<'a>,
 }

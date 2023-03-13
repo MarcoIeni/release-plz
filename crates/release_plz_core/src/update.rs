@@ -40,11 +40,23 @@ impl PackagesUpdate {
             .collect()
     }
 
-    pub fn changes(&self) -> String {
+    pub fn changes(&self, project_contains_multiple_pub_packages: bool) -> String {
         self.updates
             .iter()
             .map(|(package, update)| match update.last_changes() {
-                Ok(Some(c)) => format!("## `{}`\n\n{}\n", package.name, c),
+                Ok(Some(release)) => {
+                    let entry_prefix = if project_contains_multiple_pub_packages {
+                        format!(" `{}`:", package.name)
+                    } else {
+                        "".to_string()
+                    };
+                    format!(
+                        "##{} {}\n\n{}\n\n",
+                        entry_prefix,
+                        release.title(),
+                        release.notes()
+                    )
+                }
                 Ok(None) => {
                     warn!(
                         "no changes detected in changelog of package {}",
@@ -201,6 +213,76 @@ mod tests {
     use super::*;
 
     #[test]
+    fn changelog_is_printed_correctly_in_workspace() {
+        test_logs::init();
+        let changelog = r#"
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [1.1.1] - 2015-05-15
+
+### Fixed
+- myfix
+
+### Other
+- simple update
+
+## [1.1.0] - 1970-01-01
+
+### fix bugs
+- my awesomefix
+
+### other
+- complex update
+        "#
+        .to_string();
+        let pkgs = PackagesUpdate {
+            updates: vec![
+                (
+                    fake_package::FakePackage::new("foo").into(),
+                    UpdateResult {
+                        version: Version::parse("0.2.0").unwrap(),
+                        changelog: Some(changelog.clone()),
+                        semver_check: SemverCheck::Compatible,
+                    },
+                ),
+                (
+                    fake_package::FakePackage::new("bar").into(),
+                    UpdateResult {
+                        version: Version::parse("0.2.0").unwrap(),
+                        changelog: Some(changelog),
+                        semver_check: SemverCheck::Compatible,
+                    },
+                ),
+            ],
+        };
+        expect_test::expect![[r#"
+            ## `foo`: [1.1.1] - 2015-05-15
+
+            ### Fixed
+            - myfix
+
+            ### Other
+            - simple update
+
+            ## `bar`: [1.1.1] - 2015-05-15
+
+            ### Fixed
+            - myfix
+
+            ### Other
+            - simple update
+
+        "#]]
+        .assert_eq(&pkgs.changes(true));
+    }
+
+    #[test]
     fn changelog_is_printed_correctly() {
         test_logs::init();
         let changelog = r#"
@@ -240,13 +322,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             )],
         };
         expect_test::expect![[r#"
-            ## `foo`
+            ## [1.1.1] - 2015-05-15
 
             ### Fixed
             - myfix
 
             ### Other
             - simple update
-        "#]].assert_eq(&pkgs.changes());
+
+        "#]]
+        .assert_eq(&pkgs.changes(false));
     }
 }
