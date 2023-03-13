@@ -1,4 +1,5 @@
 use crate::{
+    changelog_parser::{self, ChangelogRelease},
     diff::Diff,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
@@ -253,6 +254,15 @@ pub struct UpdateResult {
     pub version: Version,
     pub changelog: Option<String>,
     pub semver_check: SemverCheck,
+}
+
+impl UpdateResult {
+    pub fn last_changes(&self) -> anyhow::Result<Option<ChangelogRelease>> {
+        match &self.changelog {
+            Some(c) => changelog_parser::last_release_from_str(c),
+            None => Ok(None),
+        }
+    }
 }
 
 pub struct Updater<'a> {
