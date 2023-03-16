@@ -169,6 +169,8 @@ fn reset_branch(pr: &GitPr, commits_number: usize, repository: &Repo) -> anyhow:
     let head = format!("HEAD~{commits_number}");
     repository.git(&["reset", "--hard", &head])?;
 
+    repository.git(&["fetch"])?;
+
     // Update PR branch with latest changes from the default branch.
     if let Err(e) = repository.git(&["rebase", repository.default_branch()]) {
         tracing::error!("cannot rebase from default branch: {}", e);
