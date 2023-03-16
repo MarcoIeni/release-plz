@@ -72,7 +72,7 @@ impl CliArgs {
         match std::fs::read_to_string(&config_path) {
             Ok(config) => {
                 info!("using release-plz config file {}", config_path.display());
-                serde_yaml::from_str(&config)
+                toml::from_str(&config)
                     .with_context(|| format!("invalid config file {config_path:?}"))
             }
             Err(e) => match e.kind() {

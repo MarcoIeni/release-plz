@@ -113,28 +113,29 @@ mod tests {
     #[test]
     fn config_is_deserialized() {
         let config = r#"
-            update:
-              update_dependencies: false
-              changelog_config: ../git-cliff.toml
-              allow_dirty: false
-              repo_url: https://github.com/MarcoIeni/release-plz
-            packages_defaults:
-                semver_check: 'true'
-                changelog: true
-                release:
-                    git:
-                        enable: true
-                        prerelease: false
-                        draft: false
-            packages_overrides:
-                crate1:
-                    semver_check: 'true'
-                    changelog: true
-                    release:
-                        git:
-                            enable: true
-                            prerelease: false
-                            draft: false
+            [update]
+            update_dependencies = false
+            changelog_config = "../git-cliff.toml"
+            allow_dirty = false
+            repo_url = "https://github.com/MarcoIeni/release-plz"
+
+            [packages_defaults]
+            semver_check = "true"
+            changelog = true
+
+            [packages_defaults.release.git]
+            enable = true
+            prerelease = false
+            draft = false
+
+            [packages_overrides.crate1]
+            semver_check = "true"
+            changelog = true
+
+            [packages_overrides.crate1.release.git]
+            enable = true
+            prerelease = false
+            draft = false
         "#;
 
         let expected_config = Config {
@@ -172,7 +173,7 @@ mod tests {
             .into(),
         };
 
-        let config: Config = serde_yaml::from_str(config).unwrap();
+        let config: Config = toml::from_str(config).unwrap();
         assert_eq!(config, expected_config)
     }
 
@@ -214,29 +215,30 @@ mod tests {
         };
 
         expect_test::expect![[r#"
-            update:
-              update_dependencies: false
-              changelog_config: ../git-cliff.toml
-              allow_dirty: false
-              repo_url: https://github.com/MarcoIeni/release-plz
-            packages_defaults:
-              semver_check: 'true'
-              changelog: true
-              release:
-                git:
-                  enable: true
-                  prerelease: 'false'
-                  draft: false
-            packages_overrides:
-              crate1:
-                semver_check: 'true'
-                changelog: true
-                release:
-                  git:
-                    enable: true
-                    prerelease: 'false'
-                    draft: false
+            [update]
+            update_dependencies = false
+            changelog_config = "../git-cliff.toml"
+            allow_dirty = false
+            repo_url = "https://github.com/MarcoIeni/release-plz"
+
+            [packages_defaults]
+            semver_check = "true"
+            changelog = true
+
+            [packages_defaults.release.git]
+            enable = true
+            prerelease = "false"
+            draft = false
+
+            [packages_overrides.crate1]
+            semver_check = "true"
+            changelog = true
+
+            [packages_overrides.crate1.release.git]
+            enable = true
+            prerelease = "false"
+            draft = false
         "#]]
-        .assert_eq(&serde_yaml::to_string(&config).unwrap());
+        .assert_eq(&toml::to_string(&config).unwrap());
     }
 }
