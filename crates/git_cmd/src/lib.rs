@@ -11,13 +11,14 @@ use std::{
 };
 
 use anyhow::{anyhow, Context};
-use tracing::{debug, instrument, trace, Span};
+use tracing::{debug, instrument, trace, warn, Span};
 
 /// Repository
 pub struct Repo {
     /// Directory where you want to run git operations
     directory: PathBuf,
     default_branch: String,
+    original_remote: String,
 }
 
 impl Repo {
@@ -26,17 +27,50 @@ impl Repo {
     pub fn new(directory: impl AsRef<Path>) -> anyhow::Result<Self> {
         debug!("initializing directory {:?}", directory.as_ref());
 
-        let current_branch =
-            Self::get_current_branch(&directory).context("cannot determine current branch")?;
+        let (current_remote, current_branch) = Self::get_current_remote_and_branch(&directory)
+            .context("cannot determine current branch")?;
 
         Ok(Self {
             directory: directory.as_ref().to_path_buf(),
             default_branch: current_branch,
+            original_remote: current_remote,
         })
     }
 
     pub fn directory(&self) -> &Path {
         &self.directory
+    }
+
+    fn get_current_remote_and_branch(
+        directory: impl AsRef<Path>,
+    ) -> anyhow::Result<(String, String)> {
+        match git_in_dir(
+            directory.as_ref(),
+            &[
+                "rev-parse",
+                "--abbrev-ref",
+                "--symbolic-full-name",
+                "@{upstream}",
+            ],
+        ) {
+            Ok(output) => output
+                .split_once('/')
+                .map(|(remote, branch)| (remote.to_string(), branch.to_string()))
+                .context("cannot determine current remote and branch"),
+
+            Err(e) => {
+                let err = e.to_string();
+                if err.contains("fatal: no upstream configured for branch") {
+                    let branch = Self::get_current_branch(directory)?;
+                    warn!("no upstream configured for branch {branch}");
+                    Ok(("origin".to_string(), branch))
+                } else if err.contains("fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.") {
+                    Err(anyhow!("git repository does not contain any commit."))
+                } else {
+                    Err(e)
+                }
+            }
+        }
     }
 
     fn get_current_branch(directory: impl AsRef<Path>) -> anyhow::Result<String> {
@@ -89,17 +123,17 @@ impl Repo {
     }
 
     pub fn push(&self, obj: &str) -> anyhow::Result<()> {
-        self.git(&["push", "origin", obj])?;
+        self.git(&["push", &self.original_remote, obj])?;
         Ok(())
     }
 
     pub fn fetch(&self, obj: &str) -> anyhow::Result<()> {
-        self.git(&["fetch", "origin", obj])?;
+        self.git(&["fetch", &self.original_remote, obj])?;
         Ok(())
     }
 
     pub fn force_push(&self, obj: &str) -> anyhow::Result<()> {
-        self.git(&["push", "origin", obj, "--force"])?;
+        self.git(&["push", &self.original_remote, obj, "--force"])?;
         Ok(())
     }
 
