@@ -24,14 +24,17 @@ impl GitLab {
     pub fn default_headers(&self) -> anyhow::Result<HeaderMap> {
         let mut headers = HeaderMap::new();
         headers.insert(
-            reqwest::header::ACCEPT,
+            reqwest::header::HeaderName::from_static("content-type"),
             reqwest::header::HeaderValue::from_static("application/json"),
         );
         let auth_header: HeaderValue =
             format!("private-token: {}", self.remote.token.expose_secret())
                 .parse()
                 .context("Invalid Gitlab token")?;
-        headers.insert(reqwest::header::AUTHORIZATION, auth_header);
+        headers.insert(
+            reqwest::header::HeaderName::from_static("private-token"),
+            auth_header,
+        );
         Ok(headers)
     }
 }

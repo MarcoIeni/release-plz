@@ -21,7 +21,8 @@ pub enum GitBackend {
 
 #[derive(Serialize)]
 pub struct GitlabReleaseOption<'a> {
-    //id: &'a str,
+    #[serde(rename = "ref")]
+    ref_field: &'a str,
     tag_name: &'a str,
     description: &'a str,
 }
@@ -184,6 +185,7 @@ impl GitClient {
 
         if matches!(self.backend, BackendType::Gitlab) {
             let gitlab_release_options = GitlabReleaseOption {
+                ref_field: "main",
                 tag_name: tag,
                 description: body,
             };
