@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - detect git remote (#610)
 
-### Fixed
-- do git fetch before rebase (#607)
+### Changed
+- (breaking) renamed `default_branch` method to `original_branch`
 
 ## [0.2.16](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.15...git_cmd-v0.2.16) - 2023-02-26
 
