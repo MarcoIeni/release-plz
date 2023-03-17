@@ -17,7 +17,9 @@ use tracing::{debug, instrument, trace, warn, Span};
 pub struct Repo {
     /// Directory where you want to run git operations
     directory: PathBuf,
-    default_branch: String,
+    /// Branch name before running any git operation
+    original_branch: String,
+    /// Remote name before running any git operation
     original_remote: String,
 }
 
@@ -32,7 +34,7 @@ impl Repo {
 
         Ok(Self {
             directory: directory.as_ref().to_path_buf(),
-            default_branch: current_branch,
+            original_branch: current_branch,
             original_remote: current_remote,
         })
     }
@@ -138,12 +140,14 @@ impl Repo {
     }
 
     pub fn checkout_head(&self) -> anyhow::Result<()> {
-        self.git(&["checkout", &self.default_branch])?;
+        self.git(&["checkout", &self.original_branch])?;
         Ok(())
     }
 
-    pub fn default_branch(&self) -> &str {
-        &self.default_branch
+    /// Branch name before running any git operation.
+    /// I.e. when the [`Repo`] was created.
+    pub fn original_branch(&self) -> &str {
+        &self.original_branch
     }
 
     #[instrument(skip(self))]
