@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.16...git_cmd-v0.3.0) - 2023-03-17
+
+### Added
+- detect git remote (#610)
+
+### Fixed
+- do git fetch before rebase (#607)
+
 ## [0.2.16](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.15...git_cmd-v0.2.16) - 2023-02-26
 
 ### Other
