@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - detect git remote (#610)
 
 ### Fixed
-- do git fetch before rebase (#607)
+- update pr: do git fetch before rebase (#607)
 
 ## [0.5.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.4...release_plz_core-v0.5.5) - 2023-03-13
 
