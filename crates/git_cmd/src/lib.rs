@@ -93,6 +93,11 @@ impl Repo {
         Ok(())
     }
 
+    pub fn fetch(&self, obj: &str) -> anyhow::Result<()> {
+        self.git(&["fetch", "origin", obj])?;
+        Ok(())
+    }
+
     pub fn force_push(&self, obj: &str) -> anyhow::Result<()> {
         self.git(&["push", "origin", obj, "--force"])?;
         Ok(())
