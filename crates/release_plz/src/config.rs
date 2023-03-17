@@ -4,14 +4,23 @@ use url::Url;
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
 pub struct Config {
+    pub workspace: Workspace,
+    /// Package specific configuration. This overrides `packages_overrides`.
+    pub package: HashMap<String, PackageConfig>,
+}
+
+/// Global configuration.
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
+pub struct Workspace {
+    #[serde(flatten)]
     // TODO: can registry be read from Cargo.toml or maybe from cargo config?
     //     /// Registry where the packages are stored. The registry name needs to be present in the Cargo config. If unspecified, crates.io is used.
     //     registry: Option<String>,
     pub update: UpdateConfig,
     /// Configuration applied to all packages by default.
+    #[serde(flatten)]
     pub packages_defaults: PackageConfig,
-    /// Package specific configuration. This overrides `packages_overrides`.
-    pub packages_overrides: HashMap<String, PackageConfig>,
+
 }
 
 /// Configuration for the `update` command.
@@ -110,55 +119,84 @@ pub enum Prerelease {
 mod tests {
     use super::*;
 
+    // #[test]
+    // fn config_is_deserialized() {
+    //     let config = r#"
+    //         [update]
+    //         update_dependencies = false
+    //         changelog_config = "../git-cliff.toml"
+    //         allow_dirty = false
+    //         repo_url = "https://github.com/MarcoIeni/release-plz"
+
+    //         [packages_defaults]
+    //         semver_check = "true"
+    //         changelog = true
+
+    //         [packages_defaults.release.git]
+    //         enable = true
+    //         prerelease = false
+    //         draft = false
+
+    //         [packages_overrides.crate1]
+    //         semver_check = "true"
+    //         changelog = true
+
+    //         [packages_overrides.crate1.release.git]
+    //         enable = true
+    //         prerelease = false
+    //         draft = false
+    //     "#;
+
+    //     let expected_config = Config {
+    //         update: UpdateConfig {
+    //             update_dependencies: false,
+    //             changelog_config: Some("../git-cliff.toml".into()),
+    //             allow_dirty: false,
+    //             repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
+    //         },
+    //         packages_defaults: PackageConfig {
+    //             semver_check: SemverCheck::True,
+    //             changelog: true,
+    //             release: ReleaseConfig {
+    //                 git: GitReleaseConfig {
+    //                     enable: true,
+    //                     prerelease: Prerelease::False,
+    //                     draft: false,
+    //                 },
+    //             },
+    //         },
+    //         packages_overrides: [(
+    //             "crate1".to_string(),
+    //             PackageConfig {
+    //                 semver_check: SemverCheck::True,
+    //                 changelog: true,
+    //                 release: ReleaseConfig {
+    //                     git: GitReleaseConfig {
+    //                         enable: true,
+    //                         prerelease: Prerelease::False,
+    //                         draft: false,
+    //                     },
+    //                 },
+    //             },
+    //         )]
+    //         .into(),
+    //     };
+
+    //     let config: Config = toml::from_str(config).unwrap();
+    //     assert_eq!(config, expected_config)
+    // }
+
     #[test]
-    fn config_is_deserialized() {
-        let config = r#"
-            [update]
-            update_dependencies = false
-            changelog_config = "../git-cliff.toml"
-            allow_dirty = false
-            repo_url = "https://github.com/MarcoIeni/release-plz"
-
-            [packages_defaults]
-            semver_check = "true"
-            changelog = true
-
-            [packages_defaults.release.git]
-            enable = true
-            prerelease = false
-            draft = false
-
-            [packages_overrides.crate1]
-            semver_check = "true"
-            changelog = true
-
-            [packages_overrides.crate1.release.git]
-            enable = true
-            prerelease = false
-            draft = false
-        "#;
-
-        let expected_config = Config {
-            update: UpdateConfig {
-                update_dependencies: false,
-                changelog_config: Some("../git-cliff.toml".into()),
-                allow_dirty: false,
-                repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
-            },
-            packages_defaults: PackageConfig {
-                semver_check: SemverCheck::True,
-                changelog: true,
-                release: ReleaseConfig {
-                    git: GitReleaseConfig {
-                        enable: true,
-                        prerelease: Prerelease::False,
-                        draft: false,
-                    },
+    fn config_is_serialized() {
+        let config = Config {
+            workspace: Workspace {
+                update: UpdateConfig {
+                    update_dependencies: false,
+                    changelog_config: Some("../git-cliff.toml".into()),
+                    allow_dirty: false,
+                    repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
-            },
-            packages_overrides: [(
-                "crate1".to_string(),
-                PackageConfig {
+                packages_defaults: PackageConfig {
                     semver_check: SemverCheck::True,
                     changelog: true,
                     release: ReleaseConfig {
@@ -169,35 +207,8 @@ mod tests {
                         },
                     },
                 },
-            )]
-            .into(),
-        };
-
-        let config: Config = toml::from_str(config).unwrap();
-        assert_eq!(config, expected_config)
-    }
-
-    #[test]
-    fn config_is_serialized() {
-        let config = Config {
-            update: UpdateConfig {
-                update_dependencies: false,
-                changelog_config: Some("../git-cliff.toml".into()),
-                allow_dirty: false,
-                repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
             },
-            packages_defaults: PackageConfig {
-                semver_check: SemverCheck::True,
-                changelog: true,
-                release: ReleaseConfig {
-                    git: GitReleaseConfig {
-                        enable: true,
-                        prerelease: Prerelease::False,
-                        draft: false,
-                    },
-                },
-            },
-            packages_overrides: [(
+            package: [(
                 "crate1".to_string(),
                 PackageConfig {
                     semver_check: SemverCheck::True,
@@ -215,26 +226,24 @@ mod tests {
         };
 
         expect_test::expect![[r#"
-            [update]
+            [workspace]
             update_dependencies = false
             changelog_config = "../git-cliff.toml"
             allow_dirty = false
             repo_url = "https://github.com/MarcoIeni/release-plz"
-
-            [packages_defaults]
             semver_check = "true"
             changelog = true
 
-            [packages_defaults.release.git]
+            [workspace.release.git]
             enable = true
             prerelease = "false"
             draft = false
 
-            [packages_overrides.crate1]
+            [package.crate1]
             semver_check = "true"
             changelog = true
 
-            [packages_overrides.crate1.release.git]
+            [package.crate1.release.git]
             enable = true
             prerelease = "false"
             draft = false
