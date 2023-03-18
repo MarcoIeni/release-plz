@@ -3,7 +3,7 @@ use std::str::FromStr;
 use anyhow::Context;
 use clap::builder::NonEmptyStringValueParser;
 use clap::ValueEnum;
-use release_plz_core::{GitBackend, GitHub, Gitea};
+use release_plz_core::{GitBackend, GitHub, GitLab, Gitea};
 use secrecy::SecretString;
 
 use super::update::Update;
@@ -26,6 +26,8 @@ pub enum GitBackendKind {
     Github,
     #[value(name = "gitea")]
     Gitea,
+    #[value(name = "gitlab")]
+    Gitlab,
 }
 
 impl ReleasePr {
@@ -42,6 +44,7 @@ impl ReleasePr {
                 GitBackend::Github(GitHub::new(repo.owner, repo.name, token))
             }
             GitBackendKind::Gitea => GitBackend::Gitea(Gitea::new(repo, token)?),
+            GitBackendKind::Gitlab => GitBackend::Gitlab(GitLab::new(repo.owner, repo.name, token)),
         })
     }
 }

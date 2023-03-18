@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use anyhow::Context;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use git_cmd::Repo;
-use release_plz_core::{GitBackend, GitHub, Gitea, ReleaseRequest, RepoUrl};
+use release_plz_core::{GitBackend, GitHub, GitLab, Gitea, ReleaseRequest, RepoUrl};
 use secrecy::SecretString;
 
 use super::{local_manifest, release_pr::GitBackendKind};
@@ -65,6 +65,9 @@ impl TryFrom<Release> for ReleaseRequest {
                     GitBackendKind::Gitea => GitBackend::Gitea(Gitea::new(repo_url, git_token)?),
                     GitBackendKind::Github => {
                         GitBackend::Github(GitHub::new(repo_url.owner, repo_url.name, git_token))
+                    }
+                    GitBackendKind::Gitlab => {
+                        GitBackend::Gitlab(GitLab::new(repo_url.owner, repo_url.name, git_token))
                     }
                 },
             };

@@ -197,6 +197,10 @@ async fn publish_release(
             let git_client = GitClient::new(GitBackend::Gitea(gitea.clone()))?;
             git_client.create_release(&git_tag, release_body).await?;
         }
+        GitBackend::Gitlab(gitlab) => {
+            let git_client = GitClient::new(GitBackend::Gitlab(gitlab.clone()))?;
+            git_client.create_release(&git_tag, release_body).await?;
+        }
     }
     Ok(())
 }
