@@ -21,8 +21,6 @@ pub enum GitBackend {
 
 #[derive(Serialize)]
 pub struct GitlabReleaseOption<'a> {
-    #[serde(rename = "ref")]
-    ref_field: &'a str,
     tag_name: &'a str,
     description: &'a str,
 }
