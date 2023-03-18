@@ -27,10 +27,12 @@ impl GitLab {
             reqwest::header::HeaderName::from_static("content-type"),
             reqwest::header::HeaderValue::from_static("application/json"),
         );
-        let auth_header: HeaderValue =
-            format!("private-token: {}", self.remote.token.expose_secret())
-                .parse()
-                .context("Invalid Gitlab token")?;
+        let auth_header: HeaderValue = self
+            .remote
+            .token
+            .expose_secret()
+            .parse()
+            .context("Invalid Gitlab token")?;
         headers.insert(
             reqwest::header::HeaderName::from_static("private-token"),
             auth_header,
