@@ -183,7 +183,6 @@ impl GitClient {
 
         if matches!(self.backend, BackendType::Gitlab) {
             let gitlab_release_options = GitlabReleaseOption {
-                ref_field: "main",
                 tag_name: tag,
                 description: body,
             };
