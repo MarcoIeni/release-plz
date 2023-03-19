@@ -6,11 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+<<<<<<< Updated upstream
 ## [0.2.57](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.56...release-plz-v0.2.57) - 2023-03-18
+=======
+## [0.2.57](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.56...release-plz-v0.2.57) - 2023-03-19
+>>>>>>> Stashed changes
 
 ### Added
 - *(release)* add GitLab support (#591)
 
+<<<<<<< Updated upstream
+=======
+### Other
+- remove gitlab from release-pr backend (#612)
+
+>>>>>>> Stashed changes
 ## [0.2.56](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.55...release-plz-v0.2.56) - 2023-03-17
 
 ### Fixed
