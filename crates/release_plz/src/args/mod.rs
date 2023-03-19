@@ -27,7 +27,7 @@ pub struct CliArgs {
     #[arg(short, long)]
     pub verbose: bool,
     /// Path to the release-plz yaml config file.
-    /// Default: `./release-plz.yaml`.
+    /// Default: `./release-plz.toml`.
     /// If no config file is found, the default configuration is used.
     #[arg(
         long,
@@ -67,7 +67,7 @@ fn local_manifest(project_manifest: Option<&Path>) -> PathBuf {
 
 impl CliArgs {
     pub fn config(&self) -> anyhow::Result<Config> {
-        let config_path = self.config.clone().unwrap_or("release-plz.yaml".into());
+        let config_path = self.config.clone().unwrap_or("release-plz.toml".into());
 
         match std::fs::read_to_string(&config_path) {
             Ok(config) => {
