@@ -57,11 +57,11 @@ pub struct PackageConfig {
 pub enum SemverCheck {
     /// Run cargo-semver-checks if the package is a library.
     #[default]
-    Libraries,
-    /// Run cargo-semver-checks even if the package is a binary.
-    True,
+    Lib,
+    /// Run cargo-semver-checks.
+    Yes,
     /// Don't run cargo-semver-checks.
-    False,
+    No,
 }
 
 impl Default for PackageConfig {
@@ -80,7 +80,7 @@ pub struct GitReleaseConfig {
     /// Default: `true`
     pub enable: bool,
     /// Whether to mark the created release as not ready for production.
-    pub prerelease: Prerelease,
+    pub release_type: ReleaseType,
     /// If true, will not auto-publish the release.
     /// Default: `false`.
     pub draft: bool,
@@ -90,7 +90,7 @@ impl Default for GitReleaseConfig {
     fn default() -> Self {
         Self {
             enable: true,
-            prerelease: Prerelease::default(),
+            release_type: ReleaseType::default(),
             draft: false,
         }
     }
@@ -98,14 +98,16 @@ impl Default for GitReleaseConfig {
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
-pub enum Prerelease {
+pub enum ReleaseType {
     /// Will mark the release as ready for production.
     #[default]
-    False,
+    Prod,
     /// Will mark the release as not ready for production.
-    True,
+    /// I.e. as pre-release.
+    Pre,
     /// Will mark the release as not ready for production
-    /// in case there is a semver pre-release in the tag e.g. v1.0.0-rc1
+    /// in case there is a semver pre-release in the tag e.g. v1.0.0-rc1.
+    /// Otherwise, will mark the release as ready for production.
     Auto,
 }
 
@@ -191,11 +193,11 @@ mod tests {
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
                 packages_defaults: PackageConfig {
-                    semver_check: SemverCheck::True,
+                    semver_check: SemverCheck::Lib,
                     changelog: true,
                     git_release: GitReleaseConfig {
                         enable: true,
-                        prerelease: Prerelease::False,
+                        release_type: ReleaseType::Prod,
                         draft: false,
                     },
                 },
@@ -203,11 +205,11 @@ mod tests {
             package: [(
                 "crate1".to_string(),
                 PackageConfig {
-                    semver_check: SemverCheck::True,
+                    semver_check: SemverCheck::No,
                     changelog: true,
                     git_release: GitReleaseConfig {
                         enable: true,
-                        prerelease: Prerelease::False,
+                        release_type: ReleaseType::Prod,
                         draft: false,
                     },
                 },
@@ -221,21 +223,21 @@ mod tests {
             changelog_config = "../git-cliff.toml"
             allow_dirty = false
             repo_url = "https://github.com/MarcoIeni/release-plz"
-            semver_check = "true"
+            semver_check = "lib"
             changelog = true
 
             [workspace.git_release]
             enable = true
-            prerelease = "false"
+            release_type = "prod"
             draft = false
 
             [package.crate1]
-            semver_check = "true"
+            semver_check = "no"
             changelog = true
 
             [package.crate1.git_release]
             enable = true
-            prerelease = "false"
+            release_type = "prod"
             draft = false
         "#]]
         .assert_eq(&toml::to_string(&config).unwrap());
