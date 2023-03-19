@@ -169,7 +169,9 @@ impl GitClient {
         match self.backend {
             BackendType::Github => "per_page",
             BackendType::Gitea => "limit",
-            BackendType::Gitlab => "per_page",
+            BackendType::Gitlab => {
+                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
+            }
         }
     }
 
