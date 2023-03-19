@@ -20,7 +20,6 @@ pub struct Workspace {
     /// Configuration applied to all packages by default.
     #[serde(flatten)]
     pub packages_defaults: PackageConfig,
-
 }
 
 /// Configuration for the `update` command.
@@ -48,7 +47,7 @@ pub struct PackageConfig {
     /// Create/update changelog.
     /// Default: `true`.
     pub changelog: bool,
-    pub release: ReleaseConfig,
+    pub git_release: GitReleaseConfig,
 }
 
 /// Whether to run cargo-semver-checks or not.
@@ -69,16 +68,9 @@ impl Default for PackageConfig {
         Self {
             semver_check: SemverCheck::default(),
             changelog: true,
-            release: ReleaseConfig::default(),
+            git_release: GitReleaseConfig::default(),
         }
     }
-}
-
-/// TODO: allow custom tag names in this struct
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default)]
-pub struct ReleaseConfig {
-    /// Publish the GitHub/Gitea release for the created git tag.
-    pub git: GitReleaseConfig,
 }
 
 // TODO: custom release name
@@ -199,12 +191,10 @@ mod tests {
                 packages_defaults: PackageConfig {
                     semver_check: SemverCheck::True,
                     changelog: true,
-                    release: ReleaseConfig {
-                        git: GitReleaseConfig {
-                            enable: true,
-                            prerelease: Prerelease::False,
-                            draft: false,
-                        },
+                    git_release: GitReleaseConfig {
+                        enable: true,
+                        prerelease: Prerelease::False,
+                        draft: false,
                     },
                 },
             },
@@ -213,12 +203,10 @@ mod tests {
                 PackageConfig {
                     semver_check: SemverCheck::True,
                     changelog: true,
-                    release: ReleaseConfig {
-                        git: GitReleaseConfig {
-                            enable: true,
-                            prerelease: Prerelease::False,
-                            draft: false,
-                        },
+                    git_release: GitReleaseConfig {
+                        enable: true,
+                        prerelease: Prerelease::False,
+                        draft: false,
                     },
                 },
             )]
@@ -234,7 +222,7 @@ mod tests {
             semver_check = "true"
             changelog = true
 
-            [workspace.release.git]
+            [workspace.git_release]
             enable = true
             prerelease = "false"
             draft = false
@@ -243,7 +231,7 @@ mod tests {
             semver_check = "true"
             changelog = true
 
-            [package.crate1.release.git]
+            [package.crate1.git_release]
             enable = true
             prerelease = "false"
             draft = false
