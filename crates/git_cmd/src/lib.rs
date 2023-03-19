@@ -249,8 +249,10 @@ impl Repo {
         self.git(&["tag", name])
     }
 
-    pub fn origin_url(&self) -> anyhow::Result<String> {
-        self.git(&["config", "--get", "remote.origin.url"])
+    /// Url of the remote when the [`Repo`] was created.
+    pub fn original_remote_url(&self) -> anyhow::Result<String> {
+        let param = format!("remote.{}.url", self.original_remote);
+        self.git(&["config", "--get", &param])
     }
 
     pub fn tag_exists(&self, tag: &str) -> anyhow::Result<bool> {

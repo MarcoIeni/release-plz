@@ -34,7 +34,9 @@ impl RepoUrl {
     }
 
     pub fn from_repo(repo: &Repo) -> Result<Self, anyhow::Error> {
-        let url = repo.origin_url().context("cannot determine origin url")?;
+        let url = repo
+            .original_remote_url()
+            .context("cannot determine origin url")?;
         RepoUrl::new(&url)
     }
 
