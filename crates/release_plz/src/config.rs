@@ -99,6 +99,7 @@ impl Default for GitReleaseConfig {
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum Prerelease {
+    /// Will mark the release as ready for production.
     #[default]
     False,
     /// Will mark the release as not ready for production.
