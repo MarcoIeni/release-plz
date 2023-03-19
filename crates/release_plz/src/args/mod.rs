@@ -26,7 +26,7 @@ pub struct CliArgs {
     /// To change the log level, use the `RUST_FLAG` environment variable.
     #[arg(short, long)]
     pub verbose: bool,
-    /// Path to the release-plz yaml config file.
+    /// Path to the release-plz config file.
     /// Default: `./release-plz.toml`.
     /// If no config file is found, the default configuration is used.
     #[arg(
