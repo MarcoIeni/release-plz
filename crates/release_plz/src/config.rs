@@ -4,8 +4,10 @@ use url::Url;
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
 pub struct Config {
+    /// Global configuration. Applied to all packages by default.
     pub workspace: Workspace,
-    /// Package specific configuration. This overrides `packages_overrides`.
+    /// Package specific configuration. This overrides `workspace`.
+    /// Not all settings of `workspace` can be overridden.
     pub package: HashMap<String, PackageConfig>,
 }
 
