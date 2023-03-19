@@ -8,6 +8,7 @@ pub struct Config {
     pub workspace: Workspace,
     /// Package specific configuration. This overrides `workspace`.
     /// Not all settings of `workspace` can be overridden.
+    #[serde(default)]
     pub package: HashMap<String, PackageConfig>,
 }
 
@@ -115,72 +116,48 @@ pub enum ReleaseType {
 mod tests {
     use super::*;
 
-    // #[test]
-    // fn config_is_deserialized() {
-    //     let config = r#"
-    //         [update]
-    //         update_dependencies = false
-    //         changelog_config = "../git-cliff.toml"
-    //         allow_dirty = false
-    //         repo_url = "https://github.com/MarcoIeni/release-plz"
+    #[test]
+    fn config_is_deserialized() {
+        let config = r#"
+            [workspace]
+            update_dependencies = false
+            changelog_config = "../git-cliff.toml"
+            allow_dirty = false
+            repo_url = "https://github.com/MarcoIeni/release-plz"
+            semver_check = "lib"
+            update_changelog = true
 
-    //         [packages_defaults]
-    //         semver_check = "true"
-    //         changelog = true
+            [workspace.git_release]
+            enable = true
+            release_type = "prod"
+            draft = false
+        "#;
 
-    //         [packages_defaults.release.git]
-    //         enable = true
-    //         prerelease = false
-    //         draft = false
+        let expected_config = Config {
+            workspace: Workspace {
+                update: UpdateConfig {
+                    update_dependencies: false,
+                    changelog_config: Some("../git-cliff.toml".into()),
+                    allow_dirty: false,
+                    repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
+                },
+                packages_defaults: PackageConfig {
+                    semver_check: SemverCheck::Lib,
+                    update_changelog: true,
+                    git_release: GitReleaseConfig {
+                        enable: true,
+                        release_type: ReleaseType::Prod,
+                        draft: false,
+                    },
+                },
+            },
+            package: []
+            .into(),
+        };
 
-    //         [packages_overrides.crate1]
-    //         semver_check = "true"
-    //         changelog = true
-
-    //         [packages_overrides.crate1.release.git]
-    //         enable = true
-    //         prerelease = false
-    //         draft = false
-    //     "#;
-
-    //     let expected_config = Config {
-    //         update: UpdateConfig {
-    //             update_dependencies: false,
-    //             changelog_config: Some("../git-cliff.toml".into()),
-    //             allow_dirty: false,
-    //             repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
-    //         },
-    //         packages_defaults: PackageConfig {
-    //             semver_check: SemverCheck::True,
-    //             changelog: true,
-    //             release: ReleaseConfig {
-    //                 git: GitReleaseConfig {
-    //                     enable: true,
-    //                     prerelease: Prerelease::False,
-    //                     draft: false,
-    //                 },
-    //             },
-    //         },
-    //         packages_overrides: [(
-    //             "crate1".to_string(),
-    //             PackageConfig {
-    //                 semver_check: SemverCheck::True,
-    //                 changelog: true,
-    //                 release: ReleaseConfig {
-    //                     git: GitReleaseConfig {
-    //                         enable: true,
-    //                         prerelease: Prerelease::False,
-    //                         draft: false,
-    //                     },
-    //                 },
-    //             },
-    //         )]
-    //         .into(),
-    //     };
-
-    //     let config: Config = toml::from_str(config).unwrap();
-    //     assert_eq!(config, expected_config)
-    // }
+        let config: Config = toml::from_str(config).unwrap();
+        assert_eq!(config, expected_config)
+    }
 
     #[test]
     fn config_is_serialized() {
