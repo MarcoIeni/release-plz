@@ -14,10 +14,9 @@ pub struct Config {
 /// Global configuration.
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
 pub struct Workspace {
+    /// Configuration for the `release-plz update` command.
+    /// These options also affect the `release-plz release-pr` command.
     #[serde(flatten)]
-    // TODO: can registry be read from Cargo.toml or maybe from cargo config?
-    //     /// Registry where the packages are stored. The registry name needs to be present in the Cargo config. If unspecified, crates.io is used.
-    //     registry: Option<String>,
     pub update: UpdateConfig,
     /// Configuration applied to all packages by default.
     #[serde(flatten)]
