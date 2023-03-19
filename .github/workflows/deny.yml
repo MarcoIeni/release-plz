@@ -1,19 +1,21 @@
-name: Security audit
+# TODO: re-enable when cargo updates libgit2
+# https://github.com/rust-lang/cargo/blob/99ad42deb4b0be0cdb062d333d5e63460a94c33c/Cargo.toml#L52
+# name: Security audit
 
-on:
-  schedule:
-    # Runs at 00:00 UTC everyday
-    - cron: '0 0 * * *'
-  push:
-    paths:
-      - '**/Cargo.toml'
-      - '**/Cargo.lock'
-  pull_request:
+# on:
+#   schedule:
+#     # Runs at 00:00 UTC everyday
+#     - cron: '0 0 * * *'
+#   push:
+#     paths:
+#       - '**/Cargo.toml'
+#       - '**/Cargo.lock'
+#   pull_request:
 
-jobs:
-  audit:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - uses: EmbarkStudios/cargo-deny-action@v1
+# jobs:
+#   audit:
+#     runs-on: ubuntu-22.04
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
+#       - uses: EmbarkStudios/cargo-deny-action@v1
