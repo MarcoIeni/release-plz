@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.57](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.56...release-plz-v0.2.57) - 2023-03-19
 
 ### Added
-- *(release)* add GitLab support (#591)
+- *(release)* add GitLab support (#591).
+  `release-plz release-pr` GitLab support is still missing.
 
 ### Other
 - remove gitlab from release-pr backend (#612)
