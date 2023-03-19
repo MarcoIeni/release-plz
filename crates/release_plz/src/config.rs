@@ -28,8 +28,8 @@ pub struct Workspace {
 ///
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
 pub struct UpdateConfig {
-    /// If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
-    /// If `false`, only update the workspace packages by running `cargo update --workspace`.
+    /// - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
+    /// - If `false`, only update the workspace packages by running `cargo update --workspace`.
     /// Default: `false`.
     pub update_dependencies: bool,
     /// Path to the git cliff configuration file. Defaults to the `keep a changelog` configuration.
@@ -37,7 +37,8 @@ pub struct UpdateConfig {
     /// Allow dirty working directories to be updated. The uncommitted changes will be part of the update.
     /// Default: `false`.
     pub allow_dirty: bool,
-    /// GitHub/Gitea repository url where your project is hosted. It is used to generate the changelog release link. It defaults to the `origin` url.
+    /// GitHub/Gitea repository url where your project is hosted.
+    /// It is used to generate the changelog release link. It defaults to the `origin` url.
     pub repo_url: Option<Url>,
 }
 
