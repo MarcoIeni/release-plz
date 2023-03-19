@@ -19,12 +19,6 @@ pub enum GitBackend {
     Gitlab(GitLab),
 }
 
-#[derive(Serialize)]
-pub struct GitlabReleaseOption<'a> {
-    tag_name: &'a str,
-    description: &'a str,
-}
-
 impl GitBackend {
     fn default_headers(&self) -> anyhow::Result<HeaderMap> {
         match self {
@@ -177,35 +171,48 @@ impl GitClient {
 
     /// Creates a GitHub/Gitea release.
     pub async fn create_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => self.create_github_release(tag, body).await,
+            BackendType::Gitlab => self.create_gitlab_release(tag, body).await,
+        }
+    }
+
+    /// Same as Gitea.
+    pub async fn create_github_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
         let create_release_options = CreateReleaseOption {
             tag_name: tag,
             body,
             name: tag,
         };
-
-        if matches!(self.backend, BackendType::Gitlab) {
-            let gitlab_release_options = GitlabReleaseOption {
-                tag_name: tag,
-                description: body,
-            };
-            self.client
-                .post(format!(
-                    "{}/projects/{}%2F{}/releases",
-                    self.remote.base_url, self.remote.owner, self.remote.repo
-                ))
-                .json(&gitlab_release_options)
-                .send()
-                .await
-                .context("Failed to create a release")?
-                .error_for_status()?;
-            return Ok(());
-        }
         self.client
             .post(format!("{}/releases", self.repo_url()))
             .json(&create_release_options)
             .send()
             .await
             .context("Failed to create release")?
+            .error_for_status()?;
+        Ok(())
+    }
+
+    pub async fn create_gitlab_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
+        #[derive(Serialize)]
+        pub struct GitlabReleaseOption<'a> {
+            tag_name: &'a str,
+            description: &'a str,
+        }
+        let gitlab_release_options = GitlabReleaseOption {
+            tag_name: tag,
+            description: body,
+        };
+        self.client
+            .post(format!(
+                "{}/projects/{}%2F{}/releases",
+                self.remote.base_url, self.remote.owner, self.remote.repo
+            ))
+            .json(&gitlab_release_options)
+            .send()
+            .await
+            .context("Failed to create a release")?
             .error_for_status()?;
         Ok(())
     }
