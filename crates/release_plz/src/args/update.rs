@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 use chrono::NaiveDate;
@@ -138,7 +138,7 @@ impl Update {
                 .transpose()?;
             let changelog_req = ChangelogRequest {
                 release_date,
-                changelog_config: self.changelog_config()?,
+                changelog_config: self.changelog_config(&config)?,
             };
             update = update.with_changelog(changelog_req);
         }
@@ -152,13 +152,13 @@ impl Update {
         Ok(update)
     }
 
-    fn changelog_config(&self) -> anyhow::Result<Option<GitCliffConfig>> {
+    fn changelog_config(&self, config: &Config) -> anyhow::Result<Option<GitCliffConfig>> {
         let default_config_path = dirs::config_dir()
             .context("cannot get config dir")?
             .join("git-cliff")
             .join(git_cliff_core::DEFAULT_CONFIG);
 
-        let path = match self.changelog_config.clone() {
+        let path = match self.user_changelog_config(config) {
             Some(provided_path) => {
                 if provided_path.exists() {
                     provided_path
@@ -166,16 +166,23 @@ impl Update {
                     anyhow::bail!("cannot read {:?}", provided_path)
                 }
             }
-            None => default_config_path,
+            None => &default_config_path,
         };
 
         // Parse the configuration file.
         let config = if path.exists() {
-            Some(GitCliffConfig::parse(&path).context("failed to parse git cliff config file")?)
+            Some(GitCliffConfig::parse(path).context("failed to parse git cliff config file")?)
         } else {
             None
         };
 
         Ok(config)
+    }
+
+    /// Changelog configuration specified by user
+    fn user_changelog_config<'a>(&'a self, config: &'a Config) -> Option<&'a Path> {
+        self.changelog_config
+            .as_deref()
+            .or(config.workspace.update.changelog_config.as_deref())
     }
 }
