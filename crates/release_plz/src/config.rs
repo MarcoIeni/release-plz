@@ -49,6 +49,7 @@ pub struct PackageConfig {
     /// Create/update changelog.
     /// Default: `true`.
     pub update_changelog: bool,
+    /// Configuration for the GitHub/Gitea/GitLab release.
     pub git_release: GitReleaseConfig,
 }
 
