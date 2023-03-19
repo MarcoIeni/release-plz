@@ -25,7 +25,6 @@ pub struct Workspace {
 
 /// Configuration for the `update` command.
 /// Generical for the whole workspace. Cannot customized on a per-package basic.
-///
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
 pub struct UpdateConfig {
     /// - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
@@ -75,7 +74,6 @@ impl Default for PackageConfig {
     }
 }
 
-// TODO: custom release name
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct GitReleaseConfig {
     /// Publish the GitHub/Gitea release for the created git tag.
