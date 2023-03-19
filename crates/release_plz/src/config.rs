@@ -47,7 +47,7 @@ pub struct PackageConfig {
     pub semver_check: SemverCheck,
     /// Create/update changelog.
     /// Default: `true`.
-    pub changelog: bool,
+    pub update_changelog: bool,
     pub git_release: GitReleaseConfig,
 }
 
@@ -68,7 +68,7 @@ impl Default for PackageConfig {
     fn default() -> Self {
         Self {
             semver_check: SemverCheck::default(),
-            changelog: true,
+            update_changelog: true,
             git_release: GitReleaseConfig::default(),
         }
     }
@@ -194,7 +194,7 @@ mod tests {
                 },
                 packages_defaults: PackageConfig {
                     semver_check: SemverCheck::Lib,
-                    changelog: true,
+                    update_changelog: true,
                     git_release: GitReleaseConfig {
                         enable: true,
                         release_type: ReleaseType::Prod,
@@ -206,7 +206,7 @@ mod tests {
                 "crate1".to_string(),
                 PackageConfig {
                     semver_check: SemverCheck::No,
-                    changelog: true,
+                    update_changelog: true,
                     git_release: GitReleaseConfig {
                         enable: true,
                         release_type: ReleaseType::Prod,
@@ -224,7 +224,7 @@ mod tests {
             allow_dirty = false
             repo_url = "https://github.com/MarcoIeni/release-plz"
             semver_check = "lib"
-            changelog = true
+            update_changelog = true
 
             [workspace.git_release]
             enable = true
@@ -233,7 +233,7 @@ mod tests {
 
             [package.crate1]
             semver_check = "no"
-            changelog = true
+            update_changelog = true
 
             [package.crate1.git_release]
             enable = true
