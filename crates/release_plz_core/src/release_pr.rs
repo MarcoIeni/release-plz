@@ -72,7 +72,7 @@ async fn open_or_update_release_pr(
         let project_contains_multiple_pub_packages =
             publishable_packages(local_manifest)?.len() > 1;
         Pr::new(
-            repo.default_branch(),
+            repo.original_branch(),
             packages_to_update,
             project_contains_multiple_pub_packages,
         )
@@ -169,8 +169,10 @@ fn reset_branch(pr: &GitPr, commits_number: usize, repository: &Repo) -> anyhow:
     let head = format!("HEAD~{commits_number}");
     repository.git(&["reset", "--hard", &head])?;
 
+    repository.fetch(repository.original_branch())?;
+
     // Update PR branch with latest changes from the default branch.
-    if let Err(e) = repository.git(&["rebase", repository.default_branch()]) {
+    if let Err(e) = repository.git(&["rebase", repository.original_branch()]) {
         tracing::error!("cannot rebase from default branch: {}", e);
     }
 

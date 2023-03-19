@@ -1,5 +1,5 @@
-use crate::gitea_client::Gitea;
 use crate::GitHub;
+use crate::{gitea_client::Gitea, gitlab_client::GitLab};
 
 use crate::pr::Pr;
 use anyhow::Context;
@@ -16,6 +16,7 @@ use tracing::{debug, info, instrument};
 pub enum GitBackend {
     Github(GitHub),
     Gitea(Gitea),
+    Gitlab(GitLab),
 }
 
 impl GitBackend {
@@ -23,6 +24,7 @@ impl GitBackend {
         match self {
             GitBackend::Github(g) => g.default_headers(),
             GitBackend::Gitea(g) => g.default_headers(),
+            GitBackend::Gitlab(g) => g.default_headers(),
         }
     }
 }
@@ -31,6 +33,7 @@ impl GitBackend {
 pub enum BackendType {
     Github,
     Gitea,
+    Gitlab,
 }
 
 #[derive(Debug)]
@@ -147,6 +150,7 @@ impl GitClient {
         let (backend, remote) = match backend {
             GitBackend::Github(g) => (BackendType::Github, g.remote),
             GitBackend::Gitea(g) => (BackendType::Gitea, g.remote),
+            GitBackend::Gitlab(g) => (BackendType::Gitlab, g.remote),
         };
         Ok(Self {
             remote,
@@ -159,11 +163,22 @@ impl GitClient {
         match self.backend {
             BackendType::Github => "per_page",
             BackendType::Gitea => "limit",
+            BackendType::Gitlab => {
+                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
+            }
         }
     }
 
     /// Creates a GitHub/Gitea release.
     pub async fn create_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => self.create_github_release(tag, body).await,
+            BackendType::Gitlab => self.create_gitlab_release(tag, body).await,
+        }
+    }
+
+    /// Same as Gitea.
+    pub async fn create_github_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
         let create_release_options = CreateReleaseOption {
             tag_name: tag,
             body,
@@ -175,6 +190,29 @@ impl GitClient {
             .send()
             .await
             .context("Failed to create release")?
+            .error_for_status()?;
+        Ok(())
+    }
+
+    pub async fn create_gitlab_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
+        #[derive(Serialize)]
+        pub struct GitlabReleaseOption<'a> {
+            tag_name: &'a str,
+            description: &'a str,
+        }
+        let gitlab_release_options = GitlabReleaseOption {
+            tag_name: tag,
+            description: body,
+        };
+        self.client
+            .post(format!(
+                "{}/projects/{}%2F{}/releases",
+                self.remote.base_url, self.remote.owner, self.remote.repo
+            ))
+            .json(&gitlab_release_options)
+            .send()
+            .await
+            .context("Failed to create a release")?
             .error_for_status()?;
         Ok(())
     }
