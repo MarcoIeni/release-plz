@@ -79,6 +79,7 @@ pub struct GitReleaseConfig {
     /// Publish the GitHub/Gitea release for the created git tag.
     /// Default: `true`
     pub enable: bool,
+    /// Whether to mark the created release as not ready for production.
     pub prerelease: Prerelease,
     /// If true, will not auto-publish the release.
     /// Default: `false`.
