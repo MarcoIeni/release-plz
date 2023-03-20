@@ -3,7 +3,7 @@ use std::str::FromStr;
 use anyhow::Context;
 use clap::builder::NonEmptyStringValueParser;
 use clap::ValueEnum;
-use release_plz_core::{GitBackend, GitHub, Gitea};
+use release_plz_core::{GitBackend, GitHub, Gitea, RepoUrl};
 use secrecy::SecretString;
 
 use super::update::Update;
@@ -29,9 +29,7 @@ pub enum GitBackendKind {
 }
 
 impl ReleasePr {
-    pub fn git_backend(&self) -> anyhow::Result<GitBackend> {
-        let repo = self.update.repo_url()?;
-
+    pub fn git_backend(&self, repo: RepoUrl) -> anyhow::Result<GitBackend> {
         let token = SecretString::from_str(&self.git_token).context("Invalid git backend token")?;
         Ok(match self.backend {
             GitBackendKind::Github => {

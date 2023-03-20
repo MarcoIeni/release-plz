@@ -85,8 +85,8 @@ impl Update {
         super::local_manifest(self.project_manifest.as_deref())
     }
 
-    pub fn repo_url(&self) -> anyhow::Result<RepoUrl> {
-        match &self.repo_url {
+    fn get_repo_url(&self, config: &Config) -> anyhow::Result<RepoUrl> {
+        match &self.user_repo_url(config) {
             Some(url) => RepoUrl::new(url),
             None => {
                 let project_manifest = self.project_manifest();
@@ -113,7 +113,7 @@ impl Update {
             })?
             .with_update_dependencies(self.update_dependencies(&config))
             .with_allow_dirty(self.allow_dirty(&config));
-        match self.repo_url() {
+        match self.get_repo_url(&config) {
             Ok(repo_url) => {
                 update = update.with_repo_url(repo_url);
             }
@@ -184,5 +184,17 @@ impl Update {
         self.changelog_config
             .as_deref()
             .or(config.workspace.update.changelog_config.as_deref())
+    }
+
+    /// Repo url specified by user
+    fn user_repo_url<'a>(&'a self, config: &'a Config) -> Option<&str> {
+        self.repo_url.as_deref().or_else(|| {
+            config
+                .workspace
+                .update
+                .repo_url
+                .as_ref()
+                .map(|u| u.as_str())
+        })
     }
 }
