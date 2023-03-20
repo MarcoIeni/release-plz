@@ -6,7 +6,7 @@ anyhow = "1.0.69"
 cargo_metadata = "0.15.3"
 cargo = "0.69.0"
 chrono = { version = "0.4.24", default-features = false }
-clap = "4.1.8"
+clap = "4.1.11"
 clap_complete = "4.1.4"
 conventional_commit_parser = "0.9.4"
 crates-index = "0.19.7"
