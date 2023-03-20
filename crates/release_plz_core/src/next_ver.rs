@@ -19,6 +19,7 @@ use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use std::{
+    collections::BTreeMap,
     fs, io,
     path::{Path, PathBuf},
 };
@@ -33,8 +34,8 @@ pub struct UpdateRequest {
     registry_manifest: Option<PathBuf>,
     /// Update just this package.
     single_package: Option<String>,
-    /// If [`Option::Some`], changelog is updated.
-    changelog_req: Option<ChangelogRequest>,
+    /// Changelog options.
+    changelog_req: ChangelogRequest,
     /// Registry where the packages are stored.
     /// The registry name needs to be present in the Cargo config.
     /// If unspecified, crates.io is used.
@@ -48,9 +49,56 @@ pub struct UpdateRequest {
     /// Repository Url. If present, the new changelog entry contains a link to the diff between the old and new version.
     /// Format: `https://{repo_host}/{repo_owner}/{repo_name}/compare/{old_tag}...{new_tag}`.
     repo_url: Option<RepoUrl>,
+    packages_config: BTreeMap<String, UpdateConfig>,
 }
 
 #[derive(Debug, Clone)]
+struct UpdateConfig {
+    /// Run cargo-semver-checks.
+    semver_check: RunSemverCheck,
+    /// Create/update changelog.
+    /// Default: `true`.
+    update_changelog: bool,
+}
+
+impl Default for UpdateConfig {
+    fn default() -> Self {
+        Self {
+            semver_check: RunSemverCheck::default(),
+            update_changelog: true,
+        }
+    }
+}
+
+impl UpdateConfig {
+    pub fn with_semver_check(self, semver_check: RunSemverCheck) -> Self {
+        Self {
+            semver_check,
+            ..self
+        }
+    }
+
+    pub fn with_update_changelog(self, update_changelog: bool) -> Self {
+        Self {
+            update_changelog,
+            ..self
+        }
+    }
+}
+
+/// Whether to run cargo-semver-checks or not.
+#[derive(Default, PartialEq, Eq, Debug, Clone)]
+pub enum RunSemverCheck {
+    /// Run cargo-semver-checks if the package is a library.
+    #[default]
+    Lib,
+    /// Run cargo-semver-checks.
+    Yes,
+    /// Don't run cargo-semver-checks.
+    No,
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ChangelogRequest {
     /// When the new release is published. If unspecified, current date is used.
     pub release_date: Option<NaiveDate>,
@@ -67,15 +115,26 @@ fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
 
 impl UpdateRequest {
     pub fn new(local_manifest: impl AsRef<Path>) -> io::Result<Self> {
+        let packages_config = [(
+            // Empty string refers to the workspace settings.
+            // I.e. settings applied to all packages by default.
+            "".to_string(),
+            UpdateConfig {
+                semver_check: RunSemverCheck::default(),
+                update_changelog: false,
+            },
+        )]
+        .into();
         Ok(Self {
             local_manifest: canonical_local_manifest(local_manifest.as_ref())?,
             registry_manifest: None,
             single_package: None,
-            changelog_req: None,
+            changelog_req: ChangelogRequest::default(),
             registry: None,
             update_dependencies: false,
             allow_dirty: false,
             repo_url: None,
+            packages_config,
         })
     }
 
@@ -94,9 +153,28 @@ impl UpdateRequest {
         })
     }
 
-    pub fn with_changelog(self, changelog_req: ChangelogRequest) -> Self {
+    pub fn with_changelog_req(self, changelog_req: ChangelogRequest) -> Self {
         Self {
-            changelog_req: Some(changelog_req),
+            changelog_req,
+            ..self
+        }
+    }
+
+    /// Set update config for all packages. I.e. default config.
+    pub fn with_default_packages_config(self, config: UpdateConfig) -> Self {
+        self.set_package_config("".to_string(), config)
+    }
+
+    /// Set update config for a specific package.
+    pub fn with_package_config(self, package: impl Into<String>, config: UpdateConfig) -> Self {
+        self.set_package_config(package.into(), config)
+    }
+
+    fn set_package_config(self, package: impl Into<String>, config: UpdateConfig) -> Self {
+        let mut packages_config = self.packages_config.clone();
+        packages_config.insert(package.into(), config);
+        Self {
+            packages_config,
             ..self
         }
     }

@@ -127,7 +127,8 @@ impl Update {
                     format!("cannot find project manifest {registry_project_manifest:?}")
                 })?;
         }
-        if !self.no_changelog {
+        // TODO: combine no-changelog flag with package config
+        {
             let release_date = self
                 .release_date
                 .as_ref()
@@ -140,7 +141,7 @@ impl Update {
                 release_date,
                 changelog_config: self.changelog_config(&config)?,
             };
-            update = update.with_changelog(changelog_req);
+            update = update.with_changelog_req(changelog_req);
         }
         if let Some(package) = &self.package {
             update = update.with_single_package(package.clone());
