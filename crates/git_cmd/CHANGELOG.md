@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.3.0...git_cmd-v0.4.0) - 2023-03-20
+
+### Fixed
+- use default origin for repository url (#619)
+
 ## [0.3.0](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.16...git_cmd-v0.3.0) - 2023-03-17
 
 ### Added
