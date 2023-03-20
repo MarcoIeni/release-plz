@@ -152,8 +152,7 @@ mod tests {
                     },
                 },
             },
-            package: []
-            .into(),
+            package: [].into(),
         };
 
         let config: Config = toml::from_str(config).unwrap();
