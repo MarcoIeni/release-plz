@@ -42,13 +42,29 @@ pub struct UpdateConfig {
     pub repo_url: Option<Url>,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default)]
 pub struct PackageConfig {
+    /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
+    #[serde(flatten)]
+    update: PackageUpdateConfig,
+    /// Options for the `release-plz release` command.
+    #[serde(flatten)]
+    release: PackageReleaseConfig,
+}
+
+/// Customization for the `release-plz update` command.
+/// These can be overridden on a per-package basic.
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+pub struct PackageUpdateConfig {
     /// Run cargo-semver-checks.
     pub semver_check: SemverCheck,
     /// Create/update changelog.
     /// Default: `true`.
     pub update_changelog: bool,
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default)]
+pub struct PackageReleaseConfig {
     /// Configuration for the GitHub/Gitea/GitLab release.
     pub git_release: GitReleaseConfig,
 }
@@ -66,12 +82,11 @@ pub enum SemverCheck {
     No,
 }
 
-impl Default for PackageConfig {
+impl Default for PackageUpdateConfig {
     fn default() -> Self {
         Self {
             semver_check: SemverCheck::default(),
             update_changelog: true,
-            git_release: GitReleaseConfig::default(),
         }
     }
 }
@@ -143,12 +158,16 @@ mod tests {
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
                 packages_defaults: PackageConfig {
-                    semver_check: SemverCheck::Lib,
-                    update_changelog: true,
-                    git_release: GitReleaseConfig {
-                        enable: true,
-                        release_type: ReleaseType::Prod,
-                        draft: false,
+                    update: PackageUpdateConfig {
+                        semver_check: SemverCheck::Lib,
+                        update_changelog: true,
+                    },
+                    release: PackageReleaseConfig {
+                        git_release: GitReleaseConfig {
+                            enable: true,
+                            release_type: ReleaseType::Prod,
+                            draft: false,
+                        },
                     },
                 },
             },
@@ -170,24 +189,32 @@ mod tests {
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
                 packages_defaults: PackageConfig {
-                    semver_check: SemverCheck::Lib,
-                    update_changelog: true,
-                    git_release: GitReleaseConfig {
-                        enable: true,
-                        release_type: ReleaseType::Prod,
-                        draft: false,
+                    update: PackageUpdateConfig {
+                        semver_check: SemverCheck::Lib,
+                        update_changelog: true,
+                    },
+                    release: PackageReleaseConfig {
+                        git_release: GitReleaseConfig {
+                            enable: true,
+                            release_type: ReleaseType::Prod,
+                            draft: false,
+                        },
                     },
                 },
             },
             package: [(
                 "crate1".to_string(),
                 PackageConfig {
-                    semver_check: SemverCheck::No,
-                    update_changelog: true,
-                    git_release: GitReleaseConfig {
-                        enable: true,
-                        release_type: ReleaseType::Prod,
-                        draft: false,
+                    update: PackageUpdateConfig {
+                        semver_check: SemverCheck::No,
+                        update_changelog: true,
+                    },
+                    release: PackageReleaseConfig {
+                        git_release: GitReleaseConfig {
+                            enable: true,
+                            release_type: ReleaseType::Prod,
+                            draft: false,
+                        },
                     },
                 },
             )]
