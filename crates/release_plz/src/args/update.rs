@@ -1,11 +1,13 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 use chrono::NaiveDate;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::Repo;
-use release_plz_core::{ChangelogRequest, RepoUrl, UpdateRequest, CARGO_TOML};
+use release_plz_core::{ChangelogRequest, RepoUrl, UpdateRequest};
+
+use crate::config::Config;
 
 /// Update your project locally, without opening a PR.
 /// If `repo_url` contains a GitHub URL, release-plz uses it to add a release
@@ -95,13 +97,22 @@ impl Update {
         }
     }
 
-    pub fn update_request(&self) -> anyhow::Result<UpdateRequest> {
-        let mut update = UpdateRequest::new(self.project_manifest())
+    fn update_dependencies(&self, config: &Config) -> bool {
+        self.update_deps || config.workspace.update.update_dependencies
+    }
+
+    fn allow_dirty(&self, config: &Config) -> bool {
+        self.allow_dirty || config.workspace.update.allow_dirty
+    }
+
+    pub fn update_request(&self, config: Config) -> anyhow::Result<UpdateRequest> {
+        let project_manifest = self.project_manifest();
+        let mut update = UpdateRequest::new(project_manifest.clone())
             .with_context(|| {
-                format!("cannot find {CARGO_TOML} file. Make sure you are inside a rust project")
+                format!("Cannot find file {project_manifest:?}. Make sure you are inside a rust project or that --project-manifest points to a valid Cargo.toml file.")
             })?
-            .with_update_dependencies(self.update_deps)
-            .with_allow_dirty(self.allow_dirty);
+            .with_update_dependencies(self.update_dependencies(&config))
+            .with_allow_dirty(self.allow_dirty(&config));
         match self.repo_url() {
             Ok(repo_url) => {
                 update = update.with_repo_url(repo_url);
@@ -127,7 +138,7 @@ impl Update {
                 .transpose()?;
             let changelog_req = ChangelogRequest {
                 release_date,
-                changelog_config: self.changelog_config()?,
+                changelog_config: self.changelog_config(&config)?,
             };
             update = update.with_changelog(changelog_req);
         }
@@ -141,13 +152,13 @@ impl Update {
         Ok(update)
     }
 
-    fn changelog_config(&self) -> anyhow::Result<Option<GitCliffConfig>> {
+    fn changelog_config(&self, config: &Config) -> anyhow::Result<Option<GitCliffConfig>> {
         let default_config_path = dirs::config_dir()
             .context("cannot get config dir")?
             .join("git-cliff")
             .join(git_cliff_core::DEFAULT_CONFIG);
 
-        let path = match self.changelog_config.clone() {
+        let path = match self.user_changelog_config(config) {
             Some(provided_path) => {
                 if provided_path.exists() {
                     provided_path
@@ -155,16 +166,23 @@ impl Update {
                     anyhow::bail!("cannot read {:?}", provided_path)
                 }
             }
-            None => default_config_path,
+            None => &default_config_path,
         };
 
         // Parse the configuration file.
         let config = if path.exists() {
-            Some(GitCliffConfig::parse(&path).context("failed to parse git cliff config file")?)
+            Some(GitCliffConfig::parse(path).context("failed to parse git cliff config file")?)
         } else {
             None
         };
 
         Ok(config)
+    }
+
+    /// Changelog configuration specified by user
+    fn user_changelog_config<'a>(&'a self, config: &'a Config) -> Option<&'a Path> {
+        self.changelog_config
+            .as_deref()
+            .or(config.workspace.update.changelog_config.as_deref())
     }
 }
