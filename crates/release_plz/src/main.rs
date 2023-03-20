@@ -32,9 +32,12 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         }
         args::Command::ReleasePr(cmd_args) => {
             let update_request = cmd_args.update.update_request(config)?;
+            let repo_url = update_request
+                .repo_url()
+                .context("can't determine repo url")?;
             let request = ReleasePrRequest {
                 git: cmd_args
-                    .git_backend()
+                    .git_backend(repo_url.clone())
                     .context("invalid git backend settings")?,
                 update_request,
             };

@@ -153,6 +153,10 @@ impl UpdateRequest {
             ..self
         }
     }
+
+    pub fn repo_url(&self) -> Option<&RepoUrl> {
+        self.repo_url.as_ref()
+    }
 }
 
 /// Determine next version of packages
