@@ -49,7 +49,7 @@ pub struct GitRelease {
 
 impl ReleaseRequest {
     fn workspace_root(&self) -> anyhow::Result<&Path> {
-        crate::manifest_dir(&self.local_manifest).context("cannot find local_manifest parent")
+        cargo_utils::manifest_dir(&self.local_manifest).context("cannot find local_manifest parent")
     }
 }
 

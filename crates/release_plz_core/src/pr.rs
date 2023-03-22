@@ -45,7 +45,7 @@ fn pr_title(
     } else {
         let (package, update) = &packages_to_update.updates[0];
         if project_contains_multiple_pub_packages {
-            format!("chore({}): release v{}", package.name, update.version)
+            format!("chore({}): release v{}", package.name(), update.version)
         } else {
             format!("chore: release v{}", update.version)
         }

@@ -48,7 +48,7 @@ impl LocalPackage {
     }
 }
 
-fn manifest_dir(manifest: &Path) -> anyhow::Result<&Path> {
+pub fn manifest_dir(manifest: &Path) -> anyhow::Result<&Path> {
     let manifest_dir = manifest.parent().with_context(|| {
         format!(
             "Cannot find directory where manifest {:?} is located",

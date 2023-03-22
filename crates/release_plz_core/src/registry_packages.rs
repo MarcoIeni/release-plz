@@ -1,21 +1,20 @@
 use std::{collections::BTreeMap, path::PathBuf};
 
 use anyhow::Context;
-use cargo_metadata::Package;
 use cargo_utils::LocalPackage;
 use tempfile::{tempdir, TempDir};
 
 use crate::{download, next_ver};
 
 pub struct PackagesCollection {
-    packages: BTreeMap<String, Package>,
+    packages: BTreeMap<String, LocalPackage>,
     /// Packages might be downloaded and stored in a temporary directory.
     /// The directory is stored here so that it is deleted on drop
     _temp_dir: Option<TempDir>,
 }
 
 impl PackagesCollection {
-    pub fn get_package(&self, package_name: &str) -> Option<&Package> {
+    pub fn get_package(&self, package_name: &str) -> Option<&LocalPackage> {
         self.packages.get(package_name)
     }
 }

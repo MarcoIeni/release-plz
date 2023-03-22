@@ -4,6 +4,7 @@ use std::{fmt, path::Path};
 
 use anyhow::{anyhow, Context};
 use cargo_metadata::Package;
+use cargo_utils::LocalPackage;
 use tracing::{info, instrument, warn};
 
 use crate::{
@@ -16,7 +17,7 @@ pub fn download_packages(
     packages: &[&str],
     directory: impl AsRef<str> + fmt::Debug,
     registry: Option<&str>,
-) -> anyhow::Result<Vec<Package>> {
+) -> anyhow::Result<Vec<LocalPackage>> {
     let directory = directory.as_ref();
     info!("downloading packages from cargo registry");
     let source: ClonerSource = match registry {
@@ -42,7 +43,7 @@ pub fn download_packages(
 }
 
 /// Read a package from file system
-pub fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<Package> {
+pub fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<LocalPackage> {
     let manifest_path = directory.as_ref().join(CARGO_TOML);
     let metadata = cargo_metadata::MetadataCommand::new()
         .no_deps()
@@ -53,7 +54,8 @@ pub fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<Package> {
         .packages
         .get(0)
         .ok_or_else(|| anyhow!("cannot retrieve package at {:?}", directory.as_ref()))?;
-    Ok(package.clone())
+    let local_package = LocalPackage::new(package.clone())?;
+    Ok(local_package)
 }
 
 #[cfg(test)]
@@ -71,7 +73,7 @@ mod tests {
         let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
         let packages = download_packages(&[package_name], directory, None).unwrap();
         let rand = &packages[0];
-        assert_eq!(rand.name, package_name);
+        assert_eq!(rand.name(), package_name);
     }
 
     #[test]
@@ -83,8 +85,8 @@ mod tests {
         let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
         let packages =
             download_packages(&[first_package, second_package], directory, None).unwrap();
-        assert_eq!(&packages[0].name, first_package);
-        assert_eq!(&packages[1].name, second_package);
+        assert_eq!(packages[0].name(), first_package);
+        assert_eq!(packages[1].name(), second_package);
     }
 
     #[test]

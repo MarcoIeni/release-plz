@@ -510,12 +510,12 @@ fn are_dependencies_updated(
         .any(|d| d.path.is_none() && !registry_dependencies.contains(d))
 }
 
-pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
+pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<LocalPackage>> {
     let manifest = manifest.as_ref();
     let packages = cargo_utils::workspace_members(Some(manifest))
         .map_err(|e| anyhow!("cannot read workspace members in manifest {manifest:?}: {e}"))?
         .into_iter()
-        .filter(|p| p.is_publishable())
+        .filter(|p| p.package().is_publishable())
         .collect();
     Ok(packages)
 }
@@ -554,21 +554,21 @@ trait PackageDependencies {
     /// Returns the `updated_packages` which should be updated in the dependencies of the package.
     fn dependencies_to_update<'a>(
         &self,
-        updated_packages: &'a [(&Package, &Version)],
-    ) -> anyhow::Result<Vec<&'a Package>>;
+        updated_packages: &'a [(&LocalPackage, &Version)],
+    ) -> anyhow::Result<Vec<&'a LocalPackage>>;
 }
 
 impl PackageDependencies for Package {
     fn dependencies_to_update<'a>(
         &self,
-        updated_packages: &'a [(&Package, &Version)],
-    ) -> anyhow::Result<Vec<&'a Package>> {
+        updated_packages: &'a [(&LocalPackage, &Version)],
+    ) -> anyhow::Result<Vec<&'a LocalPackage>> {
         let mut package_manifest = LocalManifest::try_new(self.manifest_path.as_std_path())?;
         let package_dir = manifest_dir(&package_manifest.path)?.to_owned();
 
-        let mut deps_to_update: Vec<&Package> = vec![];
+        let mut deps_to_update: Vec<&LocalPackage> = vec![];
         for (p, next_ver) in updated_packages {
-            let canonical_path = p.canonical_path()?;
+            let canonical_path = p.package_path();
             let matching_deps = package_manifest
                 .get_dependency_tables_mut()
                 .flat_map(|t| t.iter_mut().filter_map(|(_, d)| d.as_table_like_mut()))
