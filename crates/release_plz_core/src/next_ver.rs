@@ -26,6 +26,10 @@ use std::{
 use tempfile::{tempdir, TempDir};
 use tracing::{debug, info, instrument};
 
+// Empty string refers to the workspace settings.
+// I.e. settings applied to all packages by default.
+const DEFAULT_CONFIG_ID: String = "".to_string();
+
 #[derive(Debug, Clone)]
 pub struct UpdateRequest {
     /// The manifest of the project you want to update.
@@ -116,9 +120,7 @@ fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
 impl UpdateRequest {
     pub fn new(local_manifest: impl AsRef<Path>) -> io::Result<Self> {
         let packages_config = [(
-            // Empty string refers to the workspace settings.
-            // I.e. settings applied to all packages by default.
-            "".to_string(),
+            DEFAULT_CONFIG_ID,
             UpdateConfig {
                 semver_check: RunSemverCheck::default(),
                 update_changelog: false,
