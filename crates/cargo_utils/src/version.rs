@@ -18,15 +18,6 @@ pub fn upgrade_requirement(req: &str, version: &semver::Version) -> anyhow::Resu
         if new_req_text.starts_with('^') && !req.starts_with('^') {
             new_req_text.remove(0);
         }
-        // Validate contract
-        #[cfg(debug_assert)]
-        {
-            assert!(
-                new_req.matches(version),
-                "Invalid req created: {}",
-                new_req_text
-            )
-        }
         if new_req_text == req_text {
             Ok(None)
         } else {
