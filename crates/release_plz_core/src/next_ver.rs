@@ -164,7 +164,7 @@ impl UpdateRequest {
 
     /// Set update config for all packages. I.e. default config.
     pub fn with_default_packages_config(self, config: UpdateConfig) -> Self {
-        self.set_package_config("".to_string(), config)
+        self.set_package_config(DEFAULT_CONFIG_ID, config)
     }
 
     /// Set update config for a specific package.
