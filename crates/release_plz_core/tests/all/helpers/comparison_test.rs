@@ -1,6 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use crate::helpers::gitea_mock_server::GiteaMockServer;
+use cargo_utils::CHANGELOG_FILENAME;
 use chrono::NaiveDate;
 use release_plz_core::{
     are_packages_equal, copy_to_temp_dir, ChangelogRequest, GitBackend, GitHub, Gitea,
