@@ -208,16 +208,13 @@ impl Project {
         let mut packages = publishable_packages(manifest)?;
         let contains_multiple_pub_packages = packages.len() > 1;
         if let Some(pac) = single_package {
-            packages.retain(|p| p.name == pac);
+            packages.retain(|p| p.name() == pac);
         }
 
         anyhow::ensure!(!packages.is_empty(), "no public packages found");
 
-        let local_packages: anyhow::Result<Vec<LocalPackage>> =
-            packages.into_iter().map(LocalPackage::new).collect();
-
         Ok(Self {
-            packages: local_packages?,
+            packages,
             root,
             manifest_dir,
             contains_multiple_pub_packages,
@@ -308,7 +305,7 @@ impl Updater<'_> {
             }
         }
 
-        let changed_packages: Vec<(&Package, &Version)> = packages_to_update
+        let changed_packages: Vec<(&LocalPackage, &Version)> = packages_to_update
             .updates
             .iter()
             .map(|(p, u)| (p, &u.version))
@@ -322,31 +319,33 @@ impl Updater<'_> {
     /// Return the packages that depend on the `changed_packages`.
     fn dependent_packages(
         &self,
-        packages_to_check_for_deps: &[&Package],
-        changed_packages: &[(&Package, &Version)],
-    ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
+        packages_to_check_for_deps: &[&LocalPackage],
+        changed_packages: &[(&LocalPackage, &Version)],
+    ) -> anyhow::Result<Vec<(LocalPackage, UpdateResult)>> {
         let packages_to_update = packages_to_check_for_deps
             .iter()
-            .filter_map(|p| match p.dependencies_to_update(changed_packages) {
-                Ok(deps) => {
-                    if deps.is_empty() {
-                        None
-                    } else {
-                        Some((p, deps))
+            .filter_map(
+                |p| match p.package().dependencies_to_update(changed_packages) {
+                    Ok(deps) => {
+                        if deps.is_empty() {
+                            None
+                        } else {
+                            Some((p, deps))
+                        }
                     }
-                }
-                Err(_e) => None,
-            })
+                    Err(_e) => None,
+                },
+            )
             .map(|(&p, deps)| {
-                let deps: Vec<&str> = deps.iter().map(|d| d.name().as_str()).collect();
+                let deps: Vec<&str> = deps.iter().map(|d| d.name()).collect();
                 let change = format!(
                     "chore: updated the following local packages: {}",
                     deps.join(", ")
                 );
-                let next_version = { p.version.increment_patch() };
+                let next_version = { p.version().increment_patch() };
                 info!(
                     "{}: dependencies changed. Next version is {next_version}",
-                    p.name
+                    p.name()
                 );
                 Ok((
                     p.clone(),
@@ -444,16 +443,19 @@ fn get_diff(
     if let Some(registry_package) = registry_package {
         if package.is_library() {
             let semver_check =
-                semver_check::run_semver_check(&package_path, registry_package.package_path()?)?;
+                semver_check::run_semver_check(&package_path, registry_package.package_path())?;
             diff.set_semver_check(semver_check);
         }
     }
     loop {
         let current_commit_message = repository.current_commit_message()?;
         if let Some(registry_package) = registry_package {
-            debug!("package {} found in cargo registry", registry_package.name);
+            debug!(
+                "package {} found in cargo registry",
+                registry_package.name()
+            );
             let are_packages_equal = {
-                let registry_package_path = registry_package.package_path()?;
+                let registry_package_path = registry_package.package_path();
                 are_packages_equal(&package_path, registry_package_path)
                     .context("cannot compare packages")?
             };
@@ -464,12 +466,12 @@ fn get_diff(
                 if diff.commits.is_empty() {
                     // Check if the workspace dependencies were updated.
                     if are_dependencies_updated(
-                        &registry_package.dependencies,
-                        &package.dependencies,
+                        &registry_package.package().dependencies,
+                        &package.package().dependencies,
                     ) {
                         diff.commits.push("chore: update dependencies".to_string());
                     } else {
-                        info!("{}: already up to date", package.name);
+                        info!("{}: already up to date", package.name());
                     }
                 }
                 // The local package is identical to the registry one, which means that
@@ -477,8 +479,8 @@ fn get_diff(
                 // as part of the release.
                 // We can process the next create.
                 break;
-            } else if registry_package.version != package.version {
-                info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
+            } else if registry_package.version() != package.version() {
+                info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name());
                 diff.set_version_unpublished();
                 break;
             } else {
