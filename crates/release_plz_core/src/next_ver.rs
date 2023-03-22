@@ -285,7 +285,7 @@ impl Updater<'_> {
         repository: &Repo,
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
-        let mut packages_to_check_for_deps: Vec<&Package> = vec![];
+        let mut packages_to_check_for_deps: Vec<&LocalPackage> = vec![];
         let mut packages_to_update = PackagesUpdate { updates: vec![] };
         for p in &self.project.packages {
             let diff = get_diff(p, registry_packages, repository, &self.project.root)?;
@@ -300,7 +300,7 @@ impl Updater<'_> {
                     diff.semver_check.outcome_str()
                 );
                 let update_result =
-                    self.update_result(diff.commits, next_version, p.package(), diff.semver_check)?;
+                    self.update_result(diff.commits, next_version, p, diff.semver_check)?;
 
                 packages_to_update.updates.push((p.clone(), update_result));
             } else if diff.is_version_published {
@@ -338,7 +338,7 @@ impl Updater<'_> {
                 Err(_e) => None,
             })
             .map(|(&p, deps)| {
-                let deps: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
+                let deps: Vec<&str> = deps.iter().map(|d| d.name().as_str()).collect();
                 let change = format!(
                     "chore: updated the following local packages: {}",
                     deps.join(", ")
@@ -361,14 +361,14 @@ impl Updater<'_> {
         &self,
         commits: Vec<String>,
         version: Version,
-        package: &Package,
+        package: &LocalPackage,
         semver_check: SemverCheck,
     ) -> anyhow::Result<UpdateResult> {
         let release_link = {
             let prev_tag = self
                 .project
-                .git_tag(&package.name, &package.version.to_string());
-            let next_tag = self.project.git_tag(&package.name, &version.to_string());
+                .git_tag(&package.name(), &package.version().to_string());
+            let next_tag = self.project.git_tag(&package.name(), &version.to_string());
             self.req
                 .repo_url
                 .as_ref()
@@ -394,7 +394,7 @@ fn get_changelog(
     commits: Vec<String>,
     next_version: &Version,
     changelog_req: Option<ChangelogRequest>,
-    package: &Package,
+    package: &LocalPackage,
     release_link: Option<String>,
 ) -> anyhow::Result<String> {
     let mut changelog_builder = ChangelogBuilder::new(commits, next_version.to_string());
@@ -410,7 +410,7 @@ fn get_changelog(
         }
     }
     let new_changelog = changelog_builder.build();
-    let changelog = match fs::read_to_string(package.changelog_path()?) {
+    let changelog = match fs::read_to_string(package.changelog_path()) {
         Ok(old_changelog) => new_changelog.prepend(old_changelog)?,
         Err(_err) => new_changelog.generate(), // Old changelog doesn't exist.
     };

@@ -6,7 +6,7 @@ use semver::Version;
 
 use crate::{LocalManifest, CHANGELOG_FILENAME};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LocalPackage {
     package: Package,
     manifest: LocalManifest,
@@ -44,12 +44,12 @@ impl LocalPackage {
     }
 
     pub fn package_path(&self) -> &Path {
+        // we unwrap here because we know that the manifest path is valid
         manifest_dir(&self.manifest.path).unwrap()
     }
 
-    pub fn changelog_path(&self) -> anyhow::Result<PathBuf> {
-        let changelog_path = self.package_path().join(CHANGELOG_FILENAME);
-        Ok(changelog_path)
+    pub fn changelog_path(&self) -> PathBuf {
+        self.package_path().join(CHANGELOG_FILENAME)
     }
 }
 

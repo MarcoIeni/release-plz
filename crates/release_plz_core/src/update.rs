@@ -150,7 +150,7 @@ fn update_versions(
 fn update_changelogs(local_packages: &PackagesUpdate) -> anyhow::Result<()> {
     for (package, update) in &local_packages.updates {
         if let Some(changelog) = update.changelog.as_ref() {
-            let changelog_path = package.package().changelog_path()?;
+            let changelog_path = package.changelog_path();
             fs::write(&changelog_path, changelog)
                 .with_context(|| format!("cannot write changelog to {:?}", &changelog_path))?;
         }

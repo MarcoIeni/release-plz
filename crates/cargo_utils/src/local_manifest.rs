@@ -17,7 +17,7 @@ enum FeatureStatus {
 }
 
 /// A Cargo manifest that is available locally.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LocalManifest {
     /// Canonicalized path to the manifest
     pub path: PathBuf,
