@@ -1,9 +1,9 @@
 use crate::semver_check::SemverCheck;
-use crate::{tmp_repo::TempRepo, PackagePath, UpdateRequest, UpdateResult};
+use crate::PackagePath;
+use crate::{tmp_repo::TempRepo, UpdateRequest, UpdateResult};
 use anyhow::{anyhow, Context};
 use cargo_metadata::{semver::Version, Package};
-use cargo_utils::upgrade_requirement;
-use cargo_utils::LocalManifest;
+use cargo_utils::{upgrade_requirement, LocalPackage};
 use git_cmd::Repo;
 use std::{fs, path::Path};
 use tracing::{info, warn};
@@ -11,35 +11,14 @@ use tracing::{info, warn};
 use tracing::{debug, instrument};
 
 pub struct PackagesUpdate {
-    pub updates: Vec<(Package, UpdateResult)>,
+    pub updates: Vec<(LocalPackage, UpdateResult)>,
 }
 
-impl PackagesUpdate {
-    pub fn summary(&self) -> String {
-        let updates = self.updates_summary();
-        let breaking_changes = self.breaking_changes();
-        format!("{updates}\n{breaking_changes}")
-    }
+struct PurePackagesUpdate<'a> {
+    pub updates: Vec<(&'a Package, &'a UpdateResult)>,
+}
 
-    fn updates_summary(&self) -> String {
-        self.updates
-            .iter()
-            .map(|(package, update)| {
-                if package.version != update.version {
-                    format!(
-                        "\n* `{}`: {} -> {}{}",
-                        package.name,
-                        package.version,
-                        update.version,
-                        update.semver_check.outcome_str()
-                    )
-                } else {
-                    format!("\n* `{}`: {}", package.name, package.version)
-                }
-            })
-            .collect()
-    }
-
+impl PurePackagesUpdate<'_> {
     /// Return the list of changes in the changelog of the updated packages
     pub fn changes(&self, project_contains_multiple_pub_packages: bool) -> String {
         self.updates
@@ -75,6 +54,44 @@ impl PackagesUpdate {
             })
             .collect()
     }
+}
+
+impl PackagesUpdate {
+    pub fn summary(&self) -> String {
+        let updates = self.updates_summary();
+        let breaking_changes = self.breaking_changes();
+        format!("{updates}\n{breaking_changes}")
+    }
+
+    pub fn changes(&self, project_contains_multiple_pub_packages: bool) -> String {
+        let pure_packages_update = PurePackagesUpdate {
+            updates: self
+                .updates
+                .iter()
+                .map(|(package, update)| (package.package(), update))
+                .collect(),
+        };
+        pure_packages_update.changes(project_contains_multiple_pub_packages)
+    }
+
+    fn updates_summary(&self) -> String {
+        self.updates
+            .iter()
+            .map(|(package, update)| {
+                if package.version() != &update.version {
+                    format!(
+                        "\n* `{}`: {} -> {}{}",
+                        package.name(),
+                        package.version(),
+                        update.version,
+                        update.semver_check.outcome_str()
+                    )
+                } else {
+                    format!("\n* `{}`: {}", package.name(), package.version())
+                }
+            })
+            .collect()
+    }
 
     fn breaking_changes(&self) -> String {
         self.updates
@@ -83,7 +100,8 @@ impl PackagesUpdate {
                 SemverCheck::Incompatible(incompatibilities) => {
                     format!(
                         "\n### ⚠️ `{}` breaking changes\n\n```{}```\n",
-                        package.name, incompatibilities
+                        package.name(),
+                        incompatibilities
                     )
                 }
                 SemverCheck::Compatible | SemverCheck::Skipped => "".to_string(),
@@ -120,12 +138,11 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
 
 #[instrument(skip_all)]
 fn update_versions(
-    all_packages: &[Package],
+    all_packages: &[LocalPackage],
     packages_to_update: &PackagesUpdate,
 ) -> anyhow::Result<()> {
     for (package, update) in &packages_to_update.updates {
-        let package_path = package.package_path()?;
-        set_version(all_packages, package_path, &update.version)?;
+        set_version(all_packages, package, &update.version)?;
     }
     Ok(())
 }
@@ -134,7 +151,7 @@ fn update_versions(
 fn update_changelogs(local_packages: &PackagesUpdate) -> anyhow::Result<()> {
     for (package, update) in &local_packages.updates {
         if let Some(changelog) = update.changelog.as_ref() {
-            let changelog_path = package.changelog_path()?;
+            let changelog_path = package.package().changelog_path()?;
             fs::write(&changelog_path, changelog)
                 .with_context(|| format!("cannot write changelog to {:?}", &changelog_path))?;
         }
@@ -155,31 +172,29 @@ fn update_cargo_lock(root: &Path, update_all_dependencies: bool) -> anyhow::Resu
 
 #[instrument]
 fn set_version(
-    all_packages: &[Package],
-    package_path: &Path,
+    all_packages: &[LocalPackage],
+    package_path: &LocalPackage,
     version: &Version,
 ) -> anyhow::Result<()> {
     debug!("updating version");
-    let mut local_manifest =
-        LocalManifest::try_new(&package_path.join("Cargo.toml")).context("cannot read manifest")?;
+    let mut local_manifest = package_path.manifest().clone();
     local_manifest.set_package_version(version);
     local_manifest.write().expect("cannot update manifest");
 
-    let package_path = fs::canonicalize(crate::manifest_dir(&local_manifest.path)?)?;
-    update_dependencies(all_packages, version, &package_path)?;
+    update_dependencies(all_packages, version, package_path.package_path())?;
     Ok(())
 }
 
 /// Update the package version in the dependencies of the other packages.
 fn update_dependencies(
-    all_packages: &[Package],
+    all_packages: &[LocalPackage],
     version: &Version,
     package_path: &Path,
 ) -> anyhow::Result<()> {
     for member in all_packages {
-        let mut member_manifest = LocalManifest::try_new(member.manifest_path.as_std_path())?;
-        let member_dir = crate::manifest_dir(&member_manifest.path)?.to_owned();
-        let deps_to_update = member_manifest
+        let member_dir = member.package_path();
+        let deps_to_update = member
+            .manifest()
             .get_dependency_tables_mut()
             .flat_map(|t| t.iter_mut().filter_map(|(_, d)| d.as_table_like_mut()))
             .filter(|d| d.contains_key("version"))
@@ -204,7 +219,7 @@ fn update_dependencies(
                 dep.insert("version", toml_edit::value(new_req));
             }
         }
-        member_manifest.write()?;
+        member.manifest().write()?;
     }
     Ok(())
 }
@@ -242,19 +257,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - complex update
         "#
         .to_string();
-        let pkgs = PackagesUpdate {
+        let pkgs = PurePackagesUpdate {
             updates: vec![
                 (
-                    fake_package::FakePackage::new("foo").into(),
-                    UpdateResult {
+                    &fake_package::FakePackage::new("foo").into(),
+                    &UpdateResult {
                         version: Version::parse("0.2.0").unwrap(),
                         changelog: Some(changelog.clone()),
                         semver_check: SemverCheck::Compatible,
                     },
                 ),
                 (
-                    fake_package::FakePackage::new("bar").into(),
-                    UpdateResult {
+                    &fake_package::FakePackage::new("bar").into(),
+                    &UpdateResult {
                         version: Version::parse("0.2.0").unwrap(),
                         changelog: Some(changelog),
                         semver_check: SemverCheck::Compatible,
@@ -320,10 +335,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - complex update
         "#
         .to_string();
-        let pkgs = PackagesUpdate {
+        let pkgs = PurePackagesUpdate {
             updates: vec![(
-                fake_package::FakePackage::new("foo").into(),
-                UpdateResult {
+                &fake_package::FakePackage::new("foo").into(),
+                &UpdateResult {
                     version: Version::parse("0.2.0").unwrap(),
                     changelog: Some(changelog),
                     semver_check: SemverCheck::Compatible,

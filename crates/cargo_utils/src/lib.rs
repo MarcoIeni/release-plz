@@ -4,9 +4,11 @@ mod manifest;
 mod registry;
 mod version;
 mod workspace_members;
+mod local_package;
 
 pub use dependency::*;
 pub use local_manifest::*;
+pub use local_package::*;
 pub use manifest::*;
 pub use registry::*;
 pub use version::*;

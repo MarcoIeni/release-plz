@@ -19,7 +19,7 @@ enum FeatureStatus {
 /// A Cargo manifest that is available locally.
 #[derive(Debug)]
 pub struct LocalManifest {
-    /// Path to the manifest
+    /// Canonicalized path to the manifest
     pub path: PathBuf,
     /// Manifest contents
     pub manifest: Manifest,
@@ -40,25 +40,13 @@ impl DerefMut for LocalManifest {
 }
 
 impl LocalManifest {
-    /// Construct a `LocalManifest`. If no path is provided, make an educated guess as to which one
-    /// the user means.
-    pub fn find(path: Option<&Path>) -> anyhow::Result<Self> {
-        let path = dunce::canonicalize(find(path)?)?;
-        Self::try_new(&path)
-    }
-
     /// Construct the `LocalManifest` corresponding to the `Path` provided.
     pub fn try_new(path: &Path) -> anyhow::Result<Self> {
-        if !path.is_absolute() {
-            anyhow::bail!("can only edit absolute paths, got {}", path.display());
-        }
+        let path = dunce::canonicalize(path)?;
         let data =
-            std::fs::read_to_string(path).with_context(|| "Failed to read manifest contents")?;
+            std::fs::read_to_string(&path).with_context(|| "Failed to read manifest contents")?;
         let manifest = data.parse().context("Unable to parse Cargo.toml")?;
-        Ok(LocalManifest {
-            manifest,
-            path: path.to_owned(),
-        })
+        Ok(LocalManifest { manifest, path })
     }
 
     /// Write changes back to the file

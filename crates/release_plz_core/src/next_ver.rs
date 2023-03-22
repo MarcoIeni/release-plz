@@ -12,7 +12,7 @@ use crate::{
 };
 use anyhow::{anyhow, Context};
 use cargo_metadata::{semver::Version, Dependency, Package};
-use cargo_utils::{upgrade_requirement, LocalManifest};
+use cargo_utils::{upgrade_requirement, LocalManifest, LocalPackage};
 use chrono::NaiveDate;
 use fs_extra::dir;
 use git_cliff_core::config::Config as GitCliffConfig;
@@ -184,7 +184,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
 #[derive(Debug)]
 pub struct Project {
     /// Publishable packages.
-    packages: Vec<Package>,
+    packages: Vec<LocalPackage>,
     /// Project root directory
     root: PathBuf,
     /// Directory containing the project manifest
@@ -213,15 +213,18 @@ impl Project {
 
         anyhow::ensure!(!packages.is_empty(), "no public packages found");
 
+        let local_packages: anyhow::Result<Vec<LocalPackage>> =
+            packages.into_iter().map(LocalPackage::new).collect();
+
         Ok(Self {
-            packages,
+            packages: local_packages?,
             root,
             manifest_dir,
             contains_multiple_pub_packages,
         })
     }
 
-    pub fn packages(&self) -> &[Package] {
+    pub fn packages(&self) -> &[LocalPackage] {
         &self.packages
     }
 
@@ -286,18 +289,18 @@ impl Updater<'_> {
         let mut packages_to_update = PackagesUpdate { updates: vec![] };
         for p in &self.project.packages {
             let diff = get_diff(p, registry_packages, repository, &self.project.root)?;
-            let current_version = p.version.clone();
-            let next_version = p.version.next_from_diff(&diff);
+            let current_version = p.version().clone();
+            let next_version = p.version().next_from_diff(&diff);
 
             debug!("diff: {:?}, next_version: {}", &diff, next_version);
             if next_version != current_version || !diff.registry_package_exists {
                 info!(
                     "{}: next version is {next_version}{}",
-                    p.name,
+                    p.name(),
                     diff.semver_check.outcome_str()
                 );
                 let update_result =
-                    self.update_result(diff.commits, next_version, p, diff.semver_check)?;
+                    self.update_result(diff.commits, next_version, p.package(), diff.semver_check)?;
 
                 packages_to_update.updates.push((p.clone(), update_result));
             } else if diff.is_version_published {
@@ -416,30 +419,30 @@ fn get_changelog(
 
 #[instrument(
     skip_all,
-    fields(package = %package.name)
+    fields(package = %package.name())
 )]
 fn get_diff(
-    package: &Package,
+    package: &LocalPackage,
     registry_packages: &PackagesCollection,
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<Diff> {
     let package_path = {
         let relative_path = package
-            .package_path()?
+            .package_path()
             .strip_prefix(project_root)
             .context("error while retrieving package_path")?;
         repository.directory().join(relative_path)
     };
     repository.checkout_head()?;
-    let registry_package = registry_packages.get_package(&package.name);
+    let registry_package = registry_packages.get_package(&package.name());
     let mut diff = Diff::new(registry_package.is_some());
     if let Err(_err) = repository.checkout_last_commit_at_path(&package_path) {
-        info!("{}: there are no commits", package.name);
+        info!("{}: there are no commits", package.name());
         return Ok(diff);
     }
     if let Some(registry_package) = registry_package {
-        if is_library(package) {
+        if package.is_library() {
             let semver_check =
                 semver_check::run_semver_check(&package_path, registry_package.package_path()?)?;
             diff.set_semver_check(semver_check);
@@ -534,13 +537,6 @@ impl Publishable for Package {
             true
         }
     }
-}
-
-fn is_library(package: &Package) -> bool {
-    package
-        .targets
-        .iter()
-        .any(|t| t.kind.contains(&"lib".to_string()))
 }
 
 pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
