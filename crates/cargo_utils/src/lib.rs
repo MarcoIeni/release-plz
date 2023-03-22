@@ -13,3 +13,5 @@ pub use manifest::*;
 pub use registry::*;
 pub use version::*;
 pub use workspace_members::*;
+
+pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";

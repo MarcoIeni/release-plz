@@ -4,7 +4,7 @@ use anyhow::Context;
 use cargo_metadata::Package;
 use semver::Version;
 
-use crate::LocalManifest;
+use crate::{LocalManifest, CHANGELOG_FILENAME};
 
 #[derive(Debug)]
 pub struct LocalPackage {
@@ -45,6 +45,11 @@ impl LocalPackage {
 
     pub fn package_path(&self) -> &Path {
         manifest_dir(&self.manifest.path).unwrap()
+    }
+
+    pub fn changelog_path(&self) -> anyhow::Result<PathBuf> {
+        let changelog_path = self.package_path().join(CHANGELOG_FILENAME);
+        Ok(changelog_path)
     }
 }
 

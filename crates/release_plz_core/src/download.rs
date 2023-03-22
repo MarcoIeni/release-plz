@@ -3,7 +3,6 @@
 use std::{fmt, path::Path};
 
 use anyhow::{anyhow, Context};
-use cargo_metadata::Package;
 use cargo_utils::LocalPackage;
 use tracing::{info, instrument, warn};
 

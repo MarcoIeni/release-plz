@@ -1,5 +1,4 @@
 use crate::semver_check::SemverCheck;
-use crate::PackagePath;
 use crate::{tmp_repo::TempRepo, UpdateRequest, UpdateResult};
 use anyhow::{anyhow, Context};
 use cargo_metadata::{semver::Version, Package};
