@@ -41,7 +41,7 @@ pub fn get_registry_packages(
     let registry_packages = registry_packages
         .into_iter()
         .map(|c| {
-            let package_name = c.name.clone();
+            let package_name = c.name().to_string();
             (package_name, c)
         })
         .collect();

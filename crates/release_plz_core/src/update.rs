@@ -191,9 +191,9 @@ fn update_dependencies(
     package_path: &Path,
 ) -> anyhow::Result<()> {
     for member in all_packages {
+        let mut member_manifest = member.manifest().clone();
         let member_dir = member.package_path();
-        let deps_to_update = member
-            .manifest()
+        let deps_to_update = member_manifest
             .get_dependency_tables_mut()
             .flat_map(|t| t.iter_mut().filter_map(|(_, d)| d.as_table_like_mut()))
             .filter(|d| d.contains_key("version"))

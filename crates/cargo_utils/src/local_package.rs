@@ -8,8 +8,8 @@ use crate::{LocalManifest, CHANGELOG_FILENAME};
 
 #[derive(Debug, Clone)]
 pub struct LocalPackage {
-    package: Package,
-    manifest: LocalManifest,
+    pub package: Package,
+    pub manifest: LocalManifest,
 }
 
 impl LocalPackage {

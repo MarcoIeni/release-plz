@@ -1,10 +1,11 @@
 use cargo_metadata::{Dependency, DependencyKind, Package};
+use cargo_utils::LocalPackage;
 use tracing::debug;
 
 /// Return packages in an order they can be released.
 /// In the result, the packages are placed after all their dependencies.
 /// Return an error if a circular dependency is detected.
-pub fn release_order<'a>(packages: &'a [&Package]) -> anyhow::Result<Vec<&'a Package>> {
+pub fn release_order<'a>(packages: &'a [&LocalPackage]) -> anyhow::Result<Vec<&'a LocalPackage>> {
     let mut order = vec![];
     let mut passed = vec![];
     for p in packages {
@@ -12,7 +13,7 @@ pub fn release_order<'a>(packages: &'a [&Package]) -> anyhow::Result<Vec<&'a Pac
     }
     debug!(
         "Release order: {:?}",
-        order.iter().map(|p| &p.name).collect::<Vec<_>>()
+        order.iter().map(|p| p.name()).collect::<Vec<_>>()
     );
     Ok(order)
 }
@@ -20,29 +21,29 @@ pub fn release_order<'a>(packages: &'a [&Package]) -> anyhow::Result<Vec<&'a Pac
 /// The `passed` argument is used to track packages that you already visited to
 /// detect circular dependencies.
 fn release_order_inner<'a>(
-    packages: &[&'a Package],
-    pkg: &'a Package,
-    order: &mut Vec<&'a Package>,
-    passed: &mut Vec<&'a Package>,
+    packages: &[&'a LocalPackage],
+    pkg: &'a LocalPackage,
+    order: &mut Vec<&'a LocalPackage>,
+    passed: &mut Vec<&'a LocalPackage>,
 ) -> anyhow::Result<()> {
     if is_package_in(pkg, order) {
         return Ok(());
     }
     passed.push(pkg);
 
-    for d in &pkg.dependencies {
+    for d in &pkg.package().dependencies {
         // Check if the dependency is part of the packages we are releasing.
         if let Some(dep) = packages.iter().find(|p| {
-            d.name == p.name
+            d.name == p.name()
               // Exclude the current package.
-              && p.name != pkg.name
+              && p.name() != pkg.name()
               && should_dep_be_released_before(d, pkg)
         }) {
             anyhow::ensure!(
                 !is_package_in(dep, passed),
                 "Circular dependency detected: {} -> {}",
-                dep.name,
-                pkg.name,
+                dep.name(),
+                pkg.name(),
             );
             release_order_inner(packages, dep, order, passed)?;
         }
@@ -56,8 +57,8 @@ fn release_order_inner<'a>(
 /// Return true if the package is part of a packages array.
 /// This function exists because `package.contains(pkg)` is expensive,
 /// because it compares the whole package struct.
-fn is_package_in(pkg: &Package, packages: &[&Package]) -> bool {
-    packages.iter().any(|p| p.name == pkg.name)
+fn is_package_in(pkg: &LocalPackage, packages: &[&LocalPackage]) -> bool {
+    packages.iter().any(|p| p.name() == pkg.name())
 }
 
 /// Check if the dependency is enabled in features.
@@ -75,12 +76,12 @@ fn is_dep_in_features(pkg: &Package, dep: &str) -> bool {
 }
 
 /// Check if the dependency should be released before the current package.
-fn should_dep_be_released_before(dep: &Dependency, pkg: &Package) -> bool {
+fn should_dep_be_released_before(dep: &Dependency, pkg: &LocalPackage) -> bool {
     // Ignore development dependencies. They don't need to be published before the current package...
     matches!(dep.kind, DependencyKind::Normal | DependencyKind::Build)
       // ...unless they are in features. In fact, `cargo-publish` compiles crates that are in features
       // and dev-dependencies, even if they are not present in normal dependencies.
-      || is_dep_in_features(pkg, &dep.name)
+      || is_dep_in_features(pkg.package(), &dep.name)
 }
 
 #[cfg(test)]
@@ -95,6 +96,7 @@ mod tests {
     fn workspace_release_order_is_correct() {
         let public_packages = publishable_packages("../../Cargo.toml").unwrap();
         let pkgs = &public_packages.iter().collect::<Vec<_>>();
+
         assert_eq!(
             order(pkgs),
             [
@@ -125,11 +127,11 @@ mod tests {
         FakeDependency::new(name).dev()
     }
 
-    fn order<'a>(pkgs: &'a [&'a Package]) -> Vec<&'a str> {
+    fn order<'a>(pkgs: &'a [&'a LocalPackage]) -> Vec<&'a str> {
         release_order(pkgs)
             .unwrap()
             .iter()
-            .map(|p| p.name.as_str())
+            .map(|p| p.name())
             .collect()
     }
 

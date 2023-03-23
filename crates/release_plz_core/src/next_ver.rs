@@ -2,7 +2,6 @@ use crate::{
     changelog_parser::{self, ChangelogRelease},
     diff::Diff,
     package_compare::are_packages_equal,
-    package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection},
     repo_url::RepoUrl,
     semver_check::{self, SemverCheck},
@@ -12,7 +11,7 @@ use crate::{
 };
 use anyhow::{anyhow, Context};
 use cargo_metadata::{semver::Version, Dependency, Package};
-use cargo_utils::{upgrade_requirement, LocalManifest, LocalPackage};
+use cargo_utils::{upgrade_requirement, LocalManifest, LocalPackage, manifest_dir};
 use chrono::NaiveDate;
 use fs_extra::dir;
 use git_cliff_core::config::Config as GitCliffConfig;

@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 use cargo_metadata::Package;
+use cargo_utils::LocalPackage;
 use crates_index::Index;
 use git_cmd::Repo;
 use secrecy::{ExposeSecret, SecretString};
@@ -13,7 +14,7 @@ use crate::{
     cargo::{is_published, run_cargo, wait_until_published},
     changelog_parser,
     release_order::release_order,
-    GitBackend, PackagePath, Project,
+    GitBackend, Project,
 };
 
 #[derive(Debug)]
@@ -57,27 +58,29 @@ impl ReleaseRequest {
 #[instrument]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     let project = Project::new(&input.local_manifest, None)?;
-    let pkgs = project
-        .packages()
-        .iter()
-        .map(|p| p.package())
-        .collect::<Vec<_>>();
+    let pkgs = project.packages().iter().collect::<Vec<_>>();
     let release_order = release_order(&pkgs).context("cant' determine release order")?;
     for package in release_order {
         let workspace_root = input.workspace_root()?;
         let repo = Repo::new(workspace_root)?;
-        let git_tag = project.git_tag(&package.name, &package.version.to_string());
+        let git_tag = project.git_tag(package.name(), &package.version().to_string());
         if repo.tag_exists(&git_tag)? {
             info!(
                 "{} {}: Already published - Tag {} already exists",
-                package.name, package.version, &git_tag
+                package.name(),
+                package.version(),
+                &git_tag
             );
             continue;
         }
-        let registry_indexes = registry_indexes(package, input.registry.clone())?;
+        let registry_indexes = registry_indexes(package.package(), input.registry.clone())?;
         for mut index in registry_indexes {
-            if is_published(&mut index, package)? {
-                info!("{} {}: already published", package.name, package.version);
+            if is_published(&mut index, package.package())? {
+                info!(
+                    "{} {}: already published",
+                    package.name(),
+                    package.version()
+                );
                 return Ok(());
             }
             release_package(&mut index, package, input, git_tag.clone()).await?;
@@ -112,7 +115,7 @@ fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Resu
 
 async fn release_package(
     index: &mut Index,
-    package: &Package,
+    package: &LocalPackage,
     input: &ReleaseRequest,
     git_tag: String,
 ) -> anyhow::Result<()> {
@@ -120,7 +123,13 @@ async fn release_package(
     args.push("--color");
     args.push("always");
     args.push("--manifest-path");
-    args.push(package.manifest_path.as_ref());
+    args.push(
+        package
+            .manifest()
+            .path
+            .to_str()
+            .context("can't convert path to str")?,
+    );
     if let Some(token) = &input.token {
         args.push("--token");
         args.push(token.expose_secret());
@@ -140,21 +149,22 @@ async fn release_package(
     let (_, stderr) = run_cargo(workspace_root, &args)?;
 
     if !stderr.contains("Uploading") || stderr.contains("error:") {
-        anyhow::bail!("failed to publish {}: {}", package.name, stderr);
+        anyhow::bail!("failed to publish {}: {}", package.name(), stderr);
     }
 
     if input.dry_run {
         info!(
             "{} {}: aborting upload due to dry run",
-            package.name, package.version
+            package.name(),
+            package.version()
         );
     } else {
-        wait_until_published(index, package)?;
+        wait_until_published(index, package.package())?;
 
         repo.tag(&git_tag)?;
         repo.push(&git_tag)?;
 
-        info!("published {} {}", package.name, package.version);
+        info!("published {} {}", package.name(), package.version());
 
         if let Some(git_release) = &input.git_release {
             let release_body = release_body(package);
@@ -166,21 +176,21 @@ async fn release_package(
 }
 
 /// Return an empty string if the changelog cannot be parsed.
-fn release_body(package: &Package) -> String {
-    let changelog_path = package.changelog_path().unwrap();
+fn release_body(package: &LocalPackage) -> String {
+    let changelog_path = package.changelog_path();
     match changelog_parser::last_changes(&changelog_path) {
         Ok(Some(changes)) => changes,
         Ok(None) => {
             warn!(
                 "{}: last change not fuond in changelog at path {:?}. The git release body will be empty.",
-                package.name, &changelog_path
+                package.name(), &changelog_path
             );
             String::new()
         }
         Err(e) => {
             warn!(
                 "{}: failed to parse changelog at path {:?}: {}. The git release body will be empty.",
-                package.name, &changelog_path, e
+                package.name(), &changelog_path, e
             );
             String::new()
         }

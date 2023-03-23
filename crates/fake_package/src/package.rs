@@ -1,4 +1,7 @@
+use std::path::PathBuf;
+
 use cargo_metadata::{Dependency, Package};
+use cargo_utils::{LocalManifest, LocalPackage, Manifest};
 
 use crate::dependency::FakeDependency;
 
@@ -39,5 +42,20 @@ impl From<FakePackage> for Package {
             "targets": [],
         }))
         .unwrap()
+    }
+}
+
+impl From<FakePackage> for LocalPackage {
+    fn from(pkg: FakePackage) -> Self {
+        let package = Package::from(pkg);
+        Self {
+            package,
+            manifest: LocalManifest {
+                path: PathBuf::from("Cargo.toml"),
+                manifest: Manifest {
+                    data: Default::default(),
+                },
+            },
+        }
     }
 }
