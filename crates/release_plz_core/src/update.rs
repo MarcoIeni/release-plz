@@ -1,7 +1,7 @@
 use crate::semver_check::SemverCheck;
 use crate::{tmp_repo::TempRepo, UpdateRequest, UpdateResult};
 use anyhow::{anyhow, Context};
-use cargo_metadata::{semver::Version, Package};
+use cargo_metadata::{semver::Version};
 use cargo_utils::{upgrade_requirement, LocalPackage};
 use git_cmd::Repo;
 use std::{fs, path::Path};
@@ -13,11 +13,13 @@ pub struct PackagesUpdate {
     pub updates: Vec<(LocalPackage, UpdateResult)>,
 }
 
-struct PurePackagesUpdate<'a> {
-    pub updates: Vec<(&'a Package, &'a UpdateResult)>,
-}
+impl PackagesUpdate {
+    pub fn summary(&self) -> String {
+        let updates = self.updates_summary();
+        let breaking_changes = self.breaking_changes();
+        format!("{updates}\n{breaking_changes}")
+    }
 
-impl PurePackagesUpdate<'_> {
     /// Return the list of changes in the changelog of the updated packages
     pub fn changes(&self, project_contains_multiple_pub_packages: bool) -> String {
         self.updates
@@ -25,7 +27,7 @@ impl PurePackagesUpdate<'_> {
             .map(|(package, update)| match update.last_changes() {
                 Ok(Some(release)) => {
                     let entry_prefix = if project_contains_multiple_pub_packages {
-                        format!("## `{}`\n", package.name)
+                        format!("## `{}`\n", package.name())
                     } else {
                         "".to_string()
                     };
@@ -39,38 +41,19 @@ impl PurePackagesUpdate<'_> {
                 Ok(None) => {
                     warn!(
                         "no changes detected in changelog of package {}",
-                        package.name
+                        package.name()
                     );
                     "".to_string()
                 }
                 Err(e) => {
                     warn!(
                         "can't determine changes in changelog of package {}: {e}",
-                        package.name
+                        package.name()
                     );
                     "".to_string()
                 }
             })
             .collect()
-    }
-}
-
-impl PackagesUpdate {
-    pub fn summary(&self) -> String {
-        let updates = self.updates_summary();
-        let breaking_changes = self.breaking_changes();
-        format!("{updates}\n{breaking_changes}")
-    }
-
-    pub fn changes(&self, project_contains_multiple_pub_packages: bool) -> String {
-        let pure_packages_update = PurePackagesUpdate {
-            updates: self
-                .updates
-                .iter()
-                .map(|(package, update)| (package.package(), update))
-                .collect(),
-        };
-        pure_packages_update.changes(project_contains_multiple_pub_packages)
     }
 
     fn updates_summary(&self) -> String {
@@ -256,19 +239,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - complex update
         "#
         .to_string();
-        let pkgs = PurePackagesUpdate {
+        let pkgs = PackagesUpdate {
             updates: vec![
                 (
-                    &fake_package::FakePackage::new("foo").into(),
-                    &UpdateResult {
+                    fake_package::FakePackage::new("foo").into(),
+                    UpdateResult {
                         version: Version::parse("0.2.0").unwrap(),
                         changelog: Some(changelog.clone()),
                         semver_check: SemverCheck::Compatible,
                     },
                 ),
                 (
-                    &fake_package::FakePackage::new("bar").into(),
-                    &UpdateResult {
+                    fake_package::FakePackage::new("bar").into(),
+                    UpdateResult {
                         version: Version::parse("0.2.0").unwrap(),
                         changelog: Some(changelog),
                         semver_check: SemverCheck::Compatible,
@@ -334,10 +317,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - complex update
         "#
         .to_string();
-        let pkgs = PurePackagesUpdate {
+        let pkgs = PackagesUpdate {
             updates: vec![(
-                &fake_package::FakePackage::new("foo").into(),
-                &UpdateResult {
+                fake_package::FakePackage::new("foo").into(),
+                UpdateResult {
                     version: Version::parse("0.2.0").unwrap(),
                     changelog: Some(changelog),
                     semver_check: SemverCheck::Compatible,

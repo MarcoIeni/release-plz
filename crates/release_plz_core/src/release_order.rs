@@ -111,7 +111,7 @@ mod tests {
     }
 
     /// Package
-    fn pkg(name: &str, deps: &[FakeDependency]) -> Package {
+    fn pkg(name: &str, deps: &[FakeDependency]) -> LocalPackage {
         FakePackage::new(name)
             .with_dependencies(deps.to_vec())
             .into()
@@ -209,7 +209,7 @@ mod tests {
     #[test]
     fn two_packages_dev_cycle_with_package_in_features_is_detected() {
         let mut a = pkg("a", &[dev_dep("b")]);
-        a.features = [("my_feat".to_string(), vec!["b/feat".to_string()])].into();
+        a.package.features = [("my_feat".to_string(), vec!["b/feat".to_string()])].into();
         let pkgs = [&a, &pkg("b", &[dep("a")])];
         expect_test::expect!["Circular dependency detected: a -> b"]
             .assert_eq(&release_order(&pkgs).unwrap_err().to_string());
@@ -223,7 +223,7 @@ mod tests {
     #[test]
     fn two_packages_dev_cycle_with_random_feature_is_ok() {
         let mut a = pkg("a", &[dev_dep("b")]);
-        a.features = [(
+        a.package.features = [(
             "my_feat".to_string(),
             vec!["b".to_string(), "rand/b".to_string()],
         )]

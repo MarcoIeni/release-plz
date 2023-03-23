@@ -5,7 +5,7 @@ use cargo_utils::CHANGELOG_FILENAME;
 use chrono::NaiveDate;
 use release_plz_core::{
     are_packages_equal, copy_to_temp_dir, ChangelogRequest, GitBackend, GitHub, Gitea,
-    ReleasePrRequest, RepoUrl, UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
+    ReleasePrRequest, RepoUrl, UpdateRequest, CARGO_TOML,
 };
 use secrecy::Secret;
 use tempfile::{tempdir, TempDir};

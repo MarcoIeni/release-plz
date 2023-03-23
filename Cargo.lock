@@ -2748,6 +2748,7 @@ version = "0.2.57"
 dependencies = [
  "anyhow",
  "assert_cmd",
+ "cargo_utils",
  "chrono",
  "clap 4.1.11",
  "clap_complete 4.1.5",
