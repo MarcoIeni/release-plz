@@ -1,10 +1,10 @@
 mod dependency;
 mod local_manifest;
+mod local_package;
 mod manifest;
 mod registry;
 mod version;
 mod workspace_members;
-mod local_package;
 
 pub use dependency::*;
 pub use local_manifest::*;

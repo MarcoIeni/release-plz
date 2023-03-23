@@ -11,7 +11,7 @@ use crate::{
 };
 use anyhow::{anyhow, Context};
 use cargo_metadata::{semver::Version, Dependency, Package};
-use cargo_utils::{upgrade_requirement, LocalManifest, LocalPackage, manifest_dir};
+use cargo_utils::{manifest_dir, upgrade_requirement, LocalManifest, LocalPackage};
 use chrono::NaiveDate;
 use fs_extra::dir;
 use git_cliff_core::config::Config as GitCliffConfig;

@@ -19,7 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 "#;
 
-
 pub struct Changelog<'a> {
     release: Release<'a>,
     config: Option<Config>,

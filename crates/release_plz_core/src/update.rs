@@ -1,7 +1,7 @@
 use crate::semver_check::SemverCheck;
 use crate::{tmp_repo::TempRepo, UpdateRequest, UpdateResult};
 use anyhow::{anyhow, Context};
-use cargo_metadata::{semver::Version};
+use cargo_metadata::semver::Version;
 use cargo_utils::{upgrade_requirement, LocalPackage};
 use git_cmd::Repo;
 use std::{fs, path::Path};
