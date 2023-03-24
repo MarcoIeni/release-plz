@@ -365,8 +365,8 @@ impl Updater<'_> {
         let release_link = {
             let prev_tag = self
                 .project
-                .git_tag(&package.name(), &package.version().to_string());
-            let next_tag = self.project.git_tag(&package.name(), &version.to_string());
+                .git_tag(package.name(), &package.version().to_string());
+            let next_tag = self.project.git_tag(package.name(), &version.to_string());
             self.req
                 .repo_url
                 .as_ref()
@@ -433,7 +433,7 @@ fn get_diff(
         repository.directory().join(relative_path)
     };
     repository.checkout_head()?;
-    let registry_package = registry_packages.get_package(&package.name());
+    let registry_package = registry_packages.get_package(package.name());
     let mut diff = Diff::new(registry_package.is_some());
     if let Err(_err) = repository.checkout_last_commit_at_path(&package_path) {
         info!("{}: there are no commits", package.name());

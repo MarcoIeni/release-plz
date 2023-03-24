@@ -46,6 +46,7 @@ impl From<FakePackage> for Package {
 }
 
 impl From<FakePackage> for LocalPackage {
+    #[allow(clippy::default_trait_access)]
     fn from(pkg: FakePackage) -> Self {
         let package = Package::from(pkg);
         Self {
