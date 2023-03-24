@@ -52,9 +52,8 @@ pub fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<LocalPackage>
     let package = metadata
         .packages
         .get(0)
-        .ok_or_else(|| anyhow!("cannot retrieve package at {:?}", directory.as_ref()))?;
-    let local_package = LocalPackage::new(package.clone())?;
-    Ok(local_package)
+        .with_context(|| anyhow!("cannot retrieve package at {:?}", directory.as_ref()))?;
+    LocalPackage::new(package.clone())
 }
 
 #[cfg(test)]
