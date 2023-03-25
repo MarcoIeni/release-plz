@@ -22,7 +22,7 @@ mod tmp_repo;
 mod update;
 mod version;
 
-pub use backend::GitBackend;
+pub use backend::*;
 pub use changelog::*;
 pub use download::read_package;
 pub use gitea_client::Gitea;

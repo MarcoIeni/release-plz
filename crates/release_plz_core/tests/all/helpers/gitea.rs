@@ -9,6 +9,14 @@ pub struct User {
 }
 
 impl User {
+    pub fn username(&self) -> &str {
+        &self.username
+    }
+
+    pub fn password(&self) -> &str {
+        &self.username
+    }
+
     pub async fn create_repository(&self, repo_name: &str) {
         let client = reqwest::Client::new();
         client
@@ -111,7 +119,7 @@ fn run_create_user_command(user: &User) {
 pub fn create_user() -> User {
     let user = User {
         username: fake_id(),
-        password: fake_id(),
+        password: "psw".to_string(),
     };
     run_create_user_command(&user);
     user
