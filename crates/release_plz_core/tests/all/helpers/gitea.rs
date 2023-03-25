@@ -48,13 +48,43 @@ impl User {
             .json()
             .await
             .unwrap();
+
         repo.name
+    }
+
+    pub async fn create_token(&self) -> String {
+        let client = reqwest::Client::new();
+        let token: Token = client
+            .post(format!(
+                "http://localhost:3000/api/v1/users/{}/tokens",
+                self.username
+            ))
+            .basic_auth(&self.username, Some(&self.password))
+            .json(&json!({
+                "name": self.username,
+                // edit repositories
+                "scope": ["repo"]
+            }))
+            .send()
+            .await
+            .unwrap()
+            .error_for_status()
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+        token.sha1
     }
 }
 
 #[derive(serde::Deserialize)]
 struct Repository {
     name: String,
+}
+
+#[derive(serde::Deserialize)]
+struct Token {
+    sha1: String,
 }
 
 fn run_create_user_command(user: &User) {
