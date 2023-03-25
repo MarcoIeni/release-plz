@@ -9,11 +9,11 @@ use tracing::{info, instrument, warn};
 use url::Url;
 
 use crate::{
+    backend::GitClient,
     cargo::{is_published, run_cargo, wait_until_published},
     changelog_parser,
-    github_client::GitHubClient,
     release_order::release_order,
-    GitHub, PackagePath, Project, RepoUrl,
+    GitBackend, PackagePath, Project,
 };
 
 #[derive(Debug)]
@@ -33,12 +33,18 @@ pub struct ReleaseRequest {
     pub git_release: Option<GitRelease>,
     /// GitHub repo URL.
     pub repo_url: Option<String>,
+    /// Don't verify the contents by building them.
+    /// If true, `release-plz` adds the `--no-verify` flag to `cargo publish`.
+    pub no_verify: bool,
+    /// Allow dirty working directories to be packaged.
+    /// If true, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
+    pub allow_dirty: bool,
 }
 
 #[derive(Debug)]
 pub struct GitRelease {
-    /// Git token used to publish release.
-    pub git_token: SecretString,
+    /// Kind of Git Backend.
+    pub backend: GitBackend,
 }
 
 impl ReleaseRequest {
@@ -52,7 +58,7 @@ impl ReleaseRequest {
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     let project = Project::new(&input.local_manifest, None)?;
     let pkgs = project.packages().iter().collect::<Vec<_>>();
-    let release_order = release_order(&pkgs);
+    let release_order = release_order(&pkgs).context("cant' determine release order")?;
     for package in release_order {
         let workspace_root = input.workspace_root()?;
         let repo = Repo::new(workspace_root)?;
@@ -92,7 +98,7 @@ fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Resu
         .collect::<anyhow::Result<Vec<Url>>>()?;
     let mut registry_indexes = registry_urls
         .iter()
-        .map(|u| Index::from_url(&format!("registry+{}", u)))
+        .map(|u| Index::from_url(&format!("registry+{u}")))
         .collect::<Result<Vec<Index>, crates_index::Error>>()?;
     if registry_indexes.is_empty() {
         registry_indexes.push(Index::new_cargo_default()?)
@@ -118,6 +124,12 @@ async fn release_package(
     if input.dry_run {
         args.push("--dry-run");
     }
+    if input.allow_dirty {
+        args.push("--allow-dirty");
+    }
+    if input.no_verify {
+        args.push("--no-verify");
+    }
     let workspace_root = input.workspace_root()?;
 
     let repo = Repo::new(workspace_root)?;
@@ -138,18 +150,11 @@ async fn release_package(
         repo.tag(&git_tag)?;
         repo.push(&git_tag)?;
 
-        info!("published {}", package.name);
+        info!("published {} {}", package.name, package.version);
 
         if let Some(git_release) = &input.git_release {
             let release_body = release_body(package);
-            publish_release(
-                git_tag,
-                input.repo_url.as_deref(),
-                repo,
-                &release_body,
-                git_release.git_token.clone(),
-            )
-            .await?;
+            publish_release(git_tag, &release_body, &git_release.backend).await?;
         }
     }
 
@@ -160,7 +165,14 @@ async fn release_package(
 fn release_body(package: &Package) -> String {
     let changelog_path = package.changelog_path().unwrap();
     match changelog_parser::last_changes(&changelog_path) {
-        Ok(changes) => changes,
+        Ok(Some(changes)) => changes,
+        Ok(None) => {
+            warn!(
+                "{}: last change not fuond in changelog at path {:?}. The git release body will be empty.",
+                package.name, &changelog_path
+            );
+            String::new()
+        }
         Err(e) => {
             warn!(
                 "{}: failed to parse changelog at path {:?}: {}. The git release body will be empty.",
@@ -173,19 +185,22 @@ fn release_body(package: &Package) -> String {
 
 async fn publish_release(
     git_tag: String,
-    repo_url: Option<&str>,
-    repo: Repo,
     release_body: &str,
-    git_token: SecretString,
+    backend: &GitBackend,
 ) -> anyhow::Result<()> {
-    let repo_url = match repo_url {
-        Some(url) => RepoUrl::new(url),
-        None => RepoUrl::from_repo(&repo),
-    }?;
-    if repo_url.is_on_github() {
-        let github = GitHub::new(repo_url.clone().owner, repo_url.clone().name, git_token);
-        let github_client = GitHubClient::new(&github)?;
-        let _page = github_client.create_release(&git_tag, release_body).await?;
+    match backend {
+        GitBackend::Github(github) => {
+            let git_client = GitClient::new(crate::GitBackend::Github(github.clone()))?;
+            git_client.create_release(&git_tag, release_body).await?;
+        }
+        GitBackend::Gitea(gitea) => {
+            let git_client = GitClient::new(GitBackend::Gitea(gitea.clone()))?;
+            git_client.create_release(&git_tag, release_body).await?;
+        }
+        GitBackend::Gitlab(gitlab) => {
+            let git_client = GitClient::new(GitBackend::Gitlab(gitlab.clone()))?;
+            git_client.create_release(&git_tag, release_body).await?;
+        }
     }
     Ok(())
 }

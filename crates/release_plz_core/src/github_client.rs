@@ -1,152 +1,46 @@
-use crate::backend::Pr;
 use anyhow::Context;
-use octocrab::{
-    models::{repos, IssueState},
-    params, Octocrab, OctocrabBuilder,
-};
+use reqwest::header::{HeaderMap, HeaderValue};
 use secrecy::{ExposeSecret, SecretString};
-use tracing::{info, instrument, Span};
 use url::Url;
 
-#[derive(Debug)]
-pub struct GitHubClient<'a> {
-    github: &'a GitHub,
-    client: Octocrab,
-}
+use crate::backend::Remote;
 
-impl<'a> GitHubClient<'a> {
-    pub fn new(github: &'a GitHub) -> anyhow::Result<Self> {
-        let mut octocrab_builder =
-            OctocrabBuilder::new().personal_token(github.token.expose_secret().clone());
-
-        if let Some(base_url) = &github.base_url {
-            octocrab_builder = octocrab_builder
-                .base_url(base_url.clone())
-                .context("Invalid GitHub base url")?;
-        }
-
-        let client = octocrab_builder
-            .build()
-            .context("Failed to build GitHub client")?;
-
-        Ok(Self { github, client })
-    }
-
-    /// Creates a GitHub release.
-    pub async fn create_release(&self, tag: &str, body: &str) -> anyhow::Result<repos::Release> {
-        self.client
-            .repos(&self.github.owner, &self.github.repo)
-            .releases()
-            .create(tag)
-            .name(tag)
-            .body(body)
-            .send()
-            .await
-            .context("Failed to create release")
-    }
-
-    /// Close all Prs which branch starts with the given `branch_prefix`.
-    pub async fn close_prs_on_branches(&self, branch_prefix: &str) -> anyhow::Result<()> {
-        let pulls = self.client.pulls(&self.github.owner, &self.github.repo);
-
-        let mut i: u32 = 1;
-        let page_size = 30;
-        loop {
-            let prs = pulls
-                .list()
-                .state(params::State::Open)
-                .per_page(page_size)
-                .page(i)
-                .send()
-                .await
-                .context("Failed to retrieve PRs")?
-                .take_items();
-            let release_prs = prs
-                .iter()
-                .filter(|&pr| pr.head.ref_field.starts_with(branch_prefix))
-                .map(|pr| pr.number);
-            for release_pr in release_prs {
-                self.close_pr(release_pr).await?;
-            }
-
-            if prs.len() < page_size as usize {
-                break;
-            }
-            i += 1;
-        }
-        Ok(())
-    }
-
-    async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
-        self.client
-            .issues(&self.github.owner, &self.github.repo)
-            .update(pr_number)
-            .state(IssueState::Closed)
-            .send()
-            .await
-            .with_context(|| format!("cannot close pr {pr_number}"))?;
-        Ok(())
-    }
-
-    #[instrument(
-        fields(
-            default_branch = tracing::field::Empty,
-        ),
-        skip(pr)
-    )]
-    pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<()> {
-        let default_branch = self
-            .client
-            .repos(&self.github.owner, &self.github.repo)
-            .get()
-            .await
-            .context(format!(
-                "failed to retrieve GitHub repository {}/{}",
-                self.github.owner, self.github.repo
-            ))?
-            .default_branch
-            .context("failed to retrieve default branch")?;
-        Span::current().record("default_branch", default_branch.as_str());
-
-        let pr = self
-            .client
-            .pulls(&self.github.owner, &self.github.repo)
-            .create(&pr.title, &pr.branch, default_branch)
-            .body(&pr.body)
-            .send()
-            .await
-            .context("Failed to open PR")?;
-
-        if let Some(url) = pr.html_url {
-            info!("opened pr: {}", url);
-        }
-
-        Ok(())
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GitHub {
-    pub owner: String,
-    pub repo: String,
-    pub token: SecretString,
-    base_url: Option<Url>,
+    pub remote: Remote,
 }
 
 impl GitHub {
     pub fn new(owner: String, repo: String, token: SecretString) -> Self {
         Self {
-            owner,
-            repo,
-            token,
-            base_url: None,
+            remote: Remote {
+                owner,
+                repo,
+                token,
+                base_url: "https://api.github.com".parse().unwrap(),
+            },
         }
     }
 
     pub fn with_base_url(self, base_url: Url) -> Self {
         Self {
-            base_url: Some(base_url),
-            ..self
+            remote: Remote {
+                base_url,
+                ..self.remote
+            },
         }
+    }
+
+    pub fn default_headers(&self) -> anyhow::Result<HeaderMap> {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            reqwest::header::ACCEPT,
+            HeaderValue::from_static("application/vnd.github+json"),
+        );
+        let auth_header: HeaderValue = format!("Bearer {}", self.remote.token.expose_secret())
+            .parse()
+            .context("invalid GitHub token")?;
+        headers.insert(reqwest::header::AUTHORIZATION, auth_header);
+        Ok(headers)
     }
 }

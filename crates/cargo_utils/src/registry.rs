@@ -15,9 +15,8 @@ pub fn registry_url(manifest_path: &Path, registry: Option<&str>) -> anyhow::Res
         path: impl AsRef<Path>,
     ) -> anyhow::Result<()> {
         // TODO unit test for source replacement
-        let content = std::fs::read(path)?;
-        let config =
-            toml_edit::easy::from_slice::<CargoConfig>(&content).context("Invalid cargo config")?;
+        let content = std::fs::read_to_string(path)?;
+        let config = toml::from_str::<CargoConfig>(&content).context("Invalid cargo config")?;
         for (key, value) in config.registries {
             registries.entry(key).or_insert(Source {
                 registry: value.index,
@@ -120,7 +119,7 @@ struct Registry {
 fn cargo_home() -> anyhow::Result<PathBuf> {
     let default_cargo_home = dirs::home_dir()
         .map(|x| x.join(".cargo"))
-        .with_context(|| anyhow::format_err!("Failed to read home directory"))?;
+        .context("Failed to read home directory")?;
     let cargo_home = std::env::var("CARGO_HOME")
         .map(PathBuf::from)
         .unwrap_or(default_cargo_home);

@@ -26,12 +26,17 @@ runs two commands, one after the other:
 - `changelog_config`: Path to the git cliff configuration file.
   (Defaults to the [keep a changelog](https://keepachangelog.com/en/1.1.0/) configuration).
 - `git_release`: Publish the GitHub release for the created git tag. (Default: `true`).
-- `args`: Release-plz additional arguments. (Default: `""`)
+- `version`: Release-plz version to use. It must be an existing git tag name.
+  For example `release-plz-v0.2.45`. (Default: `"latest"`).
 
 ## Example: release-pr and release
 
 ```yaml
 name: Release-plz
+
+permissions:
+  pull-requests: write
+  contents: write
 
 on:
   push:
@@ -47,8 +52,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@main
+        uses: MarcoIeni/release-plz-action@v0.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -62,6 +69,10 @@ jobs:
 ```yaml
 name: Release-plz
 
+permissions:
+  pull-requests: write
+  contents: write
+
 on:
   push:
     branches:
@@ -76,8 +87,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@main
+        uses: MarcoIeni/release-plz-action@v0.4
         with:
           command: release-pr
         env:
@@ -89,6 +102,10 @@ jobs:
 ```yaml
 name: Release-plz
 
+permissions:
+  pull-requests: write
+  contents: write
+
 on:
   push:
     branches:
@@ -103,8 +120,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@main
+        uses: MarcoIeni/release-plz-action@v0.4
         with:
           command: release
         env:
@@ -116,15 +135,12 @@ jobs:
 
 1. Go to the GitHub actions settings:
 
-   ![actions settings](actions_settings.png)
+   ![actions settings](assets/actions_settings.png)
 
-2. Change "Workflow permissions" to:
+2. Change "Workflow permissions" to allow GitHub actions to create and approve
+   pull requests (needed to create and update the PR).
 
-   - Grant read and write permissions (needed to push the PR branch);
-   - Allow GitHub actions to create and approve pull requests
-     (needed to create the PR).
-
-   ![workflow permission](workflow_permissions.png)
+   ![workflow permission](assets/workflow_permissions.png)
 
 ## Triggering further workflow runs
 

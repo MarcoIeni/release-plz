@@ -48,9 +48,9 @@ notice = "warn"
 # A list of advisory IDs to ignore. Note that ignored advisories will still
 # output a note when they are encountered.
 ignore = [
-    "RUSTSEC-2020-0071",
-    "RUSTSEC-2020-0159",
-    #"RUSTSEC-0000-0000",
+    # TODO: remove this when cargo updates libgit2
+    # https://github.com/rust-lang/cargo/blob/99ad42deb4b0be0cdb062d333d5e63460a94c33c/Cargo.toml#L52
+    "RUSTSEC-2023-0003",
 ]
 # Threshold for security vulnerabilities, any vulnerability with a CVSS score
 # lower than the range specified will be ignored. Note that ignored advisories

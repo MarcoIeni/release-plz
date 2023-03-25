@@ -7,7 +7,6 @@ async fn github_up_to_date_project_should_not_raise_pr() {
         .github_mock_server()
         .expect_no_created_prs()
         .await;
-    comparison_test.github_mock_server().no_prs().await;
     comparison_test.github_open_release_pr().await.unwrap();
 }
 
@@ -18,6 +17,5 @@ async fn gitea_up_to_date_project_should_not_raise_pr() {
         .gitea_mock_server()
         .expect_no_created_prs()
         .await;
-    comparison_test.gitea_mock_server().no_prs().await;
     comparison_test.gitea_open_release_pr().await.unwrap();
 }

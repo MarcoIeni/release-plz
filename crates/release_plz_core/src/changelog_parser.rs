@@ -2,36 +2,87 @@ use std::{fs::read_to_string, path::Path};
 
 use anyhow::Context;
 
-pub fn last_changes(changelog: &Path) -> anyhow::Result<String> {
+pub fn last_changes(changelog: &Path) -> anyhow::Result<Option<String>> {
     let changelog = read_to_string(changelog).context("can't read changelog file")?;
     last_changes_from_str(&changelog)
 }
 
-fn last_changes_from_str(changelog: &str) -> anyhow::Result<String> {
-    let changelog = parse_changelog::parse(changelog).context("can't parse changelog")?;
-    let last_release = release_at(&changelog, 0)?;
-    let last_changes = if last_release.version.to_lowercase().contains("unreleased") {
-        release_at(&changelog, 1)?.notes
-    } else {
-        last_release.notes
-    };
-    Ok(last_changes.to_string())
+pub fn last_changes_from_str(changelog: &str) -> anyhow::Result<Option<String>> {
+    let parser = ChangelogParser::new(changelog)?;
+    let last_release = parser.last_release().map(|r| r.notes.to_string());
+    Ok(last_release)
+}
+
+pub fn last_version_from_str(changelog: &str) -> anyhow::Result<Option<String>> {
+    let parser = ChangelogParser::new(changelog)?;
+    let last_release = parser.last_release().map(|r| r.version.to_string());
+    Ok(last_release)
+}
+
+pub fn last_release_from_str(changelog: &str) -> anyhow::Result<Option<ChangelogRelease>> {
+    let parser = ChangelogParser::new(changelog)?;
+    let last_release = parser.last_release().map(ChangelogRelease::from_release);
+    Ok(last_release)
+}
+
+pub struct ChangelogRelease {
+    title: String,
+    notes: String,
+}
+
+impl ChangelogRelease {
+    fn from_release(release: &parse_changelog::Release) -> Self {
+        Self {
+            title: release.title.to_string(),
+            notes: release.notes.to_string(),
+        }
+    }
+
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn notes(&self) -> &str {
+        &self.notes
+    }
+}
+
+pub struct ChangelogParser<'a> {
+    changelog: parse_changelog::Changelog<'a>,
+}
+
+impl<'a> ChangelogParser<'a> {
+    pub fn new(changelog_text: &'a str) -> anyhow::Result<Self> {
+        let changelog = parse_changelog::parse(changelog_text).context("can't parse changelog")?;
+        Ok(Self { changelog })
+    }
+
+    fn last_release(&self) -> Option<&parse_changelog::Release> {
+        let last_release = release_at(&self.changelog, 0)?;
+        let last_release = if last_release.version.to_lowercase().contains("unreleased") {
+            release_at(&self.changelog, 1)?
+        } else {
+            last_release
+        };
+        Some(last_release)
+    }
 }
 
 fn release_at<'a>(
     changelog: &'a parse_changelog::Changelog,
     index: usize,
-) -> anyhow::Result<&'a parse_changelog::Release<'a>> {
-    let release = changelog
-        .get_index(index)
-        .context("can't find latest release in changelog")?
-        .1;
-    Ok(release)
+) -> Option<&'a parse_changelog::Release<'a>> {
+    let release = changelog.get_index(index)?.1;
+    Some(release)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::last_changes_from_str;
+    use super::*;
+
+    fn last_changes_from_str_test(changelog: &str) -> String {
+        last_changes_from_str(changelog).unwrap().unwrap()
+    }
 
     #[test]
     fn changelog_with_unreleased_section_is_parsed() {
@@ -54,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - improved error message
 ";
-        let changes = last_changes_from_str(changelog).unwrap();
+        let changes = last_changes_from_str_test(changelog);
         let expected_changes = "\
 ### Added
 - Add function to retrieve default branch (#372)";
@@ -80,7 +131,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - improved error message
 ";
-        let changes = last_changes_from_str(changelog).unwrap();
+        let changes = last_changes_from_str_test(changelog);
         let expected_changes = "\
 ### Added
 - Add function to retrieve default branch (#372)";

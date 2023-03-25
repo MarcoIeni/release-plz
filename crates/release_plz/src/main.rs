@@ -1,5 +1,7 @@
 mod args;
+mod config;
 mod log;
+mod update_checker;
 
 use anyhow::Context;
 use clap::Parser;
@@ -13,7 +15,7 @@ async fn main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
     log::init(args.verbose);
     run(args).await.map_err(|e| {
-        error!("{}", e);
+        error!("{:?}", e);
         e
     })?;
 
@@ -21,16 +23,21 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn run(args: CliArgs) -> anyhow::Result<()> {
+    let config = args.config()?;
     match args.command {
         args::Command::Update(cmd_args) => {
-            let update_request = cmd_args.update_request()?;
-            release_plz_core::update(&update_request)?;
+            let update_request = cmd_args.update_request(config)?;
+            let updates = release_plz_core::update(&update_request)?;
+            println!("{}", updates.0.summary());
         }
         args::Command::ReleasePr(cmd_args) => {
-            let update_request = cmd_args.update.update_request()?;
+            let update_request = cmd_args.update.update_request(config)?;
+            let repo_url = update_request
+                .repo_url()
+                .context("can't determine repo url")?;
             let request = ReleasePrRequest {
                 git: cmd_args
-                    .git_backend()
+                    .git_backend(repo_url.clone())
                     .context("invalid git backend settings")?,
                 update_request,
             };
@@ -41,6 +48,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             release_plz_core::release(&request).await?;
         }
         args::Command::GenerateCompletions(cmd_args) => cmd_args.print(),
+        args::Command::CheckUpdates => update_checker::check_update().await?,
     }
     Ok(())
 }

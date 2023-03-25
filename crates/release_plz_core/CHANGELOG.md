@@ -6,6 +6,148 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.7](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.6...release_plz_core-v0.5.7) - 2023-03-19
+
+### Added
+- *(release)* add GitLab support (#591).
+  `release-plz release-pr` GitLab support is still missing.
+
+## [0.5.6](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.5...release_plz_core-v0.5.6) - 2023-03-17
+
+### Added
+- detect git remote (#610)
+
+### Fixed
+- update pr: do git fetch before rebase (#607)
+
+## [0.5.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.4...release_plz_core-v0.5.5) - 2023-03-13
+
+### Added
+- write changelog in pr body (#598)
+
+## [0.5.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.3...release_plz_core-v0.5.4) - 2023-03-10
+
+### Fix
+- update to cargo v0.69 to be compatible with sparse index.
+
+## [0.5.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.2...release_plz_core-v0.5.3) - 2023-03-09
+
+### Added
+- include version in pr title for single crate (#593)
+
+### Other
+- retry failing http calls (#585)
+
+## [0.5.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.1...release_plz_core-v0.5.2) - 2023-03-04
+
+### Added
+- detect circular dependency (#581)
+
+## [0.5.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.0...release_plz_core-v0.5.1) - 2023-02-27
+
+### Fixed
+- remove ansi escape sequences in cargo-semver-checks output (#575)
+
+## [0.5.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.21...release_plz_core-v0.5.0) - 2023-02-26
+
+### Added
+- Add cargo-semver-checks integration. If the `cargo-semver-checks` binary is present, release-plz uses
+  it to check semver compatibility. If `cargo-semver-checks` detects an API breaking change, release-plz
+  updates the major version. (#568)
+
+### Fixed
+- when editing a release-pr, update pr title and body (#571)
+
+## [0.4.21](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.20...release_plz_core-v0.4.21) - 2023-02-20
+
+### Other
+- remove unused check (#559)
+
+## [0.4.20](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.19...release_plz_core-v0.4.20) - 2023-02-18
+
+### Fixed
+- *(release)* trust gh workspace (#553)
+
+## [0.4.19](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.18...release_plz_core-v0.4.19) - 2023-02-18
+
+### Other
+- `release-plz release` creates a release in Gitea, too (#539)
+
+## [0.4.18](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.17...release_plz_core-v0.4.18) - 2023-02-11
+
+### Added
+- *(release)* add the possibility to add `--no-verify` and `--allow-dirty` as cargo publish flags (#532)
+
+## [0.4.17](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.16...release_plz_core-v0.4.17) - 2023-02-10
+
+### Added
+- update pr in gitea (#530)
+
+### Fixed
+- update branch from main before updating PR (#528)
+
+## [0.4.16](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.15...release_plz_core-v0.4.16) - 2023-02-08
+
+### Added
+- add changelog changes to gitea (#525)
+- log published version (#514)
+
+## [0.4.15](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.14...release_plz_core-v0.4.15) - 2023-01-31
+
+### Fixed
+- *(release)* trust github workspace dir (#512)
+
+## [0.4.14](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.13...release_plz_core-v0.4.14) - 2023-01-31
+
+### Fixed
+- handle new crate correctly (#509, #511)
+
+### Other
+- improve log (#502)
+
+## [0.4.13](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.12...release_plz_core-v0.4.13) - 2023-01-27
+
+### Fixed
+- fix edit pr when a new file is present (#498)
+
+### Other
+- improve logging (#500)
+
+## [0.4.12](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.11...release_plz_core-v0.4.12) - 2023-01-26
+
+### Added
+- edit GitHub release pr instead of closing it (#470)
+
+### Other
+- fix cargo clippy (#489)
+
+## [0.4.11](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.10...release_plz_core-v0.4.11) - 2023-01-22
+
+### Other
+- update cargo (#473)
+
+## [0.4.10](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.9...release_plz_core-v0.4.10) - 2023-01-17
+
+### Other
+- remove `octocrab` dependency (#467)
+
+## [0.4.9](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.8...release_plz_core-v0.4.9) - 2023-01-16
+
+### Added
+- *(release-pr)* do not include the crate name if no workspace (#461)
+
+### Fixed
+- wrong log line (#464)
+
+### Other
+- fix typo in code (#463)
+
+## [0.4.8](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.7...release_plz_core-v0.4.8) - 2023-01-16
+
+### Fixed
+- do not update changelog if new version exists (#452)
+- changelog: fix link to first change (#450)
+
 ## [0.4.7](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.6...release_plz_core-v0.4.7) - 2023-01-15
 
 ### Added

@@ -1,11 +1,13 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 use chrono::NaiveDate;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::Repo;
-use release_plz_core::{ChangelogRequest, RepoUrl, UpdateRequest, CARGO_TOML};
+use release_plz_core::{ChangelogRequest, RepoUrl, UpdateRequest};
+
+use crate::config::Config;
 
 /// Update your project locally, without opening a PR.
 /// If `repo_url` contains a GitHub URL, release-plz uses it to add a release
@@ -15,7 +17,7 @@ pub struct Update {
     /// Path to the Cargo.toml of the project you want to update.
     /// If not provided, release-plz will use the Cargo.toml of the current directory.
     /// Both Cargo workspaces and single packages are supported.
-    #[clap(long, value_parser = PathBufValueParser::new())]
+    #[arg(long, value_parser = PathBufValueParser::new())]
     project_manifest: Option<PathBuf>,
     /// Path to the Cargo.toml contained in the released version of the project you want to update.
     /// If not provided, the packages of your project will be compared with the
@@ -24,21 +26,21 @@ pub struct Update {
     /// your project is already available locally.
     /// For example, it could be the path to the project with a `git checkout` on its latest tag.
     /// The git history of this project should be behind the one of the project you want to update.
-    #[clap(long, value_parser = PathBufValueParser::new())]
+    #[arg(long, value_parser = PathBufValueParser::new())]
     registry_project_manifest: Option<PathBuf>,
     /// Package to update. Use it when you want to update a single package rather than all the
     /// packages contained in the workspace.
-    #[clap(
+    #[arg(
         short,
         long,
         value_parser = NonEmptyStringValueParser::new()
     )]
     package: Option<String>,
-    /// Don't create changelog.
-    #[clap(long, conflicts_with("release_date"))]
+    /// Don't create/update changelog.
+    #[arg(long, conflicts_with("release_date"))]
     no_changelog: bool,
     /// Date of the release. Format: %Y-%m-%d. It defaults to current Utc date.
-    #[clap(
+    #[arg(
         long,
         conflicts_with("no_changelog"),
         value_parser = NonEmptyStringValueParser::new()
@@ -47,7 +49,7 @@ pub struct Update {
     /// Registry where the packages are stored.
     /// The registry name needs to be present in the Cargo config.
     /// If unspecified, crates.io is used.
-    #[clap(
+    #[arg(
         long,
         conflicts_with("registry_project_manifest"),
         value_parser = NonEmptyStringValueParser::new()
@@ -55,11 +57,11 @@ pub struct Update {
     registry: Option<String>,
     /// Update all the dependencies in the Cargo.lock file by running `cargo update`.
     /// If this flag is not specified, only update the workspace packages by running `cargo update --workspace`.
-    #[clap(short, long)]
+    #[arg(short, long)]
     update_deps: bool,
     /// Path to the git cliff configuration file.
     /// If not provided, `dirs::config_dir()/git-cliff/cliff.toml` is used if present.
-    #[clap(
+    #[arg(
         long,
         env = "GIT_CLIFF_CONFIG",
         value_name = "PATH",
@@ -69,12 +71,12 @@ pub struct Update {
     changelog_config: Option<PathBuf>,
     /// Allow dirty working directories to be updated.
     /// The uncommitted changes will be part of the update.
-    #[clap(long)]
+    #[arg(long)]
     allow_dirty: bool,
-    /// GitHub repository url where your project is hosted.
+    /// GitHub/Gitea repository url where your project is hosted.
     /// It is used to generate the changelog release link.
     /// It defaults to the `origin` url.
-    #[clap(long, value_parser = NonEmptyStringValueParser::new())]
+    #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     repo_url: Option<String>,
 }
 
@@ -83,8 +85,8 @@ impl Update {
         super::local_manifest(self.project_manifest.as_deref())
     }
 
-    pub fn repo_url(&self) -> anyhow::Result<RepoUrl> {
-        match &self.repo_url {
+    fn get_repo_url(&self, config: &Config) -> anyhow::Result<RepoUrl> {
+        match &self.user_repo_url(config) {
             Some(url) => RepoUrl::new(url),
             None => {
                 let project_manifest = self.project_manifest();
@@ -95,18 +97,25 @@ impl Update {
         }
     }
 
-    pub fn update_request(&self) -> anyhow::Result<UpdateRequest> {
-        let mut update = UpdateRequest::new(self.project_manifest())
+    fn update_dependencies(&self, config: &Config) -> bool {
+        self.update_deps || config.workspace.update.update_dependencies
+    }
+
+    fn allow_dirty(&self, config: &Config) -> bool {
+        self.allow_dirty || config.workspace.update.allow_dirty
+    }
+
+    pub fn update_request(&self, config: Config) -> anyhow::Result<UpdateRequest> {
+        let project_manifest = self.project_manifest();
+        let mut update = UpdateRequest::new(project_manifest.clone())
             .with_context(|| {
-                format!("cannot find {CARGO_TOML} file. Make sure you are inside a rust project")
+                format!("Cannot find file {project_manifest:?}. Make sure you are inside a rust project or that --project-manifest points to a valid Cargo.toml file.")
             })?
-            .with_update_dependencies(self.update_deps)
-            .with_allow_dirty(self.allow_dirty);
-        match self.repo_url() {
+            .with_update_dependencies(self.update_dependencies(&config))
+            .with_allow_dirty(self.allow_dirty(&config));
+        match self.get_repo_url(&config) {
             Ok(repo_url) => {
-                if repo_url.is_on_github() {
-                    update = update.with_repo_url(repo_url);
-                }
+                update = update.with_repo_url(repo_url);
             }
             Err(e) => tracing::warn!("Cannot determine repo url. The changelog won't contain the release link. Error: {}", e),
         }
@@ -129,7 +138,7 @@ impl Update {
                 .transpose()?;
             let changelog_req = ChangelogRequest {
                 release_date,
-                changelog_config: self.changelog_config()?,
+                changelog_config: self.changelog_config(&config)?,
             };
             update = update.with_changelog(changelog_req);
         }
@@ -143,13 +152,13 @@ impl Update {
         Ok(update)
     }
 
-    fn changelog_config(&self) -> anyhow::Result<Option<GitCliffConfig>> {
+    fn changelog_config(&self, config: &Config) -> anyhow::Result<Option<GitCliffConfig>> {
         let default_config_path = dirs::config_dir()
             .context("cannot get config dir")?
             .join("git-cliff")
             .join(git_cliff_core::DEFAULT_CONFIG);
 
-        let path = match self.changelog_config.clone() {
+        let path = match self.user_changelog_config(config) {
             Some(provided_path) => {
                 if provided_path.exists() {
                     provided_path
@@ -157,16 +166,35 @@ impl Update {
                     anyhow::bail!("cannot read {:?}", provided_path)
                 }
             }
-            None => default_config_path,
+            None => &default_config_path,
         };
 
         // Parse the configuration file.
         let config = if path.exists() {
-            Some(GitCliffConfig::parse(&path).context("failed to parse git cliff config file")?)
+            Some(GitCliffConfig::parse(path).context("failed to parse git cliff config file")?)
         } else {
             None
         };
 
         Ok(config)
+    }
+
+    /// Changelog configuration specified by user
+    fn user_changelog_config<'a>(&'a self, config: &'a Config) -> Option<&'a Path> {
+        self.changelog_config
+            .as_deref()
+            .or(config.workspace.update.changelog_config.as_deref())
+    }
+
+    /// Repo url specified by user
+    fn user_repo_url<'a>(&'a self, config: &'a Config) -> Option<&str> {
+        self.repo_url.as_deref().or_else(|| {
+            config
+                .workspace
+                .update
+                .repo_url
+                .as_ref()
+                .map(|u| u.as_str())
+        })
     }
 }
