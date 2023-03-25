@@ -1,53 +1,94 @@
-use serde::{Deserialize, Serialize};
+use std::process::Command;
 
-#[derive(Clone, Debug, PartialEq, Default, Serialize)]
-pub struct CreateUserOption<'a> {
-    pub email: &'a str,
-    pub password: &'a str,
-    pub username: &'a str,
+use fake::{Fake, StringFaker};
+use serde_json::json;
+
+pub struct User {
+    username: String,
+    password: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Default, Deserialize)]
-struct TokenResponse {
-    sha1: String,
+impl User {
+    pub async fn create_repository(&self, repo_name: &str) {
+        let client = reqwest::Client::new();
+        client
+            .post("http://localhost:3000/api/v1/user/repos")
+            .basic_auth(&self.username, Some(&self.password))
+            .json(&json!({
+                "name": repo_name,
+                // Automatically initialize the repository
+                "auto_init": true,
+            }))
+            .send()
+            .await
+            .expect("Failed to create repository");
+    }
+
+    pub async fn repo_exists(&self, repo_name: &str) -> bool {
+        let repo = self.get_repo(repo_name).await;
+        repo == repo_name
+    }
+
+    /// Get the repository and return its name.
+    async fn get_repo(&self, repo_name: &str) -> String {
+        let repo_url = format!(
+            "http://localhost:3000/api/v1/repos/{}/{}",
+            self.username, repo_name
+        );
+        let client = reqwest::Client::new();
+
+        let repo: Repository = client
+            .get(repo_url)
+            .basic_auth(&self.username, Some(&self.password))
+            .send()
+            .await
+            .unwrap()
+            .error_for_status()
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+        repo.name
+    }
 }
 
-/// Create a user and return it's token.
-pub async fn create_user() -> String {
-    let client = reqwest::Client::new();
-    let username = "me";
-    let admin_pwd: Option<String> = None;
-    let user_pwd = "password";
-    let response: serde_json::Value = client
-        .post(format!("{}/admin/users", base_url()))
-        .basic_auth("root", admin_pwd.clone())
-        .json(&CreateUserOption {
-            email: "me@example.com",
-            password: user_pwd,
-            username,
-        })
-        .send()
-        .await
-        .unwrap()
-        .json()
-        .await
-        .unwrap();
-    dbg!(response);
-
-    let token: serde_json::Value = client
-        .post(format!("{}/users/{username}/tokens", base_url()))
-        .basic_auth(username, Some(user_pwd))
-        .send()
-        .await
-        .unwrap()
-        .json()
-        .await
-        .unwrap();
-    dbg!(token);
-    //token.sha1
-    "token".to_string()
+#[derive(serde::Deserialize)]
+struct Repository {
+    name: String,
 }
 
-fn base_url() -> String {
-    "http://localhost:3000/api/v1".to_string()
+fn run_create_user_command(user: &User) {
+    let email = format!("{}@example.com", user.username);
+    Command::new("docker")
+        .arg("exec")
+        .arg("gitea")
+        .arg("gitea")
+        .arg("admin")
+        .arg("user")
+        .arg("create")
+        .arg("--username")
+        .arg(&user.username)
+        .arg("--password")
+        .arg(&user.password)
+        .arg("--email")
+        .arg(email)
+        .arg("--must-change-password=false")
+        .status()
+        .expect("Failed to create user");
+}
+
+/// Create a random user and return it's username and passoword.
+pub fn create_user() -> User {
+    let user = User {
+        username: fake_id(),
+        password: fake_id(),
+    };
+    run_create_user_command(&user);
+    user
+}
+
+fn fake_id() -> String {
+    const LETTERS: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let f = StringFaker::with(Vec::from(LETTERS), 8);
+    f.fake()
 }
