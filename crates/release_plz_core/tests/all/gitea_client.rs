@@ -43,11 +43,6 @@ async fn release_plz_adds_changelog_on_new_project() {
         .current_dir(temp.path())
         .arg("clone")
         .arg(&repo_url)
-        // .arg(format!(
-        //     "http://localhost:3000/{}/{}.git",
-        //     user.username(),
-        //     repo_name
-        // ))
         .spawn()
         .unwrap()
         .wait()
@@ -74,7 +69,7 @@ async fn release_plz_adds_changelog_on_new_project() {
     // TODO: move this file to release-plz folder
     let result = Command::new("release-plz")
         .current_dir(&repo_dir)
-        .env("RUST_LOG", "DEBUG")
+        .env("RUST_LOG", "DEBUG,hyper=info")
         .arg("release-pr")
         .arg("--git-token")
         .arg(&token)
@@ -85,7 +80,6 @@ async fn release_plz_adds_changelog_on_new_project() {
         .wait()
         .unwrap();
     assert!(result.success());
-    //let repo_url = format!("http://0.0.0.0:3000/{}/{}.git", user.username(), repo_name);
     let git_backend = GitBackend::Gitea(
         Gitea::new(
             RepoUrl::new(&repo_url).unwrap(),
