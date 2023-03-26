@@ -105,6 +105,26 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
             input.local_manifest()
         )
     })?;
+    update_manifests(&packages_to_update, local_manifest_path, &all_packages)?;
+    update_changelogs(&packages_to_update)?;
+    if !packages_to_update.updates.is_empty() {
+        let local_manifest_dir = input.local_manifest_dir()?;
+        update_cargo_lock(local_manifest_dir, input.should_update_dependencies())?;
+
+        let there_are_commits_to_push = Repo::new(local_manifest_dir)?.is_clean().is_err();
+        if !there_are_commits_to_push {
+            info!("the repository is already up-to-date");
+        }
+    }
+
+    Ok((packages_to_update, repository))
+}
+
+fn update_manifests(
+    packages_to_update: &PackagesUpdate,
+    local_manifest_path: &Path,
+    all_packages: &[Package],
+) -> anyhow::Result<()> {
     let mut local_manifest = LocalManifest::try_new(local_manifest_path)?;
     let workspace_version = local_manifest.get_workspace_version();
     let (workspace_version_pkgs, independent_pkgs): (Vec<_>, Vec<_>) = packages_to_update
@@ -133,23 +153,12 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
         }
     }
     update_versions(
-        &all_packages,
+        all_packages,
         &PackagesUpdate {
             updates: independent_pkgs,
         },
     )?;
-    update_changelogs(&packages_to_update)?;
-    if !packages_to_update.updates.is_empty() {
-        let local_manifest_dir = input.local_manifest_dir()?;
-        update_cargo_lock(local_manifest_dir, input.should_update_dependencies())?;
-
-        let there_are_commits_to_push = Repo::new(local_manifest_dir)?.is_clean().is_err();
-        if !there_are_commits_to_push {
-            info!("the repository is already up-to-date");
-        }
-    }
-
-    Ok((packages_to_update, repository))
+    Ok(())
 }
 
 #[instrument(skip_all)]
