@@ -1,12 +1,14 @@
 use crate::{
+    changelog_parser::{self, ChangelogRelease},
     diff::Diff,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection},
     repo_url::RepoUrl,
+    semver_check::{self, SemverCheck},
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
-    ChangelogBuilder, CARGO_TOML,
+    ChangelogBuilder, PackagesUpdate, CARGO_TOML,
 };
 use anyhow::{anyhow, Context};
 use cargo_metadata::{semver::Version, Dependency, Package};
@@ -151,13 +153,15 @@ impl UpdateRequest {
             ..self
         }
     }
+
+    pub fn repo_url(&self) -> Option<&RepoUrl> {
+        self.repo_url.as_ref()
+    }
 }
 
 /// Determine next version of packages
 #[instrument]
-pub fn next_versions(
-    input: &UpdateRequest,
-) -> anyhow::Result<(Vec<(Package, UpdateResult)>, TempRepo)> {
+pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
     let local_project = Project::new(&input.local_manifest, input.single_package.as_deref())?;
     let updater = Updater {
         project: &local_project,
@@ -253,6 +257,16 @@ impl Project {
 pub struct UpdateResult {
     pub version: Version,
     pub changelog: Option<String>,
+    pub semver_check: SemverCheck,
+}
+
+impl UpdateResult {
+    pub fn last_changes(&self) -> anyhow::Result<Option<ChangelogRelease>> {
+        match &self.changelog {
+            Some(c) => changelog_parser::last_release_from_str(c),
+            None => Ok(None),
+        }
+    }
 }
 
 pub struct Updater<'a> {
@@ -266,10 +280,10 @@ impl Updater<'_> {
         &self,
         registry_packages: &PackagesCollection,
         repository: &Repo,
-    ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
+    ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
-        let mut packages_to_update: Vec<(Package, UpdateResult)> = vec![];
+        let mut packages_to_update = PackagesUpdate { updates: vec![] };
         for p in &self.project.packages {
             let diff = get_diff(p, registry_packages, repository, &self.project.root)?;
             let current_version = p.version.clone();
@@ -277,22 +291,28 @@ impl Updater<'_> {
 
             debug!("diff: {:?}, next_version: {}", &diff, next_version);
             if next_version != current_version || !diff.registry_package_exists {
-                info!("{}: next version is {next_version}", p.name);
-                let update_result = self.update_result(diff.commits.clone(), next_version, p)?;
+                info!(
+                    "{}: next version is {next_version}{}",
+                    p.name,
+                    diff.semver_check.outcome_str()
+                );
+                let update_result =
+                    self.update_result(diff.commits, next_version, p, diff.semver_check)?;
 
-                packages_to_update.push((p.clone(), update_result));
+                packages_to_update.updates.push((p.clone(), update_result));
             } else if diff.is_version_published {
                 packages_to_check_for_deps.push(p);
             }
         }
 
         let changed_packages: Vec<(&Package, &Version)> = packages_to_update
+            .updates
             .iter()
             .map(|(p, u)| (p, &u.version))
             .collect();
         let dependent_packages =
             self.dependent_packages(&packages_to_check_for_deps, &changed_packages)?;
-        packages_to_update.extend(dependent_packages);
+        packages_to_update.updates.extend(dependent_packages);
         Ok(packages_to_update)
     }
 
@@ -327,7 +347,7 @@ impl Updater<'_> {
                 );
                 Ok((
                     p.clone(),
-                    self.update_result(vec![change], next_version, p)?,
+                    self.update_result(vec![change], next_version, p, SemverCheck::Skipped)?,
                 ))
             })
             .collect::<anyhow::Result<Vec<_>>>()?;
@@ -339,6 +359,7 @@ impl Updater<'_> {
         commits: Vec<String>,
         version: Version,
         package: &Package,
+        semver_check: SemverCheck,
     ) -> anyhow::Result<UpdateResult> {
         let release_link = {
             let prev_tag = self
@@ -358,7 +379,11 @@ impl Updater<'_> {
             .map(|r| get_changelog(commits, &version, Some(r.clone()), package, release_link))
             .transpose()?;
 
-        Ok(UpdateResult { version, changelog })
+        Ok(UpdateResult {
+            version,
+            changelog,
+            semver_check,
+        })
     }
 }
 
@@ -412,6 +437,13 @@ fn get_diff(
     if let Err(_err) = repository.checkout_last_commit_at_path(&package_path) {
         info!("{}: there are no commits", package.name);
         return Ok(diff);
+    }
+    if let Some(registry_package) = registry_package {
+        if is_library(package) {
+            let semver_check =
+                semver_check::run_semver_check(&package_path, registry_package.package_path()?)?;
+            diff.set_semver_check(semver_check);
+        }
     }
     loop {
         let current_commit_message = repository.current_commit_message()?;
@@ -502,6 +534,13 @@ impl Publishable for Package {
             true
         }
     }
+}
+
+fn is_library(package: &Package) -> bool {
+    package
+        .targets
+        .iter()
+        .any(|t| t.kind.contains(&"lib".to_string()))
 }
 
 pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {

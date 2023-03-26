@@ -1,10 +1,12 @@
-use crate::gitea_client::Gitea;
 use crate::GitHub;
+use crate::{gitea_client::Gitea, gitlab_client::GitLab};
 
 use crate::pr::Pr;
 use anyhow::Context;
 use reqwest::header::HeaderMap;
 use reqwest::Url;
+use reqwest_middleware::ClientBuilder;
+use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -14,6 +16,7 @@ use tracing::{debug, info, instrument};
 pub enum GitBackend {
     Github(GitHub),
     Gitea(Gitea),
+    Gitlab(GitLab),
 }
 
 impl GitBackend {
@@ -21,6 +24,7 @@ impl GitBackend {
         match self {
             GitBackend::Github(g) => g.default_headers(),
             GitBackend::Gitea(g) => g.default_headers(),
+            GitBackend::Gitlab(g) => g.default_headers(),
         }
     }
 }
@@ -29,13 +33,14 @@ impl GitBackend {
 pub enum BackendType {
     Github,
     Gitea,
+    Gitlab,
 }
 
 #[derive(Debug)]
 pub struct GitClient {
     backend: BackendType,
     pub remote: Remote,
-    pub client: reqwest::Client,
+    pub client: reqwest_middleware::ClientWithMiddleware,
 }
 
 #[derive(Debug, Clone)]
@@ -73,6 +78,8 @@ pub struct GitPr {
     pub number: u64,
     pub html_url: Url,
     pub head: Commit,
+    pub title: String,
+    pub body: String,
 }
 
 impl GitPr {
@@ -87,19 +94,63 @@ pub struct Commit {
     pub ref_field: String,
     pub sha: String,
 }
+
+#[derive(Serialize, Default)]
+pub struct PrEdit {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    body: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    state: Option<String>,
+}
+
+impl PrEdit {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_title(mut self, title: impl Into<String>) -> Self {
+        self.title = Some(title.into());
+        self
+    }
+
+    pub fn with_body(mut self, body: impl Into<String>) -> Self {
+        self.body = Some(body.into());
+        self
+    }
+
+    pub fn with_state(mut self, state: impl Into<String>) -> Self {
+        self.state = Some(state.into());
+        self
+    }
+
+    pub fn contains_edit(&self) -> bool {
+        self.title.is_some() || self.body.is_some() || self.state.is_some()
+    }
+}
+
 impl GitClient {
     pub fn new(backend: GitBackend) -> anyhow::Result<Self> {
-        let headers = backend.default_headers()?;
+        let client = {
+            let headers = backend.default_headers()?;
+            let reqwest_client = reqwest::Client::builder()
+                .user_agent("release-plz")
+                .default_headers(headers)
+                .build()
+                .context("can't build Git client")?;
 
-        let client = reqwest::Client::builder()
-            .user_agent("release-plz")
-            .default_headers(headers)
-            .build()
-            .context("can't build Git client")?;
+            let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
+            ClientBuilder::new(reqwest_client)
+                // Retry failed requests.
+                .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+                .build()
+        };
 
         let (backend, remote) = match backend {
             GitBackend::Github(g) => (BackendType::Github, g.remote),
             GitBackend::Gitea(g) => (BackendType::Gitea, g.remote),
+            GitBackend::Gitlab(g) => (BackendType::Gitlab, g.remote),
         };
         Ok(Self {
             remote,
@@ -112,11 +163,22 @@ impl GitClient {
         match self.backend {
             BackendType::Github => "per_page",
             BackendType::Gitea => "limit",
+            BackendType::Gitlab => {
+                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
+            }
         }
     }
 
     /// Creates a GitHub/Gitea release.
     pub async fn create_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => self.create_github_release(tag, body).await,
+            BackendType::Gitlab => self.create_gitlab_release(tag, body).await,
+        }
+    }
+
+    /// Same as Gitea.
+    pub async fn create_github_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
         let create_release_options = CreateReleaseOption {
             tag_name: tag,
             body,
@@ -128,6 +190,29 @@ impl GitClient {
             .send()
             .await
             .context("Failed to create release")?
+            .error_for_status()?;
+        Ok(())
+    }
+
+    pub async fn create_gitlab_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
+        #[derive(Serialize)]
+        pub struct GitlabReleaseOption<'a> {
+            tag_name: &'a str,
+            description: &'a str,
+        }
+        let gitlab_release_options = GitlabReleaseOption {
+            tag_name: tag,
+            description: body,
+        };
+        self.client
+            .post(format!(
+                "{}/projects/{}%2F{}/releases",
+                self.remote.base_url, self.remote.owner, self.remote.repo
+            ))
+            .json(&gitlab_release_options)
+            .send()
+            .await
+            .context("Failed to create a release")?
             .error_for_status()?;
         Ok(())
     }
@@ -183,14 +268,21 @@ impl GitClient {
     #[instrument(skip(self))]
     pub async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
         debug!("closing pr");
-        self.client
-            .patch(format!("{}/{}", self.pulls_url(), pr_number))
-            .json(&json!({
-                "state": "closed",
-            }))
-            .send()
+        let edit = PrEdit::new().with_state("closed");
+        self.edit_pr(pr_number, &edit)
             .await
             .with_context(|| format!("cannot close pr {pr_number}"))?;
+        Ok(())
+    }
+
+    pub async fn edit_pr(&self, pr_number: u64, pr_edit: &PrEdit) -> anyhow::Result<()> {
+        debug!("editing pr");
+        self.client
+            .patch(format!("{}/{}", self.pulls_url(), pr_number))
+            .json(pr_edit)
+            .send()
+            .await
+            .with_context(|| format!("cannot edit pr {pr_number}"))?;
         Ok(())
     }
 

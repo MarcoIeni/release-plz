@@ -1,15 +1,14 @@
 use std::path::{Path, PathBuf};
 
-use cargo_metadata::Package;
 use git_cmd::Repo;
 
 use anyhow::{anyhow, Context};
 use tracing::{info, instrument};
 
-use crate::backend::{contributors_from_commits, GitClient, GitPr};
+use crate::backend::{contributors_from_commits, GitClient, GitPr, PrEdit};
 use crate::pr::{Pr, BRANCH_PREFIX};
 use crate::{
-    copy_to_temp_dir, publishable_packages, update, GitBackend, UpdateRequest, UpdateResult,
+    copy_to_temp_dir, publishable_packages, update, GitBackend, PackagesUpdate, UpdateRequest,
     CARGO_TOML,
 };
 
@@ -38,7 +37,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .context("can't find temporary project")?;
     let (packages_to_update, _temp_repository) = update(&new_update_request)?;
     let git_client = GitClient::new(input.git.clone())?;
-    if !packages_to_update.is_empty() {
+    if !packages_to_update.updates.is_empty() {
         let repo = Repo::new(new_manifest_dir)?;
         let there_are_commits_to_push = repo.is_clean().is_err();
         if there_are_commits_to_push {
@@ -52,7 +51,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
 
 async fn open_or_update_release_pr(
     local_manifest: &Path,
-    packages_to_update: &[(Package, UpdateResult)],
+    packages_to_update: &PackagesUpdate,
     git_client: &GitClient,
     repo: &Repo,
 ) -> anyhow::Result<()> {
@@ -69,65 +68,70 @@ async fn open_or_update_release_pr(
             .context("cannot close old release-plz prs")?;
     }
 
+    let new_pr = {
+        let project_contains_multiple_pub_packages =
+            publishable_packages(local_manifest)?.len() > 1;
+        Pr::new(
+            repo.original_branch(),
+            packages_to_update,
+            project_contains_multiple_pub_packages,
+        )
+    };
     match opened_release_prs.first() {
-        Some(pr) => {
+        Some(opened_pr) => {
             let pr_commits = git_client
-                .pr_commits(pr.number)
+                .pr_commits(opened_pr.number)
                 .await
                 .context("cannot get commits of release-plz pr")?;
             let pr_contributors = contributors_from_commits(&pr_commits);
             if pr_contributors.is_empty() {
                 // There are no contributors, so we can force-push
                 // in this PR, because we don't care about the git history.
-                let update_outcome = update_pr(pr, pr_commits.len(), repo);
+                let update_outcome =
+                    update_pr(git_client, opened_pr, pr_commits.len(), repo, &new_pr).await;
                 if let Err(e) = update_outcome {
-                    tracing::error!("cannot update release pr {}: {}. I'm closing the old release pr and opening a new one", pr.number, e);
+                    tracing::error!("cannot update release pr {}: {}. I'm closing the old release pr and opening a new one", opened_pr.number, e);
                     git_client
-                        .close_pr(pr.number)
+                        .close_pr(opened_pr.number)
                         .await
                         .context("cannot close old release-plz prs")?;
-                    create_pr(git_client, repo, packages_to_update, local_manifest).await?
+                    create_pr(git_client, repo, &new_pr).await?
                 }
             } else {
                 // There's a contributor, so we don't want to force-push in this PR.
                 // We close it because we want to save the contributor's work.
                 // TODO improvement: check how many lines the commit added, if no lines (for example a merge to update the branch),
                 //      then don't count it as a contributor.
-                info!("closing pr {} to preserve git history", pr.html_url);
+                info!("closing pr {} to preserve git history", opened_pr.html_url);
                 git_client
-                    .close_pr(pr.number)
+                    .close_pr(opened_pr.number)
                     .await
                     .context("cannot close old release-plz prs")?;
-                create_pr(git_client, repo, packages_to_update, local_manifest).await?
+                create_pr(git_client, repo, &new_pr).await?
             }
         }
-        None => create_pr(git_client, repo, packages_to_update, local_manifest).await?,
+        None => create_pr(git_client, repo, &new_pr).await?,
     }
     Ok(())
 }
 
-async fn create_pr(
-    git_client: &GitClient,
-    repo: &Repo,
-    packages_to_update: &[(Package, UpdateResult)],
-    local_manifest: &Path,
-) -> anyhow::Result<()> {
-    let project_contains_multiple_pub_packages = publishable_packages(local_manifest)?.len() > 1;
-    let pr = Pr::new(
-        repo.default_branch(),
-        packages_to_update,
-        project_contains_multiple_pub_packages,
-    );
+async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Result<()> {
     create_release_branch(repo, &pr.branch)?;
-    git_client.open_pr(&pr).await?;
+    git_client.open_pr(pr).await?;
     Ok(())
 }
 
-fn update_pr(pr: &GitPr, commits_number: usize, repository: &Repo) -> anyhow::Result<()> {
+async fn update_pr(
+    git_client: &GitClient,
+    opened_pr: &GitPr,
+    commits_number: usize,
+    repository: &Repo,
+    new_pr: &Pr,
+) -> anyhow::Result<()> {
     // save local work
     repository.git(&["stash", "--include-untracked"])?;
 
-    reset_branch(pr, commits_number, repository).map_err(|e| {
+    reset_branch(opened_pr, commits_number, repository).map_err(|e| {
         // restore local work
         if let Err(e) = repository.stash_pop() {
             tracing::error!("cannot restore local work: {}", e);
@@ -135,8 +139,21 @@ fn update_pr(pr: &GitPr, commits_number: usize, repository: &Repo) -> anyhow::Re
         e
     })?;
     repository.stash_pop()?;
-    force_push(pr, repository)?;
-    info!("updated pr {}", pr.html_url);
+    force_push(opened_pr, repository)?;
+    let pr_edit = {
+        let mut pr_edit = PrEdit::new();
+        if opened_pr.title != new_pr.title {
+            pr_edit = pr_edit.with_title(new_pr.title.clone());
+        }
+        if opened_pr.body != new_pr.body {
+            pr_edit = pr_edit.with_body(new_pr.body.clone());
+        }
+        pr_edit
+    };
+    if pr_edit.contains_edit() {
+        git_client.edit_pr(opened_pr.number, &pr_edit).await?;
+    }
+    info!("updated pr {}", opened_pr.html_url);
     Ok(())
 }
 
@@ -152,8 +169,10 @@ fn reset_branch(pr: &GitPr, commits_number: usize, repository: &Repo) -> anyhow:
     let head = format!("HEAD~{commits_number}");
     repository.git(&["reset", "--hard", &head])?;
 
+    repository.fetch(repository.original_branch())?;
+
     // Update PR branch with latest changes from the default branch.
-    if let Err(e) = repository.git(&["rebase", repository.default_branch()]) {
+    if let Err(e) = repository.git(&["rebase", repository.original_branch()]) {
         tracing::error!("cannot rebase from default branch: {}", e);
     }
 

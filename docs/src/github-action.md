@@ -55,7 +55,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.4.0
+        uses: MarcoIeni/release-plz-action@v0.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -90,7 +90,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.4.0
+        uses: MarcoIeni/release-plz-action@v0.4
         with:
           command: release-pr
         env:
@@ -123,7 +123,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.4.0
+        uses: MarcoIeni/release-plz-action@v0.4
         with:
           command: release
         env:
@@ -135,12 +135,12 @@ jobs:
 
 1. Go to the GitHub actions settings:
 
-   ![actions settings](actions_settings.png)
+   ![actions settings](assets/actions_settings.png)
 
 2. Change "Workflow permissions" to allow GitHub actions to create and approve
    pull requests (needed to create and update the PR).
 
-   ![workflow permission](workflow_permissions.png)
+   ![workflow permission](assets/workflow_permissions.png)
 
 ## Triggering further workflow runs
 

@@ -1,7 +1,7 @@
 use cargo_metadata::semver::Version;
-use next_version::NextVersion;
+use next_version::{NextVersion, VersionIncrement};
 
-use crate::diff::Diff;
+use crate::{diff::Diff, semver_check::SemverCheck};
 
 pub(crate) trait NextVersionFromDiff {
     /// Analyze commits and determine which part of version to increment based on
@@ -13,6 +13,9 @@ impl NextVersionFromDiff for Version {
     fn next_from_diff(&self, diff: &Diff) -> Self {
         if !diff.should_update_version() {
             self.clone()
+        } else if matches!(diff.semver_check, SemverCheck::Incompatible(_)) {
+            let increment = VersionIncrement::breaking(self);
+            increment.bump(self)
         } else {
             self.next(&diff.commits)
         }
@@ -21,6 +24,8 @@ impl NextVersionFromDiff for Version {
 
 #[cfg(test)]
 mod tests {
+    use crate::semver_check::SemverCheck;
+
     use super::*;
 
     #[test]
@@ -37,6 +42,7 @@ mod tests {
             registry_package_exists: true,
             commits: vec!["my change".to_string()],
             is_version_published: true,
+            semver_check: SemverCheck::Skipped,
         };
         let version = Version::new(1, 2, 3);
         assert_eq!(version.next_from_diff(&diff), Version::new(1, 2, 4));

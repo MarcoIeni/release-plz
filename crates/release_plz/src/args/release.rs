@@ -1,12 +1,15 @@
 use std::path::PathBuf;
 
 use anyhow::Context;
-use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
+use clap::{
+    builder::{NonEmptyStringValueParser, PathBufValueParser},
+    ValueEnum,
+};
 use git_cmd::Repo;
-use release_plz_core::{GitBackend, GitHub, Gitea, ReleaseRequest, RepoUrl};
+use release_plz_core::{GitBackend, GitHub, GitLab, Gitea, ReleaseRequest, RepoUrl};
 use secrecy::SecretString;
 
-use super::{local_manifest, release_pr::GitBackendKind};
+use super::local_manifest;
 
 #[derive(clap::Parser, Debug)]
 pub struct Release {
@@ -45,8 +48,18 @@ pub struct Release {
     #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     pub git_token: Option<String>,
     /// Kind of git backend
-    #[arg(long, value_enum, default_value_t = GitBackendKind::Github)]
-    backend: GitBackendKind,
+    #[arg(long, value_enum, default_value_t = ReleaseGitBackendKind::Github)]
+    backend: ReleaseGitBackendKind,
+}
+
+#[derive(ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ReleaseGitBackendKind {
+    #[value(name = "github")]
+    Github,
+    #[value(name = "gitea")]
+    Gitea,
+    #[value(name = "gitlab")]
+    Gitlab,
 }
 
 impl TryFrom<Release> for ReleaseRequest {
@@ -62,9 +75,14 @@ impl TryFrom<Release> for ReleaseRequest {
             let repo_url = r.repo_url()?;
             let release = release_plz_core::GitRelease {
                 backend: match r.backend {
-                    GitBackendKind::Gitea => GitBackend::Gitea(Gitea::new(repo_url, git_token)?),
-                    GitBackendKind::Github => {
+                    ReleaseGitBackendKind::Gitea => {
+                        GitBackend::Gitea(Gitea::new(repo_url, git_token)?)
+                    }
+                    ReleaseGitBackendKind::Github => {
                         GitBackend::Github(GitHub::new(repo_url.owner, repo_url.name, git_token))
+                    }
+                    ReleaseGitBackendKind::Gitlab => {
+                        GitBackend::Gitlab(GitLab::new(repo_url.owner, repo_url.name, git_token))
                     }
                 },
             };

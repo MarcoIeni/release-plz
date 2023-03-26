@@ -12,6 +12,10 @@ based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/):
 Once the changes are merged to the main branch, you can use
 `release-plz release` to publish the new versions of the packages.
 
+Here's an example of a release Pull Request created on the release-plz repository itself:
+
+![pr](docs/src/assets/pr.png)
+
 ## Docs
 
 Learn how to use release-plz in the mdbook [docs](https://marcoieni.github.io/release-plz/).

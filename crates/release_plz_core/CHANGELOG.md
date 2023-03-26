@@ -6,6 +6,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.7](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.6...release_plz_core-v0.5.7) - 2023-03-19
+
+### Added
+- *(release)* add GitLab support (#591).
+  `release-plz release-pr` GitLab support is still missing.
+
+## [0.5.6](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.5...release_plz_core-v0.5.6) - 2023-03-17
+
+### Added
+- detect git remote (#610)
+
+### Fixed
+- update pr: do git fetch before rebase (#607)
+
+## [0.5.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.4...release_plz_core-v0.5.5) - 2023-03-13
+
+### Added
+- write changelog in pr body (#598)
+
+## [0.5.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.3...release_plz_core-v0.5.4) - 2023-03-10
+
+### Fix
+- update to cargo v0.69 to be compatible with sparse index.
+
+## [0.5.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.2...release_plz_core-v0.5.3) - 2023-03-09
+
+### Added
+- include version in pr title for single crate (#593)
+
+### Other
+- retry failing http calls (#585)
+
+## [0.5.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.1...release_plz_core-v0.5.2) - 2023-03-04
+
+### Added
+- detect circular dependency (#581)
+
+## [0.5.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.0...release_plz_core-v0.5.1) - 2023-02-27
+
+### Fixed
+- remove ansi escape sequences in cargo-semver-checks output (#575)
+
+## [0.5.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.21...release_plz_core-v0.5.0) - 2023-02-26
+
+### Added
+- Add cargo-semver-checks integration. If the `cargo-semver-checks` binary is present, release-plz uses
+  it to check semver compatibility. If `cargo-semver-checks` detects an API breaking change, release-plz
+  updates the major version. (#568)
+
+### Fixed
+- when editing a release-pr, update pr title and body (#571)
+
 ## [0.4.21](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.4.20...release_plz_core-v0.4.21) - 2023-02-20
 
 ### Other

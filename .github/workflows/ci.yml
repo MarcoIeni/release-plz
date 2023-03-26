@@ -18,6 +18,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Install cargo-semver-checks
+        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        with:
+          repo: obi1kenobi/cargo-semver-checks
+          tag: v0.18.3
+          cache: enable
       - name: Install dependencies
         run: sudo apt update && sudo apt install -y libssl-dev
       - name: Install Rust toolchain

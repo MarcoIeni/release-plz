@@ -1,3 +1,4 @@
+use crate::semver_check::SemverCheck;
 use crate::{tmp_repo::TempRepo, PackagePath, UpdateRequest, UpdateResult};
 use anyhow::{anyhow, Context};
 use cargo_metadata::{semver::Version, Package};
@@ -5,13 +6,95 @@ use cargo_utils::upgrade_requirement;
 use cargo_utils::LocalManifest;
 use git_cmd::Repo;
 use std::{fs, path::Path};
-use tracing::info;
+use tracing::{info, warn};
 
 use tracing::{debug, instrument};
 
+pub struct PackagesUpdate {
+    pub updates: Vec<(Package, UpdateResult)>,
+}
+
+impl PackagesUpdate {
+    pub fn summary(&self) -> String {
+        let updates = self.updates_summary();
+        let breaking_changes = self.breaking_changes();
+        format!("{updates}\n{breaking_changes}")
+    }
+
+    fn updates_summary(&self) -> String {
+        self.updates
+            .iter()
+            .map(|(package, update)| {
+                if package.version != update.version {
+                    format!(
+                        "\n* `{}`: {} -> {}{}",
+                        package.name,
+                        package.version,
+                        update.version,
+                        update.semver_check.outcome_str()
+                    )
+                } else {
+                    format!("\n* `{}`: {}", package.name, package.version)
+                }
+            })
+            .collect()
+    }
+
+    /// Return the list of changes in the changelog of the updated packages
+    pub fn changes(&self, project_contains_multiple_pub_packages: bool) -> String {
+        self.updates
+            .iter()
+            .map(|(package, update)| match update.last_changes() {
+                Ok(Some(release)) => {
+                    let entry_prefix = if project_contains_multiple_pub_packages {
+                        format!("## `{}`\n", package.name)
+                    } else {
+                        "".to_string()
+                    };
+                    format!(
+                        "{}<blockquote>\n\n## {}\n\n{}\n</blockquote>\n\n",
+                        entry_prefix,
+                        release.title(),
+                        release.notes()
+                    )
+                }
+                Ok(None) => {
+                    warn!(
+                        "no changes detected in changelog of package {}",
+                        package.name
+                    );
+                    "".to_string()
+                }
+                Err(e) => {
+                    warn!(
+                        "can't determine changes in changelog of package {}: {e}",
+                        package.name
+                    );
+                    "".to_string()
+                }
+            })
+            .collect()
+    }
+
+    fn breaking_changes(&self) -> String {
+        self.updates
+            .iter()
+            .map(|(package, update)| match &update.semver_check {
+                SemverCheck::Incompatible(incompatibilities) => {
+                    format!(
+                        "\n### ⚠️ `{}` breaking changes\n\n```{}```\n",
+                        package.name, incompatibilities
+                    )
+                }
+                SemverCheck::Compatible | SemverCheck::Skipped => "".to_string(),
+            })
+            .collect()
+    }
+}
+
 /// Update a local rust project
 #[instrument]
-pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, UpdateResult)>, TempRepo)> {
+pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
     let (packages_to_update, repository) = crate::next_versions(input)?;
     let all_packages =
         cargo_utils::workspace_members(Some(input.local_manifest())).map_err(|e| {
@@ -22,7 +105,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, UpdateResu
         })?;
     update_versions(&all_packages, &packages_to_update)?;
     update_changelogs(&packages_to_update)?;
-    if !packages_to_update.is_empty() {
+    if !packages_to_update.updates.is_empty() {
         let local_manifest_dir = input.local_manifest_dir()?;
         update_cargo_lock(local_manifest_dir, input.should_update_dependencies())?;
 
@@ -38,9 +121,9 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(Vec<(Package, UpdateResu
 #[instrument(skip_all)]
 fn update_versions(
     all_packages: &[Package],
-    packages_to_update: &[(Package, UpdateResult)],
+    packages_to_update: &PackagesUpdate,
 ) -> anyhow::Result<()> {
-    for (package, update) in packages_to_update {
+    for (package, update) in &packages_to_update.updates {
         let package_path = package.package_path()?;
         set_version(all_packages, package_path, &update.version)?;
     }
@@ -48,8 +131,8 @@ fn update_versions(
 }
 
 #[instrument(skip_all)]
-fn update_changelogs(local_packages: &[(Package, UpdateResult)]) -> anyhow::Result<()> {
-    for (package, update) in local_packages {
+fn update_changelogs(local_packages: &PackagesUpdate) -> anyhow::Result<()> {
+    for (package, update) in &local_packages.updates {
         if let Some(changelog) = update.changelog.as_ref() {
             let changelog_path = package.changelog_path()?;
             fs::write(&changelog_path, changelog)
@@ -124,4 +207,142 @@ fn update_dependencies(
         member_manifest.write()?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn changelog_is_printed_correctly_in_workspace() {
+        test_logs::init();
+        let changelog = r#"
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [1.1.1] - 2015-05-15
+
+### Fixed
+- myfix
+
+### Other
+- simple update
+
+## [1.1.0] - 1970-01-01
+
+### fix bugs
+- my awesomefix
+
+### other
+- complex update
+        "#
+        .to_string();
+        let pkgs = PackagesUpdate {
+            updates: vec![
+                (
+                    fake_package::FakePackage::new("foo").into(),
+                    UpdateResult {
+                        version: Version::parse("0.2.0").unwrap(),
+                        changelog: Some(changelog.clone()),
+                        semver_check: SemverCheck::Compatible,
+                    },
+                ),
+                (
+                    fake_package::FakePackage::new("bar").into(),
+                    UpdateResult {
+                        version: Version::parse("0.2.0").unwrap(),
+                        changelog: Some(changelog),
+                        semver_check: SemverCheck::Compatible,
+                    },
+                ),
+            ],
+        };
+        expect_test::expect![[r#"
+            ## `foo`
+            <blockquote>
+
+            ## [1.1.1] - 2015-05-15
+
+            ### Fixed
+            - myfix
+
+            ### Other
+            - simple update
+            </blockquote>
+
+            ## `bar`
+            <blockquote>
+
+            ## [1.1.1] - 2015-05-15
+
+            ### Fixed
+            - myfix
+
+            ### Other
+            - simple update
+            </blockquote>
+
+        "#]]
+        .assert_eq(&pkgs.changes(true));
+    }
+
+    #[test]
+    fn changelog_is_printed_correctly() {
+        test_logs::init();
+        let changelog = r#"
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [1.1.1] - 2015-05-15
+
+### Fixed
+- myfix
+
+### Other
+- simple update
+
+## [1.1.0] - 1970-01-01
+
+### fix bugs
+- my awesomefix
+
+### other
+- complex update
+        "#
+        .to_string();
+        let pkgs = PackagesUpdate {
+            updates: vec![(
+                fake_package::FakePackage::new("foo").into(),
+                UpdateResult {
+                    version: Version::parse("0.2.0").unwrap(),
+                    changelog: Some(changelog),
+                    semver_check: SemverCheck::Compatible,
+                },
+            )],
+        };
+        expect_test::expect![[r#"
+            <blockquote>
+
+            ## [1.1.1] - 2015-05-15
+
+            ### Fixed
+            - myfix
+
+            ### Other
+            - simple update
+            </blockquote>
+
+        "#]]
+        .assert_eq(&pkgs.changes(false));
+    }
 }

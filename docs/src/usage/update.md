@@ -7,6 +7,10 @@ The command:
 
 - Downloads the packages of the project from the cargo registry.
 - Compares the local packages with the downloaded ones to determine the new commits.
+- Checks for API breaking changes in libraries if
+  [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks)
+  is installed.
+  *Warning:* `cargo-semver-checks` doesn't catch every semver violation.
 - Updates the packages versions based on the messages of the new commits (based
   on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) and
   [semantic versioning](https://semver.org/)).
