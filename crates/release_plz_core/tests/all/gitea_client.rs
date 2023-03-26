@@ -23,6 +23,7 @@ async fn create_token() {
 
 #[tokio::test]
 async fn release_plz_adds_changelog_on_new_project() {
+    test_logs::init();
     let user = gitea::create_user();
     let repo_name = "myrepo";
     user.create_repository(repo_name).await;
@@ -89,7 +90,6 @@ async fn release_plz_adds_changelog_on_new_project() {
     );
 
     let git_client = GitClient::new(git_backend).unwrap();
-    let opened_prs = git_client.opened_prs("main").await.unwrap();
+    let opened_prs = git_client.opened_prs("release-plz/").await.unwrap();
     assert_eq!(opened_prs.len(), 1);
-    //let prs = user.get_prs(repo_name).await;
 }
