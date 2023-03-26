@@ -71,7 +71,7 @@ impl User {
             .json(&json!({
                 "name": self.username,
                 // edit repositories
-                "scope": ["repo"]
+                "scopes": ["repo"]
             }))
             .send()
             .await
