@@ -14,7 +14,7 @@ impl User {
     }
 
     pub fn password(&self) -> &str {
-        &self.username
+        &self.password
     }
 
     pub async fn create_repository(&self, repo_name: &str) {
