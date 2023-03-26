@@ -20,6 +20,25 @@ impl PackagesUpdate {
         format!("{updates}\n{breaking_changes}")
     }
 
+    fn updates_summary(&self) -> String {
+        self.updates
+            .iter()
+            .map(|(package, update)| {
+                if package.version() != &update.version {
+                    format!(
+                        "\n* `{}`: {} -> {}{}",
+                        package.name(),
+                        package.version(),
+                        update.version,
+                        update.semver_check.outcome_str()
+                    )
+                } else {
+                    format!("\n* `{}`: {}", package.name(), package.version())
+                }
+            })
+            .collect()
+    }
+
     /// Return the list of changes in the changelog of the updated packages
     pub fn changes(&self, project_contains_multiple_pub_packages: bool) -> String {
         self.updates
@@ -51,25 +70,6 @@ impl PackagesUpdate {
                         package.name()
                     );
                     "".to_string()
-                }
-            })
-            .collect()
-    }
-
-    fn updates_summary(&self) -> String {
-        self.updates
-            .iter()
-            .map(|(package, update)| {
-                if package.version() != &update.version {
-                    format!(
-                        "\n* `{}`: {} -> {}{}",
-                        package.name(),
-                        package.version(),
-                        update.version,
-                        update.semver_check.outcome_str()
-                    )
-                } else {
-                    format!("\n* `{}`: {}", package.name(), package.version())
                 }
             })
             .collect()
