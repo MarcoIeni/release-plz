@@ -16,6 +16,7 @@ pub struct CreateUserOption<'a> {
 #[derive(Clone, Debug, PartialEq, Default, Serialize)]
 struct TokenRequest<'a> {
     name: &'a str,
+    scopes: Vec<&'a str>,
 }
 
 #[derive(Clone, Debug, PartialEq, Default, Deserialize)]
@@ -58,7 +59,8 @@ fn create_user_docker_exec(username: &str) {
         .arg("--password")
         .arg(DEFAULT_PASSWORD)
         .arg("--email")
-        .arg("me@example.com")
+        .arg(format!("{}@example.com", username))
+        .arg("--must-change-password=false")
         .output()
         .unwrap();
 
@@ -74,7 +76,7 @@ pub async fn create_user(username: &str) -> String {
     let response = client
         .post(format!("{}/users/{username}/tokens", base_api_url()))
         .basic_auth(username, Some(DEFAULT_PASSWORD))
-        .json(&TokenRequest { name: "test" })
+        .json(&TokenRequest { name: "test", scopes: vec![ "repo" ] })
         .send()
         .await
         .unwrap();
