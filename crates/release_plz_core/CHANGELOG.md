@@ -9,13 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.8](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.7...release_plz_core-v0.5.8) - 2023-03-27
 
 ### Added
-- read repo-url from config (#621)
-
-### Fixed
-- use default origin for repository url (#619)
-
-### Other
-- update workspace version (#638)
+- Support the Cargo.toml field `workspace.package.version` (#638).
 
 ## [0.5.7](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.6...release_plz_core-v0.5.7) - 2023-03-19
 

@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.15](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.14...cargo_utils-v0.1.15) - 2023-03-27
 
 ### Other
-- update workspace version (#638)
+- remove assert under feature flag (#638)
 
 ## [0.1.14](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.13...cargo_utils-v0.1.14) - 2023-03-13
 

@@ -9,12 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.58](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.57...release-plz-v0.2.58) - 2023-03-27
 
 ### Added
-- read repo-url from config (#621)
-- add release-plz config file (#589)
-
-### Other
-- distinguish update and release pkg config (#633)
-- *(deps)* bump assert_cmd from 2.0.8 to 2.0.10 (#622)
+- add release-plz config file (#589). Experimental, not documented yet.
 
 ## [0.2.57](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.56...release-plz-v0.2.57) - 2023-03-19
 
