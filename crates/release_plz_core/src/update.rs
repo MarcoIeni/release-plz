@@ -1,4 +1,5 @@
 use crate::semver_check::SemverCheck;
+use crate::CARGO_TOML;
 use crate::{tmp_repo::TempRepo, PackagePath, UpdateRequest, UpdateResult};
 use anyhow::{anyhow, Context};
 use cargo_metadata::{semver::Version, Package};
@@ -10,6 +11,7 @@ use tracing::{info, warn};
 
 use tracing::{debug, instrument};
 
+#[derive(Clone)]
 pub struct PackagesUpdate {
     pub updates: Vec<(Package, UpdateResult)>,
 }
@@ -96,14 +98,14 @@ impl PackagesUpdate {
 #[instrument]
 pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
     let (packages_to_update, repository) = crate::next_versions(input)?;
-    let all_packages =
-        cargo_utils::workspace_members(Some(input.local_manifest())).map_err(|e| {
-            anyhow!(
-                "cannot read workspace members in manifest {:?}: {e}",
-                input.local_manifest()
-            )
-        })?;
-    update_versions(&all_packages, &packages_to_update)?;
+    let local_manifest_path = input.local_manifest();
+    let all_packages = cargo_utils::workspace_members(Some(local_manifest_path)).map_err(|e| {
+        anyhow!(
+            "cannot read workspace members in manifest {:?}: {e}",
+            input.local_manifest()
+        )
+    })?;
+    update_manifests(&packages_to_update, local_manifest_path, &all_packages)?;
     update_changelogs(&packages_to_update)?;
     if !packages_to_update.updates.is_empty() {
         let local_manifest_dir = input.local_manifest_dir()?;
@@ -116,6 +118,47 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
     }
 
     Ok((packages_to_update, repository))
+}
+
+fn update_manifests(
+    packages_to_update: &PackagesUpdate,
+    local_manifest_path: &Path,
+    all_packages: &[Package],
+) -> anyhow::Result<()> {
+    let mut local_manifest = LocalManifest::try_new(local_manifest_path)?;
+    let workspace_version = local_manifest.get_workspace_version();
+    let (workspace_version_pkgs, independent_pkgs): (Vec<_>, Vec<_>) = packages_to_update
+        .updates
+        .clone()
+        .into_iter()
+        .partition(|(p, _)| {
+            let local_manifest_path = p.package_path().unwrap().join(CARGO_TOML);
+            let local_manifest = LocalManifest::try_new(&local_manifest_path).unwrap();
+            local_manifest.version_is_inherited()
+        });
+    if let Some(workspace_version) = workspace_version {
+        debug!("current workspace version: {}", workspace_version);
+        let max_workspace_version = workspace_version_pkgs
+            .iter()
+            .map(|(_, u)| u.version.clone())
+            .max();
+        if let Some(new_workspace_version) = max_workspace_version {
+            debug!("new workspace version: {}", new_workspace_version);
+            if new_workspace_version > workspace_version {
+                local_manifest.set_workspace_version(&new_workspace_version);
+                local_manifest
+                    .write()
+                    .context("can't update workspace version")?;
+            }
+        }
+    }
+    update_versions(
+        all_packages,
+        &PackagesUpdate {
+            updates: independent_pkgs,
+        },
+    )?;
+    Ok(())
 }
 
 #[instrument(skip_all)]

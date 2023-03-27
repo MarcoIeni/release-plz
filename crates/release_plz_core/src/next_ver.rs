@@ -253,7 +253,7 @@ impl Project {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UpdateResult {
     pub version: Version,
     pub changelog: Option<String>,
