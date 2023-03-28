@@ -24,7 +24,7 @@ fn is_cargo_semver_checks_installed() -> bool {
 }
 
 /// Outcome of semver check.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SemverCheck {
     /// Semver check done. No incompatibilities found.
     Compatible,
