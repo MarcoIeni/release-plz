@@ -41,7 +41,7 @@ update_changelog = false
 
 #### The `update_dependencies` field
 
-- If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
+- If `true`, update all the dependencies in the `Cargo.lock` file by running `cargo update`.
 - If `false`, only update the workspace packages by running `cargo update --workspace`. (default).
 
 #### The `changelog_config` field
