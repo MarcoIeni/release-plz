@@ -1,3 +1,4 @@
+use release_plz_core::UpdateRequest;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 use url::Url;
@@ -10,6 +11,29 @@ pub struct Config {
     /// Not all settings of `workspace` can be overridden.
     #[serde(default)]
     pub package: HashMap<String, PackageConfig>,
+}
+
+impl Config {
+    pub fn fill_update_config(
+        &self,
+        is_changelog_update_disabled: bool,
+        update_request: UpdateRequest,
+    ) -> UpdateRequest {
+        let mut default_update_config = self.workspace.packages_defaults.update.clone();
+        if is_changelog_update_disabled {
+            default_update_config.update_changelog = false.into();
+        }
+        let mut update_request =
+            update_request.with_default_package_config(default_update_config.into());
+        for (package, config) in &self.package {
+            let mut update_config = config.update.clone();
+            if is_changelog_update_disabled {
+                update_config.update_changelog = false.into();
+            }
+            update_request = update_request.with_package_config(package, update_config.into());
+        }
+        update_request
+    }
 }
 
 /// Global configuration.
@@ -44,7 +68,7 @@ pub struct UpdateConfig {
     pub repo_url: Option<Url>,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct PackageConfig {
     /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
     #[serde(flatten)]
@@ -65,7 +89,7 @@ impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
 
 /// Customization for the `release-plz update` command.
 /// These can be overridden on a per-package basic.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct PackageUpdateConfig {
     /// Run cargo-semver-checks.
     #[serde(default)]
@@ -102,14 +126,14 @@ impl From<bool> for BoolDefaultingTrue {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct PackageReleaseConfig {
     /// Configuration for the GitHub/Gitea/GitLab release.
     pub git_release: GitReleaseConfig,
 }
 
 /// Whether to run cargo-semver-checks or not.
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum SemverCheck {
     /// Run cargo-semver-checks if the package is a library.
@@ -131,7 +155,7 @@ impl From<SemverCheck> for release_plz_core::RunSemverCheck {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct GitReleaseConfig {
     /// Publish the GitHub/Gitea release for the created git tag.
     /// Default: `true`
@@ -153,7 +177,7 @@ impl Default for GitReleaseConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum ReleaseType {
     /// Will mark the release as ready for production.

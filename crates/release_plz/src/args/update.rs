@@ -127,7 +127,7 @@ impl Update {
                     format!("cannot find project manifest {registry_project_manifest:?}")
                 })?;
         }
-        // TODO: combine no-changelog flag with package config
+        update = config.fill_update_config(self.no_changelog, update);
         {
             let release_date = self
                 .release_date
