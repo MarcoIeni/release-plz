@@ -168,6 +168,13 @@ impl UpdateRequest {
         self.set_package_config(package.into(), config)
     }
 
+    fn get_package_config(&self, package: &str) -> &UpdateConfig {
+        self.packages_config
+            .get(package)
+            .or_else(|| self.packages_config.get(DEFAULT_CONFIG_ID))
+            .expect("bug: package config not found")
+    }
+
     fn set_package_config(self, package: impl Into<String>, config: UpdateConfig) -> Self {
         let mut packages_config = self.packages_config.clone();
         packages_config.insert(package.into(), config);
@@ -448,13 +455,13 @@ impl Updater<'_> {
                 .map(|r| r.git_release_link(&prev_tag, &next_tag))
         };
 
-        let changelog = get_changelog(
-            commits,
-            &version,
-            Some(self.req.changelog_req.clone()),
-            package,
-            release_link,
-        )?;
+        let changelog_req = {
+            let cfg = self.req.get_package_config(package.name.as_str());
+            cfg.update_changelog
+                .then_some(self.req.changelog_req.clone())
+        };
+
+        let changelog = get_changelog(commits, &version, changelog_req, package, release_link)?;
 
         Ok(UpdateResult {
             version,
