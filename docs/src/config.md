@@ -96,7 +96,7 @@ update_changelog = false
 
 #### The `semver_check` field (`package` section)
 
-- If `"yes"`, runs [cargo-semver-checks] for this specific package.
+- If `"yes"`, run [cargo-semver-checks] for this specific package.
 - If `"no"`, don't.
 
 By default, release-plz runs [cargo-semver-checks] if the package is a library.
