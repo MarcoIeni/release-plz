@@ -24,10 +24,10 @@ Here's an example configuration:
 
 ```toml
 [workspace]
-update_dependencies = false
+update_dependencies = true # update dependencies with `cargo update`
 changelog_config = "config/git-cliff.toml"
+allow_dirty = true # allow updating repositories with uncommitted changes
 # TODO: document these ones, too
-# allow_dirty = false
 # repo_url = "https://github.com/MarcoIeni/release-plz"
 # semver_check = "lib"
 # update_changelog = true
@@ -43,6 +43,15 @@ changelog_config = "config/git-cliff.toml"
 Path to the [git-cliff](https://github.com/orhun/git-cliff) configuration file.
 If unspecified, release-plz uses the [keep a changelog](https://keepachangelog.com/en/1.1.0/) format.
 You can learn more in the [changelog format](changelog-format.md) section.
+
+#### The `allow_dirty` field
+
+- If `true`, allow dirty working directories to be updated.
+  The uncommitted changes will be part of the update.
+- If `false`, release-plz returns an error if the repository contains uncommitted changes. (default)
+
+Note: This field is different from the `allow-dirty` flag of the `release-plz release` command.
+This field only affects the `release-plz update` and `release-plz release-pr` command.
 
 ### The `[package]` section
 
