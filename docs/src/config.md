@@ -20,7 +20,7 @@ the following sections:
   - [`update_changelog`](#the-update_changelog-field) — Update changelogs.
 - [`[package]`](#the-package-section) — Defines the package-specific configurations.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
-  - [`update_changelog`](#the-update_changelog-field-package-section) — Update changelogs.
+  - [`update_changelog`](#the-update_changelog-field-package-section) — Update changelog.
 
 ### The `[workspace]` section
 
