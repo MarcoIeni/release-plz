@@ -131,6 +131,44 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
+## Example: release-pr and relase on schedule
+
+In the above examples, release-plz runs every time you merge a commit to the `main` branch.
+
+To run release-plz periodically, you can use the
+[`schedule`](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#schedule) event:
+
+```yaml
+name: Release-plz
+
+permissions:
+  pull-requests: write
+  contents: write
+
+# Trigger the workflow every Monday.
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 0 * * MON'
+
+jobs:
+  release-plz:
+    name: Release-plz
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+```
+
 ## Change GitHub actions permissions
 
 1. Go to the GitHub actions settings:
