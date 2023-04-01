@@ -4,8 +4,10 @@ use std::{collections::HashMap, path::PathBuf};
 use url::Url;
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct Config {
     /// Global configuration. Applied to all packages by default.
+    #[serde(default)]
     pub workspace: Workspace,
     /// Package specific configuration. This overrides `workspace`.
     /// Not all settings of `workspace` can be overridden.
@@ -129,6 +131,7 @@ impl From<bool> for BoolDefaultingTrue {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct PackageReleaseConfig {
     /// Configuration for the GitHub/Gitea/GitLab release.
+    #[serde(default)]
     pub git_release: GitReleaseConfig,
 }
 
@@ -155,26 +158,17 @@ impl From<SemverCheck> for release_plz_core::RunSemverCheck {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
 pub struct GitReleaseConfig {
     /// Publish the GitHub/Gitea release for the created git tag.
-    /// Default: `true`
-    pub enable: bool,
+    #[serde(default)]
+    enable: BoolDefaultingTrue,
     /// Whether to mark the created release as not ready for production.
+    #[serde(default)]
     pub release_type: ReleaseType,
     /// If true, will not auto-publish the release.
-    /// Default: `false`.
+    #[serde(default)]
     pub draft: bool,
-}
-
-impl Default for GitReleaseConfig {
-    fn default() -> Self {
-        Self {
-            enable: true,
-            release_type: ReleaseType::default(),
-            draft: false,
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, Copy)]
@@ -226,7 +220,7 @@ mod tests {
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
-                            enable: true,
+                            enable: true.into(),
                             release_type: ReleaseType::Prod,
                             draft: false,
                         },
@@ -272,7 +266,7 @@ mod tests {
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
-                            enable: true,
+                            enable: true.into(),
                             release_type: ReleaseType::Prod,
                             draft: false,
                         },
@@ -303,7 +297,7 @@ mod tests {
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
-                            enable: true,
+                            enable: true.into(),
                             release_type: ReleaseType::Prod,
                             draft: false,
                         },
@@ -319,7 +313,7 @@ mod tests {
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
-                            enable: true,
+                            enable: true.into(),
                             release_type: ReleaseType::Prod,
                             draft: false,
                         },
