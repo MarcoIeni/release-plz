@@ -468,17 +468,19 @@ impl Updater<'_> {
                 .map(|r| r.git_release_link(&prev_tag, &next_tag))
         };
 
-        let changelog_req = {
+        let changelog = {
             let cfg = self.req.get_package_config(package.name.as_str());
-            cfg.update_changelog
-                .then_some(self.req.changelog_req.clone())
-        };
-
-        let changelog = get_changelog(commits, &version, changelog_req, package, release_link)?;
+            let changelog_req = cfg
+                .update_changelog
+                .then_some(self.req.changelog_req.clone());
+            changelog_req
+                .map(|r| get_changelog(commits, &version, Some(r), package, release_link))
+                .transpose()
+        }?;
 
         Ok(UpdateResult {
             version,
-            changelog: Some(changelog),
+            changelog,
             semver_check,
         })
     }
