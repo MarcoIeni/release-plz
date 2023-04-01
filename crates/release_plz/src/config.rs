@@ -53,6 +53,7 @@ pub struct Workspace {
 /// Configuration for the `update` command.
 /// Generical for the whole workspace. Cannot customized on a per-package basic.
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct UpdateConfig {
     /// - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
     /// - If `false`, only update the workspace packages by running `cargo update --workspace`.
@@ -92,6 +93,7 @@ impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
 /// Customization for the `release-plz update` command.
 /// These can be overridden on a per-package basic.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct PackageUpdateConfig {
     /// Run cargo-semver-checks.
     #[serde(default)]
@@ -129,6 +131,7 @@ impl From<bool> for BoolDefaultingTrue {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct PackageReleaseConfig {
     /// Configuration for the GitHub/Gitea/GitLab release.
     #[serde(default)]
@@ -159,6 +162,7 @@ impl From<SemverCheck> for release_plz_core::RunSemverCheck {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
+#[serde(deny_unknown_fields)]
 pub struct GitReleaseConfig {
     /// Publish the GitHub/Gitea release for the created git tag.
     #[serde(default)]
