@@ -104,7 +104,7 @@ By default, release-plz runs [cargo-semver-checks] if the package is a library.
 #### The `update_changelog` field (`package` section)
 
 - If `true`, update the changelog of this package. *(Default)*.
-- If `false`, don't update changelogs.
+- If `false`, don't.
 
 [cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
 [git-cliff]: https://github.com/orhun/git-cliff
