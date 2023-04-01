@@ -53,6 +53,9 @@ pub struct UpdateRequest {
     /// Repository Url. If present, the new changelog entry contains a link to the diff between the old and new version.
     /// Format: `https://{repo_host}/{repo_owner}/{repo_name}/compare/{old_tag}...{new_tag}`.
     repo_url: Option<RepoUrl>,
+    /// Package-specific configuration.
+    /// The key is the package name. The key `""` refers to the default settings. Default settings
+    /// can be overridden by specifying a configuration for a given package name.
     packages_config: BTreeMap<String, UpdateConfig>,
 }
 
