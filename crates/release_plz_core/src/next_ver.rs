@@ -54,9 +54,25 @@ pub struct UpdateRequest {
     /// Format: `https://{repo_host}/{repo_owner}/{repo_name}/compare/{old_tag}...{new_tag}`.
     repo_url: Option<RepoUrl>,
     /// Package-specific configuration.
+    packages_config: PackagesConfig,
+}
+
+#[derive(Debug, Clone, Default)]
+struct PackagesConfig {
+    default: UpdateConfig,
     /// The key is the package name. The key `""` refers to the default settings. Default settings
     /// can be overridden by specifying a configuration for a given package name.
-    packages_config: BTreeMap<String, UpdateConfig>,
+    overrides: BTreeMap<String, UpdateConfig>,
+}
+
+impl PackagesConfig {
+    fn get(&self, package_name: &str) -> &UpdateConfig {
+        self.overrides.get(package_name).unwrap_or(&self.default)
+    }
+
+    fn set(&mut self, package_name: String, config: UpdateConfig) {
+        self.overrides.insert(package_name, config);
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -122,7 +138,6 @@ fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
 
 impl UpdateRequest {
     pub fn new(local_manifest: impl AsRef<Path>) -> io::Result<Self> {
-        let packages_config = [(DEFAULT_CONFIG_ID.to_string(), UpdateConfig::default())].into();
         Ok(Self {
             local_manifest: canonical_local_manifest(local_manifest.as_ref())?,
             registry_manifest: None,
@@ -132,7 +147,7 @@ impl UpdateRequest {
             update_dependencies: false,
             allow_dirty: false,
             repo_url: None,
-            packages_config,
+            packages_config: PackagesConfig::default(),
         })
     }
 
@@ -169,15 +184,12 @@ impl UpdateRequest {
     }
 
     fn get_package_config(&self, package: &str) -> &UpdateConfig {
-        self.packages_config
-            .get(package)
-            .or_else(|| self.packages_config.get(DEFAULT_CONFIG_ID))
-            .expect("bug: package config not found")
+        self.packages_config.get(package)
     }
 
     fn set_package_config(self, package: impl Into<String>, config: UpdateConfig) -> Self {
         let mut packages_config = self.packages_config.clone();
-        packages_config.insert(package.into(), config);
+        packages_config.set(package.into(), config);
         Self {
             packages_config,
             ..self
@@ -597,7 +609,6 @@ fn should_check_semver(package: &Package, run_semver_check: RunSemverCheck) -> b
     };
     user_wants_to_run_check && is_cargo_semver_checks_installed()
 }
-
 
 /// Compare the dependencies of the registry package and the local one.
 /// Check if the dependencies of the registry package were updated.
