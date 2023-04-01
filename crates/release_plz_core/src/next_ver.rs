@@ -66,6 +66,10 @@ impl PackagesConfig {
         self.overrides.get(package_name).unwrap_or(&self.default)
     }
 
+    fn set_default(&mut self, config: UpdateConfig) {
+        self.default = config;
+    }
+
     fn set(&mut self, package_name: String, config: UpdateConfig) {
         self.overrides.insert(package_name, config);
     }
@@ -170,26 +174,19 @@ impl UpdateRequest {
     }
 
     /// Set update config for all packages. I.e. default config.
-    pub fn with_default_packages_config(self, config: UpdateConfig) -> Self {
-        self.set_package_config(DEFAULT_CONFIG_ID, config)
+    pub fn with_default_packages_config(mut self, config: UpdateConfig) -> Self {
+        self.packages_config.set_default(config);
+        self
     }
 
     /// Set update config for a specific package.
-    pub fn with_package_config(self, package: impl Into<String>, config: UpdateConfig) -> Self {
-        self.set_package_config(package.into(), config)
+    pub fn with_package_config(mut self, package: impl Into<String>, config: UpdateConfig) -> Self {
+        self.packages_config.set(package.into(), config);
+        self
     }
 
     fn get_package_config(&self, package: &str) -> &UpdateConfig {
         self.packages_config.get(package)
-    }
-
-    fn set_package_config(self, package: impl Into<String>, config: UpdateConfig) -> Self {
-        let mut packages_config = self.packages_config.clone();
-        packages_config.set(package.into(), config);
-        Self {
-            packages_config,
-            ..self
-        }
     }
 
     pub fn with_registry(self, registry: String) -> Self {
