@@ -9,7 +9,7 @@ pub struct Config {
     /// Global configuration. Applied to all packages by default.
     #[serde(default)]
     pub workspace: Workspace,
-    /// Package specific configuration. This overrides `workspace`.
+    /// Package-specific configuration. This overrides `workspace`.
     /// Not all settings of `workspace` can be overridden.
     #[serde(default)]
     pub package: HashMap<String, PackageConfig>,
