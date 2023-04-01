@@ -78,7 +78,7 @@ This field can be overridden in the [`[package]`](#the-package-section) section.
 
 #### The `update_changelog` field
 
-- If `true`, update all the changelog of the crates. (default).
+- If `true`, update the changelog of the crates. (default).
 - If `false`, don't update changelogs.
 
 This field can be overridden in the [`[package]`](#the-package-section) section.
