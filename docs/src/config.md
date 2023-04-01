@@ -17,7 +17,7 @@ the following sections:
   - [`allow_dirty`](#the-allow_dirty-field) — Update dirty working directories.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
-  - [`update_changelog`](#the-update_changelog-field) — Update changelogs.
+  - [`update_changelog`](#the-update_changelog-field) — Update changelog.
 - [`[package]`](#the-package-section) — Defines the package-specific configurations.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
   - [`update_changelog`](#the-update_changelog-field-package-section) — Update changelog.
