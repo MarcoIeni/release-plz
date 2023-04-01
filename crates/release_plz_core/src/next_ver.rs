@@ -122,14 +122,7 @@ fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
 
 impl UpdateRequest {
     pub fn new(local_manifest: impl AsRef<Path>) -> io::Result<Self> {
-        let packages_config = [(
-            DEFAULT_CONFIG_ID.to_string(),
-            UpdateConfig {
-                semver_check: RunSemverCheck::default(),
-                update_changelog: false,
-            },
-        )]
-        .into();
+        let packages_config = [(DEFAULT_CONFIG_ID.to_string(), UpdateConfig::default())].into();
         Ok(Self {
             local_manifest: canonical_local_manifest(local_manifest.as_ref())?,
             registry_manifest: None,
