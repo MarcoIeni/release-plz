@@ -96,7 +96,7 @@ impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct PackageUpdateConfig {
-    /// Run cargo-semver-checks.
+    /// Controls when to run cargo-semver-checks.
     #[serde(default)]
     pub semver_check: SemverCheck,
     /// Create/update changelog.

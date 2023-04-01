@@ -78,7 +78,7 @@ impl PackagesConfig {
 
 #[derive(Debug, Clone)]
 pub struct UpdateConfig {
-    /// Run cargo-semver-checks.
+    /// Controls when to run cargo-semver-checks.
     pub semver_check: RunSemverCheck,
     /// Create/update changelog.
     /// Default: `true`.
