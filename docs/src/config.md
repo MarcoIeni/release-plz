@@ -3,7 +3,7 @@
 This section describes how you can customize the behavior of release-plz
 with the `release-plz.toml` file.
 
-Please note that the configuration file is optional: release-plz is designed to work out of the box,
+This configuration file is optional — release-plz is designed to work out of the box,
 with decent defaults.
 
 ## Reference
