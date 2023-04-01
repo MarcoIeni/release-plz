@@ -84,7 +84,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="why.html"><strong aria-hidden="true">5.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="extra/index.html"><strong aria-hidden="true">6.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="extra/releasing-binaries.html"><strong aria-hidden="true">6.1.</strong> Releasing binaries</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="config.html"><strong aria-hidden="true">5.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="why.html"><strong aria-hidden="true">6.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="extra/index.html"><strong aria-hidden="true">7.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="extra/releasing-binaries.html"><strong aria-hidden="true">7.1.</strong> Releasing binaries</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -165,7 +165,7 @@ without the command line.</p>
 easily release changes more frequently, without the fear of
 doing typos or other
 subtle manual mistakes you can make when releasing from your terminal.</p>
-<p>Here's an example of a release Pull Request created on the release-plz repository itself:</p>
+<p>Here’s an example of a release Pull Request created on the release-plz repository itself:</p>
 <p><img src="assets/pr.png" alt="pr" /></p>
 <h2 id="release-plz-features"><a class="header" href="#release-plz-features">Release-plz features</a></h2>
 <ul>
@@ -180,7 +180,7 @@ using the <a href="https://keepachangelog.com/en/1.1.0/">keep a changelog</a> fo
 <li>Package published to any cargo registry.</li>
 </ul>
 <h2 id="releases-made-easy"><a class="header" href="#releases-made-easy">Releases made easy</a></h2>
-<p>Release-plz makes releasing Rust packages child's play:</p>
+<p>Release-plz makes releasing Rust packages child’s play:</p>
 <ol>
 <li>For every commit, release-plz creates a release Pull Request from CI.</li>
 <li>The release Pull Request reminds the maintainer about the unpublished changes.</li>
@@ -188,7 +188,7 @@ using the <a href="https://keepachangelog.com/en/1.1.0/">keep a changelog</a> fo
 <li>Release-plz releases the updated packages from CI.</li>
 </ol>
 <p>In short, release-plz makes releasing Rust packages as easy as clicking the pull
-request &quot;merge&quot; button.</p>
+request “merge” button.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
 <p>Make sure you have <code>git</code> and <code>openssl</code> installed when running <code>release-plz</code>.</p>
 <p><code>release-plz</code> is a rust binary that can be installed in different ways.</p>
@@ -225,7 +225,7 @@ runs two commands, one after the other:</p>
 <li><code>registry</code>: Registry where the packages are stored.
 The registry name needs to be present in the Cargo config.
 If unspecified, crates.io is used. (Defaults to crates.io).</li>
-<li><code>no_changelog</code>: Don't create changelog. (Default: <code>&quot;false&quot;</code>).</li>
+<li><code>no_changelog</code>: Don’t create changelog. (Default: <code>&quot;false&quot;</code>).</li>
 <li><code>update_dependencies</code>: If <code>true</code>, update all the dependencies in the Cargo.lock
 file by running <code>cargo update</code>.
 If <code>false</code>, only update the workspace packages by running
@@ -333,6 +333,39 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 </code></pre>
+<h2 id="example-release-pr-and-relase-on-schedule"><a class="header" href="#example-release-pr-and-relase-on-schedule">Example: release-pr and relase on schedule</a></h2>
+<p>In the above examples, release-plz runs every time you merge a commit to the <code>main</code> branch.</p>
+<p>To run release-plz periodically, you can use the
+<a href="https://docs.github.com/en/actions/reference/events-that-trigger-workflows#schedule"><code>schedule</code></a> event:</p>
+<pre><code class="language-yaml">name: Release-plz
+
+permissions:
+  pull-requests: write
+  contents: write
+
+# Trigger the workflow every Monday.
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 0 * * MON'
+
+jobs:
+  release-plz:
+    name: Release-plz
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+</code></pre>
 <h2 id="change-github-actions-permissions"><a class="header" href="#change-github-actions-permissions">Change GitHub actions permissions</a></h2>
 <ol>
 <li>
@@ -340,7 +373,7 @@ jobs:
 <p><img src="assets/actions_settings.png" alt="actions settings" /></p>
 </li>
 <li>
-<p>Change &quot;Workflow permissions&quot; to allow GitHub actions to create and approve
+<p>Change “Workflow permissions” to allow GitHub actions to create and approve
 pull requests (needed to create and update the PR).</p>
 <p><img src="assets/workflow_permissions.png" alt="workflow permission" /></p>
 </li>
@@ -351,14 +384,14 @@ trigger other workflows.
 If you have <code>on: pull_request</code> or <code>on: push</code> workflows acting as checks on pull
 requests, they will not run.</p>
 <blockquote>
-<p>When you use the repository's <code>GITHUB_TOKEN</code> to perform tasks, events triggered
+<p>When you use the repository’s <code>GITHUB_TOKEN</code> to perform tasks, events triggered
 by the <code>GITHUB_TOKEN</code> will not create a new workflow run.
 This prevents you from accidentally creating recursive workflow runs.
-For example, if a workflow run pushes code using the repository's <code>GITHUB_TOKEN</code>,
+For example, if a workflow run pushes code using the repository’s <code>GITHUB_TOKEN</code>,
 a new workflow will not run even when the repository contains a workflow
 configured to run when <code>push</code> events occur.</p>
 </blockquote>
-<p>-- <a href="https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow">GitHub Actions: Triggering a workflow from a workflow</a></p>
+<p>– <a href="https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow">GitHub Actions: Triggering a workflow from a workflow</a></p>
 <p>Read <a href="https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs">this</a>
 guide to learn about possible workarounds, such as setting a Personal Access
 Token, a deploy key or a GitHub app.</p>
@@ -383,7 +416,7 @@ packages of a local workspace.</p>
 <li>Checks for API breaking changes in libraries if
 <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>
 is installed.
-<em>Warning:</em> <code>cargo-semver-checks</code> doesn't catch every semver violation.</li>
+<em>Warning:</em> <code>cargo-semver-checks</code> doesn’t catch every semver violation.</li>
 <li>Updates the packages versions based on the messages of the new commits (based
 on <a href="https://www.conventionalcommits.org/en/v1.0.0/">conventional commits</a> and
 <a href="https://semver.org/">semantic versioning</a>).</li>
@@ -399,7 +432,7 @@ unpublished changes.</p>
 <h3 id="does-the-changelog-include-the-commits-from-the-whole-repo"><a class="header" href="#does-the-changelog-include-the-commits-from-the-whole-repo">Does the changelog include the commits from the whole repo?</a></h3>
 <p>The changelog of each crate includes the commit that changed one of the
 files of the crate or one of its dependencies.</p>
-<h3 id="what-if-a-commit-doesnt-follow-the-conventional-commits-format"><a class="header" href="#what-if-a-commit-doesnt-follow-the-conventional-commits-format">What if a commit doesn't follow the conventional-commits format?</a></h3>
+<h3 id="what-if-a-commit-doesnt-follow-the-conventional-commits-format"><a class="header" href="#what-if-a-commit-doesnt-follow-the-conventional-commits-format">What if a commit doesn’t follow the conventional-commits format?</a></h3>
 <p>By default, it will be listed under the section <code>### Other</code>.
 Remember you can customize the changelog format by providing a
 <a href="https://github.com/orhun/git-cliff">git-cliff</a> config file.</p>
@@ -408,7 +441,7 @@ Remember you can customize the changelog format by providing a
 opens a GitHub Pull Request that prepares the next release.</p>
 <p>When the project maintainer merges the release pull request, the packages are
 ready to be published.</p>
-<p>Here's an example of a <a href="https://github.com/MarcoIeni/release-plz/pull/377">PR</a>
+<p>Here’s an example of a <a href="https://github.com/MarcoIeni/release-plz/pull/377">PR</a>
 opened by release-plz in the release-plz GitHub project itself.</p>
 <p>In the following example, I run <code>release-plz</code> on the <code>release-plz</code> project
 itself.
@@ -417,7 +450,7 @@ packages with unpublished changes.</p>
 <p><img src="https://user-images.githubusercontent.com/11428655/160772903-544c7578-7c17-4311-b6ca-a1aefeabe799.gif" alt="release-plz release-pr" /></p>
 <p>To learn more, run <code>release-plz release-pr --help</code>.</p>
 <h2 id="pr-update"><a class="header" href="#pr-update">Pr update</a></h2>
-<p>If there's already an open release PR:</p>
+<p>If there’s already an open release PR:</p>
 <ul>
 <li>if the PR contains commits that are not from bots (except the first one),
 release-plz closes the PR to preserve the git history.
@@ -431,10 +464,10 @@ Gitea with the <code>--backend</code> flag:</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="release"><a class="header" href="#release">Release</a></h1>
 <p>The <code>release-plz release</code> command releases all the unpublished packages.</p>
 <blockquote>
-<p>For example, let's say you have a workspace with two packages: <code>pkg-a</code>
+<p>For example, let’s say you have a workspace with two packages: <code>pkg-a</code>
 (version 0.3.1) and <code>pkg-b</code> (version 0.2.2).
-The crates.io registry contains <code>pkg-a</code> version 0.3.1, but it doesn't contain
-<code>pkg-b</code> version 0.2.2 because you didn't publish this version yet.
+The crates.io registry contains <code>pkg-a</code> version 0.3.1, but it doesn’t contain
+<code>pkg-b</code> version 0.2.2 because you didn’t publish this version yet.
 In this case, release-plz would release <code>pkg-b</code>.</p>
 </blockquote>
 <p>For every release, release-plz:</p>
@@ -476,7 +509,101 @@ sudo mv _release-plz /usr/local/share/zsh/site-functions/
 By default, release-plz uses the
 <a href="https://keepachangelog.com/en/1.1.0/">keep a changelog</a> format.
 You can customize the changelog format, by providing a git-cliff configuration
-file with the <code>--changelog-config</code> argument.</p>
+file with the <code>--changelog-config</code> argument, or with the
+<a href="config.html#the-changelog_config-field"><code>changelog_config</code></a> of the configuration file.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="configuration"><a class="header" href="#configuration">Configuration</a></h1>
+<p>This section describes how you can customize the behavior of release-plz
+with the <code>release-plz.toml</code> file.</p>
+<p>This configuration file is optional — release-plz is designed to work out of the box,
+with decent defaults.</p>
+<h2 id="reference"><a class="header" href="#reference">Reference</a></h2>
+<p>The configuration file is written in the <a href="https://toml.io/">TOML</a> format and consists of
+the following sections:</p>
+<ul>
+<li><a href="config.html#the-workspace-section"><code>[workspace]</code></a> — Defines the default configuration.
+<ul>
+<li><a href="config.html#the-update_dependencies-field"><code>update_dependencies</code></a> — Update all dependencies.</li>
+<li><a href="config.html#the-changelog_config-field"><code>changelog_config</code></a> — Path to the <a href="https://github.com/orhun/git-cliff">git-cliff</a> configuration file.</li>
+<li><a href="config.html#the-allow_dirty-field"><code>allow_dirty</code></a> — Update dirty working directories.</li>
+<li><a href="config.html#the-repo_url-field"><code>repo_url</code></a> — Repository URL.</li>
+<li><a href="config.html#the-semver_check-field"><code>semver_check</code></a> — Run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>.</li>
+<li><a href="config.html#the-update_changelog-field"><code>update_changelog</code></a> — Update changelog.</li>
+</ul>
+</li>
+<li><a href="config.html#the-package-section"><code>[package]</code></a> — Defines the package-specific configurations.
+<ul>
+<li><a href="config.html#the-semver_check-field-package-section"><code>semver_check</code></a> — Run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>.</li>
+<li><a href="config.html#the-update_changelog-field-package-section"><code>update_changelog</code></a> — Update changelog.</li>
+</ul>
+</li>
+</ul>
+<h3 id="the-workspace-section"><a class="header" href="#the-workspace-section">The <code>[workspace]</code> section</a></h3>
+<p>Defines the global configuration, applied to all packages by default.
+This section is optional, as well as all its fields.</p>
+<p>Here’s an example configuration:</p>
+<pre><code class="language-toml">[workspace]
+update_dependencies = true # update dependencies with `cargo update`
+changelog_config = &quot;config/git-cliff.toml&quot;
+allow_dirty = true # allow updating repositories with uncommitted changes
+repo_url = &quot;https://github.com/&lt;owner&gt;/&lt;repo&gt;&quot;
+semver_check = &quot;no&quot;
+update_changelog = false
+</code></pre>
+<h4 id="the-update_dependencies-field"><a class="header" href="#the-update_dependencies-field">The <code>update_dependencies</code> field</a></h4>
+<ul>
+<li>If <code>true</code>, update all the dependencies in the <code>Cargo.lock</code> file by running <code>cargo update</code>.</li>
+<li>If <code>false</code>, only update the workspace packages by running <code>cargo update --workspace</code>. <em>(Default)</em>.</li>
+</ul>
+<h4 id="the-changelog_config-field"><a class="header" href="#the-changelog_config-field">The <code>changelog_config</code> field</a></h4>
+<p>Path to the <a href="https://github.com/orhun/git-cliff">git-cliff</a> configuration file.
+If unspecified, release-plz uses the <a href="https://keepachangelog.com/en/1.1.0/">keep a changelog</a> format.
+You can learn more in the <a href="changelog-format.html">changelog format</a> section.</p>
+<h4 id="the-allow_dirty-field"><a class="header" href="#the-allow_dirty-field">The <code>allow_dirty</code> field</a></h4>
+<ul>
+<li>If <code>true</code>, allow release-plz to update dirty working directories.
+A directory is considered dirty if it contains uncommitted changes.
+The uncommitted changes will be part of the update.</li>
+<li>If <code>false</code>, release-plz returns an error if the repository contains uncommitted changes. <em>(Default)</em>.</li>
+</ul>
+<p>Note: This field is different from the <code>allow-dirty</code> flag of the <code>release-plz release</code> command.
+This field only affects the <code>release-plz update</code> and <code>release-plz release-pr</code> command.</p>
+<h4 id="the-repo_url-field"><a class="header" href="#the-repo_url-field">The <code>repo_url</code> field</a></h4>
+<p>GitHub/Gitea repository URL where your project is hosted.
+It is used to generate the changelog release link and open the PR.
+Normally, you don’t need to set this field,
+because release-plz defaults to the URL of the default git remote.</p>
+<h4 id="the-semver_check-field"><a class="header" href="#the-semver_check-field">The <code>semver_check</code> field</a></h4>
+<p>With this field, you can tell release-plz when to run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>:</p>
+<ul>
+<li>If <code>&quot;no&quot;</code>, never run it.</li>
+<li>If <code>&quot;yes&quot;</code>, always run it.</li>
+<li>If <code>&quot;lib&quot;</code>, run it if the package is a library. <em>(Default)</em>.</li>
+</ul>
+<p>This field can be overridden in the <a href="config.html#the-package-section"><code>[package]</code></a> section.</p>
+<h4 id="the-update_changelog-field"><a class="header" href="#the-update_changelog-field">The <code>update_changelog</code> field</a></h4>
+<ul>
+<li>If <code>true</code>, update the changelog of the crates. <em>(Default)</em>.</li>
+<li>If <code>false</code>, don’t update changelogs.</li>
+</ul>
+<p>This field can be overridden in the <a href="config.html#the-package-section"><code>[package]</code></a> section.</p>
+<h3 id="the-package-section"><a class="header" href="#the-package-section">The <code>[package]</code> section</a></h3>
+<p>In this section, you can override some of the <code>workspace</code> fields for specific packages.
+This section is optional, as well as all its fields.</p>
+<pre><code class="language-toml">[package.my_package]
+semver_check = &quot;no&quot;
+update_changelog = false
+</code></pre>
+<h4 id="the-semver_check-field-package-section"><a class="header" href="#the-semver_check-field-package-section">The <code>semver_check</code> field (<code>package</code> section)</a></h4>
+<ul>
+<li>If <code>&quot;yes&quot;</code>, run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a> for this package.</li>
+<li>If <code>&quot;no&quot;</code>, don’t.</li>
+</ul>
+<p>By default, release-plz runs <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a> if the package is a library.</p>
+<h4 id="the-update_changelog-field-package-section"><a class="header" href="#the-update_changelog-field-package-section">The <code>update_changelog</code> field (<code>package</code> section)</a></h4>
+<ul>
+<li>If <code>true</code>, update the changelog of this package. <em>(Default)</em>.</li>
+<li>If <code>false</code>, don’t.</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="why-yet-another-release-tool"><a class="header" href="#why-yet-another-release-tool">Why yet another release tool</a></h1>
 <p>New Rust apps and rewrites are mushrooming every day.
 Choosing which tools to add to your developer toolbox is becoming harder and harder.</p>
@@ -495,11 +622,11 @@ Most of the fields you have to write in these two files are already in the
 and the cargo registry,
 so no configuration files are required.</p>
 <h3 id="versions-retrieved-from-the-cargo-registry"><a class="header" href="#versions-retrieved-from-the-cargo-registry">Versions retrieved from the cargo registry</a></h3>
-<p>Release-please considers a package &quot;published&quot; only when the relative git tag exists.
-Release-please doesn't interact at all with cargo registries.
-However, some Rust projects don't create git tags.
+<p>Release-please considers a package “published” only when the relative git tag exists.
+Release-please doesn’t interact at all with cargo registries.
+However, some Rust projects don’t create git tags.
 Instead, they just publish the package to crates.io.</p>
-<p>Release-plz looks at the cargo registry if the relative git tag doesn't exist,
+<p>Release-plz looks at the cargo registry if the relative git tag doesn’t exist,
 making it compatible with both workflows and with the majority of the Rust projects.</p>
 <h3 id="no-multiple-programming-languages-support"><a class="header" href="#no-multiple-programming-languages-support">No multiple programming languages support</a></h3>
 <p>Release-please supports multiple programming languages, while release-plz only
@@ -512,21 +639,21 @@ the CLI use case, while release-plz focuses mainly on CI.</p>
 <ul>
 <li>Bumps the version and publishes Rust packages from the CLI.</li>
 <li>It supports automatic releases with <code>cargo release --unpublished</code></li>
-<li>It doesn't have first-class support for changelogs.
+<li>It doesn’t have first-class support for changelogs.
 See <a href="https://github.com/crate-ci/cargo-release/issues/231">this</a> issue.</li>
-<li>It supports hooks (release-plz doesn't).</li>
+<li>It supports hooks (release-plz doesn’t).</li>
 </ul>
 </li>
 <li><a href="https://github.com/pksunkara/cargo-workspaces">cargo-workspaces</a>:
 <ul>
-<li>It's a set of commands to manage cargo workspaces and their crates.</li>
+<li>It’s a set of commands to manage cargo workspaces and their crates.</li>
 <li>The <code>publish</code> command releases the packages from the CLI similarly to <code>cargo-release</code>.</li>
 </ul>
 </li>
 <li><a href="https://github.com/Byron/gitoxide/tree/main/cargo-smart-release">cargo-smart-release</a>:
 <ul>
 <li>Updates and publishes packages from the CLI.</li>
-<li>It's very similar to release-plz, but it is not meant to be run in CI (see
+<li>It’s very similar to release-plz, but it is not meant to be run in CI (see
 <a href="https://github.com/MarcoIeni/release-plz/issues/13#issuecomment-1065790846">this</a>
 comment from the author).</li>
 </ul>
@@ -538,7 +665,7 @@ release-plz.
 You will learn how to use release-plz with other tools, to achieve awesome
 things.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="releasing-binaries"><a class="header" href="#releasing-binaries">Releasing binaries</a></h1>
-<h2 id="why-release-plz-doesnt-release-binaries"><a class="header" href="#why-release-plz-doesnt-release-binaries">Why release-plz doesn't release binaries</a></h2>
+<h2 id="why-release-plz-doesnt-release-binaries"><a class="header" href="#why-release-plz-doesnt-release-binaries">Why release-plz doesn’t release binaries</a></h2>
 <blockquote>
 <p>Since release-plz already publishes GitHub releases, would it
 make sense for it to build the binaries of the project and publish
@@ -555,12 +682,12 @@ from the one used to run <code>release-plz release</code> because:</p>
 would not be more convenient than using a different tool.
 Plus, releasing binaries is a complex task, which is already well-handled by
 other tools in the Rust ecosystem.
-For these reasons, release-plz doesn't build and release binaries.</p>
+For these reasons, release-plz doesn’t build and release binaries.</p>
 <p>The next section explains how to use other tools to build and release binaries after
 release-plz released the new version of your project.</p>
 <h2 id="releasing-binaries-after-release"><a class="header" href="#releasing-binaries-after-release">Releasing binaries after release</a></h2>
 <p>If you are using release-plz to release your project, you can
-run a CI job on the &quot;tag&quot; or &quot;release&quot; events to build and release the binaries.</p>
+run a CI job on the “tag” or “release” events to build and release the binaries.</p>
 <p>Here is an example:</p>
 <pre><code class="language-yaml">name: CD # Continuous Deployment
 

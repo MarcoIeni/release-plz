@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="../usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="../usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="../usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="../usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="../changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="../why.html"><strong aria-hidden="true">5.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="../extra/index.html"><strong aria-hidden="true">6.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../extra/releasing-binaries.html" class="active"><strong aria-hidden="true">6.1.</strong> Releasing binaries</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="../usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="../usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="../usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="../usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="../changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="../config.html"><strong aria-hidden="true">5.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="../why.html"><strong aria-hidden="true">6.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="../extra/index.html"><strong aria-hidden="true">7.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../extra/releasing-binaries.html" class="active"><strong aria-hidden="true">7.1.</strong> Releasing binaries</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -151,7 +151,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="releasing-binaries"><a class="header" href="#releasing-binaries">Releasing binaries</a></h1>
-<h2 id="why-release-plz-doesnt-release-binaries"><a class="header" href="#why-release-plz-doesnt-release-binaries">Why release-plz doesn't release binaries</a></h2>
+<h2 id="why-release-plz-doesnt-release-binaries"><a class="header" href="#why-release-plz-doesnt-release-binaries">Why release-plz doesn’t release binaries</a></h2>
 <blockquote>
 <p>Since release-plz already publishes GitHub releases, would it
 make sense for it to build the binaries of the project and publish
@@ -168,12 +168,12 @@ from the one used to run <code>release-plz release</code> because:</p>
 would not be more convenient than using a different tool.
 Plus, releasing binaries is a complex task, which is already well-handled by
 other tools in the Rust ecosystem.
-For these reasons, release-plz doesn't build and release binaries.</p>
+For these reasons, release-plz doesn’t build and release binaries.</p>
 <p>The next section explains how to use other tools to build and release binaries after
 release-plz released the new version of your project.</p>
 <h2 id="releasing-binaries-after-release"><a class="header" href="#releasing-binaries-after-release">Releasing binaries after release</a></h2>
 <p>If you are using release-plz to release your project, you can
-run a CI job on the &quot;tag&quot; or &quot;release&quot; events to build and release the binaries.</p>
+run a CI job on the “tag” or “release” events to build and release the binaries.</p>
 <p>Here is an example:</p>
 <pre><code class="language-yaml">name: CD # Continuous Deployment
 

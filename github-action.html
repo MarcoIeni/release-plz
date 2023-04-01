@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="github-action.html" class="active"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="why.html"><strong aria-hidden="true">5.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="extra/index.html"><strong aria-hidden="true">6.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="extra/releasing-binaries.html"><strong aria-hidden="true">6.1.</strong> Releasing binaries</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="github-action.html" class="active"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="config.html"><strong aria-hidden="true">5.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="why.html"><strong aria-hidden="true">6.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="extra/index.html"><strong aria-hidden="true">7.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="extra/releasing-binaries.html"><strong aria-hidden="true">7.1.</strong> Releasing binaries</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -165,7 +165,7 @@ runs two commands, one after the other:</p>
 <li><code>registry</code>: Registry where the packages are stored.
 The registry name needs to be present in the Cargo config.
 If unspecified, crates.io is used. (Defaults to crates.io).</li>
-<li><code>no_changelog</code>: Don't create changelog. (Default: <code>&quot;false&quot;</code>).</li>
+<li><code>no_changelog</code>: Don’t create changelog. (Default: <code>&quot;false&quot;</code>).</li>
 <li><code>update_dependencies</code>: If <code>true</code>, update all the dependencies in the Cargo.lock
 file by running <code>cargo update</code>.
 If <code>false</code>, only update the workspace packages by running
@@ -273,6 +273,39 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 </code></pre>
+<h2 id="example-release-pr-and-relase-on-schedule"><a class="header" href="#example-release-pr-and-relase-on-schedule">Example: release-pr and relase on schedule</a></h2>
+<p>In the above examples, release-plz runs every time you merge a commit to the <code>main</code> branch.</p>
+<p>To run release-plz periodically, you can use the
+<a href="https://docs.github.com/en/actions/reference/events-that-trigger-workflows#schedule"><code>schedule</code></a> event:</p>
+<pre><code class="language-yaml">name: Release-plz
+
+permissions:
+  pull-requests: write
+  contents: write
+
+# Trigger the workflow every Monday.
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 0 * * MON'
+
+jobs:
+  release-plz:
+    name: Release-plz
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+</code></pre>
 <h2 id="change-github-actions-permissions"><a class="header" href="#change-github-actions-permissions">Change GitHub actions permissions</a></h2>
 <ol>
 <li>
@@ -280,7 +313,7 @@ jobs:
 <p><img src="assets/actions_settings.png" alt="actions settings" /></p>
 </li>
 <li>
-<p>Change &quot;Workflow permissions&quot; to allow GitHub actions to create and approve
+<p>Change “Workflow permissions” to allow GitHub actions to create and approve
 pull requests (needed to create and update the PR).</p>
 <p><img src="assets/workflow_permissions.png" alt="workflow permission" /></p>
 </li>
@@ -291,14 +324,14 @@ trigger other workflows.
 If you have <code>on: pull_request</code> or <code>on: push</code> workflows acting as checks on pull
 requests, they will not run.</p>
 <blockquote>
-<p>When you use the repository's <code>GITHUB_TOKEN</code> to perform tasks, events triggered
+<p>When you use the repository’s <code>GITHUB_TOKEN</code> to perform tasks, events triggered
 by the <code>GITHUB_TOKEN</code> will not create a new workflow run.
 This prevents you from accidentally creating recursive workflow runs.
-For example, if a workflow run pushes code using the repository's <code>GITHUB_TOKEN</code>,
+For example, if a workflow run pushes code using the repository’s <code>GITHUB_TOKEN</code>,
 a new workflow will not run even when the repository contains a workflow
 configured to run when <code>push</code> events occur.</p>
 </blockquote>
-<p>-- <a href="https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow">GitHub Actions: Triggering a workflow from a workflow</a></p>
+<p>– <a href="https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow">GitHub Actions: Triggering a workflow from a workflow</a></p>
 <p>Read <a href="https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs">this</a>
 guide to learn about possible workarounds, such as setting a Personal Access
 Token, a deploy key or a GitHub app.</p>
