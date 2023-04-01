@@ -30,15 +30,17 @@ pub struct Workspace {
 pub struct UpdateConfig {
     /// - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
     /// - If `false`, only update the workspace packages by running `cargo update --workspace`.
-    /// Default: `false`.
+    #[serde(default)]
     pub update_dependencies: bool,
     /// Path to the git cliff configuration file. Defaults to the `keep a changelog` configuration.
+    #[serde(default)]
     pub changelog_config: Option<PathBuf>,
     /// Allow dirty working directories to be updated. The uncommitted changes will be part of the update.
-    /// Default: `false`.
+    #[serde(default)]
     pub allow_dirty: bool,
     /// GitHub/Gitea repository url where your project is hosted.
     /// It is used to generate the changelog release link. It defaults to the `origin` url.
+    #[serde(default)]
     pub repo_url: Option<Url>,
 }
 
@@ -52,15 +54,52 @@ pub struct PackageConfig {
     release: PackageReleaseConfig,
 }
 
+impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
+    fn from(config: PackageUpdateConfig) -> Self {
+        Self {
+            semver_check: config.semver_check.into(),
+            update_changelog: config.update_changelog.into(),
+        }
+    }
+}
+
 /// Customization for the `release-plz update` command.
 /// These can be overridden on a per-package basic.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default)]
 pub struct PackageUpdateConfig {
     /// Run cargo-semver-checks.
+    #[serde(default)]
     pub semver_check: SemverCheck,
     /// Create/update changelog.
-    /// Default: `true`.
-    pub update_changelog: bool,
+    #[serde(default)]
+    update_changelog: BoolDefaultingTrue,
+}
+
+impl PackageUpdateConfig {
+    pub fn update_changelog(&self) -> bool {
+        self.update_changelog.into()
+    }
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Copy)]
+struct BoolDefaultingTrue(bool);
+
+impl Default for BoolDefaultingTrue {
+    fn default() -> Self {
+        Self(true)
+    }
+}
+
+impl From<BoolDefaultingTrue> for bool {
+    fn from(config: BoolDefaultingTrue) -> Self {
+        config.0
+    }
+}
+
+impl From<bool> for BoolDefaultingTrue {
+    fn from(config: bool) -> Self {
+        Self(config)
+    }
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default)]
@@ -82,11 +121,12 @@ pub enum SemverCheck {
     No,
 }
 
-impl Default for PackageUpdateConfig {
-    fn default() -> Self {
-        Self {
-            semver_check: SemverCheck::default(),
-            update_changelog: true,
+impl From<SemverCheck> for release_plz_core::RunSemverCheck {
+    fn from(config: SemverCheck) -> Self {
+        match config {
+            SemverCheck::Lib => Self::Lib,
+            SemverCheck::Yes => Self::Yes,
+            SemverCheck::No => Self::No,
         }
     }
 }
@@ -133,6 +173,50 @@ mod tests {
     use super::*;
 
     #[test]
+    fn config_without_update_config_is_deserialized() {
+        let config = r#"
+            [workspace]
+            update_dependencies = false
+            changelog_config = "../git-cliff.toml"
+            allow_dirty = false
+            repo_url = "https://github.com/MarcoIeni/release-plz"
+
+            [workspace.git_release]
+            enable = true
+            release_type = "prod"
+            draft = false
+        "#;
+
+        let expected_config = Config {
+            workspace: Workspace {
+                update: UpdateConfig {
+                    update_dependencies: false,
+                    changelog_config: Some("../git-cliff.toml".into()),
+                    allow_dirty: false,
+                    repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
+                },
+                packages_defaults: PackageConfig {
+                    update: PackageUpdateConfig {
+                        semver_check: SemverCheck::Lib,
+                        update_changelog: true.into(),
+                    },
+                    release: PackageReleaseConfig {
+                        git_release: GitReleaseConfig {
+                            enable: true,
+                            release_type: ReleaseType::Prod,
+                            draft: false,
+                        },
+                    },
+                },
+            },
+            package: [].into(),
+        };
+
+        let config: Config = toml::from_str(config).unwrap();
+        assert_eq!(config, expected_config)
+    }
+
+    #[test]
     fn config_is_deserialized() {
         let config = r#"
             [workspace]
@@ -160,7 +244,7 @@ mod tests {
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
                         semver_check: SemverCheck::Lib,
-                        update_changelog: true,
+                        update_changelog: true.into(),
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
@@ -191,7 +275,7 @@ mod tests {
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
                         semver_check: SemverCheck::Lib,
-                        update_changelog: true,
+                        update_changelog: true.into(),
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
@@ -207,7 +291,7 @@ mod tests {
                 PackageConfig {
                     update: PackageUpdateConfig {
                         semver_check: SemverCheck::No,
-                        update_changelog: true,
+                        update_changelog: true.into(),
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {

@@ -79,10 +79,10 @@ impl PackagesConfig {
 #[derive(Debug, Clone)]
 pub struct UpdateConfig {
     /// Run cargo-semver-checks.
-    semver_check: RunSemverCheck,
+    pub semver_check: RunSemverCheck,
     /// Create/update changelog.
     /// Default: `true`.
-    update_changelog: bool,
+    pub update_changelog: bool,
 }
 
 impl Default for UpdateConfig {
@@ -174,8 +174,8 @@ impl UpdateRequest {
         }
     }
 
-    /// Set update config for all packages. I.e. default config.
-    pub fn with_default_packages_config(mut self, config: UpdateConfig) -> Self {
+    /// Set update config for all packages.
+    pub fn with_default_package_config(mut self, config: UpdateConfig) -> Self {
         self.packages_config.set_default(config);
         self
     }
