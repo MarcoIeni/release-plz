@@ -66,7 +66,8 @@ pub struct UpdateConfig {
     #[serde(default)]
     pub allow_dirty: bool,
     /// GitHub/Gitea repository url where your project is hosted.
-    /// It is used to generate the changelog release link. It defaults to the `origin` url.
+    /// It is used to generate the changelog release link.
+    /// It defaults to the url of the default remote.
     #[serde(default)]
     pub repo_url: Option<Url>,
 }

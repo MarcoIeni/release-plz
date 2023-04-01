@@ -75,7 +75,7 @@ pub struct Update {
     allow_dirty: bool,
     /// GitHub/Gitea repository url where your project is hosted.
     /// It is used to generate the changelog release link.
-    /// It defaults to the `origin` url.
+    /// It defaults to the url of the default remote.
     #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     repo_url: Option<String>,
 }

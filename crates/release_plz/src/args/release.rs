@@ -41,7 +41,9 @@ pub struct Release {
     /// Publish GitHub release for the created git tag.
     #[arg(long)]
     pub git_release: bool,
-    /// GitHub repository url.
+    /// GitHub/Gitea/Gitlab repository url where your project is hosted.
+    /// It is used to create the git release.
+    /// It defaults to the url of the default remote.
     #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     pub repo_url: Option<String>,
     /// Git token used to publish the GitHub release.
