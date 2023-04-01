@@ -80,7 +80,7 @@ impl PackagesConfig {
 pub struct UpdateConfig {
     /// Controls when to run cargo-semver-checks.
     pub semver_check: RunSemverCheck,
-    /// Create/update changelog.
+    /// Whether to create/update changelog or not.
     /// Default: `true`.
     pub update_changelog: bool,
 }

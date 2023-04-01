@@ -99,7 +99,7 @@ pub struct PackageUpdateConfig {
     /// Controls when to run cargo-semver-checks.
     #[serde(default)]
     pub semver_check: SemverCheck,
-    /// Create/update changelog.
+    /// Whether to create/update changelog or not.
     #[serde(default)]
     update_changelog: BoolDefaultingTrue,
 }
