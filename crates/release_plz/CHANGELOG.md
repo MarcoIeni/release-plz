@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.59](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.58...release-plz-v0.2.59) - 2023-04-01
 
 ### Added
-- use package update config (#634)
+- Add config file. See the [docs](https://marcoieni.github.io/release-plz/config.html) (#634)
 
 ## [0.2.58](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.57...release-plz-v0.2.58) - 2023-03-27
 
