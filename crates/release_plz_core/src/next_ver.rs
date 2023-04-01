@@ -26,10 +26,6 @@ use std::{
 use tempfile::{tempdir, TempDir};
 use tracing::{debug, info, instrument};
 
-// Empty string refers to the workspace settings.
-// I.e. settings applied to all packages by default.
-const DEFAULT_CONFIG_ID: &str = "";
-
 #[derive(Debug, Clone)]
 pub struct UpdateRequest {
     /// The manifest of the project you want to update.
