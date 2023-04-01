@@ -63,7 +63,7 @@ This field only affects the `release-plz update` and `release-plz release-pr` co
 #### The `repo_url` field
 
 GitHub/Gitea repository URL where your project is hosted.
-It is used to generate the changelog release link and to raise the PR.
+It is used to generate the changelog release link and open the PR.
 Normally, you don't need to set this field, because release-plz defaults to the URL of the default remote.
 
 #### The `semver_check` field
