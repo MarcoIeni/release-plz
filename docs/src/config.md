@@ -12,9 +12,10 @@ The configuration file is written in the [TOML](https://toml.io/) format and con
 
 - [`[workspace]`](#the-workspace-section) — Defines the default configuration.
   - [`update_dependencies`](#the-update_dependencies-field) — Update all dependencies.
-  - [`changelog_config`](#the-changelog_config-field) — Path to the [git-cliff](https://github.com/orhun/git-cliff) configuration file.
+  - [`changelog_config`](#the-changelog_config-field) — Path to the [git-cliff] configuration file.
   - [`allow_dirty`](#the-allow_dirty-field) — Update dirty working directories.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
+  - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
 - [`[package]`](#the-package-section) — Defines the package-specific configurations.
 
 ### The `[workspace]` section
@@ -30,19 +31,19 @@ update_dependencies = true # update dependencies with `cargo update`
 changelog_config = "config/git-cliff.toml"
 allow_dirty = true # allow updating repositories with uncommitted changes
 repo_url = "https://github.com/<owner>/<repo>"
+semver_check = "no"
 # TODO: document these ones, too
-# semver_check = "lib"
 # update_changelog = true
 ```
 
 #### The `update_dependencies` field
 
 - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
-- If `false`, only update the workspace packages by running `cargo update --workspace`. (default)
+- If `false`, only update the workspace packages by running `cargo update --workspace`. (default).
 
 #### The `changelog_config` field
 
-Path to the [git-cliff](https://github.com/orhun/git-cliff) configuration file.
+Path to the [git-cliff] configuration file.
 If unspecified, release-plz uses the [keep a changelog](https://keepachangelog.com/en/1.1.0/) format.
 You can learn more in the [changelog format](changelog-format.md) section.
 
@@ -51,7 +52,7 @@ You can learn more in the [changelog format](changelog-format.md) section.
 - If `true`, allow release-plz to update dirty working directories.
   A directory is considered dirty if it contains uncommitted changes.
   The uncommitted changes will be part of the update.
-- If `false`, release-plz returns an error if the repository contains uncommitted changes. (default)
+- If `false`, release-plz returns an error if the repository contains uncommitted changes. (default).
 
 Note: This field is different from the `allow-dirty` flag of the `release-plz release` command.
 This field only affects the `release-plz update` and `release-plz release-pr` command.
@@ -62,7 +63,19 @@ GitHub/Gitea repository URL where your project is hosted.
 It is used to generate the changelog release link and to raise the PR.
 Normally, you don't need to set this field, because release-plz defaults to the URL of the default remote.
 
+#### The `semver_check` field
+
+With this field, you can tell release-plz when to run [cargo-semver-checks]:
+- If `no`, never run it.
+- If `yes`, always run it.
+- If `lib`, run it if the package is a library. (default).
+
+This field can be overridden in the [`[package]`](#the-package-section) section.
+
 ### The `[package]` section
 
 This overrides `workspace`.
 Not all settings of `workspace` can be overridden.
+
+[cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
+[git-cliff]: https://github.com/orhun/git-cliff
