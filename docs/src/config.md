@@ -16,6 +16,7 @@ The configuration file is written in the [TOML](https://toml.io/) format and con
   - [`allow_dirty`](#the-allow_dirty-field) — Update dirty working directories.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
+  - [`update_changelog`](#the-update_changelog-field) — Update changelogs.
 - [`[package]`](#the-package-section) — Defines the package-specific configurations.
 
 ### The `[workspace]` section
@@ -32,8 +33,7 @@ changelog_config = "config/git-cliff.toml"
 allow_dirty = true # allow updating repositories with uncommitted changes
 repo_url = "https://github.com/<owner>/<repo>"
 semver_check = "no"
-# TODO: document these ones, too
-# update_changelog = true
+update_changelog = false
 ```
 
 #### The `update_dependencies` field
@@ -69,6 +69,13 @@ With this field, you can tell release-plz when to run [cargo-semver-checks]:
 - If `no`, never run it.
 - If `yes`, always run it.
 - If `lib`, run it if the package is a library. (default).
+
+This field can be overridden in the [`[package]`](#the-package-section) section.
+
+#### The `update_changelog` field
+
+- If `true`, update all the changelog of the crates. (default).
+- If `false`, don't update changelogs.
 
 This field can be overridden in the [`[package]`](#the-package-section) section.
 
