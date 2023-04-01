@@ -86,6 +86,7 @@ This field can be overridden in the [`[package]`](#the-package-section) section.
 ### The `[package]` section
 
 In this section, you can override some of the `workspace` fields for specific packages.
+This section is optional, as well as all its fields.
 
 ```toml
 [package.my_package]
