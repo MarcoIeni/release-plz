@@ -24,7 +24,7 @@ the following sections:
 
 ### The `[workspace]` section
 
-Defines the global configuration. Applied to all packages by default.
+Defines the global configuration, applied to all packages by default.
 This section is optional, as well as all its fields.
 
 Here's an example configuration:
