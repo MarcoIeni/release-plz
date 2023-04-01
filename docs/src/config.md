@@ -18,6 +18,8 @@ The configuration file is written in the [TOML](https://toml.io/) format and con
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
   - [`update_changelog`](#the-update_changelog-field) — Update changelogs.
 - [`[package]`](#the-package-section) — Defines the package-specific configurations.
+  - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
+  - [`update_changelog`](#the-update_changelog-field-package-section) — Update changelogs.
 
 ### The `[workspace]` section
 
@@ -66,9 +68,9 @@ Normally, you don't need to set this field, because release-plz defaults to the 
 #### The `semver_check` field
 
 With this field, you can tell release-plz when to run [cargo-semver-checks]:
-- If `no`, never run it.
-- If `yes`, always run it.
-- If `lib`, run it if the package is a library. (default).
+- If `"no"`, never run it.
+- If `"yes"`, always run it.
+- If `"lib"`, run it if the package is a library. (default).
 
 This field can be overridden in the [`[package]`](#the-package-section) section.
 
@@ -81,8 +83,25 @@ This field can be overridden in the [`[package]`](#the-package-section) section.
 
 ### The `[package]` section
 
-This overrides `workspace`.
-Not all settings of `workspace` can be overridden.
+In this section, you can override some of the `workspace` fields for specific packages.
+
+```toml
+[package.my_package]
+semver_check = "no"
+update_changelog = false
+```
+
+#### The `semver_check` field (`package` section)
+
+- If `"yes"`, runs [cargo-semver-checks] for this specific package.
+- If `"no"`, don't.
+
+By default, release-plz runs [cargo-semver-checks] if the package is a library.
+
+#### The `update_changelog` field (`package` section)
+
+- If `true`, update the changelog of this package. (default).
+- If `false`, don't update changelogs.
 
 [cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
 [git-cliff]: https://github.com/orhun/git-cliff
