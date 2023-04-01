@@ -94,7 +94,7 @@ impl UpdateConfig {
 }
 
 /// Whether to run cargo-semver-checks or not.
-#[derive(Default, PartialEq, Eq, Debug, Clone)]
+#[derive(Default, PartialEq, Eq, Debug, Clone, Copy)]
 pub enum RunSemverCheck {
     /// Run cargo-semver-checks if the package is a library.
     #[default]
@@ -368,7 +368,14 @@ impl Updater<'_> {
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate { updates: vec![] };
         for p in &self.project.packages {
-            let diff = get_diff(p, registry_packages, repository, &self.project.root)?;
+            let semver_check = self.req.get_package_config(&p.name).semver_check;
+            let diff = get_diff(
+                p,
+                semver_check,
+                registry_packages,
+                repository,
+                &self.project.root,
+            )?;
             let current_version = p.version.clone();
             let next_version = p.version.next_from_diff(&diff);
 
@@ -504,6 +511,7 @@ fn get_changelog(
 )]
 fn get_diff(
     package: &Package,
+    run_semver_check: RunSemverCheck,
     registry_packages: &PackagesCollection,
     repository: &Repo,
     project_root: &Path,
@@ -523,7 +531,7 @@ fn get_diff(
         return Ok(diff);
     }
     if let Some(registry_package) = registry_package {
-        if is_library(package) {
+        if should_check_semver(package, run_semver_check) {
             let semver_check =
                 semver_check::run_semver_check(&package_path, registry_package.package_path()?)?;
             diff.set_semver_check(semver_check);
@@ -579,6 +587,17 @@ fn get_diff(
     repository.checkout_head()?;
     Ok(diff)
 }
+
+fn should_check_semver(package: &Package, run_semver_check: RunSemverCheck) -> bool {
+    let is_cargo_semver_checks_installed = semver_check::is_cargo_semver_checks_installed;
+    let user_wants_to_run_check = match run_semver_check {
+        RunSemverCheck::Lib => is_library(package),
+        RunSemverCheck::Yes => true,
+        RunSemverCheck::No => false,
+    };
+    user_wants_to_run_check && is_cargo_semver_checks_installed()
+}
+
 
 /// Compare the dependencies of the registry package and the local one.
 /// Check if the dependencies of the registry package were updated.

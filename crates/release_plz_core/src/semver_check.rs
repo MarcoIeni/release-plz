@@ -15,7 +15,7 @@ fn cargo_lock(path: &Path) -> PathBuf {
     path.join("Cargo.lock")
 }
 
-fn is_cargo_semver_checks_installed() -> bool {
+pub fn is_cargo_semver_checks_installed() -> bool {
     Command::new("cargo-semver-checks")
         .arg("--version")
         .output()
@@ -48,10 +48,6 @@ pub fn run_semver_check(
     local_package: &Path,
     registry_package: &Path,
 ) -> anyhow::Result<SemverCheck> {
-    if !is_cargo_semver_checks_installed() {
-        return Ok(SemverCheck::Skipped);
-    }
-
     let local_cargo_lock = cargo_lock(local_package);
     let registry_cargo_lock = cargo_lock(registry_package);
     let local_target_dir = target_dir(local_package);
