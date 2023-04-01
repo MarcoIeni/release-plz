@@ -19,6 +19,7 @@ use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use std::{
+    collections::BTreeMap,
     fs, io,
     path::{Path, PathBuf},
 };
@@ -33,8 +34,8 @@ pub struct UpdateRequest {
     registry_manifest: Option<PathBuf>,
     /// Update just this package.
     single_package: Option<String>,
-    /// If [`Option::Some`], changelog is updated.
-    changelog_req: Option<ChangelogRequest>,
+    /// Changelog options.
+    changelog_req: ChangelogRequest,
     /// Registry where the packages are stored.
     /// The registry name needs to be present in the Cargo config.
     /// If unspecified, crates.io is used.
@@ -48,9 +49,80 @@ pub struct UpdateRequest {
     /// Repository Url. If present, the new changelog entry contains a link to the diff between the old and new version.
     /// Format: `https://{repo_host}/{repo_owner}/{repo_name}/compare/{old_tag}...{new_tag}`.
     repo_url: Option<RepoUrl>,
+    /// Package-specific configurations.
+    packages_config: PackagesConfig,
+}
+
+#[derive(Debug, Clone, Default)]
+struct PackagesConfig {
+    /// Config for packages that don't have a specific configuration.
+    default: UpdateConfig,
+    /// Configurations that override `default`.
+    /// The key is the package name.
+    overrides: BTreeMap<String, UpdateConfig>,
+}
+
+impl PackagesConfig {
+    fn get(&self, package_name: &str) -> &UpdateConfig {
+        self.overrides.get(package_name).unwrap_or(&self.default)
+    }
+
+    fn set_default(&mut self, config: UpdateConfig) {
+        self.default = config;
+    }
+
+    fn set(&mut self, package_name: String, config: UpdateConfig) {
+        self.overrides.insert(package_name, config);
+    }
 }
 
 #[derive(Debug, Clone)]
+pub struct UpdateConfig {
+    /// Controls when to run cargo-semver-checks.
+    pub semver_check: RunSemverCheck,
+    /// Whether to create/update changelog or not.
+    /// Default: `true`.
+    pub update_changelog: bool,
+}
+
+impl Default for UpdateConfig {
+    fn default() -> Self {
+        Self {
+            semver_check: RunSemverCheck::default(),
+            update_changelog: true,
+        }
+    }
+}
+
+impl UpdateConfig {
+    pub fn with_semver_check(self, semver_check: RunSemverCheck) -> Self {
+        Self {
+            semver_check,
+            ..self
+        }
+    }
+
+    pub fn with_update_changelog(self, update_changelog: bool) -> Self {
+        Self {
+            update_changelog,
+            ..self
+        }
+    }
+}
+
+/// Whether to run cargo-semver-checks or not.
+#[derive(Default, PartialEq, Eq, Debug, Clone, Copy)]
+pub enum RunSemverCheck {
+    /// Run cargo-semver-checks if the package is a library.
+    #[default]
+    Lib,
+    /// Run cargo-semver-checks.
+    Yes,
+    /// Don't run cargo-semver-checks.
+    No,
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ChangelogRequest {
     /// When the new release is published. If unspecified, current date is used.
     pub release_date: Option<NaiveDate>,
@@ -71,11 +143,12 @@ impl UpdateRequest {
             local_manifest: canonical_local_manifest(local_manifest.as_ref())?,
             registry_manifest: None,
             single_package: None,
-            changelog_req: None,
+            changelog_req: ChangelogRequest::default(),
             registry: None,
             update_dependencies: false,
             allow_dirty: false,
             repo_url: None,
+            packages_config: PackagesConfig::default(),
         })
     }
 
@@ -94,11 +167,27 @@ impl UpdateRequest {
         })
     }
 
-    pub fn with_changelog(self, changelog_req: ChangelogRequest) -> Self {
+    pub fn with_changelog_req(self, changelog_req: ChangelogRequest) -> Self {
         Self {
-            changelog_req: Some(changelog_req),
+            changelog_req,
             ..self
         }
+    }
+
+    /// Set update config for all packages.
+    pub fn with_default_package_config(mut self, config: UpdateConfig) -> Self {
+        self.packages_config.set_default(config);
+        self
+    }
+
+    /// Set update config for a specific package.
+    pub fn with_package_config(mut self, package: impl Into<String>, config: UpdateConfig) -> Self {
+        self.packages_config.set(package.into(), config);
+        self
+    }
+
+    fn get_package_config(&self, package: &str) -> &UpdateConfig {
+        self.packages_config.get(package)
     }
 
     pub fn with_registry(self, registry: String) -> Self {
@@ -285,7 +374,14 @@ impl Updater<'_> {
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate { updates: vec![] };
         for p in &self.project.packages {
-            let diff = get_diff(p, registry_packages, repository, &self.project.root)?;
+            let semver_check = self.req.get_package_config(&p.name).semver_check;
+            let diff = get_diff(
+                p,
+                semver_check,
+                registry_packages,
+                repository,
+                &self.project.root,
+            )?;
             let current_version = p.version.clone();
             let next_version = p.version.next_from_diff(&diff);
 
@@ -372,12 +468,15 @@ impl Updater<'_> {
                 .map(|r| r.git_release_link(&prev_tag, &next_tag))
         };
 
-        let changelog = self
-            .req
-            .changelog_req
-            .as_ref()
-            .map(|r| get_changelog(commits, &version, Some(r.clone()), package, release_link))
-            .transpose()?;
+        let changelog = {
+            let cfg = self.req.get_package_config(package.name.as_str());
+            let changelog_req = cfg
+                .update_changelog
+                .then_some(self.req.changelog_req.clone());
+            changelog_req
+                .map(|r| get_changelog(commits, &version, Some(r), package, release_link))
+                .transpose()
+        }?;
 
         Ok(UpdateResult {
             version,
@@ -420,6 +519,7 @@ fn get_changelog(
 )]
 fn get_diff(
     package: &Package,
+    run_semver_check: RunSemverCheck,
     registry_packages: &PackagesCollection,
     repository: &Repo,
     project_root: &Path,
@@ -439,7 +539,7 @@ fn get_diff(
         return Ok(diff);
     }
     if let Some(registry_package) = registry_package {
-        if is_library(package) {
+        if should_check_semver(package, run_semver_check) {
             let semver_check =
                 semver_check::run_semver_check(&package_path, registry_package.package_path()?)?;
             diff.set_semver_check(semver_check);
@@ -494,6 +594,16 @@ fn get_diff(
     }
     repository.checkout_head()?;
     Ok(diff)
+}
+
+fn should_check_semver(package: &Package, run_semver_check: RunSemverCheck) -> bool {
+    let is_cargo_semver_checks_installed = semver_check::is_cargo_semver_checks_installed;
+    let user_wants_to_run_check = match run_semver_check {
+        RunSemverCheck::Lib => is_library(package),
+        RunSemverCheck::Yes => true,
+        RunSemverCheck::No => false,
+    };
+    user_wants_to_run_check && is_cargo_semver_checks_installed()
 }
 
 /// Compare the dependencies of the registry package and the local one.

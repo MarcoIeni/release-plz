@@ -49,7 +49,7 @@ impl ComparisonTest {
     fn update_request(&self) -> UpdateRequest {
         UpdateRequest::new(self.local_project_manifest())
             .unwrap()
-            .with_changelog(ChangelogRequest {
+            .with_changelog_req(ChangelogRequest {
                 release_date: NaiveDate::from_ymd_opt(2015, 5, 15),
                 changelog_config: None,
             })

@@ -31,7 +31,9 @@ pub struct ReleaseRequest {
     pub dry_run: bool,
     /// Publishes GitHub release.
     pub git_release: Option<GitRelease>,
-    /// GitHub repo URL.
+    /// GitHub/Gitea/Gitlab repository url where your project is hosted.
+    /// It is used to create the git release.
+    /// It defaults to the url of the default remote.
     pub repo_url: Option<String>,
     /// Don't verify the contents by building them.
     /// If true, `release-plz` adds the `--no-verify` flag to `cargo publish`.
