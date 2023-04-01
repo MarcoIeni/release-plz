@@ -8,7 +8,8 @@ with decent defaults.
 
 ## Reference
 
-The configuration file is written in the [TOML](https://toml.io/) format and consists of the following sections:
+The configuration file is written in the [TOML](https://toml.io/) format and consists of
+the following sections:
 
 - [`[workspace]`](#the-workspace-section) — Defines the default configuration.
   - [`update_dependencies`](#the-update_dependencies-field) — Update all dependencies.
@@ -68,6 +69,7 @@ Normally, you don't need to set this field, because release-plz defaults to the 
 #### The `semver_check` field
 
 With this field, you can tell release-plz when to run [cargo-semver-checks]:
+
 - If `"no"`, never run it.
 - If `"yes"`, always run it.
 - If `"lib"`, run it if the package is a library. (default).
