@@ -28,7 +28,7 @@ use tracing::{debug, info, instrument};
 
 // Empty string refers to the workspace settings.
 // I.e. settings applied to all packages by default.
-const DEFAULT_CONFIG_ID: String = "".to_string();
+const DEFAULT_CONFIG_ID: &str = "";
 
 #[derive(Debug, Clone)]
 pub struct UpdateRequest {
@@ -60,7 +60,7 @@ pub struct UpdateRequest {
 }
 
 #[derive(Debug, Clone)]
-struct UpdateConfig {
+pub struct UpdateConfig {
     /// Run cargo-semver-checks.
     semver_check: RunSemverCheck,
     /// Create/update changelog.
@@ -123,7 +123,7 @@ fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
 impl UpdateRequest {
     pub fn new(local_manifest: impl AsRef<Path>) -> io::Result<Self> {
         let packages_config = [(
-            DEFAULT_CONFIG_ID,
+            DEFAULT_CONFIG_ID.to_string(),
             UpdateConfig {
                 semver_check: RunSemverCheck::default(),
                 update_changelog: false,
@@ -455,16 +455,17 @@ impl Updater<'_> {
                 .map(|r| r.git_release_link(&prev_tag, &next_tag))
         };
 
-        let changelog = self
-            .req
-            .changelog_req
-            .as_ref()
-            .map(|r| get_changelog(commits, &version, Some(r.clone()), package, release_link))
-            .transpose()?;
+        let changelog = get_changelog(
+            commits,
+            &version,
+            Some(self.req.changelog_req.clone()),
+            package,
+            release_link,
+        )?;
 
         Ok(UpdateResult {
             version,
-            changelog,
+            changelog: Some(changelog),
             semver_check,
         })
     }
