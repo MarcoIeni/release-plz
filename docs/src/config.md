@@ -42,7 +42,7 @@ update_changelog = false
 #### The `update_dependencies` field
 
 - If `true`, update all the dependencies in the `Cargo.lock` file by running `cargo update`.
-- If `false`, only update the workspace packages by running `cargo update --workspace`. (default).
+- If `false`, only update the workspace packages by running `cargo update --workspace`. *(Default)*.
 
 #### The `changelog_config` field
 
@@ -55,7 +55,7 @@ You can learn more in the [changelog format](changelog-format.md) section.
 - If `true`, allow release-plz to update dirty working directories.
   A directory is considered dirty if it contains uncommitted changes.
   The uncommitted changes will be part of the update.
-- If `false`, release-plz returns an error if the repository contains uncommitted changes. (default).
+- If `false`, release-plz returns an error if the repository contains uncommitted changes. *(Default)*.
 
 Note: This field is different from the `allow-dirty` flag of the `release-plz release` command.
 This field only affects the `release-plz update` and `release-plz release-pr` command.
@@ -72,13 +72,13 @@ With this field, you can tell release-plz when to run [cargo-semver-checks]:
 
 - If `"no"`, never run it.
 - If `"yes"`, always run it.
-- If `"lib"`, run it if the package is a library. (default).
+- If `"lib"`, run it if the package is a library. *(Default)*.
 
 This field can be overridden in the [`[package]`](#the-package-section) section.
 
 #### The `update_changelog` field
 
-- If `true`, update the changelog of the crates. (default).
+- If `true`, update the changelog of the crates. *(Default)*.
 - If `false`, don't update changelogs.
 
 This field can be overridden in the [`[package]`](#the-package-section) section.
@@ -103,7 +103,7 @@ By default, release-plz runs [cargo-semver-checks] if the package is a library.
 
 #### The `update_changelog` field (`package` section)
 
-- If `true`, update the changelog of this package. (default).
+- If `true`, update the changelog of this package. *(Default)*.
 - If `false`, don't update changelogs.
 
 [cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
