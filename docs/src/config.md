@@ -123,6 +123,11 @@ of the same directory of the `Cargo.toml` of the package:
 
 If the changelog of a package is in a different location, you can specify it with this field.
 
+This field is relative to the directory where release-plz is executed.
+In GitHub actions, this is the root of the repository.
+
+This field cannot be set in the `[workspace]` section.
+
 
 [cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
 [git-cliff]: https://github.com/orhun/git-cliff
