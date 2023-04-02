@@ -12,7 +12,7 @@ pub struct Config {
     /// Package-specific configuration. This overrides `workspace`.
     /// Not all settings of `workspace` can be overridden.
     #[serde(default)]
-    pub package: HashMap<String, PackageConfig>,
+    pub package: HashMap<String, PackageSpecificConfig>,
 }
 
 impl Config {
@@ -28,7 +28,7 @@ impl Config {
         let mut update_request =
             update_request.with_default_package_config(default_update_config.into());
         for (package, config) in &self.package {
-            let mut update_config = config.update.clone();
+            let mut update_config = config.generic.update.clone();
             if is_changelog_update_disabled {
                 update_config.update_changelog = false.into();
             }
