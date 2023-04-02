@@ -59,19 +59,31 @@ struct PackagesConfig {
     default: UpdateConfig,
     /// Configurations that override `default`.
     /// The key is the package name.
-    overrides: BTreeMap<String, UpdateConfig>,
+    overrides: BTreeMap<String, PackageUpdateConfig>,
+}
+
+impl From<UpdateConfig> for PackageUpdateConfig {
+    fn from(config: UpdateConfig) -> Self {
+        Self {
+            generic: config,
+            changelog_path: None,
+        }
+    }
 }
 
 impl PackagesConfig {
-    fn get(&self, package_name: &str) -> &UpdateConfig {
-        self.overrides.get(package_name).unwrap_or(&self.default)
+    fn get(&self, package_name: &str) -> PackageUpdateConfig {
+        self.overrides
+            .get(package_name)
+            .cloned()
+            .unwrap_or(self.default.clone().into())
     }
 
     fn set_default(&mut self, config: UpdateConfig) {
         self.default = config;
     }
 
-    fn set(&mut self, package_name: String, config: UpdateConfig) {
+    fn set(&mut self, package_name: String, config: PackageUpdateConfig) {
         self.overrides.insert(package_name, config);
     }
 }
@@ -83,6 +95,24 @@ pub struct UpdateConfig {
     /// Whether to create/update changelog or not.
     /// Default: `true`.
     pub update_changelog: bool,
+}
+
+/// Package-specific config
+#[derive(Debug, Clone)]
+pub struct PackageUpdateConfig {
+    /// config that can be applied by default to all packages.
+    pub generic: UpdateConfig,
+    pub changelog_path: Option<PathBuf>,
+}
+
+impl PackageUpdateConfig {
+    pub fn semver_check(&self) -> RunSemverCheck {
+        self.generic.semver_check
+    }
+
+    pub fn should_update_changelog(&self) -> bool {
+        self.generic.update_changelog
+    }
 }
 
 impl Default for UpdateConfig {
@@ -181,12 +211,16 @@ impl UpdateRequest {
     }
 
     /// Set update config for a specific package.
-    pub fn with_package_config(mut self, package: impl Into<String>, config: UpdateConfig) -> Self {
+    pub fn with_package_config(
+        mut self,
+        package: impl Into<String>,
+        config: PackageUpdateConfig,
+    ) -> Self {
         self.packages_config.set(package.into(), config);
         self
     }
 
-    fn get_package_config(&self, package: &str) -> &UpdateConfig {
+    fn get_package_config(&self, package: &str) -> PackageUpdateConfig {
         self.packages_config.get(package)
     }
 
@@ -374,7 +408,7 @@ impl Updater<'_> {
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate { updates: vec![] };
         for p in &self.project.packages {
-            let semver_check = self.req.get_package_config(&p.name).semver_check;
+            let semver_check = self.req.get_package_config(&p.name).semver_check();
             let diff = get_diff(
                 p,
                 semver_check,
@@ -471,7 +505,7 @@ impl Updater<'_> {
         let changelog = {
             let cfg = self.req.get_package_config(package.name.as_str());
             let changelog_req = cfg
-                .update_changelog
+                .should_update_changelog()
                 .then_some(self.req.changelog_req.clone());
             changelog_req
                 .map(|r| get_changelog(commits, &version, Some(r), package, release_link))

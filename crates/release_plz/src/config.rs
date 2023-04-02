@@ -28,9 +28,9 @@ impl Config {
         let mut update_request =
             update_request.with_default_package_config(default_update_config.into());
         for (package, config) in &self.package {
-            let mut update_config = config.generic.update.clone();
+            let mut update_config = config.update.clone();
             if is_changelog_update_disabled {
-                update_config.update_changelog = false.into();
+                update_config.generic.update_changelog = false.into();
             }
             update_request = update_request.with_package_config(package, update_config.into());
         }
@@ -74,13 +74,23 @@ pub struct UpdateConfig {
 
 /// Config at the `[package]` level.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
-pub struct PackageSpecificConfig {
+pub struct PackageUpdateSpecificConfig {
     /// Options that can be applied also at the `[workspace]` level.
     #[serde(flatten)]
-    generic: PackageConfig,
+    generic: PackageUpdateConfig,
     /// Normally the changelog is placed in the same directory of the Cargo.toml file.
     /// The user can provide a custom path here.
     changelog_path: Option<PathBuf>,
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+pub struct PackageSpecificConfig {
+    /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
+    #[serde(flatten)]
+    update: PackageUpdateSpecificConfig,
+    /// Options for the `release-plz release` command.
+    #[serde(flatten)]
+    release: PackageReleaseConfig,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
@@ -98,6 +108,15 @@ impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
         Self {
             semver_check: config.semver_check.into(),
             update_changelog: config.update_changelog.into(),
+        }
+    }
+}
+
+impl From<PackageUpdateSpecificConfig> for release_plz_core::PackageUpdateConfig {
+    fn from(config: PackageUpdateSpecificConfig) -> Self {
+        Self {
+            generic: config.generic.into(),
+            changelog_path: config.changelog_path,
         }
     }
 }
@@ -322,10 +341,13 @@ mod tests {
             },
             package: [(
                 "crate1".to_string(),
-                PackageConfig {
-                    update: PackageUpdateConfig {
-                        semver_check: SemverCheck::No,
-                        update_changelog: true.into(),
+                PackageSpecificConfig {
+                    update: PackageUpdateSpecificConfig {
+                        generic: PackageUpdateConfig {
+                            semver_check: SemverCheck::No,
+                            update_changelog: true.into(),
+                        },
+                        changelog_path: None,
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
