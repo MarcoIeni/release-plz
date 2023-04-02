@@ -357,7 +357,7 @@ mod tests {
                             draft: false,
                         },
                     },
-                    changelog_path: None,
+                    changelog_path: Some("./CHANGELOG.md".into()),
                 },
             )]
             .into(),
@@ -380,6 +380,7 @@ mod tests {
             [package.crate1]
             semver_check = "no"
             update_changelog = true
+            changelog_path = "./CHANGELOG.md"
 
             [package.crate1.git_release]
             enable = true
