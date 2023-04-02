@@ -32,7 +32,7 @@ impl Changelog<'_> {
     pub fn generate(self) -> String {
         let config = self
             .config
-            .unwrap_or_else(|| default_git_cliff_config(self.release_link.as_deref()));
+            .unwrap_or_else(|| default_git_cliff_config(None, self.release_link.as_deref()));
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .expect("error while building changelog");
         let mut out = Vec::new();
@@ -56,9 +56,10 @@ impl Changelog<'_> {
                 return Ok(old_changelog);
             }
         }
+        let old_header = changelog_parser::parse_header(&old_changelog);
         let config = self
             .config
-            .unwrap_or_else(|| default_git_cliff_config(self.release_link.as_deref()));
+            .unwrap_or_else(|| default_git_cliff_config(old_header, self.release_link.as_deref()));
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .context("error while building changelog")?;
         let mut out = Vec::new();
@@ -69,9 +70,9 @@ impl Changelog<'_> {
     }
 }
 
-fn default_git_cliff_config(release_link: Option<&str>) -> Config {
+fn default_git_cliff_config(header: Option<String>, release_link: Option<&str>) -> Config {
     Config {
-        changelog: default_changelog_config(release_link),
+        changelog: default_changelog_config(header, release_link),
         git: default_git_config(),
     }
 }
@@ -236,9 +237,9 @@ fn commit_parsers() -> Vec<CommitParser> {
     ]
 }
 
-fn default_changelog_config(release_link: Option<&str>) -> ChangelogConfig {
+fn default_changelog_config(header: Option<String>,release_link: Option<&str>) -> ChangelogConfig {
     ChangelogConfig {
-        header: Some(String::from(CHANGELOG_HEADER)),
+        header: Some(header.unwrap_or(String::from(CHANGELOG_HEADER))),
         body: Some(default_changelog_body_config(release_link)),
         footer: None,
         trim: Some(true),
