@@ -79,7 +79,7 @@ pub struct GitPr {
     pub html_url: Url,
     pub head: Commit,
     pub title: String,
-    pub body: String,
+    pub body: Option<String>,
 }
 
 impl GitPr {

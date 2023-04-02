@@ -145,7 +145,7 @@ async fn update_pr(
         if opened_pr.title != new_pr.title {
             pr_edit = pr_edit.with_title(new_pr.title.clone());
         }
-        if opened_pr.body != new_pr.body {
+        if opened_pr.body.as_ref() != Some(&new_pr.body) {
             pr_edit = pr_edit.with_body(new_pr.body.clone());
         }
         pr_edit
