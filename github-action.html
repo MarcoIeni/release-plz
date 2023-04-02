@@ -165,16 +165,9 @@ runs two commands, one after the other:</p>
 <li><code>registry</code>: Registry where the packages are stored.
 The registry name needs to be present in the Cargo config.
 If unspecified, crates.io is used. (Defaults to crates.io).</li>
-<li><code>no_changelog</code>: Don’t create changelog. (Default: <code>&quot;false&quot;</code>).</li>
-<li><code>update_dependencies</code>: If <code>true</code>, update all the dependencies in the Cargo.lock
-file by running <code>cargo update</code>.
-If <code>false</code>, only update the workspace packages by running
-<code>cargo update --workspace</code>. (Default: <code>false</code>).</li>
 <li><code>project_manifest</code>: Path to the Cargo.toml of the project you want to update.
 Both Cargo workspaces and single packages are supported. (Defaults to the root
 directory).</li>
-<li><code>changelog_config</code>: Path to the git cliff configuration file.
-(Defaults to the <a href="https://keepachangelog.com/en/1.1.0/">keep a changelog</a> configuration).</li>
 <li><code>git_release</code>: Publish the GitHub release for the created git tag. (Default: <code>true</code>).</li>
 <li><code>version</code>: Release-plz version to use. It must be an existing git tag name.
 For example <code>release-plz-v0.2.45</code>. (Default: <code>&quot;latest&quot;</code>).</li>
