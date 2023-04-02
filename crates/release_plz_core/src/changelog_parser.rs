@@ -168,6 +168,18 @@ My custom changelog header
     }
 
     #[test]
+    fn changelog_header_isnt_recognized() {
+        // A two-level header similar to `## [Unreleased]` is missing
+        let changelog = "\
+# Changelog
+
+My custom changelog header
+";
+        let header = parse_header(changelog);
+        assert_eq!(header, None);
+    }
+
+    #[test]
     fn changelog_with_unreleased_section_is_parsed() {
         let changelog = "\
 # Changelog
