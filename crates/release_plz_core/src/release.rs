@@ -44,6 +44,7 @@ pub struct ReleaseRequest {
     /// Allow dirty working directories to be packaged.
     /// If true, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
     allow_dirty: bool,
+    /// Package-specific configurations.
     packages_config: PackagesConfig,
 }
 
