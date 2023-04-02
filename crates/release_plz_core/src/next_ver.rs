@@ -8,7 +8,7 @@ use crate::{
     semver_check::{self, SemverCheck},
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
-    ChangelogBuilder, PackagesUpdate, CARGO_TOML,
+    ChangelogBuilder, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::{anyhow, Context};
 use cargo_metadata::{semver::Version, Dependency, Package};
@@ -183,14 +183,16 @@ impl UpdateRequest {
         })
     }
 
-    fn changelog_path(&self, package: &Package) -> PathBuf {
+    pub fn changelog_path(&self, package: &Package) -> PathBuf {
         let config = self.get_package_config(&package.name);
         config.changelog_path.unwrap_or_else(|| {
             package
-                .changelog_path()
-                .expect("can't determine package changelog path")
+                .package_path()
+                .expect("can't determine package path")
+                .join(CHANGELOG_FILENAME)
         })
     }
+
     pub fn set_local_manifest(self, local_manifest: impl AsRef<Path>) -> io::Result<Self> {
         Ok(Self {
             local_manifest: canonical_local_manifest(local_manifest.as_ref())?,

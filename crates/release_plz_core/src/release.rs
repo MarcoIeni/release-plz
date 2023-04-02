@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+};
 
 use anyhow::Context;
 use cargo_metadata::Package;
@@ -13,34 +16,149 @@ use crate::{
     cargo::{is_published, run_cargo, wait_until_published},
     changelog_parser,
     release_order::release_order,
-    GitBackend, PackagePath, Project,
+    GitBackend, PackagePath, Project, CHANGELOG_FILENAME,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ReleaseRequest {
     /// The manifest of the project you want to release.
-    pub local_manifest: PathBuf,
+    local_manifest: PathBuf,
     /// Registry where you want to publish the packages.
     /// The registry name needs to be present in the Cargo config.
     /// If unspecified, the `publish` field of the package manifest is used.
     /// If the `publish` field is empty, crates.io is used.
-    pub registry: Option<String>,
+    registry: Option<String>,
     /// Token used to publish to the cargo registry.
-    pub token: Option<SecretString>,
+    token: Option<SecretString>,
     /// Perform all checks without uploading.
-    pub dry_run: bool,
+    dry_run: bool,
     /// Publishes GitHub release.
-    pub git_release: Option<GitRelease>,
+    git_release: Option<GitRelease>,
     /// GitHub/Gitea/Gitlab repository url where your project is hosted.
     /// It is used to create the git release.
     /// It defaults to the url of the default remote.
-    pub repo_url: Option<String>,
+    repo_url: Option<String>,
     /// Don't verify the contents by building them.
     /// If true, `release-plz` adds the `--no-verify` flag to `cargo publish`.
-    pub no_verify: bool,
+    no_verify: bool,
     /// Allow dirty working directories to be packaged.
     /// If true, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
-    pub allow_dirty: bool,
+    allow_dirty: bool,
+    packages_config: PackagesConfig,
+}
+
+impl ReleaseRequest {
+    pub fn new(local_manifest: PathBuf) -> Self {
+        Self {
+            local_manifest,
+            ..Default::default()
+        }
+    }
+
+    pub fn with_registry(mut self, registry: impl Into<String>) -> Self {
+        self.registry = Some(registry.into());
+        self
+    }
+
+    pub fn with_token(mut self, token: impl Into<SecretString>) -> Self {
+        self.token = Some(token.into());
+        self
+    }
+
+    pub fn with_dry_run(mut self, dry_run: bool) -> Self {
+        self.dry_run = dry_run;
+        self
+    }
+
+    pub fn with_git_release(mut self, git_release: GitRelease) -> Self {
+        self.git_release = Some(git_release);
+        self
+    }
+
+    pub fn with_repo_url(mut self, repo_url: impl Into<String>) -> Self {
+        self.repo_url = Some(repo_url.into());
+        self
+    }
+
+    pub fn with_no_verify(mut self, no_verify: bool) -> Self {
+        self.no_verify = no_verify;
+        self
+    }
+
+    pub fn with_allow_dirty(mut self, allow_dirty: bool) -> Self {
+        self.allow_dirty = allow_dirty;
+        self
+    }
+
+    /// Set release config for a specific package.
+    pub fn with_package_config(
+        mut self,
+        package: impl Into<String>,
+        config: PackageReleaseConfig,
+    ) -> Self {
+        self.packages_config.set(package.into(), config);
+        self
+    }
+
+    pub fn changelog_path(&self, package: &Package) -> PathBuf {
+        let config = self.get_package_config(&package.name);
+        config.changelog_path.unwrap_or_else(|| {
+            package
+                .package_path()
+                .expect("can't determine package path")
+                .join(CHANGELOG_FILENAME)
+        })
+    }
+
+    fn get_package_config(&self, package: &str) -> PackageReleaseConfig {
+        self.packages_config.get(package)
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+struct PackagesConfig {
+    /// Config for packages that don't have a specific configuration.
+    default: ReleaseConfig,
+    /// Configurations that override `default`.
+    /// The key is the package name.
+    overrides: BTreeMap<String, PackageReleaseConfig>,
+}
+
+impl PackagesConfig {
+    fn get(&self, package_name: &str) -> PackageReleaseConfig {
+        self.overrides
+            .get(package_name)
+            .cloned()
+            .unwrap_or(self.default.clone().into())
+    }
+
+    // fn set_default(&mut self, config: ReleaseConfig) {
+    //     self.default = config;
+    // }
+
+    fn set(&mut self, package_name: String, config: PackageReleaseConfig) {
+        self.overrides.insert(package_name, config);
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct ReleaseConfig {}
+
+impl From<ReleaseConfig> for PackageReleaseConfig {
+    fn from(config: ReleaseConfig) -> Self {
+        Self {
+            generic: config,
+            changelog_path: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct PackageReleaseConfig {
+    /// config that can be applied by default to all packages.
+    pub generic: ReleaseConfig,
+    /// The changelog path can only be specified for a single package.
+    pub changelog_path: Option<PathBuf>,
 }
 
 #[derive(Debug)]
@@ -155,7 +273,7 @@ async fn release_package(
         info!("published {} {}", package.name, package.version);
 
         if let Some(git_release) = &input.git_release {
-            let release_body = release_body(package);
+            let release_body = release_body(input, package);
             publish_release(git_tag, &release_body, &git_release.backend).await?;
         }
     }
@@ -164,8 +282,8 @@ async fn release_package(
 }
 
 /// Return an empty string if the changelog cannot be parsed.
-fn release_body(package: &Package) -> String {
-    let changelog_path = package.changelog_path().unwrap();
+fn release_body(req: &ReleaseRequest, package: &Package) -> String {
+    let changelog_path = req.changelog_path(package);
     match changelog_parser::last_changes(&changelog_path) {
         Ok(Some(changes)) => changes,
         Ok(None) => {

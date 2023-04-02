@@ -106,7 +106,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
         )
     })?;
     update_manifests(&packages_to_update, local_manifest_path, &all_packages)?;
-    update_changelogs(&packages_to_update)?;
+    update_changelogs(input, &packages_to_update)?;
     if !packages_to_update.updates.is_empty() {
         let local_manifest_dir = input.local_manifest_dir()?;
         update_cargo_lock(local_manifest_dir, input.should_update_dependencies())?;
@@ -174,10 +174,13 @@ fn update_versions(
 }
 
 #[instrument(skip_all)]
-fn update_changelogs(local_packages: &PackagesUpdate) -> anyhow::Result<()> {
+fn update_changelogs(
+    update_request: &UpdateRequest,
+    local_packages: &PackagesUpdate,
+) -> anyhow::Result<()> {
     for (package, update) in &local_packages.updates {
         if let Some(changelog) = update.changelog.as_ref() {
-            let changelog_path = package.changelog_path()?;
+            let changelog_path = update_request.changelog_path(package);
             fs::write(&changelog_path, changelog)
                 .with_context(|| format!("cannot write changelog to {:?}", &changelog_path))?;
         }

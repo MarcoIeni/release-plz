@@ -88,6 +88,15 @@ pub struct PackageSpecificConfig {
     changelog_path: Option<PathBuf>,
 }
 
+impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
+    fn from(config: PackageSpecificConfig) -> Self {
+        Self {
+            generic: release_plz_core::ReleaseConfig {},
+            changelog_path: config.changelog_path,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct PackageConfig {
     /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
