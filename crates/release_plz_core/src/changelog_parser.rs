@@ -7,7 +7,7 @@ use regex::Regex;
 /// The changelog header is a string at the begin of the changelog that:
 /// - Starts with `# Changelog`, `# CHANGELOG`, or `# changelog`
 /// - ends with `## Unreleased`, `## [Unreleased]` or `## ..anything..`
-///   (in the last case, that part is removed)
+///   (in the ..anything.. case, `## ..anything..` is not included in the header)
 pub fn parse_header(changelog: &str) -> Option<String> {
     lazy_static::lazy_static! {
         static ref FIRST_RE: Regex = Regex::new(r#"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*)(## Unreleased|## \[Unreleased\])"#).unwrap();
