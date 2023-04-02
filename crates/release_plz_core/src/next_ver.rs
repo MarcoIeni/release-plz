@@ -183,6 +183,14 @@ impl UpdateRequest {
         })
     }
 
+    fn changelog_path(&self, package: &Package) -> PathBuf {
+        let config = self.get_package_config(&package.name);
+        config.changelog_path.unwrap_or_else(|| {
+            package
+                .changelog_path()
+                .expect("can't determine package changelog path")
+        })
+    }
     pub fn set_local_manifest(self, local_manifest: impl AsRef<Path>) -> io::Result<Self> {
         Ok(Self {
             local_manifest: canonical_local_manifest(local_manifest.as_ref())?,
@@ -508,7 +516,7 @@ impl Updater<'_> {
             let changelog_req = cfg
                 .should_update_changelog()
                 .then_some(self.req.changelog_req.clone());
-            let old_changelog = fs::read_to_string(self.changelog_path(package)).ok();
+            let old_changelog = fs::read_to_string(self.req.changelog_path(package)).ok();
             changelog_req
                 .map(|r| get_changelog(commits, &version, Some(r), old_changelog, release_link))
                 .transpose()
@@ -518,15 +526,6 @@ impl Updater<'_> {
             version,
             changelog,
             semver_check,
-        })
-    }
-
-    fn changelog_path(&self, package: &Package) -> PathBuf {
-        let config = self.req.get_package_config(&package.name);
-        config.changelog_path.unwrap_or_else(|| {
-            package
-                .changelog_path()
-                .expect("can't determine package changelog path")
         })
     }
 }
