@@ -1,6 +1,29 @@
 use std::{fs::read_to_string, path::Path};
 
 use anyhow::Context;
+use regex::Regex;
+
+/// Parse the header from a changelog.
+/// The changelog header is a string at the begin of the changelog that:
+/// - Starts with `# Changelog`, `# CHANGELOG`, or `# changelog`
+/// - ends with `## Unreleased`, `## [Unreleased]` or `## ..anything..`
+///   (in the last case, that part is removed)
+pub fn parse_header(changelog: &str) -> Option<String> {
+    lazy_static::lazy_static! {
+        static ref FIRST_RE: Regex = Regex::new(r#"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*)(## Unreleased|## \[Unreleased\])"#).unwrap();
+
+        static ref SECOND_RE: Regex = Regex::new(r#"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*)(\n## )"#).unwrap();
+    }
+    if let Some(captures) = FIRST_RE.captures(changelog) {
+        return Some(format!("{}\n", &captures[0]));
+    }
+
+    if let Some(captures) = SECOND_RE.captures(changelog) {
+        return Some(format!("{}{}", &captures[1], &captures[2]));
+    }
+
+    None
+}
 
 pub fn last_changes(changelog: &Path) -> anyhow::Result<Option<String>> {
     let changelog = read_to_string(changelog).context("can't read changelog file")?;
@@ -82,6 +105,66 @@ mod tests {
 
     fn last_changes_from_str_test(changelog: &str) -> String {
         last_changes_from_str(changelog).unwrap().unwrap()
+    }
+
+    #[test]
+    fn changelog_header_is_parsed() {
+        let changelog = "\
+# Changelog
+
+My custom changelog header
+
+## [Unreleased]
+";
+        let header = parse_header(changelog).unwrap();
+        let expected_header = "\
+# Changelog
+
+My custom changelog header
+
+## [Unreleased]
+";
+        assert_eq!(header, expected_header);
+    }
+
+    #[test]
+    fn changelog_header_without_unreleased_is_parsed() {
+        let changelog = "\
+# Changelog
+
+My custom changelog header
+
+## [0.2.5] - 2022-12-16
+";
+        let header = parse_header(changelog).unwrap();
+        let expected_header = "\
+# Changelog
+
+My custom changelog header
+";
+        assert_eq!(header, expected_header);
+    }
+
+    #[test]
+    fn changelog_header_with_versions_is_parsed() {
+        let changelog = "\
+# Changelog
+
+My custom changelog header
+
+## [Unreleased]
+
+## [0.2.5] - 2022-12-16
+";
+        let header = parse_header(changelog).unwrap();
+        let expected_header = "\
+# Changelog
+
+My custom changelog header
+
+## [Unreleased]
+";
+        assert_eq!(header, expected_header);
     }
 
     #[test]

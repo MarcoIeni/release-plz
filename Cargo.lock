@@ -2778,6 +2778,7 @@ dependencies = [
  "git-cliff-core",
  "git-url-parse",
  "git_cmd",
+ "lazy_static",
  "next_version",
  "parse-changelog",
  "regex",
