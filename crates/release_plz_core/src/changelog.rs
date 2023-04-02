@@ -237,7 +237,7 @@ fn commit_parsers() -> Vec<CommitParser> {
     ]
 }
 
-fn default_changelog_config(header: Option<String>,release_link: Option<&str>) -> ChangelogConfig {
+fn default_changelog_config(header: Option<String>, release_link: Option<&str>) -> ChangelogConfig {
     ChangelogConfig {
         header: Some(header.unwrap_or(String::from(CHANGELOG_HEADER))),
         body: Some(default_changelog_body_config(release_link)),
