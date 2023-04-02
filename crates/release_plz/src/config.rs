@@ -28,9 +28,9 @@ impl Config {
         let mut update_request =
             update_request.with_default_package_config(default_update_config.into());
         for (package, config) in &self.package {
-            let mut update_config = config.update.clone();
+            let mut update_config = config.clone();
             if is_changelog_update_disabled {
-                update_config.generic.update_changelog = false.into();
+                update_config.update.update_changelog = false.into();
             }
             update_request = update_request.with_package_config(package, update_config.into());
         }
@@ -74,23 +74,18 @@ pub struct UpdateConfig {
 
 /// Config at the `[package]` level.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
-pub struct PackageUpdateSpecificConfig {
-    /// Options that can be applied also at the `[workspace]` level.
-    #[serde(flatten)]
-    generic: PackageUpdateConfig,
-    /// Normally the changelog is placed in the same directory of the Cargo.toml file.
-    /// The user can provide a custom path here.
-    changelog_path: Option<PathBuf>,
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct PackageSpecificConfig {
     /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
     #[serde(flatten)]
-    update: PackageUpdateSpecificConfig,
+    update: PackageUpdateConfig,
     /// Options for the `release-plz release` command.
     #[serde(flatten)]
     release: PackageReleaseConfig,
+    /// Normally the changelog is placed in the same directory of the Cargo.toml file.
+    /// The user can provide a custom path here.
+    /// This changelog_path needs to be propagated to all the commands:
+    /// `update`, `release-pr` and `release`.
+    changelog_path: Option<PathBuf>,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
@@ -112,10 +107,10 @@ impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
     }
 }
 
-impl From<PackageUpdateSpecificConfig> for release_plz_core::PackageUpdateConfig {
-    fn from(config: PackageUpdateSpecificConfig) -> Self {
+impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
+    fn from(config: PackageSpecificConfig) -> Self {
         Self {
-            generic: config.generic.into(),
+            generic: config.update.into(),
             changelog_path: config.changelog_path,
         }
     }
@@ -342,12 +337,9 @@ mod tests {
             package: [(
                 "crate1".to_string(),
                 PackageSpecificConfig {
-                    update: PackageUpdateSpecificConfig {
-                        generic: PackageUpdateConfig {
-                            semver_check: SemverCheck::No,
-                            update_changelog: true.into(),
-                        },
-                        changelog_path: None,
+                    update: PackageUpdateConfig {
+                        semver_check: SemverCheck::No,
+                        update_changelog: true.into(),
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
@@ -356,6 +348,7 @@ mod tests {
                             draft: false,
                         },
                     },
+                    changelog_path: None,
                 },
             )]
             .into(),
