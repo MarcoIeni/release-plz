@@ -102,6 +102,7 @@ pub struct UpdateConfig {
 pub struct PackageUpdateConfig {
     /// config that can be applied by default to all packages.
     pub generic: UpdateConfig,
+    /// The changelog path can only be specified for a single package.
     pub changelog_path: Option<PathBuf>,
 }
 
