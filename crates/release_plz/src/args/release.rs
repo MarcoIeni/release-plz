@@ -9,6 +9,8 @@ use git_cmd::Repo;
 use release_plz_core::{GitBackend, GitHub, GitLab, Gitea, ReleaseRequest, RepoUrl};
 use secrecy::SecretString;
 
+use crate::config::Config;
+
 use super::local_manifest;
 
 #[derive(clap::Parser, Debug)]
@@ -64,19 +66,17 @@ pub enum ReleaseGitBackendKind {
     Gitlab,
 }
 
-impl TryFrom<Release> for ReleaseRequest {
-    type Error = anyhow::Error;
-
-    fn try_from(r: Release) -> Result<Self, Self::Error> {
-        let git_release = if r.git_release {
+impl Release {
+    pub fn release_request(self, config: Config) -> anyhow::Result<ReleaseRequest> {
+        let git_release = if self.git_release {
             let git_token = SecretString::from(
-                r.git_token
+                self.git_token
                     .clone()
                     .context("git_token is required for git_release")?,
             );
-            let repo_url = r.repo_url()?;
+            let repo_url = self.repo_url()?;
             let release = release_plz_core::GitRelease {
-                backend: match r.backend {
+                backend: match self.backend {
                     ReleaseGitBackendKind::Gitea => {
                         GitBackend::Gitea(Gitea::new(repo_url, git_token)?)
                     }
@@ -92,16 +92,29 @@ impl TryFrom<Release> for ReleaseRequest {
         } else {
             None
         };
-        Ok(ReleaseRequest {
-            local_manifest: local_manifest(r.project_manifest.as_deref()),
-            registry: r.registry,
-            token: r.token.map(SecretString::from),
-            dry_run: r.dry_run,
-            git_release,
-            repo_url: r.repo_url,
-            allow_dirty: r.allow_dirty,
-            no_verify: r.no_verify,
-        })
+        let mut req = ReleaseRequest::new(local_manifest(self.project_manifest.as_deref()))
+            .with_no_verify(self.no_verify)
+            .with_allow_dirty(self.allow_dirty)
+            .with_dry_run(self.dry_run);
+
+        if let Some(registry) = self.registry {
+            req = req.with_registry(registry);
+        }
+        if let Some(token) = self.token {
+            req = req.with_token(SecretString::from(token));
+        }
+        if let Some(repo_url) = self.repo_url {
+            req = req.with_repo_url(repo_url);
+        }
+        if let Some(git_release) = git_release {
+            req = req.with_git_release(git_release);
+        }
+
+        for (p, c) in config.package {
+            req = req.with_package_config(p, c.into());
+        }
+
+        Ok(req)
     }
 }
 
