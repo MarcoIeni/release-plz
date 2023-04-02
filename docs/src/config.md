@@ -21,6 +21,7 @@ the following sections:
 - [`[package]`](#the-package-section) — Defines the package-specific configurations.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
   - [`update_changelog`](#the-update_changelog-field-package-section) — Update changelog.
+  - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
 
 ### The `[workspace]` section
 
@@ -93,6 +94,7 @@ This section is optional, as well as all its fields.
 [package.my_package]
 semver_check = "no"
 update_changelog = false
+changelog_path = "docs/CHANGELOG.md"
 ```
 
 #### The `semver_check` field (`package` section)
@@ -106,6 +108,21 @@ By default, release-plz runs [cargo-semver-checks] if the package is a library.
 
 - If `true`, update the changelog of this package. *(Default)*.
 - If `false`, don't.
+
+#### The `changelog_path` field (`package` section)
+
+By default, release-plz looks for the changelog in the `CHANGELOG.md` file
+of the same directory of the `Cargo.toml` of the package:
+
+```
+.
+├── src/
+├── CHANGELOG.md
+└── Cargo.toml
+```
+
+If the changelog of a package is in a different location, you can specify it with this field.
+
 
 [cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
 [git-cliff]: https://github.com/orhun/git-cliff
