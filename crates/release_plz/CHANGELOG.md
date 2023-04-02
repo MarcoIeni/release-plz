@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.61](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.60...release-plz-v0.2.61) - 2023-04-02
 
 ### Other
-- updated the following local packages: release_plz_core
+- detect custom changelog header (#651)
 
 ## [0.2.60](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.59...release-plz-v0.2.60) - 2023-04-02
 
