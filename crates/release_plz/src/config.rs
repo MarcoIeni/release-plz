@@ -72,6 +72,17 @@ pub struct UpdateConfig {
     pub repo_url: Option<Url>,
 }
 
+/// Config at the `[package]` level.
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+pub struct PackageSpecificConfig {
+    /// Options that can be applied also at the `[workspace]` level.
+    #[serde(flatten)]
+    generic: PackageConfig,
+    /// Normally the changelog is placed in the same directory of the Cargo.toml file.
+    /// The user can provide a custom path here.
+    changelog_path: Option<PathBuf>,
+}
+
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct PackageConfig {
     /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
