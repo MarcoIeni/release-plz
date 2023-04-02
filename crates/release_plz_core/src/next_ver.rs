@@ -508,8 +508,9 @@ impl Updater<'_> {
             let changelog_req = cfg
                 .should_update_changelog()
                 .then_some(self.req.changelog_req.clone());
+            let old_changelog = fs::read_to_string(self.changelog_path(package)).ok();
             changelog_req
-                .map(|r| get_changelog(commits, &version, Some(r), package, release_link))
+                .map(|r| get_changelog(commits, &version, Some(r), old_changelog, release_link))
                 .transpose()
         }?;
 
@@ -519,13 +520,22 @@ impl Updater<'_> {
             semver_check,
         })
     }
+
+    fn changelog_path(&self, package: &Package) -> PathBuf {
+        let config = self.req.get_package_config(&package.name);
+        config.changelog_path.unwrap_or_else(|| {
+            package
+                .changelog_path()
+                .expect("can't determine package changelog path")
+        })
+    }
 }
 
 fn get_changelog(
     commits: Vec<String>,
     next_version: &Version,
     changelog_req: Option<ChangelogRequest>,
-    package: &Package,
+    old_changelog: Option<String>,
     release_link: Option<String>,
 ) -> anyhow::Result<String> {
     let mut changelog_builder = ChangelogBuilder::new(commits, next_version.to_string());
@@ -541,9 +551,9 @@ fn get_changelog(
         }
     }
     let new_changelog = changelog_builder.build();
-    let changelog = match fs::read_to_string(package.changelog_path()?) {
-        Ok(old_changelog) => new_changelog.prepend(old_changelog)?,
-        Err(_err) => new_changelog.generate(), // Old changelog doesn't exist.
+    let changelog = match old_changelog {
+        Some(old_changelog) => new_changelog.prepend(old_changelog)?,
+        None => new_changelog.generate(), // Old changelog doesn't exist.
     };
     Ok(changelog)
 }
