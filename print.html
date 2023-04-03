@@ -527,6 +527,7 @@ the following sections:</p>
 <ul>
 <li><a href="config.html#the-semver_check-field-package-section"><code>semver_check</code></a> — Run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>.</li>
 <li><a href="config.html#the-update_changelog-field-package-section"><code>update_changelog</code></a> — Update changelog.</li>
+<li><a href="config.html#the-changelog_path-field-package-section"><code>changelog_path</code></a> — Changelog path.</li>
 </ul>
 </li>
 </ul>
@@ -585,6 +586,7 @@ This section is optional, as well as all its fields.</p>
 <pre><code class="language-toml">[package.my_package]
 semver_check = &quot;no&quot;
 update_changelog = false
+changelog_path = &quot;docs/CHANGELOG.md&quot;
 </code></pre>
 <h4 id="the-semver_check-field-package-section"><a class="header" href="#the-semver_check-field-package-section">The <code>semver_check</code> field (<code>package</code> section)</a></h4>
 <ul>
@@ -597,6 +599,18 @@ update_changelog = false
 <li>If <code>true</code>, update the changelog of this package. <em>(Default)</em>.</li>
 <li>If <code>false</code>, don’t.</li>
 </ul>
+<h4 id="the-changelog_path-field-package-section"><a class="header" href="#the-changelog_path-field-package-section">The <code>changelog_path</code> field (<code>package</code> section)</a></h4>
+<p>By default, release-plz looks for the changelog in the <code>CHANGELOG.md</code> file
+of the same directory of the <code>Cargo.toml</code> of the package:</p>
+<pre><code class="language-txt">.
+├── src/
+├── CHANGELOG.md
+└── Cargo.toml
+</code></pre>
+<p>If the changelog of a package is in a different location, you can specify it with this field.</p>
+<p>This field is relative to the directory where release-plz is executed.
+In GitHub actions, this is the root of the repository.</p>
+<p>This field cannot be set in the <code>[workspace]</code> section.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="why-yet-another-release-tool"><a class="header" href="#why-yet-another-release-tool">Why yet another release tool</a></h1>
 <p>New Rust apps and rewrites are mushrooming every day.
 Choosing which tools to add to your developer toolbox is becoming harder and harder.</p>
