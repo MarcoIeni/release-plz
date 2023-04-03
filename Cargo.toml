@@ -30,7 +30,7 @@ semver = "1.0.17"
 serde = "1.0.158"
 serde_json = "1.0.94"
 strip-ansi-escapes = "0.1.1"
-tempfile = "3.4.0"
+tempfile = "3.5.0"
 tokio = "1.26.0"
 toml = { version = "0.7.3" }
 toml_edit = { version = "0.19.8" }
