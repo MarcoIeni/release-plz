@@ -580,9 +580,16 @@ fn get_diff(
     repository.checkout_head()?;
     let registry_package = registry_packages.get_package(&package.name);
     let mut diff = Diff::new(registry_package.is_some());
-    if let Err(_err) = repository.checkout_last_commit_at_path(&package_path) {
-        info!("{}: there are no commits", package.name);
-        return Ok(diff);
+    if let Err(err) = repository.checkout_last_commit_at_path(&package_path) {
+        if err
+            .to_string()
+            .contains("Your local changes to the following files would be overwritten")
+        {
+            return Err(err.context("The allow-dirty option can't be used in this case"));
+        } else {
+            info!("{}: there are no commits", package.name);
+            return Ok(diff);
+        }
     }
     if let Some(registry_package) = registry_package {
         if should_check_semver(package, run_semver_check) {
