@@ -3,11 +3,11 @@ members = ["crates/*"]
 
 [workspace.dependencies]
 anyhow = "1.0.70"
-cargo_metadata = "0.15.3"
+cargo_metadata = "0.15.4"
 cargo = "0.69.1"
 chrono = { version = "0.4.24", default-features = false }
 clap = "4.2.1"
-clap_complete = "4.1.5"
+clap_complete = "4.2.0"
 conventional_commit_parser = "0.9.4"
 crates-index = "0.19.7"
 dirs = "5.0.0"
@@ -28,10 +28,10 @@ reqwest-retry = "0.2.2"
 secrecy = "0.8.0"
 semver = "1.0.17"
 serde = "1.0.159"
-serde_json = "1.0.94"
+serde_json = "1.0.95"
 strip-ansi-escapes = "0.1.1"
 tempfile = "3.5.0"
-tokio = "1.26.0"
+tokio = "1.27.0"
 toml = { version = "0.7.3" }
 toml_edit = { version = "0.19.8" }
 tracing = "0.1.37"
