@@ -15,4 +15,4 @@ non-yanked version.
 
 If the current version of your package is yanked,
 please update the version of your package to the next version manually.
-You can use the `cargo set-version` command from [cargo-edit](https://github.com/killercup/cargo-edit).
+To do this, you can use the `cargo set-version` command from [cargo-edit](https://github.com/killercup/cargo-edit).
