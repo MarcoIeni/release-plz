@@ -14,3 +14,4 @@
 - [Why yet another release tool](why.md)
 - [Extra](extra/README.md)
   - [Releasing binaries](extra/releasing-binaries.md)
+  - [Yanked packages](extra/yanked-packages.md)
