@@ -6,6 +6,8 @@ with the `release-plz.toml` file.
 This configuration file is optional — release-plz is designed to work out of the box,
 with decent defaults.
 
+Put the `release-plz.toml` file in the same directory of your root `Cargo.toml`.
+
 ## Reference
 
 The configuration file is written in the [TOML](https://toml.io/) format and consists of
