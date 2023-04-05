@@ -103,6 +103,9 @@ pub struct PackageUpdateConfig {
     /// config that can be applied by default to all packages.
     pub generic: UpdateConfig,
     /// The changelog path can only be specified for a single package.
+    /// I.e. it cannot be applied to `[workspace]` configuration.
+    /// This path needs to be a relative path to the Cargo.toml of the project.
+    /// I.e. if you have a workspace, it needs to be relative to the workspace root.
     pub changelog_path: Option<PathBuf>,
 }
 
@@ -185,12 +188,15 @@ impl UpdateRequest {
 
     pub fn changelog_path(&self, package: &Package) -> PathBuf {
         let config = self.get_package_config(&package.name);
-        config.changelog_path.unwrap_or_else(|| {
-            package
-                .package_path()
-                .expect("can't determine package path")
-                .join(CHANGELOG_FILENAME)
-        })
+        config
+            .changelog_path
+            .map(|p| self.local_manifest.parent().unwrap().join(p))
+            .unwrap_or_else(|| {
+                package
+                    .package_path()
+                    .expect("can't determine package path")
+                    .join(CHANGELOG_FILENAME)
+            })
     }
 
     pub fn set_local_manifest(self, local_manifest: impl AsRef<Path>) -> io::Result<Self> {

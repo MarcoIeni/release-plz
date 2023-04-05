@@ -103,12 +103,15 @@ impl ReleaseRequest {
 
     pub fn changelog_path(&self, package: &Package) -> PathBuf {
         let config = self.get_package_config(&package.name);
-        config.changelog_path.unwrap_or_else(|| {
-            package
-                .package_path()
-                .expect("can't determine package path")
-                .join(CHANGELOG_FILENAME)
-        })
+        config
+            .changelog_path
+            .map(|p| self.local_manifest.parent().unwrap().join(p))
+            .unwrap_or_else(|| {
+                package
+                    .package_path()
+                    .expect("can't determine package path")
+                    .join(CHANGELOG_FILENAME)
+            })
     }
 
     fn get_package_config(&self, package: &str) -> PackageReleaseConfig {
