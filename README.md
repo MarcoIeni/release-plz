@@ -34,6 +34,16 @@ GitHub search shows the public repositories using release-plz in CI.
 - [cargo smart-release](https://github.com/Byron/gitoxide/tree/main/cargo-smart-release):
   Fearlessly release workspace crates and with beautiful semi-handcrafted changelogs.
 
+## Credits
+
+Parts of the codebase are inspired by:
+- [cargo-clone](https://github.com/JanLikar/cargo-clone)
+- [cargo-edit](https://github.com/killercup/cargo-edit)
+- [cargo-release](https://github.com/crate-ci/cargo-release)
+- [cargo-workspaces](https://github.com/pksunkara/cargo-workspaces)
+- [git-cliff](https://github.com/orhun/git-cliff)
+
+<sup>
 
 ## License
 
@@ -54,11 +64,17 @@ dual licensed as above, without any additional terms or conditions.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Credits
+## Logo
 
-Parts of the codebase are inspired by:
-- [cargo-clone](https://github.com/JanLikar/cargo-clone)
-- [cargo-edit](https://github.com/killercup/cargo-edit)
-- [cargo-release](https://github.com/crate-ci/cargo-release)
-- [cargo-workspaces](https://github.com/pksunkara/cargo-workspaces)
-- [git-cliff](https://github.com/orhun/git-cliff)
+- The font is [PT Mono](https://fonts.google.com/specimen/PT+Mono?preview.text=RELEASE-PLZ&preview.text_type=custom).
+
+- The logo was generated using [Bing image creator](https://www.bing.com/create).
+  <details><summary><i>Prompt</i></summary><p>
+  <blockquote>
+  rusty humanoid robot slightly smiling. The robot is delivering a yellow box. The robot holds the box with both hands. futuristic. detailed watercolor painting. The robot is kind and good. cartoonish.
+  </blockquote>
+
+  </p></details>
+
+
+</sup>
