@@ -192,3 +192,6 @@ configured to run when `push` events occur.
 Read [this](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs)
 guide to learn about possible workarounds, such as setting a Personal Access
 Token, a deploy key or a GitHub app.
+
+If you want to use the release-plz logo for the GitHub app,
+you can find it [here](assets/robot_head.jpeg).
