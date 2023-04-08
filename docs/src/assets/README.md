@@ -6,7 +6,7 @@
 
 - The logo was generated using [Bing image creator](https://www.bing.com/create). Prompt:
 
-  ```
+  ```txt
   rusty humanoid robot slightly smiling. The robot is delivering a yellow box.
   The robot holds the box with both hands. futuristic. detailed watercolor painting.
   The robot is kind and good. cartoonish.
