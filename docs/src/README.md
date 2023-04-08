@@ -1,3 +1,5 @@
+![release-plz-logo](assets/robot_text.jpeg)
+
 # Introduction
 
 ## No more manual releases
