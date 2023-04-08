@@ -1,5 +1,7 @@
 # Introduction
 
+![release-plz-logo](assets/robot_text.jpeg)
+
 ## No more manual releases
 
 Releasing Rust packages is tedious and error-prone, just like most IT manual tasks.

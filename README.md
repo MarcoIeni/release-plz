@@ -1,4 +1,4 @@
-![release-plz-logo](https://user-images.githubusercontent.com/11428655/170828599-4ec63822-15dd-4552-b3bc-d32bd6d680f2.jpeg)
+![release-plz-logo](docs/src/assets/robot_text.jpeg)
 
 [![Crates.io](https://img.shields.io/crates/v/release-plz.svg)](https://crates.io/crates/release-plz)
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
@@ -34,26 +34,6 @@ GitHub search shows the public repositories using release-plz in CI.
 - [cargo smart-release](https://github.com/Byron/gitoxide/tree/main/cargo-smart-release):
   Fearlessly release workspace crates and with beautiful semi-handcrafted changelogs.
 
-
-## License
-
-Licensed under either of
-
- * Apache License, Version 2.0
-   ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
- * MIT license
-   ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
-
-at your option.
-
-## Contribution
-
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
-dual licensed as above, without any additional terms or conditions.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-
 ## Credits
 
 Parts of the codebase are inspired by:
@@ -62,3 +42,18 @@ Parts of the codebase are inspired by:
 - [cargo-release](https://github.com/crate-ci/cargo-release)
 - [cargo-workspaces](https://github.com/pksunkara/cargo-workspaces)
 - [git-cliff](https://github.com/orhun/git-cliff)
+
+<br>
+
+<sup>
+Licensed under either of <a href="LICENSE-APACHE">Apache License, Version 2.0</a>
+or <a href="LICENSE-MIT">MIT license</a> at your option.
+</sup>
+
+<br>
+
+<sub>
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as above, without any additional terms or conditions.
+</sub>
