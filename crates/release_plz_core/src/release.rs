@@ -308,10 +308,12 @@ async fn release_package(
         info!("published {} {}", package.name, package.version);
 
         if input.is_git_release_enabled(&package.name) {
-            if let Some(git_release) = &input.git_release {
-                let release_body = release_body(input, package);
-                publish_git_release(git_tag, &release_body, &git_release.backend).await?;
-            }
+            let git_release = input
+                .git_release
+                .as_ref()
+                .context("git release not configured. Did you specify git-token and backend?")?;
+            let release_body = release_body(input, package);
+            publish_git_release(git_tag, &release_body, &git_release.backend).await?;
         }
     }
 
