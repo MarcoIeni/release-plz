@@ -146,7 +146,14 @@ impl PackagesConfig {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct ReleaseConfig {}
+pub struct ReleaseConfig {
+    git_release: GitReleaseConfig,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct GitReleaseConfig {
+    enabled: bool,
+}
 
 impl From<ReleaseConfig> for PackageReleaseConfig {
     fn from(config: ReleaseConfig) -> Self {
@@ -278,7 +285,7 @@ async fn release_package(
 
         if let Some(git_release) = &input.git_release {
             let release_body = release_body(input, package);
-            publish_release(git_tag, &release_body, &git_release.backend).await?;
+            publish_git_release(git_tag, &release_body, &git_release.backend).await?;
         }
     }
 
@@ -307,24 +314,17 @@ fn release_body(req: &ReleaseRequest, package: &Package) -> String {
     }
 }
 
-async fn publish_release(
+async fn publish_git_release(
     git_tag: String,
     release_body: &str,
     backend: &GitBackend,
 ) -> anyhow::Result<()> {
-    match backend {
-        GitBackend::Github(github) => {
-            let git_client = GitClient::new(crate::GitBackend::Github(github.clone()))?;
-            git_client.create_release(&git_tag, release_body).await?;
-        }
-        GitBackend::Gitea(gitea) => {
-            let git_client = GitClient::new(GitBackend::Gitea(gitea.clone()))?;
-            git_client.create_release(&git_tag, release_body).await?;
-        }
-        GitBackend::Gitlab(gitlab) => {
-            let git_client = GitClient::new(GitBackend::Gitlab(gitlab.clone()))?;
-            git_client.create_release(&git_tag, release_body).await?;
-        }
-    }
+    let backend = match backend {
+        GitBackend::Github(github) => GitBackend::Github(github.clone()),
+        GitBackend::Gitea(gitea) => GitBackend::Gitea(gitea.clone()),
+        GitBackend::Gitlab(gitlab) => GitBackend::Gitlab(gitlab.clone()),
+    };
+    let git_client = GitClient::new(backend)?;
+    git_client.create_release(&git_tag, release_body).await?;
     Ok(())
 }
