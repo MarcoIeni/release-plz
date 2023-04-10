@@ -90,8 +90,12 @@ pub struct PackageSpecificConfig {
 
 impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
     fn from(config: PackageSpecificConfig) -> Self {
+        let generic = release_plz_core::ReleaseConfig::default().with_git_release(
+            release_plz_core::GitReleaseConfig::enabled(config.release.git_release.enable.into()),
+        );
+
         Self {
-            generic: release_plz_core::ReleaseConfig {},
+            generic,
             changelog_path: config.changelog_path,
         }
     }

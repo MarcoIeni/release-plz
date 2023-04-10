@@ -114,6 +114,11 @@ impl ReleaseRequest {
             })
     }
 
+    fn is_git_release_enabled(&self, package: &str) -> bool {
+        let config = self.get_package_config(package);
+        config.generic.git_release.enabled
+    }
+
     fn get_package_config(&self, package: &str) -> PackageReleaseConfig {
         self.packages_config.get(package)
     }
@@ -146,7 +151,33 @@ impl PackagesConfig {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct ReleaseConfig {}
+pub struct ReleaseConfig {
+    git_release: GitReleaseConfig,
+}
+
+impl ReleaseConfig {
+    pub fn with_git_release(mut self, git_release: GitReleaseConfig) -> Self {
+        self.git_release = git_release;
+        self
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct GitReleaseConfig {
+    enabled: bool,
+}
+
+impl Default for GitReleaseConfig {
+    fn default() -> Self {
+        Self::enabled(true)
+    }
+}
+
+impl GitReleaseConfig {
+    pub fn enabled(enabled: bool) -> Self {
+        Self { enabled }
+    }
+}
 
 impl From<ReleaseConfig> for PackageReleaseConfig {
     fn from(config: ReleaseConfig) -> Self {
@@ -276,9 +307,13 @@ async fn release_package(
 
         info!("published {} {}", package.name, package.version);
 
-        if let Some(git_release) = &input.git_release {
+        if input.is_git_release_enabled(&package.name) {
+            let git_release = input
+                .git_release
+                .as_ref()
+                .context("git release not configured. Did you specify git-token and backend?")?;
             let release_body = release_body(input, package);
-            publish_release(git_tag, &release_body, &git_release.backend).await?;
+            publish_git_release(git_tag, &release_body, &git_release.backend).await?;
         }
     }
 
@@ -307,24 +342,17 @@ fn release_body(req: &ReleaseRequest, package: &Package) -> String {
     }
 }
 
-async fn publish_release(
+async fn publish_git_release(
     git_tag: String,
     release_body: &str,
     backend: &GitBackend,
 ) -> anyhow::Result<()> {
-    match backend {
-        GitBackend::Github(github) => {
-            let git_client = GitClient::new(crate::GitBackend::Github(github.clone()))?;
-            git_client.create_release(&git_tag, release_body).await?;
-        }
-        GitBackend::Gitea(gitea) => {
-            let git_client = GitClient::new(GitBackend::Gitea(gitea.clone()))?;
-            git_client.create_release(&git_tag, release_body).await?;
-        }
-        GitBackend::Gitlab(gitlab) => {
-            let git_client = GitClient::new(GitBackend::Gitlab(gitlab.clone()))?;
-            git_client.create_release(&git_tag, release_body).await?;
-        }
-    }
+    let backend = match backend {
+        GitBackend::Github(github) => GitBackend::Github(github.clone()),
+        GitBackend::Gitea(gitea) => GitBackend::Gitea(gitea.clone()),
+        GitBackend::Gitlab(gitlab) => GitBackend::Gitlab(gitlab.clone()),
+    };
+    let git_client = GitClient::new(backend)?;
+    git_client.create_release(&git_tag, release_body).await?;
     Ok(())
 }

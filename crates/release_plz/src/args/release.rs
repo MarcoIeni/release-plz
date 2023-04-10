@@ -40,9 +40,6 @@ pub struct Release {
     /// When you pass this flag, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
     #[arg(long)]
     pub allow_dirty: bool,
-    /// Publish GitHub release for the created git tag.
-    #[arg(long)]
-    pub git_release: bool,
     /// GitHub/Gitea/Gitlab repository url where your project is hosted.
     /// It is used to create the git release.
     /// It defaults to the url of the default remote.
@@ -68,12 +65,8 @@ pub enum ReleaseGitBackendKind {
 
 impl Release {
     pub fn release_request(self, config: Config) -> anyhow::Result<ReleaseRequest> {
-        let git_release = if self.git_release {
-            let git_token = SecretString::from(
-                self.git_token
-                    .clone()
-                    .context("git_token is required for git_release")?,
-            );
+        let git_release = if let Some(git_token) = &self.git_token {
+            let git_token = SecretString::from(git_token.clone());
             let repo_url = self.repo_url()?;
             let release = release_plz_core::GitRelease {
                 backend: match self.backend {

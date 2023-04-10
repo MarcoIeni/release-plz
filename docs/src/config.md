@@ -13,17 +13,21 @@ Put the `release-plz.toml` file in the same directory of your root `Cargo.toml`.
 The configuration file is written in the [TOML](https://toml.io/) format and consists of
 the following sections:
 
-- [`[workspace]`](#the-workspace-section) — Defines the default configuration.
+- [`[workspace]`](#the-workspace-section) — Default configuration.
   - [`update_dependencies`](#the-update_dependencies-field) — Update all dependencies.
   - [`changelog_config`](#the-changelog_config-field) — Path to the [git-cliff] configuration file.
   - [`allow_dirty`](#the-allow_dirty-field) — Update dirty working directories.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
   - [`update_changelog`](#the-update_changelog-field) — Update changelog.
-- [`[package]`](#the-package-section) — Defines the package-specific configurations.
+- [`[workspace.git_release]`](#the-workspace.git_release-section) — Git release default configuration.
+  - [`enable`](#the-enable-field) — Enable git release.
+- [`[package]`](#the-package-section) — Package-specific configurations.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
   - [`update_changelog`](#the-update_changelog-field-package-section) — Update changelog.
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
+- [`[package.git_release]`](#the-package.git_release-section) — Git release package-specific configurations.
+  - [`enable`](#the-enable-field-package.git_release-section) — Enable git release.
 
 ### The `[workspace]` section
 
@@ -87,10 +91,34 @@ This field can be overridden in the [`[package]`](#the-package-section) section.
 
 This field can be overridden in the [`[package]`](#the-package-section) section.
 
+### The `[workspace.git_release]` section
+
+Defines the global configuration for the git release created with the `release-plz release` command.
+
+Here's an example configuration:
+
+```toml
+[workspace.git_release]
+enable = false
+```
+
+#### The `enable` field
+
+- If `true`, release-plz will create a git release for the created tag. *(Default)*.
+- If `false`, release-plz will not create a git release.
+
+The supported git releases are:
+
+- [GitHub](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
+- [Gitea](https://docs.gitea.io/en-us/)
+- [GitLab](https://docs.gitlab.com/ee/user/project/releases/#releases)
+
 ### The `[package]` section
 
 In this section, you can override some of the `workspace` fields for specific packages.
 This section is optional, as well as all its fields.
+
+Here's an example configuration:
 
 ```toml
 [package.my_package]
@@ -132,3 +160,18 @@ This field cannot be set in the `[workspace]` section.
 
 [cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
 [git-cliff]: https://github.com/orhun/git-cliff
+
+### The `[package.git_release]` section
+
+In this section, you can override the `workspace.git_release` fields for specific packages.
+
+Here's an example configuration:
+
+```toml
+[package.my_package.git_release]
+enable = false
+```
+
+#### The `enable` field (`package.git_release` section)
+
+Overrides the [`workspace.git_release.enable`](#the-enable-field) field.
