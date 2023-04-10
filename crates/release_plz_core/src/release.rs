@@ -155,9 +155,28 @@ pub struct ReleaseConfig {
     git_release: GitReleaseConfig,
 }
 
-#[derive(Debug, Clone, Default)]
+impl ReleaseConfig {
+    pub fn with_git_release(mut self, git_release: GitReleaseConfig) -> Self {
+        self.git_release = git_release;
+        self
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct GitReleaseConfig {
     enabled: bool,
+}
+
+impl Default for GitReleaseConfig {
+    fn default() -> Self {
+        Self::enabled(true)
+    }
+}
+
+impl GitReleaseConfig {
+    pub fn enabled(enabled: bool) -> Self {
+        Self { enabled }
+    }
 }
 
 impl From<ReleaseConfig> for PackageReleaseConfig {
