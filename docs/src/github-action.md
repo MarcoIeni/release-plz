@@ -18,7 +18,6 @@ runs two commands, one after the other:
 - `project_manifest`: Path to the Cargo.toml of the project you want to update.
   Both Cargo workspaces and single packages are supported. (Defaults to the root
   directory).
-- `git_release`: Publish the GitHub release for the created git tag. (Default: `true`).
 - `version`: Release-plz version to use. It must be an existing git tag name.
   For example `release-plz-v0.2.45`. (Default: `"latest"`).
 
@@ -48,7 +47,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.4
+        uses: MarcoIeni/release-plz-action@v0.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -83,7 +82,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.4
+        uses: MarcoIeni/release-plz-action@v0.5
         with:
           command: release-pr
         env:
@@ -116,7 +115,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.4
+        uses: MarcoIeni/release-plz-action@v0.5
         with:
           command: release
         env:
@@ -156,7 +155,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.4
+        uses: MarcoIeni/release-plz-action@v0.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
