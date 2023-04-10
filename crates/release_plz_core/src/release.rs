@@ -114,6 +114,11 @@ impl ReleaseRequest {
             })
     }
 
+    fn is_git_release_enabled(&self, package: &str) -> bool {
+        let config = self.get_package_config(package);
+        config.generic.git_release.enabled
+    }
+
     fn get_package_config(&self, package: &str) -> PackageReleaseConfig {
         self.packages_config.get(package)
     }
@@ -283,9 +288,11 @@ async fn release_package(
 
         info!("published {} {}", package.name, package.version);
 
-        if let Some(git_release) = &input.git_release {
-            let release_body = release_body(input, package);
-            publish_git_release(git_tag, &release_body, &git_release.backend).await?;
+        if input.is_git_release_enabled(&package.name) {
+            if let Some(git_release) = &input.git_release {
+                let release_body = release_body(input, package);
+                publish_git_release(git_tag, &release_body, &git_release.backend).await?;
+            }
         }
     }
 
