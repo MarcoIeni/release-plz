@@ -90,17 +90,23 @@ pub struct PackageSpecificConfig {
 
 impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
     fn from(config: PackageSpecificConfig) -> Self {
-        let generic = release_plz_core::ReleaseConfig::default()
-            .with_git_release(release_plz_core::GitReleaseConfig::enabled(
-                config.release.git_release.enable.into(),
-            ))
-            .with_no_verify(config.release.release.no_verify)
-            .with_allow_dirty(config.release.release.allow_dirty);
+        let generic = config.release.into();
 
         Self {
             generic,
             changelog_path: config.changelog_path,
         }
+    }
+}
+
+impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
+    fn from(value: PackageReleaseConfig) -> Self {
+        Self::default()
+            .with_git_release(release_plz_core::GitReleaseConfig::enabled(
+                value.git_release.enable.into(),
+            ))
+            .with_no_verify(value.release.no_verify)
+            .with_allow_dirty(value.release.allow_dirty)
     }
 }
 
@@ -111,7 +117,7 @@ pub struct PackageConfig {
     update: PackageUpdateConfig,
     /// Options for the `release-plz release` command.
     #[serde(flatten)]
-    release: PackageReleaseConfig,
+    pub release: PackageReleaseConfig,
 }
 
 impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {

@@ -101,6 +101,9 @@ impl Release {
             req = req.with_git_release(git_release);
         }
 
+        let def = config.workspace.packages_defaults.release;
+        req = req.with_default_package_config(def.into());
+
         for (p, c) in config.package {
             req = req.with_package_config(p, c.into());
         }

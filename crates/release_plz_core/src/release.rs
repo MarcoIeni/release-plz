@@ -75,6 +75,11 @@ impl ReleaseRequest {
         self
     }
 
+    pub fn with_default_package_config(mut self, config: ReleaseConfig) -> Self {
+        self.packages_config.set_default(config);
+        self
+    }
+
     /// Set release config for a specific package.
     pub fn with_package_config(
         mut self,
@@ -135,9 +140,9 @@ impl PackagesConfig {
             .unwrap_or(self.default.clone().into())
     }
 
-    // fn set_default(&mut self, config: ReleaseConfig) {
-    //     self.default = config;
-    // }
+    fn set_default(&mut self, config: ReleaseConfig) {
+        self.default = config;
+    }
 
     fn set(&mut self, package_name: String, config: PackageReleaseConfig) {
         self.overrides.insert(package_name, config);
