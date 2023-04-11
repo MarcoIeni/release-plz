@@ -112,12 +112,12 @@ impl ReleaseRequest {
         self.packages_config.get(package)
     }
 
-    fn allow_dirty(&self, package: &str) -> bool {
+    pub fn allow_dirty(&self, package: &str) -> bool {
         let config = self.get_package_config(package);
         config.generic.allow_dirty
     }
 
-    fn no_verify(&self, package: &str) -> bool {
+    pub fn no_verify(&self, package: &str) -> bool {
         let config = self.get_package_config(package);
         config.generic.no_verify
     }

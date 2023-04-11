@@ -128,3 +128,41 @@ impl Release {
         }
     }
 }
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn input_generates_correct_release_request() {
+        let config = r#"
+            [workspace]
+            update_dependencies = false
+            changelog_config = "../git-cliff.toml"
+            allow_dirty = false
+            repo_url = "https://github.com/MarcoIeni/release-plz"
+
+            [workspace.release]
+            allow_dirty = true
+
+            [workspace.git_release]
+            enable = true
+            release_type = "prod"
+            draft = false
+        "#;
+
+        let release_args = Release {
+            allow_dirty: false,
+            no_verify: false,
+            project_manifest: None,
+            registry: None,
+            token: None,
+            dry_run: false,
+            repo_url: None,
+            git_token: None,
+            backend: ReleaseGitBackendKind::Github,
+        };
+        let config: Config = toml::from_str(config).unwrap();
+        let actual_request = release_args.release_request(config).unwrap();
+        assert!(actual_request.allow_dirty("aaa"));
+    }
+}

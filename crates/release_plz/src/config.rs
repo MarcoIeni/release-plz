@@ -190,7 +190,9 @@ pub struct PackageReleaseConfig {
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct ReleaseConfig {
+    #[serde(default)]
     pub allow_dirty: bool,
+    #[serde(default)]
     pub no_verify: bool,
 }
 
