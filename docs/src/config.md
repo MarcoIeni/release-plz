@@ -203,7 +203,8 @@ no_verify = false
 
 #### The `allow_dirty` field (`package.release` section)
 
-Overrides the [`workspace.git_release.allow_dirty`](#the-allow_dirty-field-workspace.release-section) field.
+Overrides the
+[`workspace.git_release.allow_dirty`](#the-allow_dirty-field-workspace.release-section) field.
 
 #### The `no_verify` field (`package.release` section)
 
