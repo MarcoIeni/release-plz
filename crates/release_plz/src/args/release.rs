@@ -86,8 +86,6 @@ impl Release {
             None
         };
         let mut req = ReleaseRequest::new(local_manifest(self.project_manifest.as_deref()))
-            .with_no_verify(self.no_verify)
-            .with_allow_dirty(self.allow_dirty)
             .with_dry_run(self.dry_run);
 
         if let Some(registry) = self.registry {

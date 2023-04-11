@@ -38,12 +38,6 @@ pub struct ReleaseRequest {
     /// It is used to create the git release.
     /// It defaults to the url of the default remote.
     repo_url: Option<String>,
-    /// Don't verify the contents by building them.
-    /// If true, `release-plz` adds the `--no-verify` flag to `cargo publish`.
-    no_verify: bool,
-    /// Allow dirty working directories to be packaged.
-    /// If true, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
-    allow_dirty: bool,
     /// Package-specific configurations.
     packages_config: PackagesConfig,
 }
@@ -81,16 +75,6 @@ impl ReleaseRequest {
         self
     }
 
-    pub fn with_no_verify(mut self, no_verify: bool) -> Self {
-        self.no_verify = no_verify;
-        self
-    }
-
-    pub fn with_allow_dirty(mut self, allow_dirty: bool) -> Self {
-        self.allow_dirty = allow_dirty;
-        self
-    }
-
     /// Set release config for a specific package.
     pub fn with_package_config(
         mut self,
@@ -121,6 +105,16 @@ impl ReleaseRequest {
 
     fn get_package_config(&self, package: &str) -> PackageReleaseConfig {
         self.packages_config.get(package)
+    }
+
+    fn allow_dirty(&self, package: &str) -> bool {
+        let config = self.get_package_config(package);
+        config.generic.allow_dirty
+    }
+
+    fn no_verify(&self, package: &str) -> bool {
+        let config = self.get_package_config(package);
+        config.generic.no_verify
     }
 }
 
@@ -153,11 +147,27 @@ impl PackagesConfig {
 #[derive(Debug, Clone, Default)]
 pub struct ReleaseConfig {
     git_release: GitReleaseConfig,
+    /// Don't verify the contents by building them.
+    /// If true, `release-plz` adds the `--no-verify` flag to `cargo publish`.
+    no_verify: bool,
+    /// Allow dirty working directories to be packaged.
+    /// If true, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
+    allow_dirty: bool,
 }
 
 impl ReleaseConfig {
     pub fn with_git_release(mut self, git_release: GitReleaseConfig) -> Self {
         self.git_release = git_release;
+        self
+    }
+
+    pub fn with_no_verify(mut self, no_verify: bool) -> Self {
+        self.no_verify = no_verify;
+        self
+    }
+
+    pub fn with_allow_dirty(mut self, allow_dirty: bool) -> Self {
+        self.allow_dirty = allow_dirty;
         self
     }
 }
@@ -279,10 +289,10 @@ async fn release_package(
     if input.dry_run {
         args.push("--dry-run");
     }
-    if input.allow_dirty {
+    if input.allow_dirty(&package.name) {
         args.push("--allow-dirty");
     }
-    if input.no_verify {
+    if input.no_verify(&package.name) {
         args.push("--no-verify");
     }
     let workspace_root = input.workspace_root()?;
