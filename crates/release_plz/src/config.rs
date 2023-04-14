@@ -1,4 +1,4 @@
-use release_plz_core::UpdateRequest;
+use release_plz_core::{ReleaseRequest, UpdateRequest};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 use url::Url;
@@ -35,6 +35,36 @@ impl Config {
             update_request = update_request.with_package_config(package, update_config.into());
         }
         update_request
+    }
+
+    pub fn fill_release_config(
+        &self,
+        allow_dirty: bool,
+        no_verify: bool,
+        release_request: ReleaseRequest,
+    ) -> ReleaseRequest {
+        let mut default_config = self.workspace.packages_defaults.release.clone();
+        if no_verify {
+            default_config.release.no_verify = true;
+        }
+        if allow_dirty {
+            default_config.release.allow_dirty = true;
+        }
+        let mut release_request =
+            release_request.with_default_package_config(default_config.into());
+
+        for (package, config) in &self.package {
+            let mut release_config = config.clone();
+
+            if no_verify {
+                release_config.release.release.no_verify = true;
+            }
+            if allow_dirty {
+                release_config.release.release.allow_dirty = true;
+            }
+            release_request = release_request.with_package_config(package, release_config.into());
+        }
+        release_request
     }
 }
 

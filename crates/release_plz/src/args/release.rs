@@ -101,12 +101,7 @@ impl Release {
             req = req.with_git_release(git_release);
         }
 
-        let def = config.workspace.packages_defaults.release;
-        req = req.with_default_package_config(def.into());
-
-        for (p, c) in config.package {
-            req = req.with_package_config(p, c.into());
-        }
+        req = config.fill_release_config(self.allow_dirty, self.no_verify, req);
 
         Ok(req)
     }
