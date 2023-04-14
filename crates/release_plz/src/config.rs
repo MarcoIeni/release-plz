@@ -1,4 +1,4 @@
-use release_plz_core::UpdateRequest;
+use release_plz_core::{ReleaseRequest, UpdateRequest};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 use url::Url;
@@ -35,6 +35,36 @@ impl Config {
             update_request = update_request.with_package_config(package, update_config.into());
         }
         update_request
+    }
+
+    pub fn fill_release_config(
+        &self,
+        allow_dirty: bool,
+        no_verify: bool,
+        release_request: ReleaseRequest,
+    ) -> ReleaseRequest {
+        let mut default_config = self.workspace.packages_defaults.release.clone();
+        if no_verify {
+            default_config.release.no_verify = true;
+        }
+        if allow_dirty {
+            default_config.release.allow_dirty = true;
+        }
+        let mut release_request =
+            release_request.with_default_package_config(default_config.into());
+
+        for (package, config) in &self.package {
+            let mut release_config = config.clone();
+
+            if no_verify {
+                release_config.release.release.no_verify = true;
+            }
+            if allow_dirty {
+                release_config.release.release.allow_dirty = true;
+            }
+            release_request = release_request.with_package_config(package, release_config.into());
+        }
+        release_request
     }
 }
 
@@ -74,6 +104,7 @@ pub struct UpdateConfig {
 
 /// Config at the `[package]` level.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct PackageSpecificConfig {
     /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
     #[serde(flatten)]
@@ -90,14 +121,23 @@ pub struct PackageSpecificConfig {
 
 impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
     fn from(config: PackageSpecificConfig) -> Self {
-        let generic = release_plz_core::ReleaseConfig::default().with_git_release(
-            release_plz_core::GitReleaseConfig::enabled(config.release.git_release.enable.into()),
-        );
+        let generic = config.release.into();
 
         Self {
             generic,
             changelog_path: config.changelog_path,
         }
+    }
+}
+
+impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
+    fn from(value: PackageReleaseConfig) -> Self {
+        Self::default()
+            .with_git_release(release_plz_core::GitReleaseConfig::enabled(
+                value.git_release.enable.into(),
+            ))
+            .with_no_verify(value.release.no_verify)
+            .with_allow_dirty(value.release.allow_dirty)
     }
 }
 
@@ -175,6 +215,16 @@ pub struct PackageReleaseConfig {
     /// Configuration for the GitHub/Gitea/GitLab release.
     #[serde(default)]
     pub git_release: GitReleaseConfig,
+    #[serde(default)]
+    pub release: ReleaseConfig,
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+pub struct ReleaseConfig {
+    #[serde(default)]
+    pub allow_dirty: bool,
+    #[serde(default)]
+    pub no_verify: bool,
 }
 
 /// Whether to run cargo-semver-checks or not.
@@ -267,6 +317,7 @@ mod tests {
                             release_type: ReleaseType::Prod,
                             draft: false,
                         },
+                        ..Default::default()
                     },
                 },
             },
@@ -313,6 +364,10 @@ mod tests {
                             release_type: ReleaseType::Prod,
                             draft: false,
                         },
+                        release: ReleaseConfig {
+                            allow_dirty: false,
+                            no_verify: false,
+                        },
                     },
                 },
             },
@@ -344,6 +399,7 @@ mod tests {
                             release_type: ReleaseType::Prod,
                             draft: false,
                         },
+                        ..Default::default()
                     },
                 },
             },
@@ -360,6 +416,7 @@ mod tests {
                             release_type: ReleaseType::Prod,
                             draft: false,
                         },
+                        ..Default::default()
                     },
                     changelog_path: Some("./CHANGELOG.md".into()),
                 },
@@ -381,6 +438,10 @@ mod tests {
             release_type = "prod"
             draft = false
 
+            [workspace.release]
+            allow_dirty = false
+            no_verify = false
+
             [package.crate1]
             semver_check = "no"
             update_changelog = true
@@ -390,6 +451,10 @@ mod tests {
             enable = true
             release_type = "prod"
             draft = false
+
+            [package.crate1.release]
+            allow_dirty = false
+            no_verify = false
         "#]]
         .assert_eq(&toml::to_string(&config).unwrap());
     }

@@ -86,8 +86,6 @@ impl Release {
             None
         };
         let mut req = ReleaseRequest::new(local_manifest(self.project_manifest.as_deref()))
-            .with_no_verify(self.no_verify)
-            .with_allow_dirty(self.allow_dirty)
             .with_dry_run(self.dry_run);
 
         if let Some(registry) = self.registry {
@@ -103,9 +101,7 @@ impl Release {
             req = req.with_git_release(git_release);
         }
 
-        for (p, c) in config.package {
-            req = req.with_package_config(p, c.into());
-        }
+        req = config.fill_release_config(self.allow_dirty, self.no_verify, req);
 
         Ok(req)
     }
@@ -125,5 +121,44 @@ impl Release {
                 RepoUrl::from_repo(&repo)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn input_generates_correct_release_request() {
+        let config = r#"
+            [workspace]
+            update_dependencies = false
+            changelog_config = "../git-cliff.toml"
+            allow_dirty = false
+            repo_url = "https://github.com/MarcoIeni/release-plz"
+
+            [workspace.release]
+            allow_dirty = true
+
+            [workspace.git_release]
+            enable = true
+            release_type = "prod"
+            draft = false
+        "#;
+
+        let release_args = Release {
+            allow_dirty: false,
+            no_verify: false,
+            project_manifest: None,
+            registry: None,
+            token: None,
+            dry_run: false,
+            repo_url: None,
+            git_token: None,
+            backend: ReleaseGitBackendKind::Github,
+        };
+        let config: Config = toml::from_str(config).unwrap();
+        let actual_request = release_args.release_request(config).unwrap();
+        assert!(actual_request.allow_dirty("aaa"));
     }
 }
