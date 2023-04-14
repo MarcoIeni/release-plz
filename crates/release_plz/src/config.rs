@@ -74,6 +74,7 @@ pub struct UpdateConfig {
 
 /// Config at the `[package]` level.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct PackageSpecificConfig {
     /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
     #[serde(flatten)]
