@@ -148,7 +148,7 @@ pub struct PackageConfig {
     update: PackageUpdateConfig,
     /// Options for the `release-plz release` command.
     #[serde(flatten)]
-    pub release: PackageReleaseConfig,
+    release: PackageReleaseConfig,
 }
 
 impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
