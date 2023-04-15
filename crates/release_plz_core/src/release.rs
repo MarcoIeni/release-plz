@@ -244,7 +244,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
         for mut index in registry_indexes {
             if is_published(&mut index, package)? {
                 info!("{} {}: already published", package.name, package.version);
-                return Ok(());
+                continue;
             }
             release_package(&mut index, package, input, git_tag.clone()).await?;
         }
