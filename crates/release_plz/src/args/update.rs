@@ -199,3 +199,12 @@ impl Update {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn input_generates_correct_release_request() {
+        todo!()
+
+    }
+}
