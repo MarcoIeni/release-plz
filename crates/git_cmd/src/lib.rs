@@ -348,14 +348,15 @@ mod tests {
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
 
-        let header = "feat: file1";
-        let body = "message";
-        let footer = "footer: shoe";
-        let commit_message = format!("{}\n\n{}\n\n{}", header, body, footer);
+        let commit_message = r#"feat: my feature
+
+        message
+
+        footer: small note"#;
 
         {
             fs::write(file1, b"Hello, file1!").unwrap();
-            repo.add_all_and_commit(&commit_message).unwrap();
+            repo.add_all_and_commit(commit_message).unwrap();
         }
         assert_eq!(repo.current_commit_message().unwrap(), commit_message);
     }
