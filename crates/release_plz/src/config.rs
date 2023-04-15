@@ -16,6 +16,8 @@ pub struct Config {
 }
 
 impl Config {
+    /// Package-specific configurations.
+    /// Returns `<package name, package config>`.
     fn packages(&self) -> HashMap<&str, &PackageSpecificConfig> {
         self.package
             .iter()
@@ -36,6 +38,7 @@ impl Config {
             update_request.with_default_package_config(default_update_config.into());
         for (package, config) in self.packages() {
             let mut update_config = config.clone();
+            update_config = update_config.merge(self.workspace.packages_defaults.clone());
             if is_changelog_update_disabled {
                 update_config.update.update_changelog = false.into();
             }
@@ -62,6 +65,7 @@ impl Config {
 
         for (package, config) in self.packages() {
             let mut release_config = config.clone();
+            release_config = release_config.merge(self.workspace.packages_defaults.clone());
 
             if no_verify {
                 release_config.release.release.no_verify = Some(true);
@@ -90,7 +94,6 @@ pub struct Workspace {
 /// Configuration for the `update` command.
 /// Generical for the whole workspace. Cannot customized on a per-package basic.
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
-#[serde(deny_unknown_fields)]
 pub struct UpdateConfig {
     /// - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
     /// - If `false` or [`Option::None`], only update the workspace packages by running `cargo update --workspace`.
@@ -110,7 +113,6 @@ pub struct UpdateConfig {
 
 /// Config at the `[[package]]` level.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
-#[serde(deny_unknown_fields)]
 pub struct PackageSpecificConfig {
     /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
     #[serde(flatten)]
@@ -125,8 +127,18 @@ pub struct PackageSpecificConfig {
     changelog_path: Option<PathBuf>,
 }
 
+impl PackageSpecificConfig {
+    /// Merge the package-specific configuration with the global configuration.
+    pub fn merge(self, default: PackageConfig) -> PackageSpecificConfig {
+        PackageSpecificConfig {
+            update: self.update.merge(default.update),
+            release: self.release.merge(default.release),
+            changelog_path: self.changelog_path,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
-#[serde(deny_unknown_fields)]
 pub struct PackageSpecificConfigWithName {
     pub name: String,
     #[serde(flatten)]
@@ -190,7 +202,6 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
 /// Customization for the `release-plz update` command.
 /// These can be overridden on a per-package basic.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
-#[serde(deny_unknown_fields)]
 pub struct PackageUpdateConfig {
     /// Controls when to run cargo-semver-checks.
     /// If unspecified, run cargo-semver-checks if the package is a library.
@@ -198,6 +209,16 @@ pub struct PackageUpdateConfig {
     /// Whether to create/update changelog or not.
     /// If unspecified, the changelog is updated.
     pub update_changelog: Option<bool>,
+}
+
+impl PackageUpdateConfig {
+    /// Merge the package-specific configuration with the global configuration.
+    pub fn merge(self, default: PackageUpdateConfig) -> PackageUpdateConfig {
+        PackageUpdateConfig {
+            semver_check: self.semver_check.or(default.semver_check),
+            update_changelog: self.update_changelog.or(default.update_changelog),
+        }
+    }
 }
 
 impl PackageUpdateConfig {
@@ -219,8 +240,17 @@ pub struct PackageReleaseConfig {
     pub release: ReleaseConfig,
 }
 
+impl PackageReleaseConfig {
+    /// Merge the package-specific configuration with the global configuration.
+    pub fn merge(self, default: PackageReleaseConfig) -> PackageReleaseConfig {
+        PackageReleaseConfig {
+            git_release: self.git_release.merge(default.git_release),
+            release: self.release.merge(default.release),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
-#[serde(deny_unknown_fields)]
 pub struct ReleaseConfig {
     /// If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.
     #[serde(default, rename = "publish_allow_dirty")]
@@ -228,6 +258,16 @@ pub struct ReleaseConfig {
     /// If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.
     #[serde(default, rename = "publish_no_verify")]
     pub no_verify: Option<bool>,
+}
+
+impl ReleaseConfig {
+    /// Merge the package-specific configuration with the global configuration.
+    pub fn merge(self, default: ReleaseConfig) -> ReleaseConfig {
+        ReleaseConfig {
+            allow_dirty: self.allow_dirty.or(default.allow_dirty),
+            no_verify: self.no_verify.or(default.no_verify),
+        }
+    }
 }
 
 /// Whether to run cargo-semver-checks or not.
@@ -254,7 +294,6 @@ impl From<SemverCheck> for release_plz_core::RunSemverCheck {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
-#[serde(deny_unknown_fields)]
 pub struct GitReleaseConfig {
     /// Publish the GitHub/Gitea release for the created git tag.
     /// Enabled by default.
@@ -262,10 +301,21 @@ pub struct GitReleaseConfig {
     enable: Option<bool>,
     /// Whether to mark the created release as not ready for production.
     #[serde(default, rename = "git_release_type")]
-    pub release_type: ReleaseType,
+    pub release_type: Option<ReleaseType>,
     /// If true, will not auto-publish the release.
     #[serde(default, rename = "git_release_draft")]
-    pub draft: bool,
+    pub draft: Option<bool>,
+}
+
+impl GitReleaseConfig {
+    /// Merge the package-specific configuration with the global configuration.
+    pub fn merge(self, default: GitReleaseConfig) -> GitReleaseConfig {
+        GitReleaseConfig {
+            enable: self.enable.or(default.enable),
+            release_type: self.release_type.or(default.release_type),
+            draft: self.draft.or(default.draft),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, Copy)]
@@ -315,8 +365,8 @@ mod tests {
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
                             enable: Some(true),
-                            release_type: ReleaseType::Prod,
-                            draft: false,
+                            release_type: Some(ReleaseType::Prod),
+                            draft: Some(false),
                         },
                         ..Default::default()
                     },
@@ -359,8 +409,8 @@ mod tests {
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
                             enable: true.into(),
-                            release_type: ReleaseType::Prod,
-                            draft: false,
+                            release_type: Some(ReleaseType::Prod),
+                            draft: Some(false),
                         },
                         release: ReleaseConfig {
                             allow_dirty: None,
@@ -394,8 +444,8 @@ mod tests {
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
                             enable: true.into(),
-                            release_type: ReleaseType::Prod,
-                            draft: false,
+                            release_type: Some(ReleaseType::Prod),
+                            draft: Some(false),
                         },
                         ..Default::default()
                     },
@@ -411,8 +461,8 @@ mod tests {
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
                             enable: true.into(),
-                            release_type: ReleaseType::Prod,
-                            draft: false,
+                            release_type: Some(ReleaseType::Prod),
+                            draft: Some(false),
                         },
                         ..Default::default()
                     },
