@@ -46,7 +46,7 @@ update_dependencies = true # update dependencies with `cargo update`
 changelog_config = "config/git-cliff.toml"
 allow_dirty = true # allow updating repositories with uncommitted changes
 repo_url = "https://github.com/<owner>/<repo>"
-semver_check = "no"
+semver_check = false
 update_changelog = false
 git_release_enable = true
 publish_allow_dirty = true
@@ -85,9 +85,9 @@ because release-plz defaults to the URL of the default git remote.
 
 With this field, you can tell release-plz when to run [cargo-semver-checks]:
 
-- If `"no"`, never run it.
-- If `"yes"`, always run it.
-- If `"lib"`, run it if the package is a library. *(Default)*.
+- If `false`, never run it.
+- If `true`, always run it.
+- If unspecified, run it if the package is a library. *(Default)*.
 
 This field can be overridden in the [`[package]`](#the-package-section) section.
 
@@ -129,7 +129,7 @@ Here's an example configuration:
 ```toml
 [[package]]
 name = "my_package"
-semver_check = "no"
+semver_check = false
 update_changelog = false
 changelog_path = "docs/CHANGELOG.md"
 ```
@@ -141,8 +141,8 @@ Name of the package to which the configuration applies.
 
 #### The `semver_check` field (`package` section)
 
-- If `"yes"`, run [cargo-semver-checks] for this package.
-- If `"no"`, don't.
+- If `true`, run [cargo-semver-checks] for this package.
+- If `false`, don't.
 
 By default, release-plz runs [cargo-semver-checks] if the package is a library.
 

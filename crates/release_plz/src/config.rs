@@ -52,10 +52,10 @@ impl Config {
     ) -> ReleaseRequest {
         let mut default_config = self.workspace.packages_defaults.release.clone();
         if no_verify {
-            default_config.release.no_verify = true;
+            default_config.release.no_verify = Some(true);
         }
         if allow_dirty {
-            default_config.release.allow_dirty = true;
+            default_config.release.allow_dirty = Some(true);
         }
         let mut release_request =
             release_request.with_default_package_config(default_config.into());
@@ -64,10 +64,10 @@ impl Config {
             let mut release_config = config.clone();
 
             if no_verify {
-                release_config.release.release.no_verify = true;
+                release_config.release.release.no_verify = Some(true);
             }
             if allow_dirty {
-                release_config.release.release.allow_dirty = true;
+                release_config.release.release.allow_dirty = Some(true);
             }
             release_request = release_request.with_package_config(package, release_config.into());
         }
@@ -93,15 +93,14 @@ pub struct Workspace {
 #[serde(deny_unknown_fields)]
 pub struct UpdateConfig {
     /// - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
-    /// - If `false`, only update the workspace packages by running `cargo update --workspace`.
-    #[serde(default)]
-    pub update_dependencies: bool,
+    /// - If `false` or [`Option::None`], only update the workspace packages by running `cargo update --workspace`.
+    pub update_dependencies: Option<bool>,
     /// Path to the git cliff configuration file. Defaults to the `keep a changelog` configuration.
     #[serde(default)]
     pub changelog_config: Option<PathBuf>,
-    /// Allow dirty working directories to be updated. The uncommitted changes will be part of the update.
-    #[serde(default)]
-    pub allow_dirty: bool,
+    /// - If `true`, allow dirty working directories to be updated. The uncommitted changes will be part of the update.
+    /// - If `false` or [`Option::None`], the command will fail if the working directory is dirty.
+    pub allow_dirty: Option<bool>,
     /// GitHub/Gitea repository url where your project is hosted.
     /// It is used to generate the changelog release link.
     /// It defaults to the url of the default remote.
@@ -147,12 +146,16 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
 
 impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
     fn from(value: PackageReleaseConfig) -> Self {
-        Self::default()
-            .with_git_release(release_plz_core::GitReleaseConfig::enabled(
-                value.git_release.enable.into(),
-            ))
-            .with_no_verify(value.release.no_verify)
-            .with_allow_dirty(value.release.allow_dirty)
+        let mut cfg = Self::default().with_git_release(
+            release_plz_core::GitReleaseConfig::enabled(value.git_release.enable),
+        );
+        if let Some(no_verify) = value.release.no_verify {
+            cfg = cfg.with_no_verify(no_verify);
+        }
+        if let Some(allow_dirty) = value.release.allow_dirty {
+            cfg = cfg.with_allow_dirty(allow_dirty);
+        }
+        cfg
     }
 }
 
@@ -169,7 +172,7 @@ pub struct PackageConfig {
 impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
     fn from(config: PackageUpdateConfig) -> Self {
         Self {
-            semver_check: config.semver_check.into(),
+            semver_check: config.semver_check().into(),
             update_changelog: config.update_changelog.into(),
         }
     }
@@ -190,37 +193,18 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
 #[serde(deny_unknown_fields)]
 pub struct PackageUpdateConfig {
     /// Controls when to run cargo-semver-checks.
-    #[serde(default)]
-    pub semver_check: SemverCheck,
+    pub semver_check: Option<bool>,
     /// Whether to create/update changelog or not.
-    #[serde(default)]
-    update_changelog: BoolDefaultingTrue,
+    pub update_changelog: Option<bool>,
 }
 
 impl PackageUpdateConfig {
-    pub fn update_changelog(&self) -> bool {
-        self.update_changelog.into()
-    }
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Copy)]
-struct BoolDefaultingTrue(bool);
-
-impl Default for BoolDefaultingTrue {
-    fn default() -> Self {
-        Self(true)
-    }
-}
-
-impl From<BoolDefaultingTrue> for bool {
-    fn from(config: BoolDefaultingTrue) -> Self {
-        config.0
-    }
-}
-
-impl From<bool> for BoolDefaultingTrue {
-    fn from(config: bool) -> Self {
-        Self(config)
+    pub fn semver_check(&self) -> SemverCheck {
+        match self.semver_check {
+            Some(true) => SemverCheck::Yes,
+            Some(false) => SemverCheck::No,
+            None => SemverCheck::Lib,
+        }
     }
 }
 
@@ -236,10 +220,12 @@ pub struct PackageReleaseConfig {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct ReleaseConfig {
+    /// If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.
     #[serde(default, rename = "publish_allow_dirty")]
-    pub allow_dirty: bool,
+    pub allow_dirty: Option<bool>,
+    /// If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.
     #[serde(default, rename = "publish_no_verify")]
-    pub no_verify: bool,
+    pub no_verify: Option<bool>,
 }
 
 /// Whether to run cargo-semver-checks or not.
@@ -270,7 +256,7 @@ impl From<SemverCheck> for release_plz_core::RunSemverCheck {
 pub struct GitReleaseConfig {
     /// Publish the GitHub/Gitea release for the created git tag.
     #[serde(default, rename = "git_release_enable")]
-    enable: BoolDefaultingTrue,
+    enable: Option<bool>,
     /// Whether to mark the created release as not ready for production.
     #[serde(default, rename = "git_release_type")]
     pub release_type: ReleaseType,
@@ -304,7 +290,6 @@ mod tests {
             [workspace]
             update_dependencies = false
             changelog_config = "../git-cliff.toml"
-            allow_dirty = false
             repo_url = "https://github.com/MarcoIeni/release-plz"
             git_release_enable = true
             git_release_type = "prod"
@@ -314,14 +299,14 @@ mod tests {
         let expected_config = Config {
             workspace: Workspace {
                 update: UpdateConfig {
-                    update_dependencies: false,
+                    update_dependencies: Some(false),
                     changelog_config: Some("../git-cliff.toml".into()),
-                    allow_dirty: false,
+                    allow_dirty: None,
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
-                        semver_check: SemverCheck::Lib,
+                        semver_check: None,
                         update_changelog: true.into(),
                     },
                     release: PackageReleaseConfig {
@@ -345,11 +330,9 @@ mod tests {
     fn config_is_deserialized() {
         let config = r#"
             [workspace]
-            update_dependencies = false
             changelog_config = "../git-cliff.toml"
             allow_dirty = false
             repo_url = "https://github.com/MarcoIeni/release-plz"
-            semver_check = "lib"
             update_changelog = true
 
             git_release_enable = true
@@ -360,14 +343,14 @@ mod tests {
         let expected_config = Config {
             workspace: Workspace {
                 update: UpdateConfig {
-                    update_dependencies: false,
+                    update_dependencies: None,
                     changelog_config: Some("../git-cliff.toml".into()),
-                    allow_dirty: false,
+                    allow_dirty: Some(false),
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
-                        semver_check: SemverCheck::Lib,
+                        semver_check: None,
                         update_changelog: true.into(),
                     },
                     release: PackageReleaseConfig {
@@ -377,8 +360,8 @@ mod tests {
                             draft: false,
                         },
                         release: ReleaseConfig {
-                            allow_dirty: false,
-                            no_verify: false,
+                            allow_dirty: None,
+                            no_verify: None,
                         },
                     },
                 },
@@ -395,14 +378,14 @@ mod tests {
         let config = Config {
             workspace: Workspace {
                 update: UpdateConfig {
-                    update_dependencies: false,
+                    update_dependencies: None,
                     changelog_config: Some("../git-cliff.toml".into()),
-                    allow_dirty: false,
+                    allow_dirty: None,
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
-                        semver_check: SemverCheck::Lib,
+                        semver_check: None,
                         update_changelog: true.into(),
                     },
                     release: PackageReleaseConfig {
@@ -419,7 +402,7 @@ mod tests {
                 name: "crate1".to_string(),
                 config: PackageSpecificConfig {
                     update: PackageUpdateConfig {
-                        semver_check: SemverCheck::No,
+                        semver_check: Some(false),
                         update_changelog: true.into(),
                     },
                     release: PackageReleaseConfig {
@@ -438,27 +421,20 @@ mod tests {
 
         expect_test::expect![[r#"
             [workspace]
-            update_dependencies = false
             changelog_config = "../git-cliff.toml"
-            allow_dirty = false
             repo_url = "https://github.com/MarcoIeni/release-plz"
-            semver_check = "lib"
             update_changelog = true
             git_release_enable = true
             git_release_type = "prod"
             git_release_draft = false
-            publish_allow_dirty = false
-            publish_no_verify = false
 
             [[package]]
             name = "crate1"
-            semver_check = "no"
+            semver_check = false
             update_changelog = true
             git_release_enable = true
             git_release_type = "prod"
             git_release_draft = false
-            publish_allow_dirty = false
-            publish_no_verify = false
             changelog_path = "./CHANGELOG.md"
         "#]]
         .assert_eq(&toml::to_string(&config).unwrap());
