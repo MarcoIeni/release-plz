@@ -47,9 +47,9 @@ allow_dirty = true # allow updating repositories with uncommitted changes
 repo_url = "https://github.com/<owner>/<repo>"
 semver_check = "no"
 update_changelog = false
+git_release_enable = true
 publish_allow_dirty = true
 publish_no_verify = false
-git_release_enable = true
 ```
 
 #### The `update_dependencies` field
