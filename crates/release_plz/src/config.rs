@@ -193,6 +193,7 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
 #[serde(deny_unknown_fields)]
 pub struct PackageUpdateConfig {
     /// Controls when to run cargo-semver-checks.
+    /// If unspecified, run cargo-semver-checks if the package is a library.
     pub semver_check: Option<bool>,
     /// Whether to create/update changelog or not.
     pub update_changelog: Option<bool>,
