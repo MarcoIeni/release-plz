@@ -180,4 +180,17 @@ mod tests {
             backend: ReleaseGitBackendKind::Github,
         }
     }
+
+    #[test]
+    fn default_config_is_converted_to_default_release_request() {
+        let release_args = default_args();
+        let config: Config = toml::from_str("").unwrap();
+        let request = release_args.release_request(config).unwrap();
+        let pkg_config = request.get_package_config("aaa");
+        let expected = release_plz_core::PackageReleaseConfig {
+            generic: release_plz_core::ReleaseConfig::default(),
+            changelog_path: None,
+        };
+        assert_eq!(pkg_config, expected);
+    }
 }

@@ -108,7 +108,7 @@ impl ReleaseRequest {
         config.generic.git_release.enabled
     }
 
-    fn get_package_config(&self, package: &str) -> PackageReleaseConfig {
+    pub fn get_package_config(&self, package: &str) -> PackageReleaseConfig {
         self.packages_config.get(package)
     }
 
@@ -123,7 +123,7 @@ impl ReleaseRequest {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 struct PackagesConfig {
     /// Config for packages that don't have a specific configuration.
     default: ReleaseConfig,
@@ -149,7 +149,7 @@ impl PackagesConfig {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ReleaseConfig {
     git_release: GitReleaseConfig,
     /// Don't verify the contents by building them.
@@ -177,7 +177,7 @@ impl ReleaseConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GitReleaseConfig {
     enabled: bool,
 }
@@ -203,7 +203,7 @@ impl From<ReleaseConfig> for PackageReleaseConfig {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct PackageReleaseConfig {
     /// config that can be applied by default to all packages.
     pub generic: ReleaseConfig,
