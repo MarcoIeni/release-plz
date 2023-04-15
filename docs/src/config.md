@@ -20,9 +20,9 @@ the following sections:
   - [`repo_url`](#the-repo_url-field) — Repository URL.
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
   - [`update_changelog`](#the-update_changelog-field) — Update changelog.
-  - [`publish_allow_dirty`](#the-publish_allow_dirty-field-workspace.release-section) — Package dirty directories.
-  - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
+  - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
+  - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
 - [`[package]`](#the-package-section) — Package-specific configurations.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
   - [`update_changelog`](#the-update_changelog-field-package-section) — Update changelog.
@@ -46,6 +46,8 @@ allow_dirty = true # allow updating repositories with uncommitted changes
 repo_url = "https://github.com/<owner>/<repo>"
 semver_check = "no"
 update_changelog = false
+publish_allow_dirty = true
+publish_no_verify = false
 git_release_enable = true
 ```
 
@@ -105,19 +107,7 @@ The supported git releases are:
 - [Gitea](https://docs.gitea.io/en-us/)
 - [GitLab](https://docs.gitlab.com/ee/user/project/releases/#releases)
 
-### The `[workspace.release]` section
-
-Defines the global configuration for the cargo release created with the `release-plz release` command.
-
-Here's an example configuration:
-
-```toml
-[workspace.release]
-publish_allow_dirty = false
-publish_no_verify = false
-```
-
-#### The `publish_allow_dirty` field (`workspace.release` section)
+#### The `publish_allow_dirty` field
 
 Allow dirty working directories to be packaged.
 When `true`, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
@@ -175,27 +165,15 @@ This field cannot be set in the `[workspace]` section.
 [cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
 [git-cliff]: https://github.com/orhun/git-cliff
 
-### The `[package.release]` section
+#### The `git_release_enable` field (`package` section)
 
-In this section, you can override the `workspace.release` fields for specific packages.
-
-Here's an example configuration:
-
-```toml
-[package.my_package.release]
-allow_dirty = false
-no_verify = false
-```
+Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) field.
 
 #### The `publish_allow_dirty` field (`package.release` section)
 
 Overrides the
-[`workspace.publish_allow_dirty`](#the-publish_allow_dirty-field-workspace.release-section) field.
+[`workspace.publish_allow_dirty`](#the-publish_allow_dirty-field) field.
 
 #### The `publish_no_verify` field (`package.release` section)
 
 Overrides the [`workspace.publish_no_verify`](#the-publish_no_verify-field) field.
-
-#### The `git_release_enable` field (`package` section)
-
-Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) field.
