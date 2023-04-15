@@ -196,17 +196,6 @@ Overrides the
 
 Overrides the [`workspace.publish_no_verify`](#the-publish_no_verify-field) field.
 
-### The `[package.git_release]` section
-
-In this section, you can override the `workspace.git_release` fields for specific packages.
-
-Here's an example configuration:
-
-```toml
-[package.my_package.git_release]
-enable = false
-```
-
 #### The `git_release_enable` field (`package` section)
 
 Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) field.

@@ -219,6 +219,7 @@ pub struct PackageReleaseConfig {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct ReleaseConfig {
     #[serde(default, rename = "publish_allow_dirty")]
     pub allow_dirty: bool,
@@ -290,11 +291,9 @@ mod tests {
             changelog_config = "../git-cliff.toml"
             allow_dirty = false
             repo_url = "https://github.com/MarcoIeni/release-plz"
-
-            [workspace.git_release]
-            enable = true
-            release_type = "prod"
-            draft = false
+            git_release_enable = true
+            git_release_type = "prod"
+            git_release_draft = false
         "#;
 
         let expected_config = Config {
@@ -338,10 +337,9 @@ mod tests {
             semver_check = "lib"
             update_changelog = true
 
-            [workspace.git_release]
-            enable = true
-            release_type = "prod"
-            draft = false
+            git_release_enable = true
+            git_release_type = "prod"
+            git_release_draft = false
         "#;
 
         let expected_config = Config {
