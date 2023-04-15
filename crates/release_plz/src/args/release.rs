@@ -136,7 +136,7 @@ mod tests {
             changelog_config = "../git-cliff.toml"
             update_allow_dirty = false
             repo_url = "https://github.com/MarcoIeni/release-plz"
-            allow_dirty = true
+            publish_allow_dirty = true
             enable = true
             release_type = "prod"
             draft = false

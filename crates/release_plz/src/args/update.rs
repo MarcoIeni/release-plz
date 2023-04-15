@@ -102,7 +102,7 @@ impl Update {
     }
 
     fn allow_dirty(&self, config: &Config) -> bool {
-        self.allow_dirty || config.workspace.update.update_allow_dirty
+        self.allow_dirty || config.workspace.update.allow_dirty
     }
 
     pub fn update_request(&self, config: Config) -> anyhow::Result<UpdateRequest> {
