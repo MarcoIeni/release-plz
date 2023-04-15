@@ -147,7 +147,7 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
 impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
     fn from(value: PackageReleaseConfig) -> Self {
         let mut cfg = Self::default().with_git_release(
-            release_plz_core::GitReleaseConfig::enabled(value.git_release.enable),
+            release_plz_core::GitReleaseConfig::enabled(value.git_release.enable != Some(false)),
         );
         if let Some(no_verify) = value.release.no_verify {
             cfg = cfg.with_no_verify(no_verify);
@@ -173,7 +173,7 @@ impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
     fn from(config: PackageUpdateConfig) -> Self {
         Self {
             semver_check: config.semver_check().into(),
-            update_changelog: config.update_changelog.into(),
+            update_changelog: config.update_changelog != Some(false),
         }
     }
 }
@@ -307,11 +307,11 @@ mod tests {
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
                         semver_check: None,
-                        update_changelog: true.into(),
+                        update_changelog: None,
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
-                            enable: true.into(),
+                            enable: Some(true),
                             release_type: ReleaseType::Prod,
                             draft: false,
                         },
