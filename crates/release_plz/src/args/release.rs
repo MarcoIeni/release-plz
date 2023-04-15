@@ -134,16 +134,12 @@ mod tests {
             [workspace]
             update_dependencies = false
             changelog_config = "../git-cliff.toml"
-            allow_dirty = false
+            update_allow_dirty = false
             repo_url = "https://github.com/MarcoIeni/release-plz"
-
-            [workspace.release]
-            allow_dirty = true
-
-            [workspace.git_release]
-            enable = true
-            release_type = "prod"
-            draft = false
+            publish_allow_dirty = true
+            git_release_enable = true
+            git_release_type = "prod"
+            git_release_draft = false
         "#;
 
         let release_args = Release {
