@@ -196,6 +196,7 @@ pub struct PackageUpdateConfig {
     /// If unspecified, run cargo-semver-checks if the package is a library.
     pub semver_check: Option<bool>,
     /// Whether to create/update changelog or not.
+    /// If unspecified, the changelog is updated.
     pub update_changelog: Option<bool>,
 }
 
