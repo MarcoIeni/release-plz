@@ -12,10 +12,17 @@ pub struct Config {
     /// Package-specific configuration. This overrides `workspace`.
     /// Not all settings of `workspace` can be overridden.
     #[serde(default)]
-    pub package: HashMap<String, PackageSpecificConfig>,
+    package: Vec<PackageSpecificConfigWithName>,
 }
 
 impl Config {
+    fn packages(&self) -> HashMap<&str, &PackageSpecificConfig> {
+        self.package
+            .iter()
+            .map(|p| (p.name.as_str(), &p.config))
+            .collect()
+    }
+
     pub fn fill_update_config(
         &self,
         is_changelog_update_disabled: bool,
@@ -27,7 +34,7 @@ impl Config {
         }
         let mut update_request =
             update_request.with_default_package_config(default_update_config.into());
-        for (package, config) in &self.package {
+        for (package, config) in self.packages() {
             let mut update_config = config.clone();
             if is_changelog_update_disabled {
                 update_config.update.update_changelog = false.into();
@@ -53,7 +60,7 @@ impl Config {
         let mut release_request =
             release_request.with_default_package_config(default_config.into());
 
-        for (package, config) in &self.package {
+        for (package, config) in self.packages() {
             let mut release_config = config.clone();
 
             if no_verify {
@@ -102,7 +109,7 @@ pub struct UpdateConfig {
     pub repo_url: Option<Url>,
 }
 
-/// Config at the `[package]` level.
+/// Config at the `[[package]]` level.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct PackageSpecificConfig {
@@ -117,6 +124,14 @@ pub struct PackageSpecificConfig {
     /// This changelog_path needs to be propagated to all the commands:
     /// `update`, `release-pr` and `release`.
     changelog_path: Option<PathBuf>,
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct PackageSpecificConfigWithName {
+    pub name: String,
+    #[serde(flatten)]
+    pub config: PackageSpecificConfig,
 }
 
 impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
@@ -400,9 +415,9 @@ mod tests {
                     },
                 },
             },
-            package: [(
-                "crate1".to_string(),
-                PackageSpecificConfig {
+            package: [PackageSpecificConfigWithName {
+                name: "crate1".to_string(),
+                config: PackageSpecificConfig {
                     update: PackageUpdateConfig {
                         semver_check: SemverCheck::No,
                         update_changelog: true.into(),
@@ -417,7 +432,7 @@ mod tests {
                     },
                     changelog_path: Some("./CHANGELOG.md".into()),
                 },
-            )]
+            }]
             .into(),
         };
 
@@ -435,7 +450,8 @@ mod tests {
             publish_allow_dirty = false
             publish_no_verify = false
 
-            [package.crate1]
+            [[package]]
+            name = "crate1"
             semver_check = "no"
             update_changelog = true
             git_release_enable = true
