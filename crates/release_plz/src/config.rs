@@ -257,6 +257,7 @@ impl From<SemverCheck> for release_plz_core::RunSemverCheck {
 #[serde(deny_unknown_fields)]
 pub struct GitReleaseConfig {
     /// Publish the GitHub/Gitea release for the created git tag.
+    /// Enabled by default.
     #[serde(default, rename = "git_release_enable")]
     enable: Option<bool>,
     /// Whether to mark the created release as not ready for production.
