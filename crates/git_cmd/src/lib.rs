@@ -242,7 +242,7 @@ impl Repo {
     }
 
     pub fn current_commit_message(&self) -> anyhow::Result<String> {
-        self.git(&["log", "-1", "--pretty=format:%s"])
+        self.git(&["log", "-1", "--pretty=format:%B"])
     }
 
     pub fn tag(&self, name: &str) -> anyhow::Result<String> {
@@ -347,10 +347,15 @@ mod tests {
         let repository_dir = tempdir().unwrap();
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
-        let commit_message = "file1 message";
+
+        let header = "feat: file1";
+        let body = "message";
+        let footer = "footer: shoe";
+        let commit_message = format!("{}\n\n{}\n\n{}", header, body, footer);
+
         {
             fs::write(file1, b"Hello, file1!").unwrap();
-            repo.add_all_and_commit(commit_message).unwrap();
+            repo.add_all_and_commit(&commit_message).unwrap();
         }
         assert_eq!(repo.current_commit_message().unwrap(), commit_message);
     }
