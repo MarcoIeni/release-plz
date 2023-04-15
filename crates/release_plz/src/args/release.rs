@@ -134,7 +134,7 @@ mod tests {
             [workspace]
             update_dependencies = false
             changelog_config = "../git-cliff.toml"
-            update_allow_dirty = false
+            allow_dirty = false
             repo_url = "https://github.com/MarcoIeni/release-plz"
             publish_allow_dirty = true
             git_release_enable = true
@@ -142,7 +142,33 @@ mod tests {
             git_release_draft = false
         "#;
 
-        let release_args = Release {
+        let release_args = default_args();
+        let config: Config = toml::from_str(config).unwrap();
+        let actual_request = release_args.release_request(config).unwrap();
+        assert!(actual_request.allow_dirty("aaa"));
+    }
+
+    #[test]
+    fn package_config_is_overriden() {
+        let config = r#"
+            [workspace]
+            publish_allow_dirty = false
+            publish_no_verify = true
+
+            [[package]]
+            name = "aaa"
+            publish_allow_dirty = true
+        "#;
+
+        let release_args = default_args();
+        let config: Config = toml::from_str(config).unwrap();
+        let actual_request = release_args.release_request(config).unwrap();
+        assert!(actual_request.allow_dirty("aaa"));
+        assert!(actual_request.no_verify("aaa"));
+    }
+
+    fn default_args() -> Release {
+        Release {
             allow_dirty: false,
             no_verify: false,
             project_manifest: None,
@@ -152,9 +178,6 @@ mod tests {
             repo_url: None,
             git_token: None,
             backend: ReleaseGitBackendKind::Github,
-        };
-        let config: Config = toml::from_str(config).unwrap();
-        let actual_request = release_args.release_request(config).unwrap();
-        assert!(actual_request.allow_dirty("aaa"));
+        }
     }
 }
