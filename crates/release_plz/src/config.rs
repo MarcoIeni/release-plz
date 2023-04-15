@@ -94,7 +94,7 @@ pub struct UpdateConfig {
     pub changelog_config: Option<PathBuf>,
     /// Allow dirty working directories to be updated. The uncommitted changes will be part of the update.
     #[serde(default)]
-    pub allow_dirty: bool,
+    pub update_allow_dirty: bool,
     /// GitHub/Gitea repository url where your project is hosted.
     /// It is used to generate the changelog release link.
     /// It defaults to the url of the default remote.
@@ -210,12 +210,11 @@ impl From<bool> for BoolDefaultingTrue {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
-#[serde(deny_unknown_fields)]
 pub struct PackageReleaseConfig {
     /// Configuration for the GitHub/Gitea/GitLab release.
-    #[serde(default)]
+    #[serde(flatten, default)]
     pub git_release: GitReleaseConfig,
-    #[serde(default)]
+    #[serde(flatten, default)]
     pub release: ReleaseConfig,
 }
 
@@ -254,13 +253,13 @@ impl From<SemverCheck> for release_plz_core::RunSemverCheck {
 #[serde(deny_unknown_fields)]
 pub struct GitReleaseConfig {
     /// Publish the GitHub/Gitea release for the created git tag.
-    #[serde(default)]
+    #[serde(default, rename = "git_release_enable")]
     enable: BoolDefaultingTrue,
     /// Whether to mark the created release as not ready for production.
-    #[serde(default)]
+    #[serde(default, rename = "git_release_type")]
     pub release_type: ReleaseType,
     /// If true, will not auto-publish the release.
-    #[serde(default)]
+    #[serde(default, rename = "git_release_draft")]
     pub draft: bool,
 }
 
@@ -303,7 +302,7 @@ mod tests {
                 update: UpdateConfig {
                     update_dependencies: false,
                     changelog_config: Some("../git-cliff.toml".into()),
-                    allow_dirty: false,
+                    update_allow_dirty: false,
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
                 packages_defaults: PackageConfig {
@@ -350,7 +349,7 @@ mod tests {
                 update: UpdateConfig {
                     update_dependencies: false,
                     changelog_config: Some("../git-cliff.toml".into()),
-                    allow_dirty: false,
+                    update_allow_dirty: false,
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
                 packages_defaults: PackageConfig {
@@ -385,7 +384,7 @@ mod tests {
                 update: UpdateConfig {
                     update_dependencies: false,
                     changelog_config: Some("../git-cliff.toml".into()),
-                    allow_dirty: false,
+                    update_allow_dirty: false,
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
                 packages_defaults: PackageConfig {
@@ -428,33 +427,25 @@ mod tests {
             [workspace]
             update_dependencies = false
             changelog_config = "../git-cliff.toml"
-            allow_dirty = false
+            update_allow_dirty = false
             repo_url = "https://github.com/MarcoIeni/release-plz"
             semver_check = "lib"
             update_changelog = true
-
-            [workspace.git_release]
-            enable = true
-            release_type = "prod"
-            draft = false
-
-            [workspace.release]
+            git_release_enable = true
+            git_release_type = "prod"
+            git_release_draft = false
             allow_dirty = false
             no_verify = false
 
             [package.crate1]
             semver_check = "no"
             update_changelog = true
-            changelog_path = "./CHANGELOG.md"
-
-            [package.crate1.git_release]
-            enable = true
-            release_type = "prod"
-            draft = false
-
-            [package.crate1.release]
+            git_release_enable = true
+            git_release_type = "prod"
+            git_release_draft = false
             allow_dirty = false
             no_verify = false
+            changelog_path = "./CHANGELOG.md"
         "#]]
         .assert_eq(&toml::to_string(&config).unwrap());
     }
