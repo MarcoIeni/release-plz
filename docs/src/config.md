@@ -23,7 +23,8 @@ the following sections:
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
-- [`[package]`](#the-package-section) — Package-specific configurations.
+- [`[[package]]`](#the-package-section) — Package-specific configurations.
+  - [`name`](#the-name-field) — Package name.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
   - [`update_changelog`](#the-update_changelog-field-package-section) — Update changelog.
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
@@ -118,7 +119,7 @@ When `true`, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
 Don't verify the contents by building them.
 When `true`, `release-plz` adds the `--no-verify` flag to `cargo publish`.
 
-### The `[package]` section
+### The `[[package]]` section
 
 In this section, you can override some of the `workspace` fields for specific packages.
 This section is optional, as well as all its fields.
@@ -126,11 +127,17 @@ This section is optional, as well as all its fields.
 Here's an example configuration:
 
 ```toml
-[package.my_package]
+[[package]]
+name = "my_package"
 semver_check = "no"
 update_changelog = false
 changelog_path = "docs/CHANGELOG.md"
 ```
+
+#### The `name` field
+
+Name of the package to which the configuration applies.
+*(Mandatory field)*.
 
 #### The `semver_check` field (`package` section)
 
