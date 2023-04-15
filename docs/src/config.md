@@ -27,8 +27,8 @@ the following sections:
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
   - [`update_changelog`](#the-update_changelog-field-package-section) — Update changelog.
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
-  - [`publish_allow_dirty`](#the-publish_allow_dirty-field-package.release-section) — Package dirty directories.
-  - [`publish_no_verify`](#the-publish_no_verify-field-package.release-section) —
+  - [`publish_allow_dirty`](#the-publish_allow_dirty-field-package-section) — Package dirty directories.
+  - [`publish_no_verify`](#the-publish_no_verify-field-package-section) —
     Don't verify package build.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
 
@@ -170,11 +170,11 @@ This field cannot be set in the `[workspace]` section.
 
 Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) field.
 
-#### The `publish_allow_dirty` field (`package.release` section)
+#### The `publish_allow_dirty` field (`package` section)
 
 Overrides the
 [`workspace.publish_allow_dirty`](#the-publish_allow_dirty-field) field.
 
-#### The `publish_no_verify` field (`package.release` section)
+#### The `publish_no_verify` field (`package` section)
 
 Overrides the [`workspace.publish_no_verify`](#the-publish_no_verify-field) field.
