@@ -32,8 +32,8 @@ git_release_enable = true # enable GitHub/Gitea releases for `package_a`
 
 [[package]]
 name = "package_b"
-semver_check = true # enable semver_check for this package
-publish_no_verify = true # add `--no-verify` to `cargo publish`
+semver_check = true # enable semver_check for `package_b`
+publish_no_verify = true # add `--no-verify` to `cargo publish` for `package_b`
 ```
 
 ## Reference
