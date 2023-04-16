@@ -32,9 +32,9 @@ However, if you want to run CI checks on the release PR, you can use one of thes
 - Use [SSH (deploy keys)](#push-using-ssh-deploy-keys) to push the pull request branch.
   Note that this method will only trigger `on: push` workflows.
 
-- Use a [GitHub App to generate a token](#authenticating-with-github-app-generated-tokens) that can be used with this action.
-  GitHub App generated tokens are more secure than using a PAT because GitHub App access permissions can be set with finer granularity and are scoped to only repositories where the App is installed.
-  This method will trigger both `on: push` and `on: pull_request` workflows.
+- Use a
+  [GitHub App to generate a token](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#authenticating-with-github-app-generated-tokens)
+  that can be used with this action.
   If you want to use the release-plz logo for the GitHub app, you can find it [here](../assets/robot_head.jpeg).
 
 ## Credits
