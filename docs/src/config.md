@@ -15,14 +15,14 @@ the following sections:
 
 - [`[workspace]`](#the-workspace-section) — Default configuration.
   - [`allow_dirty`](#the-allow_dirty-field) — Update dirty working directories.
-  - [`dependencies_update`](#the-dependencies_update-field) — Update all dependencies.
   - [`changelog_config`](#the-changelog_config-field) — Path to the [git-cliff] configuration file.
-  - [`repo_url`](#the-repo_url-field) — Repository URL.
-  - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
   - [`changelog_update`](#the-changelog_update-field) — Update changelog.
+  - [`dependencies_update`](#the-dependencies_update-field) — Update all dependencies.
   - [`git_release_enable`](#the-git_release_enable-field) — Enable git release.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
+  - [`repo_url`](#the-repo_url-field) — Repository URL.
+  - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
 - [`[[package]]`](#the-package-section) — Package-specific configurations.
   - [`name`](#the-name-field) — Package name. *(Required)*.
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
