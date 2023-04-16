@@ -9,7 +9,6 @@
   - [release](usage/release.md)
   - [shell-completions](usage/shell-completions.md)
 - [GitHub Action](github/README.md)
-  - [Usage](github/usage.md)
   - [Triggering further workflows](github/trigger.md)
 - [Changelog format](changelog-format.md)
 - [Configuration](config.md)
