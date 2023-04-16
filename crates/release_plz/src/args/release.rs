@@ -192,5 +192,6 @@ mod tests {
             changelog_path: None,
         };
         assert_eq!(pkg_config, expected);
+        assert!(pkg_config.generic.git_release().is_enabled());
     }
 }

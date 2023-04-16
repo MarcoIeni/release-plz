@@ -175,6 +175,10 @@ impl ReleaseConfig {
         self.allow_dirty = allow_dirty;
         self
     }
+
+    pub fn git_release(&self) -> &GitReleaseConfig {
+        &self.git_release
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -191,6 +195,10 @@ impl Default for GitReleaseConfig {
 impl GitReleaseConfig {
     pub fn enabled(enabled: bool) -> Self {
         Self { enabled }
+    }
+
+    pub fn is_enabled(&self) -> bool {
+        self.enabled
     }
 }
 
