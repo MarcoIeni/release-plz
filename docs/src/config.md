@@ -8,6 +8,34 @@ with decent defaults.
 
 Put the `release-plz.toml` file in the same directory of your root `Cargo.toml`.
 
+## Example
+
+Here's an example configuration file for a cargo workspace.
+`package_a` and `package_b` override some fields from the default configuration `[workspace]`,
+while the other packages inherit the default configuration.
+
+```toml
+[workspace]
+allow_dirty = true # allow updating repositories with uncommitted changes
+changelog_config = "config/git-cliff.toml" # use a custom git-cliff configuration
+changelog_update = false # disable changelog updates
+dependencies_update = true # update dependencies with `cargo update`
+git_release_enable = false # disable GitHub/Gitea releases
+publish_allow_dirty = true # add `--allow-dirty` to `cargo publish`
+semver_check = false # disable API breaking changes checks
+
+[[package]] # the double square brackets define a TOML table array
+name = "package_a"
+changelog_path = "docs/CHANGELOG.md" # use a custom changelog path for `package_a`
+changelog_update = true # enable changelog update for `package_a`
+git_release_enable = true # enable GitHub/Gitea releases for `package_a`
+
+[[package]]
+name = "package_b"
+semver_check = true # enable semver_check for `package_b`
+publish_no_verify = true # add `--no-verify` to `cargo publish` for `package_b`
+```
+
 ## Reference
 
 The configuration file is written in the [TOML](https://toml.io/) format and consists of
@@ -42,27 +70,16 @@ Here's an example configuration:
 
 ```toml
 [workspace]
-dependencies_update = true # update dependencies with `cargo update`
-changelog_config = "config/git-cliff.toml"
 allow_dirty = true # allow updating repositories with uncommitted changes
-repo_url = "https://github.com/<owner>/<repo>"
-semver_check = false
+changelog_config = "config/git-cliff.toml"
 changelog_update = false
+dependencies_update = true # update dependencies with `cargo update`
 git_release_enable = true
 publish_allow_dirty = true
 publish_no_verify = false
+repo_url = "https://github.com/<owner>/<repo>"
+semver_check = false
 ```
-
-#### The `dependencies_update` field
-
-- If `true`, update all the dependencies in the `Cargo.lock` file by running `cargo update`.
-- If `false`, only update the workspace packages by running `cargo update --workspace`. *(Default)*.
-
-#### The `changelog_config` field
-
-Path to the [git-cliff] configuration file.
-If unspecified, release-plz uses the [keep a changelog](https://keepachangelog.com/en/1.1.0/) format.
-You can learn more in the [changelog format](changelog-format.md) section.
 
 #### The `allow_dirty` field
 
@@ -74,22 +91,11 @@ You can learn more in the [changelog format](changelog-format.md) section.
 Note: This field is different from the `allow-dirty` flag of the `release-plz release` command.
 This field only affects the `release-plz update` and `release-plz release-pr` command.
 
-#### The `repo_url` field
+#### The `changelog_config` field
 
-GitHub/Gitea repository URL where your project is hosted.
-It is used to generate the changelog release link and open the PR.
-Normally, you don't need to set this field,
-because release-plz defaults to the URL of the default git remote.
-
-#### The `semver_check` field
-
-With this field, you can tell release-plz when to run [cargo-semver-checks]:
-
-- If `false`, never run it.
-- If `true`, always run it.
-- If unspecified, run it if the package is a library. *(Default)*.
-
-This field can be overridden in the [`[package]`](#the-package-section) section.
+Path to the [git-cliff] configuration file.
+If unspecified, release-plz uses the [keep a changelog](https://keepachangelog.com/en/1.1.0/) format.
+You can learn more in the [changelog format](changelog-format.md) section.
 
 #### The `changelog_update` field
 
@@ -97,6 +103,11 @@ This field can be overridden in the [`[package]`](#the-package-section) section.
 - If `false`, don't update changelogs.
 
 This field can be overridden in the [`[package]`](#the-package-section) section.
+
+#### The `dependencies_update` field
+
+- If `true`, update all the dependencies in the `Cargo.lock` file by running `cargo update`.
+- If `false`, only update the workspace packages by running `cargo update --workspace`. *(Default)*.
 
 #### The `git_release_enable` field
 
@@ -118,6 +129,23 @@ When `true`, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
 
 Don't verify the contents by building them.
 When `true`, `release-plz` adds the `--no-verify` flag to `cargo publish`.
+
+#### The `repo_url` field
+
+GitHub/Gitea repository URL where your project is hosted.
+It is used to generate the changelog release link and open the PR.
+Normally, you don't need to set this field,
+because release-plz defaults to the URL of the default git remote.
+
+#### The `semver_check` field
+
+With this field, you can tell release-plz when to run [cargo-semver-checks]:
+
+- If `false`, never run it.
+- If `true`, always run it.
+- If unspecified, run it if the package is a library. *(Default)*.
+
+This field can be overridden in the [`[package]`](#the-package-section) section.
 
 ### The `[[package]]` section
 
@@ -160,13 +188,6 @@ In GitHub actions, this is the root of the repository.
 
 This field cannot be set in the `[workspace]` section.
 
-#### The `semver_check` field (`package` section)
-
-- If `true`, run [cargo-semver-checks] for this package.
-- If `false`, don't.
-
-By default, release-plz runs [cargo-semver-checks] if the package is a library.
-
 #### The `changelog_update` field (`package` section)
 
 - If `true`, update the changelog of this package. *(Default)*.
@@ -187,3 +208,10 @@ Overrides the
 #### The `publish_no_verify` field (`package` section)
 
 Overrides the [`workspace.publish_no_verify`](#the-publish_no_verify-field) field.
+
+#### The `semver_check` field (`package` section)
+
+- If `true`, run [cargo-semver-checks] for this package.
+- If `false`, don't.
+
+By default, release-plz runs [cargo-semver-checks] if the package is a library.
