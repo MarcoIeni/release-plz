@@ -98,11 +98,11 @@ impl Update {
     }
 
     fn update_dependencies(&self, config: &Config) -> bool {
-        self.update_deps || config.workspace.update.update_dependencies
+        self.update_deps || config.workspace.update.update_dependencies == Some(true)
     }
 
     fn allow_dirty(&self, config: &Config) -> bool {
-        self.allow_dirty || config.workspace.update.allow_dirty
+        self.allow_dirty || config.workspace.update.allow_dirty == Some(true)
     }
 
     pub fn update_request(&self, config: Config) -> anyhow::Result<UpdateRequest> {
@@ -197,5 +197,30 @@ impl Update {
                 .as_ref()
                 .map(|u| u.as_str())
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn input_generates_correct_release_request() {
+        let update_args = Update {
+            project_manifest: None,
+            registry_project_manifest: None,
+            package: None,
+            no_changelog: false,
+            release_date: None,
+            registry: None,
+            update_deps: false,
+            changelog_config: None,
+            allow_dirty: false,
+            repo_url: None,
+        };
+        let config: Config = toml::from_str("").unwrap();
+        let req = update_args.update_request(config).unwrap();
+        let pkg_config = req.get_package_config("aaa");
+        assert_eq!(pkg_config, release_plz_core::PackageUpdateConfig::default());
     }
 }

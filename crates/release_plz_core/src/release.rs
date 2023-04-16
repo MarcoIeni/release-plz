@@ -108,7 +108,7 @@ impl ReleaseRequest {
         config.generic.git_release.enabled
     }
 
-    fn get_package_config(&self, package: &str) -> PackageReleaseConfig {
+    pub fn get_package_config(&self, package: &str) -> PackageReleaseConfig {
         self.packages_config.get(package)
     }
 
@@ -123,7 +123,7 @@ impl ReleaseRequest {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 struct PackagesConfig {
     /// Config for packages that don't have a specific configuration.
     default: ReleaseConfig,
@@ -149,7 +149,7 @@ impl PackagesConfig {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ReleaseConfig {
     git_release: GitReleaseConfig,
     /// Don't verify the contents by building them.
@@ -175,9 +175,13 @@ impl ReleaseConfig {
         self.allow_dirty = allow_dirty;
         self
     }
+
+    pub fn git_release(&self) -> &GitReleaseConfig {
+        &self.git_release
+    }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GitReleaseConfig {
     enabled: bool,
 }
@@ -192,6 +196,10 @@ impl GitReleaseConfig {
     pub fn enabled(enabled: bool) -> Self {
         Self { enabled }
     }
+
+    pub fn is_enabled(&self) -> bool {
+        self.enabled
+    }
 }
 
 impl From<ReleaseConfig> for PackageReleaseConfig {
@@ -203,7 +211,7 @@ impl From<ReleaseConfig> for PackageReleaseConfig {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct PackageReleaseConfig {
     /// config that can be applied by default to all packages.
     pub generic: ReleaseConfig,
