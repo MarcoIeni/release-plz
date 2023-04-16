@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.7.1...release_plz_core-v0.8.0) - 2023-04-16
+
+### Added
+- make cargo publish flags configurable (#684)
+- [**breaking**] enable git release from config (#681)
+
+### Fixed
+- config package override (#695)
+- don't return early when publishing crates (#691)
+
+### Other
+- rename config field update_changelog (#700)
+- rename config field update_dependencies (#699)
+
 ## [0.7.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.7.0...release_plz_core-v0.7.1) - 2023-04-05
 
 ### Fixed
