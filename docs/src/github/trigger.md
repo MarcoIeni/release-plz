@@ -17,10 +17,11 @@ configured to run when `push` events occur.
 ## Workarounds to trigger further workflow runs
 
 Release-plz works fine without triggering further workflow runs.
-However, if you want to run CI checks on the release PR, you can use one of these workarounds:
+However, if you want to run CI checks on the release PR,
+or if you want to trigger another workflow after release-plz pushes
+a tag or creates a release, you can use one of these workarounds:
 
-- Manually close pull requests and immediately reopen them.
-  This will enable `on: pull_request` workflows to run and be added as checks.
+- To run `on: pull_request` workflows, manually close and reopen the release pull request.
 
 - Use a `repo` scoped
   [Personal Access Token (PAT)](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
