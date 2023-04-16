@@ -22,7 +22,7 @@ changelog_update = false # disable changelog updates
 dependencies_update = true # update dependencies with `cargo update`
 git_release_enable = false # disable GitHub/Gitea releases
 publish_allow_dirty = true # add `--allow-dirty` to `cargo publish`
-semver_check = false # disable semver checks
+semver_check = false # disable API breaking changes checks
 
 [[package]] # the double square brackets define a TOML table array
 name = "package_a"
