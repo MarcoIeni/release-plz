@@ -132,7 +132,7 @@ mod tests {
     fn input_generates_correct_release_request() {
         let config = r#"
             [workspace]
-            update_dependencies = false
+            dependencies_update = false
             changelog_config = "../git-cliff.toml"
             allow_dirty = false
             repo_url = "https://github.com/MarcoIeni/release-plz"

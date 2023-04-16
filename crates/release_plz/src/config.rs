@@ -97,7 +97,7 @@ pub struct Workspace {
 pub struct UpdateConfig {
     /// - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
     /// - If `false` or [`Option::None`], only update the workspace packages by running `cargo update --workspace`.
-    pub update_dependencies: Option<bool>,
+    pub dependencies_update: Option<bool>,
     /// Path to the git cliff configuration file. Defaults to the `keep a changelog` configuration.
     pub changelog_config: Option<PathBuf>,
     /// - If `true`, allow dirty working directories to be updated. The uncommitted changes will be part of the update.
@@ -340,7 +340,7 @@ mod tests {
     fn config_without_update_config_is_deserialized() {
         let config = r#"
             [workspace]
-            update_dependencies = false
+            dependencies_update = false
             changelog_config = "../git-cliff.toml"
             repo_url = "https://github.com/MarcoIeni/release-plz"
             git_release_enable = true
@@ -351,7 +351,7 @@ mod tests {
         let expected_config = Config {
             workspace: Workspace {
                 update: UpdateConfig {
-                    update_dependencies: Some(false),
+                    dependencies_update: Some(false),
                     changelog_config: Some("../git-cliff.toml".into()),
                     allow_dirty: None,
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
@@ -395,7 +395,7 @@ mod tests {
         let expected_config = Config {
             workspace: Workspace {
                 update: UpdateConfig {
-                    update_dependencies: None,
+                    dependencies_update: None,
                     changelog_config: Some("../git-cliff.toml".into()),
                     allow_dirty: Some(false),
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
@@ -430,7 +430,7 @@ mod tests {
         let config = Config {
             workspace: Workspace {
                 update: UpdateConfig {
-                    update_dependencies: None,
+                    dependencies_update: None,
                     changelog_config: Some("../git-cliff.toml".into()),
                     allow_dirty: None,
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
