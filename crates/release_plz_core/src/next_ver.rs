@@ -88,7 +88,7 @@ impl PackagesConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UpdateConfig {
     /// Controls when to run cargo-semver-checks.
     pub semver_check: RunSemverCheck,
@@ -98,7 +98,7 @@ pub struct UpdateConfig {
 }
 
 /// Package-specific config
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct PackageUpdateConfig {
     /// config that can be applied by default to all packages.
     pub generic: UpdateConfig,
@@ -237,7 +237,7 @@ impl UpdateRequest {
         self
     }
 
-    fn get_package_config(&self, package: &str) -> PackageUpdateConfig {
+    pub fn get_package_config(&self, package: &str) -> PackageUpdateConfig {
         self.packages_config.get(package)
     }
 
