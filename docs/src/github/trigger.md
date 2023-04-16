@@ -14,9 +14,31 @@ configured to run when `push` events occur.
 
 -- [GitHub Actions: Triggering a workflow from a workflow](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow)
 
-Read [this](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs)
-guide to learn about possible workarounds, such as setting a Personal Access
-Token, a deploy key or a GitHub app.
+## Workarounds to trigger further workflow runs
 
-If you want to use the release-plz logo for the GitHub app,
-you can find it [here](../assets/robot_head.jpeg).
+Release-plz works fine without triggering further workflow runs.
+However, if you want to run CI checks on the release PR, you can use one of these workarounds:
+
+- Manually close pull requests and immediately reopen them.
+  This will enable `on: pull_request` workflows to run and be added as checks.
+
+- Use a `repo` scoped
+  [Personal Access Token (PAT)](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
+  created on an account that has write access to the repository that pull requests are being
+  created in. This is the standard workaround and
+  [recommended by GitHub](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
+  Note that the account that owns the PAT will be the author of the release pull request.
+
+- Use [SSH (deploy keys)](#push-using-ssh-deploy-keys) to push the pull request branch.
+  Note that this method will only trigger `on: push` workflows.
+
+- Use a [GitHub App to generate a token](#authenticating-with-github-app-generated-tokens) that can be used with this action.
+  GitHub App generated tokens are more secure than using a PAT because GitHub App access permissions can be set with finer granularity and are scoped to only repositories where the App is installed.
+  This method will trigger both `on: push` and `on: pull_request` workflows.
+  If you want to use the release-plz logo for the GitHub app, you can find it [here](../assets/robot_head.jpeg).
+
+## Credits
+
+This section is inspired by
+[this](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs)
+guide.
