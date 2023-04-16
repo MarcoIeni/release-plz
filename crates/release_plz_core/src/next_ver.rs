@@ -94,7 +94,7 @@ pub struct UpdateConfig {
     pub semver_check: RunSemverCheck,
     /// Whether to create/update changelog or not.
     /// Default: `true`.
-    pub update_changelog: bool,
+    pub changelog_update: bool,
 }
 
 /// Package-specific config
@@ -115,7 +115,7 @@ impl PackageUpdateConfig {
     }
 
     pub fn should_update_changelog(&self) -> bool {
-        self.generic.update_changelog
+        self.generic.changelog_update
     }
 }
 
@@ -123,7 +123,7 @@ impl Default for UpdateConfig {
     fn default() -> Self {
         Self {
             semver_check: RunSemverCheck::default(),
-            update_changelog: true,
+            changelog_update: true,
         }
     }
 }
@@ -136,9 +136,9 @@ impl UpdateConfig {
         }
     }
 
-    pub fn with_update_changelog(self, update_changelog: bool) -> Self {
+    pub fn with_changelog_update(self, changelog_update: bool) -> Self {
         Self {
-            update_changelog,
+            changelog_update: changelog_update,
             ..self
         }
     }

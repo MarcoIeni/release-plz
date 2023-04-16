@@ -32,7 +32,7 @@ impl Config {
     ) -> UpdateRequest {
         let mut default_update_config = self.workspace.packages_defaults.update.clone();
         if is_changelog_update_disabled {
-            default_update_config.update_changelog = false.into();
+            default_update_config.changelog_update = false.into();
         }
         let mut update_request =
             update_request.with_default_package_config(default_update_config.into());
@@ -40,7 +40,7 @@ impl Config {
             let mut update_config = config.clone();
             update_config = update_config.merge(self.workspace.packages_defaults.clone());
             if is_changelog_update_disabled {
-                update_config.update.update_changelog = false.into();
+                update_config.update.changelog_update = false.into();
             }
             update_request = update_request.with_package_config(package, update_config.into());
         }
@@ -184,7 +184,7 @@ impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
     fn from(config: PackageUpdateConfig) -> Self {
         Self {
             semver_check: config.semver_check().into(),
-            update_changelog: config.update_changelog != Some(false),
+            changelog_update: config.changelog_update != Some(false),
         }
     }
 }
@@ -207,7 +207,7 @@ pub struct PackageUpdateConfig {
     pub semver_check: Option<bool>,
     /// Whether to create/update changelog or not.
     /// If unspecified, the changelog is updated.
-    pub update_changelog: Option<bool>,
+    pub changelog_update: Option<bool>,
 }
 
 impl PackageUpdateConfig {
@@ -215,7 +215,7 @@ impl PackageUpdateConfig {
     pub fn merge(self, default: PackageUpdateConfig) -> PackageUpdateConfig {
         PackageUpdateConfig {
             semver_check: self.semver_check.or(default.semver_check),
-            update_changelog: self.update_changelog.or(default.update_changelog),
+            changelog_update: self.changelog_update.or(default.changelog_update),
         }
     }
 }
@@ -359,7 +359,7 @@ mod tests {
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
                         semver_check: None,
-                        update_changelog: None,
+                        changelog_update: None,
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
@@ -385,7 +385,7 @@ mod tests {
             changelog_config = "../git-cliff.toml"
             allow_dirty = false
             repo_url = "https://github.com/MarcoIeni/release-plz"
-            update_changelog = true
+            changelog_update = true
 
             git_release_enable = true
             git_release_type = "prod"
@@ -403,7 +403,7 @@ mod tests {
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
                         semver_check: None,
-                        update_changelog: true.into(),
+                        changelog_update: true.into(),
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
@@ -438,7 +438,7 @@ mod tests {
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
                         semver_check: None,
-                        update_changelog: true.into(),
+                        changelog_update: true.into(),
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
@@ -455,7 +455,7 @@ mod tests {
                 config: PackageSpecificConfig {
                     update: PackageUpdateConfig {
                         semver_check: Some(false),
-                        update_changelog: true.into(),
+                        changelog_update: true.into(),
                     },
                     release: PackageReleaseConfig {
                         git_release: GitReleaseConfig {
@@ -475,7 +475,7 @@ mod tests {
             [workspace]
             changelog_config = "../git-cliff.toml"
             repo_url = "https://github.com/MarcoIeni/release-plz"
-            update_changelog = true
+            changelog_update = true
             git_release_enable = true
             git_release_type = "prod"
             git_release_draft = false
@@ -483,7 +483,7 @@ mod tests {
             [[package]]
             name = "crate1"
             semver_check = false
-            update_changelog = true
+            changelog_update = true
             git_release_enable = true
             git_release_type = "prod"
             git_release_draft = false

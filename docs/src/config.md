@@ -14,23 +14,23 @@ The configuration file is written in the [TOML](https://toml.io/) format and con
 the following sections:
 
 - [`[workspace]`](#the-workspace-section) — Default configuration.
+  - [`allow_dirty`](#the-allow_dirty-field) — Update dirty working directories.
   - [`dependencies_update`](#the-dependencies_update-field) — Update all dependencies.
   - [`changelog_config`](#the-changelog_config-field) — Path to the [git-cliff] configuration file.
-  - [`allow_dirty`](#the-allow_dirty-field) — Update dirty working directories.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
-  - [`update_changelog`](#the-update_changelog-field) — Update changelog.
+  - [`changelog_update`](#the-changelog_update-field) — Update changelog.
   - [`git_release_enable`](#the-git_release_enable-field) — Enable git release.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
 - [`[[package]]`](#the-package-section) — Package-specific configurations.
-  - [`name`](#the-name-field) — Package name.
+  - [`name`](#the-name-field) — Package name. *(Required)*.
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
-  - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
-  - [`update_changelog`](#the-update_changelog-field-package-section) — Update changelog.
+  - [`changelog_update`](#the-changelog_update-field-package-section) — Update changelog.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field-package-section) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field-package-section) —
+  - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
     Don't verify package build.
 
 ### The `[workspace]` section
@@ -47,7 +47,7 @@ changelog_config = "config/git-cliff.toml"
 allow_dirty = true # allow updating repositories with uncommitted changes
 repo_url = "https://github.com/<owner>/<repo>"
 semver_check = false
-update_changelog = false
+changelog_update = false
 git_release_enable = true
 publish_allow_dirty = true
 publish_no_verify = false
@@ -91,7 +91,7 @@ With this field, you can tell release-plz when to run [cargo-semver-checks]:
 
 This field can be overridden in the [`[package]`](#the-package-section) section.
 
-#### The `update_changelog` field
+#### The `changelog_update` field
 
 - If `true`, update the changelog of the crates. *(Default)*.
 - If `false`, don't update changelogs.
@@ -130,7 +130,7 @@ Here's an example configuration where we override the configuration of the `my_p
 name = "my_package"
 changelog_path = "docs/CHANGELOG.md"
 semver_check = false
-update_changelog = false
+changelog_update = false
 git_release_enable = true
 publish_allow_dirty = true
 publish_no_verify = true
@@ -139,7 +139,7 @@ publish_no_verify = true
 #### The `name` field
 
 Name of the package to which the configuration applies.
-*(Mandatory field)*.
+*(Required field)*.
 
 #### The `changelog_path` field (`package` section)
 
@@ -167,7 +167,7 @@ This field cannot be set in the `[workspace]` section.
 
 By default, release-plz runs [cargo-semver-checks] if the package is a library.
 
-#### The `update_changelog` field (`package` section)
+#### The `changelog_update` field (`package` section)
 
 - If `true`, update the changelog of this package. *(Default)*.
 - If `false`, don't.
