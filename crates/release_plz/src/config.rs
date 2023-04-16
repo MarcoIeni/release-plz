@@ -99,7 +99,6 @@ pub struct UpdateConfig {
     /// - If `false` or [`Option::None`], only update the workspace packages by running `cargo update --workspace`.
     pub update_dependencies: Option<bool>,
     /// Path to the git cliff configuration file. Defaults to the `keep a changelog` configuration.
-    #[serde(default)]
     pub changelog_config: Option<PathBuf>,
     /// - If `true`, allow dirty working directories to be updated. The uncommitted changes will be part of the update.
     /// - If `false` or [`Option::None`], the command will fail if the working directory is dirty.
@@ -107,12 +106,11 @@ pub struct UpdateConfig {
     /// GitHub/Gitea repository url where your project is hosted.
     /// It is used to generate the changelog release link.
     /// It defaults to the url of the default remote.
-    #[serde(default)]
     pub repo_url: Option<Url>,
 }
 
 /// Config at the `[[package]]` level.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct PackageSpecificConfig {
     /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
     #[serde(flatten)]
@@ -138,7 +136,7 @@ impl PackageSpecificConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct PackageSpecificConfigWithName {
     pub name: String,
     #[serde(flatten)]
@@ -158,8 +156,9 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
 
 impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
     fn from(value: PackageReleaseConfig) -> Self {
+        let is_git_release_enabled = value.git_release.enable != Some(false);
         let mut cfg = Self::default().with_git_release(
-            release_plz_core::GitReleaseConfig::enabled(value.git_release.enable != Some(false)),
+            release_plz_core::GitReleaseConfig::enabled(is_git_release_enabled),
         );
         if let Some(no_verify) = value.release.no_verify {
             cfg = cfg.with_no_verify(no_verify);
@@ -253,10 +252,10 @@ impl PackageReleaseConfig {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct ReleaseConfig {
     /// If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.
-    #[serde(default, rename = "publish_allow_dirty")]
+    #[serde(rename = "publish_allow_dirty")]
     pub allow_dirty: Option<bool>,
     /// If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.
-    #[serde(default, rename = "publish_no_verify")]
+    #[serde(rename = "publish_no_verify")]
     pub no_verify: Option<bool>,
 }
 
@@ -297,13 +296,13 @@ impl From<SemverCheck> for release_plz_core::RunSemverCheck {
 pub struct GitReleaseConfig {
     /// Publish the GitHub/Gitea release for the created git tag.
     /// Enabled by default.
-    #[serde(default, rename = "git_release_enable")]
+    #[serde(rename = "git_release_enable")]
     enable: Option<bool>,
     /// Whether to mark the created release as not ready for production.
-    #[serde(default, rename = "git_release_type")]
+    #[serde(rename = "git_release_type")]
     pub release_type: Option<ReleaseType>,
     /// If true, will not auto-publish the release.
-    #[serde(default, rename = "git_release_draft")]
+    #[serde(rename = "git_release_draft")]
     pub draft: Option<bool>,
 }
 
