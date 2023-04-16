@@ -42,7 +42,7 @@ pub struct UpdateRequest {
     registry: Option<String>,
     /// - If true, update all the dependencies in Cargo.lock by running `cargo update`.
     /// - If false, updates the workspace packages in Cargo.lock by running `cargo update --workspace`.
-    update_dependencies: bool,
+    dependencies_update: bool,
     /// Allow dirty working directories to be updated.
     /// The uncommitted changes will be part of the update.
     allow_dirty: bool,
@@ -179,7 +179,7 @@ impl UpdateRequest {
             single_package: None,
             changelog_req: ChangelogRequest::default(),
             registry: None,
-            update_dependencies: false,
+            dependencies_update: false,
             allow_dirty: false,
             repo_url: None,
             packages_config: PackagesConfig::default(),
@@ -276,15 +276,15 @@ impl UpdateRequest {
         self.registry_manifest.as_deref()
     }
 
-    pub fn with_update_dependencies(self, update_dependencies: bool) -> Self {
+    pub fn with_dependencies_update(self, dependencies_update: bool) -> Self {
         Self {
-            update_dependencies,
+            dependencies_update,
             ..self
         }
     }
 
     pub fn should_update_dependencies(&self) -> bool {
-        self.update_dependencies
+        self.dependencies_update
     }
 
     pub fn with_allow_dirty(self, allow_dirty: bool) -> Self {

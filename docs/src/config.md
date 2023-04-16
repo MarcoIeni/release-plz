@@ -14,7 +14,7 @@ The configuration file is written in the [TOML](https://toml.io/) format and con
 the following sections:
 
 - [`[workspace]`](#the-workspace-section) — Default configuration.
-  - [`update_dependencies`](#the-update_dependencies-field) — Update all dependencies.
+  - [`dependencies_update`](#the-dependencies_update-field) — Update all dependencies.
   - [`changelog_config`](#the-changelog_config-field) — Path to the [git-cliff] configuration file.
   - [`allow_dirty`](#the-allow_dirty-field) — Update dirty working directories.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
@@ -42,7 +42,7 @@ Here's an example configuration:
 
 ```toml
 [workspace]
-update_dependencies = true # update dependencies with `cargo update`
+dependencies_update = true # update dependencies with `cargo update`
 changelog_config = "config/git-cliff.toml"
 allow_dirty = true # allow updating repositories with uncommitted changes
 repo_url = "https://github.com/<owner>/<repo>"
@@ -53,7 +53,7 @@ publish_allow_dirty = true
 publish_no_verify = false
 ```
 
-#### The `update_dependencies` field
+#### The `dependencies_update` field
 
 - If `true`, update all the dependencies in the `Cargo.lock` file by running `cargo update`.
 - If `false`, only update the workspace packages by running `cargo update --workspace`. *(Default)*.

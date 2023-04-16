@@ -97,8 +97,8 @@ impl Update {
         }
     }
 
-    fn update_dependencies(&self, config: &Config) -> bool {
-        self.update_deps || config.workspace.update.update_dependencies == Some(true)
+    fn dependencies_update(&self, config: &Config) -> bool {
+        self.update_deps || config.workspace.update.dependencies_update == Some(true)
     }
 
     fn allow_dirty(&self, config: &Config) -> bool {
@@ -111,7 +111,7 @@ impl Update {
             .with_context(|| {
                 format!("Cannot find file {project_manifest:?}. Make sure you are inside a rust project or that --project-manifest points to a valid Cargo.toml file.")
             })?
-            .with_update_dependencies(self.update_dependencies(&config))
+            .with_dependencies_update(self.dependencies_update(&config))
             .with_allow_dirty(self.allow_dirty(&config));
         match self.get_repo_url(&config) {
             Ok(repo_url) => {
