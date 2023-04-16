@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="github-action.html"><strong aria-hidden="true">2.</strong> GitHub Action</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">3.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">3.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">3.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">3.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="config.html" class="active"><strong aria-hidden="true">5.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="why.html"><strong aria-hidden="true">6.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="extra/index.html"><strong aria-hidden="true">7.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="extra/releasing-binaries.html"><strong aria-hidden="true">7.1.</strong> Releasing binaries</a></li><li class="chapter-item expanded "><a href="extra/single-changelog.html"><strong aria-hidden="true">7.2.</strong> Single changelog</a></li><li class="chapter-item expanded "><a href="extra/yanked-packages.html"><strong aria-hidden="true">7.3.</strong> Yanked packages</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">2.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">2.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">2.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">2.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">2.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="github/index.html"><strong aria-hidden="true">3.</strong> GitHub Action</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="github/trigger.html"><strong aria-hidden="true">3.1.</strong> Triggering further workflows</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="config.html" class="active"><strong aria-hidden="true">5.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="why.html"><strong aria-hidden="true">6.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="extra/index.html"><strong aria-hidden="true">7.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="extra/releasing-binaries.html"><strong aria-hidden="true">7.1.</strong> Releasing binaries</a></li><li class="chapter-item expanded "><a href="extra/single-changelog.html"><strong aria-hidden="true">7.2.</strong> Single changelog</a></li><li class="chapter-item expanded "><a href="extra/yanked-packages.html"><strong aria-hidden="true">7.3.</strong> Yanked packages</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -156,25 +156,57 @@ with the <code>release-plz.toml</code> file.</p>
 <p>This configuration file is optional — release-plz is designed to work out of the box,
 with decent defaults.</p>
 <p>Put the <code>release-plz.toml</code> file in the same directory of your root <code>Cargo.toml</code>.</p>
+<h2 id="example"><a class="header" href="#example">Example</a></h2>
+<p>Here’s an example configuration file for a cargo workspace.
+<code>package_a</code> and <code>package_b</code> override some fields from the default configuration <code>[workspace]</code>,
+while the other packages inherit the default configuration.</p>
+<pre><code class="language-toml">[workspace]
+allow_dirty = true # allow updating repositories with uncommitted changes
+changelog_config = &quot;config/git-cliff.toml&quot; # use a custom git-cliff configuration
+changelog_update = false # disable changelog updates
+dependencies_update = true # update dependencies with `cargo update`
+git_release_enable = false # disable GitHub/Gitea releases
+publish_allow_dirty = true # add `--allow-dirty` to `cargo publish`
+semver_check = false # disable API breaking changes checks
+
+[[package]] # the double square brackets define a TOML table array
+name = &quot;package_a&quot;
+changelog_path = &quot;docs/CHANGELOG.md&quot; # use a custom changelog path for `package_a`
+changelog_update = true # enable changelog update for `package_a`
+git_release_enable = true # enable GitHub/Gitea releases for `package_a`
+
+[[package]]
+name = &quot;package_b&quot;
+semver_check = true # enable semver_check for `package_b`
+publish_no_verify = true # add `--no-verify` to `cargo publish` for `package_b`
+</code></pre>
 <h2 id="reference"><a class="header" href="#reference">Reference</a></h2>
 <p>The configuration file is written in the <a href="https://toml.io/">TOML</a> format and consists of
 the following sections:</p>
 <ul>
-<li><a href="#the-workspace-section"><code>[workspace]</code></a> — Defines the default configuration.
+<li><a href="#the-workspace-section"><code>[workspace]</code></a> — Default configuration.
 <ul>
-<li><a href="#the-update_dependencies-field"><code>update_dependencies</code></a> — Update all dependencies.</li>
-<li><a href="#the-changelog_config-field"><code>changelog_config</code></a> — Path to the <a href="https://github.com/orhun/git-cliff">git-cliff</a> configuration file.</li>
 <li><a href="#the-allow_dirty-field"><code>allow_dirty</code></a> — Update dirty working directories.</li>
+<li><a href="#the-changelog_config-field"><code>changelog_config</code></a> — Path to the <a href="https://github.com/orhun/git-cliff">git-cliff</a> configuration file.</li>
+<li><a href="#the-changelog_update-field"><code>changelog_update</code></a> — Update changelog.</li>
+<li><a href="#the-dependencies_update-field"><code>dependencies_update</code></a> — Update all dependencies.</li>
+<li><a href="#the-git_release_enable-field"><code>git_release_enable</code></a> — Enable git release.</li>
+<li><a href="#the-publish_allow_dirty-field"><code>publish_allow_dirty</code></a> — Package dirty directories.</li>
+<li><a href="#the-publish_no_verify-field"><code>publish_no_verify</code></a> — Don’t verify package build.</li>
 <li><a href="#the-repo_url-field"><code>repo_url</code></a> — Repository URL.</li>
 <li><a href="#the-semver_check-field"><code>semver_check</code></a> — Run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>.</li>
-<li><a href="#the-update_changelog-field"><code>update_changelog</code></a> — Update changelog.</li>
 </ul>
 </li>
-<li><a href="#the-package-section"><code>[package]</code></a> — Defines the package-specific configurations.
+<li><a href="#the-package-section"><code>[[package]]</code></a> — Package-specific configurations.
 <ul>
-<li><a href="#the-semver_check-field-package-section"><code>semver_check</code></a> — Run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>.</li>
-<li><a href="#the-update_changelog-field-package-section"><code>update_changelog</code></a> — Update changelog.</li>
+<li><a href="#the-name-field"><code>name</code></a> — Package name. <em>(Required)</em>.</li>
 <li><a href="#the-changelog_path-field-package-section"><code>changelog_path</code></a> — Changelog path.</li>
+<li><a href="#the-changelog_update-field-package-section"><code>changelog_update</code></a> — Update changelog.</li>
+<li><a href="#the-git_release_enable-field-package-section"><code>git_release_enable</code></a> — Enable git release.</li>
+<li><a href="#the-publish_allow_dirty-field-package-section"><code>publish_allow_dirty</code></a> — Package dirty directories.</li>
+<li><a href="#the-publish_no_verify-field-package-section"><code>publish_no_verify</code></a> —</li>
+<li><a href="#the-semver_check-field-package-section"><code>semver_check</code></a> — Run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>.
+Don’t verify package build.</li>
 </ul>
 </li>
 </ul>
@@ -183,22 +215,16 @@ the following sections:</p>
 This section is optional, as well as all its fields.</p>
 <p>Here’s an example configuration:</p>
 <pre><code class="language-toml">[workspace]
-update_dependencies = true # update dependencies with `cargo update`
-changelog_config = &quot;config/git-cliff.toml&quot;
 allow_dirty = true # allow updating repositories with uncommitted changes
+changelog_config = &quot;config/git-cliff.toml&quot;
+changelog_update = false
+dependencies_update = true # update dependencies with `cargo update`
+git_release_enable = true
+publish_allow_dirty = true
+publish_no_verify = false
 repo_url = &quot;https://github.com/&lt;owner&gt;/&lt;repo&gt;&quot;
-semver_check = &quot;no&quot;
-update_changelog = false
+semver_check = false
 </code></pre>
-<h4 id="the-update_dependencies-field"><a class="header" href="#the-update_dependencies-field">The <code>update_dependencies</code> field</a></h4>
-<ul>
-<li>If <code>true</code>, update all the dependencies in the <code>Cargo.lock</code> file by running <code>cargo update</code>.</li>
-<li>If <code>false</code>, only update the workspace packages by running <code>cargo update --workspace</code>. <em>(Default)</em>.</li>
-</ul>
-<h4 id="the-changelog_config-field"><a class="header" href="#the-changelog_config-field">The <code>changelog_config</code> field</a></h4>
-<p>Path to the <a href="https://github.com/orhun/git-cliff">git-cliff</a> configuration file.
-If unspecified, release-plz uses the <a href="https://keepachangelog.com/en/1.1.0/">keep a changelog</a> format.
-You can learn more in the <a href="changelog-format.html">changelog format</a> section.</p>
 <h4 id="the-allow_dirty-field"><a class="header" href="#the-allow_dirty-field">The <code>allow_dirty</code> field</a></h4>
 <ul>
 <li>If <code>true</code>, allow release-plz to update dirty working directories.
@@ -208,6 +234,38 @@ The uncommitted changes will be part of the update.</li>
 </ul>
 <p>Note: This field is different from the <code>allow-dirty</code> flag of the <code>release-plz release</code> command.
 This field only affects the <code>release-plz update</code> and <code>release-plz release-pr</code> command.</p>
+<h4 id="the-changelog_config-field"><a class="header" href="#the-changelog_config-field">The <code>changelog_config</code> field</a></h4>
+<p>Path to the <a href="https://github.com/orhun/git-cliff">git-cliff</a> configuration file.
+If unspecified, release-plz uses the <a href="https://keepachangelog.com/en/1.1.0/">keep a changelog</a> format.
+You can learn more in the <a href="changelog-format.html">changelog format</a> section.</p>
+<h4 id="the-changelog_update-field"><a class="header" href="#the-changelog_update-field">The <code>changelog_update</code> field</a></h4>
+<ul>
+<li>If <code>true</code>, update the changelog of the crates. <em>(Default)</em>.</li>
+<li>If <code>false</code>, don’t update changelogs.</li>
+</ul>
+<p>This field can be overridden in the <a href="#the-package-section"><code>[package]</code></a> section.</p>
+<h4 id="the-dependencies_update-field"><a class="header" href="#the-dependencies_update-field">The <code>dependencies_update</code> field</a></h4>
+<ul>
+<li>If <code>true</code>, update all the dependencies in the <code>Cargo.lock</code> file by running <code>cargo update</code>.</li>
+<li>If <code>false</code>, only update the workspace packages by running <code>cargo update --workspace</code>. <em>(Default)</em>.</li>
+</ul>
+<h4 id="the-git_release_enable-field"><a class="header" href="#the-git_release_enable-field">The <code>git_release_enable</code> field</a></h4>
+<ul>
+<li>If <code>true</code>, release-plz will create a git release for the created tag. <em>(Default)</em>.</li>
+<li>If <code>false</code>, release-plz will not create a git release.</li>
+</ul>
+<p>The supported git releases are:</p>
+<ul>
+<li><a href="https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository">GitHub</a></li>
+<li><a href="https://docs.gitea.io/en-us/">Gitea</a></li>
+<li><a href="https://docs.gitlab.com/ee/user/project/releases/#releases">GitLab</a></li>
+</ul>
+<h4 id="the-publish_allow_dirty-field"><a class="header" href="#the-publish_allow_dirty-field">The <code>publish_allow_dirty</code> field</a></h4>
+<p>Allow dirty working directories to be packaged.
+When <code>true</code>, <code>release-plz</code> adds the <code>--allow-dirty</code> flag to <code>cargo publish</code>.</p>
+<h4 id="the-publish_no_verify-field"><a class="header" href="#the-publish_no_verify-field">The <code>publish_no_verify</code> field</a></h4>
+<p>Don’t verify the contents by building them.
+When <code>true</code>, <code>release-plz</code> adds the <code>--no-verify</code> flag to <code>cargo publish</code>.</p>
 <h4 id="the-repo_url-field"><a class="header" href="#the-repo_url-field">The <code>repo_url</code> field</a></h4>
 <p>GitHub/Gitea repository URL where your project is hosted.
 It is used to generate the changelog release link and open the PR.
@@ -216,36 +274,26 @@ because release-plz defaults to the URL of the default git remote.</p>
 <h4 id="the-semver_check-field"><a class="header" href="#the-semver_check-field">The <code>semver_check</code> field</a></h4>
 <p>With this field, you can tell release-plz when to run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>:</p>
 <ul>
-<li>If <code>&quot;no&quot;</code>, never run it.</li>
-<li>If <code>&quot;yes&quot;</code>, always run it.</li>
-<li>If <code>&quot;lib&quot;</code>, run it if the package is a library. <em>(Default)</em>.</li>
+<li>If <code>false</code>, never run it.</li>
+<li>If <code>true</code>, always run it.</li>
+<li>If unspecified, run it if the package is a library. <em>(Default)</em>.</li>
 </ul>
 <p>This field can be overridden in the <a href="#the-package-section"><code>[package]</code></a> section.</p>
-<h4 id="the-update_changelog-field"><a class="header" href="#the-update_changelog-field">The <code>update_changelog</code> field</a></h4>
-<ul>
-<li>If <code>true</code>, update the changelog of the crates. <em>(Default)</em>.</li>
-<li>If <code>false</code>, don’t update changelogs.</li>
-</ul>
-<p>This field can be overridden in the <a href="#the-package-section"><code>[package]</code></a> section.</p>
-<h3 id="the-package-section"><a class="header" href="#the-package-section">The <code>[package]</code> section</a></h3>
-<p>In this section, you can override some of the <code>workspace</code> fields for specific packages.
-This section is optional, as well as all its fields.</p>
-<pre><code class="language-toml">[package.my_package]
-semver_check = &quot;no&quot;
-update_changelog = false
+<h3 id="the-package-section"><a class="header" href="#the-package-section">The <code>[[package]]</code> section</a></h3>
+<p>In this section, you can override some of the <code>workspace</code> fields for specific packages.</p>
+<p>Here’s an example configuration where we override the configuration of the <code>my_package</code> package:</p>
+<pre><code class="language-toml">[[package]]
+name = &quot;my_package&quot;
 changelog_path = &quot;docs/CHANGELOG.md&quot;
+semver_check = false
+changelog_update = false
+git_release_enable = true
+publish_allow_dirty = true
+publish_no_verify = true
 </code></pre>
-<h4 id="the-semver_check-field-package-section"><a class="header" href="#the-semver_check-field-package-section">The <code>semver_check</code> field (<code>package</code> section)</a></h4>
-<ul>
-<li>If <code>&quot;yes&quot;</code>, run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a> for this package.</li>
-<li>If <code>&quot;no&quot;</code>, don’t.</li>
-</ul>
-<p>By default, release-plz runs <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a> if the package is a library.</p>
-<h4 id="the-update_changelog-field-package-section"><a class="header" href="#the-update_changelog-field-package-section">The <code>update_changelog</code> field (<code>package</code> section)</a></h4>
-<ul>
-<li>If <code>true</code>, update the changelog of this package. <em>(Default)</em>.</li>
-<li>If <code>false</code>, don’t.</li>
-</ul>
+<h4 id="the-name-field"><a class="header" href="#the-name-field">The <code>name</code> field</a></h4>
+<p>Name of the package to which the configuration applies.
+<em>(Required field)</em>.</p>
 <h4 id="the-changelog_path-field-package-section"><a class="header" href="#the-changelog_path-field-package-section">The <code>changelog_path</code> field (<code>package</code> section)</a></h4>
 <p>By default, release-plz looks for the changelog in the <code>CHANGELOG.md</code> file
 of the same directory of the <code>Cargo.toml</code> of the package:</p>
@@ -258,6 +306,24 @@ of the same directory of the <code>Cargo.toml</code> of the package:</p>
 <p>This field is relative to the root <code>Cargo.toml</code> file.
 In GitHub actions, this is the root of the repository.</p>
 <p>This field cannot be set in the <code>[workspace]</code> section.</p>
+<h4 id="the-changelog_update-field-package-section"><a class="header" href="#the-changelog_update-field-package-section">The <code>changelog_update</code> field (<code>package</code> section)</a></h4>
+<ul>
+<li>If <code>true</code>, update the changelog of this package. <em>(Default)</em>.</li>
+<li>If <code>false</code>, don’t.</li>
+</ul>
+<h4 id="the-git_release_enable-field-package-section"><a class="header" href="#the-git_release_enable-field-package-section">The <code>git_release_enable</code> field (<code>package</code> section)</a></h4>
+<p>Overrides the <a href="#the-git_release_enable-field"><code>workspace.git_release_enable</code></a> field.</p>
+<h4 id="the-publish_allow_dirty-field-package-section"><a class="header" href="#the-publish_allow_dirty-field-package-section">The <code>publish_allow_dirty</code> field (<code>package</code> section)</a></h4>
+<p>Overrides the
+<a href="#the-publish_allow_dirty-field"><code>workspace.publish_allow_dirty</code></a> field.</p>
+<h4 id="the-publish_no_verify-field-package-section"><a class="header" href="#the-publish_no_verify-field-package-section">The <code>publish_no_verify</code> field (<code>package</code> section)</a></h4>
+<p>Overrides the <a href="#the-publish_no_verify-field"><code>workspace.publish_no_verify</code></a> field.</p>
+<h4 id="the-semver_check-field-package-section"><a class="header" href="#the-semver_check-field-package-section">The <code>semver_check</code> field (<code>package</code> section)</a></h4>
+<ul>
+<li>If <code>true</code>, run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a> for this package.</li>
+<li>If <code>false</code>, don’t.</li>
+</ul>
+<p>By default, release-plz runs <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a> if the package is a library.</p>
 
                     </main>
 
