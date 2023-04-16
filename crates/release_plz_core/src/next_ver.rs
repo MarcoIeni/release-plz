@@ -138,7 +138,7 @@ impl UpdateConfig {
 
     pub fn with_changelog_update(self, changelog_update: bool) -> Self {
         Self {
-            changelog_update: changelog_update,
+            changelog_update,
             ..self
         }
     }
