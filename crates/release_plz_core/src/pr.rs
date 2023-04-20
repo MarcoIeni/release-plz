@@ -10,6 +10,7 @@ pub struct Pr {
     pub branch: String,
     pub title: String,
     pub body: String,
+    pub labels: Vec<String>,
 }
 
 impl Pr {
@@ -23,7 +24,13 @@ impl Pr {
             base_branch: default_branch.to_string(),
             title: pr_title(packages_to_update, project_contains_multiple_pub_packages),
             body: pr_body(packages_to_update, project_contains_multiple_pub_packages),
+            labels: vec![],
         }
+    }
+
+    pub fn with_labels(mut self, labels: Vec<String>) -> Self {
+        self.labels = labels;
+        self
     }
 }
 
