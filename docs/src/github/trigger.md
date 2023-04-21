@@ -23,13 +23,26 @@ a tag or creates a release, you can use one of these workarounds:
 
 - To run `on: pull_request` workflows, manually close and reopen the release pull request.
 
-- Use a `repo` scoped
-  [Personal Access Token (PAT)](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
+- [Personal Access Token (PAT)](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
   created on an account with write access to the repository.
   This is the standard workaround
   [recommended by GitHub](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
   Note that the account that owns the PAT will be the author of the release pull request.
-
+  There are two types of PAT:
+  - classic: less secure because you can't scope it to a single repository. Release-plz needs `repo` permissions.
+    It works with:
+    ```yaml
+    on:
+      release:
+        types: [published]
+    ```
+    We don't know why it doesn't work with:
+    ```yaml
+    on:
+      push:
+        tags:
+          - "*"
+     ```
 - Use [SSH (deploy keys)](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#push-using-ssh-deploy-keys)
   to push the pull request branch.
   Note that this method will only trigger `on: push` workflows.
