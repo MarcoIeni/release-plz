@@ -16,7 +16,7 @@ configured to run when `push` events occur.
 
 ## Workarounds to trigger further workflow runs
 
-Release-plz works fine without triggering further workflow runs.
+Release-plz can release your packages without triggering further workflow runs.
 However, if you want to run CI checks on the release PR,
 or if you want to trigger another workflow after release-plz pushes
 a tag or creates a release, you can use one of these workarounds:
@@ -25,8 +25,8 @@ a tag or creates a release, you can use one of these workarounds:
 
 - Use a `repo` scoped
   [Personal Access Token (PAT)](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
-  created on an account that has write access to the repository that pull requests are being
-  created in. This is the standard workaround and
+  created on an account with write access to the repository.
+  This is the standard workaround
   [recommended by GitHub](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
   Note that the account that owns the PAT will be the author of the release pull request.
 
