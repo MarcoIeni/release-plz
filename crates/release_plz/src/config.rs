@@ -491,11 +491,11 @@ mod tests {
             [workspace]
             changelog_config = "../git-cliff.toml"
             repo_url = "https://github.com/MarcoIeni/release-plz"
+            pr_labels = ["label1"]
             changelog_update = true
             git_release_enable = true
             git_release_type = "prod"
             git_release_draft = false
-            pr_labels = ["label1"]
 
             [[package]]
             name = "crate1"
