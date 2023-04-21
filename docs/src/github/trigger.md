@@ -28,21 +28,27 @@ a tag or creates a release, you can use one of these workarounds:
   This is the standard workaround
   [recommended by GitHub](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
   Note that the account that owns the PAT will be the author of the release pull request.
+  PAT works with:
+  ```yaml
+  on:
+    release:
+      types: [published]
+  ```
+  We don't know why it doesn't work with:
+  ```yaml
+  on:
+    push:
+      tags:
+        - "*"
+   ```
   There are two types of PAT:
-  - classic: less secure because you can't scope it to a single repository. Release-plz needs `repo` permissions.
-    It works with:
-    ```yaml
-    on:
-      release:
-        types: [published]
-    ```
-    We don't know why it doesn't work with:
-    ```yaml
-    on:
-      push:
-        tags:
-          - "*"
-     ```
+  - classic: less secure because you can't scope it to a single repository. Release-plz needs `repo` permissions:
+    ![](../assets/pat-classic.png)
+  - fine-grained: more secure because you can select the repositories where the PAT can be used. Release-plz needs the following:
+    - Select the repositories where you want to use the PAT, to give it write access:
+      ![](../assets/repository-access.png)
+    - Assign "Contents" and "Pull requests" read and write permissions:
+      ![](../assets/pat-overview.png)
 - Use [SSH (deploy keys)](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#push-using-ssh-deploy-keys)
   to push the pull request branch.
   Note that this method will only trigger `on: push` workflows.
