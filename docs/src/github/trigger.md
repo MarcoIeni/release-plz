@@ -36,7 +36,9 @@ a tag or creates a release, you can use one of these workarounds:
 
 - Use a
   [GitHub App to generate a token](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#authenticating-with-github-app-generated-tokens)
-  that can be used with this action.
+  that can be used with this action. This is the approach used by the
+  [release-plz](https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/release-plz.yml)
+  repo itself.
   If you want to use the release-plz logo for the GitHub app, you can find it [here](../assets/robot_head.jpeg).
 
 ## Credits
