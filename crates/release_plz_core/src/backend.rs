@@ -10,7 +10,7 @@ use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tracing::{debug, info, instrument};
+use tracing::{debug, info, instrument, warn};
 
 #[derive(Debug, Clone)]
 pub enum GitBackend {
@@ -29,7 +29,7 @@ impl GitBackend {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum BackendType {
     Github,
     Gitea,
@@ -221,6 +221,10 @@ impl GitClient {
         format!("{}/pulls", self.repo_url())
     }
 
+    pub fn issues_url(&self) -> String {
+        format!("{}/issues", self.repo_url())
+    }
+
     fn repo_url(&self) -> String {
         format!(
             "{}repos/{}/{}",
@@ -289,7 +293,7 @@ impl GitClient {
     #[instrument(skip(self, pr))]
     pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<()> {
         debug!("Opening PR in {}/{}", self.remote.owner, self.remote.repo);
-        let pr: GitPr = self
+        let git_pr: GitPr = self
             .client
             .post(self.pulls_url())
             .json(&json!({
@@ -306,7 +310,29 @@ impl GitClient {
             .await
             .context("Failed to parse PR")?;
 
-        info!("opened pr: {}", pr.html_url);
+        info!("opened pr: {}", git_pr.html_url);
+        self.add_labels(pr, git_pr.number).await?;
+        Ok(())
+    }
+
+    #[instrument(skip(self, pr))]
+    async fn add_labels(&self, pr: &Pr, pr_number: u64) -> anyhow::Result<()> {
+        if pr.labels.is_empty() {
+            return Ok(());
+        }
+        if self.backend != BackendType::Github {
+            warn!("PR labels are only supported on Github");
+            return Ok(());
+        }
+        self.client
+            .post(format!("{}/{}/labels", self.issues_url(), pr_number))
+            .json(&json!({
+                "labels": pr.labels
+            }))
+            .send()
+            .await
+            .context("Failed to add labels")?
+            .error_for_status()?;
         Ok(())
     }
 

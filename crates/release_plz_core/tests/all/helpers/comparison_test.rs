@@ -71,10 +71,7 @@ impl ComparisonTest {
             )
             .with_base_url(base_url),
         );
-        ReleasePrRequest {
-            git: github,
-            update_request: self.update_request(),
-        }
+        ReleasePrRequest::new(github, self.update_request())
     }
 
     pub async fn github_open_release_pr(&self) -> anyhow::Result<()> {
@@ -88,10 +85,7 @@ impl ComparisonTest {
             RepoUrl::new(&format!("{}{OWNER}/{REPO}", base_url.as_str()))?,
             Secret::from("token".to_string()),
         )?);
-        Ok(ReleasePrRequest {
-            git,
-            update_request: self.update_request(),
-        })
+        Ok(ReleasePrRequest::new(git, self.update_request()))
     }
 
     pub async fn gitea_open_release_pr(&self) -> anyhow::Result<()> {

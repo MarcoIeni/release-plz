@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.4.1...git_cmd-v0.4.2) - 2023-04-16
+
+### Fixed
+- `current_commit_message` function reads the full commit message (#689)
+
 ## [0.4.1](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.4.0...git_cmd-v0.4.1) - 2023-04-05
 
 ### Other

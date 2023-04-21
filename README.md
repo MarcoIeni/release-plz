@@ -23,7 +23,9 @@ Learn how to use release-plz in the mdbook [docs](https://marcoieni.github.io/re
 ## Users
 
 [This](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action)
-GitHub search shows the public repositories using release-plz in CI.
+search
+and [this](https://github.com/MarcoIeni/release-plz-action/network/dependents)
+page show the public GitHub repositories using release-plz in CI.
 
 ## Similar projects
 

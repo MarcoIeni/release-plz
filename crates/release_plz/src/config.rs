@@ -86,13 +86,15 @@ pub struct Workspace {
     /// These options also affect the `release-plz release-pr` command.
     #[serde(flatten)]
     pub update: UpdateConfig,
+    #[serde(flatten)]
+    pub release_pr: ReleasePrConfig,
     /// Configuration applied to all packages by default.
     #[serde(flatten)]
     pub packages_defaults: PackageConfig,
 }
 
 /// Configuration for the `update` command.
-/// Generical for the whole workspace. Cannot customized on a per-package basic.
+/// Generical for the whole workspace. Cannot be customized on a per-package basic.
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
 pub struct UpdateConfig {
     /// - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
@@ -107,6 +109,15 @@ pub struct UpdateConfig {
     /// It is used to generate the changelog release link.
     /// It defaults to the url of the default remote.
     pub repo_url: Option<Url>,
+}
+
+/// Configuration for the `release-pr` command.
+/// Generical for the whole workspace. Cannot be customized on a per-package basic.
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
+pub struct ReleasePrConfig {
+    /// Labels to add to the release PR.
+    #[serde(default)]
+    pub pr_labels: Vec<String>,
 }
 
 /// Config at the `[[package]]` level.
@@ -370,6 +381,7 @@ mod tests {
                         ..Default::default()
                     },
                 },
+                release_pr: ReleasePrConfig { pr_labels: vec![] },
             },
             package: [].into(),
         };
@@ -400,6 +412,7 @@ mod tests {
                     allow_dirty: Some(false),
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
+                release_pr: ReleasePrConfig { pr_labels: vec![] },
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
                         semver_check: None,
@@ -434,6 +447,9 @@ mod tests {
                     changelog_config: Some("../git-cliff.toml".into()),
                     allow_dirty: None,
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
+                },
+                release_pr: ReleasePrConfig {
+                    pr_labels: vec!["label1".to_string()],
                 },
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
@@ -475,6 +491,7 @@ mod tests {
             [workspace]
             changelog_config = "../git-cliff.toml"
             repo_url = "https://github.com/MarcoIeni/release-plz"
+            pr_labels = ["label1"]
             changelog_update = true
             git_release_enable = true
             git_release_type = "prod"

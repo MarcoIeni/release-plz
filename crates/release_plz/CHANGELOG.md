@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.0...release-plz-v0.3.1) - 2023-04-21
+
+### Added
+- add `pr_labels` configuration option to add labels to the PR opened by release-plz (#708)
+
+## [0.3.0](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.63...release-plz-v0.3.0) - 2023-04-16
+
+### Added
+- [**breaking**] changed config file format. See [docs](https://marcoieni.github.io/release-plz/config.html).
+- [**breaking**] removed `--git-release` flag. Now git releases are enabled by default.
+  You can disable them with the `git_release_enable` configuration option.
+- make cargo publish flags configurable (#684)
+
+### Fixed
+- config package override (#695)
+- don't return early when publishing crates (#691)
+
 ## [0.2.63](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.62...release-plz-v0.2.63) - 2023-04-05
 
 ### Fixed
