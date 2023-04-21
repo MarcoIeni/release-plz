@@ -21,6 +21,7 @@ changelog_config = "config/git-cliff.toml" # use a custom git-cliff configuratio
 changelog_update = false # disable changelog updates
 dependencies_update = true # update dependencies with `cargo update`
 git_release_enable = false # disable GitHub/Gitea releases
+pr_labels = ["release"] # add the `release` label to the release Pull Request
 publish_allow_dirty = true # add `--allow-dirty` to `cargo publish`
 semver_check = false # disable API breaking changes checks
 
@@ -47,6 +48,7 @@ the following sections:
   - [`changelog_update`](#the-changelog_update-field) — Update changelog.
   - [`dependencies_update`](#the-dependencies_update-field) — Update all dependencies.
   - [`git_release_enable`](#the-git_release_enable-field) — Enable git release.
+  - [`pr_labels`](#the-pr_labels-field) — Add labels to the release Pull Request.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
@@ -119,6 +121,11 @@ The supported git releases are:
 - [GitHub](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
 - [Gitea](https://docs.gitea.io/en-us/)
 - [GitLab](https://docs.gitlab.com/ee/user/project/releases/#releases)
+
+#### The `pr_labels` field
+
+Add labels to the Pull Request opened by release-plz.
+*(GitHub only)*.
 
 #### The `publish_allow_dirty` field
 
