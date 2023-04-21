@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.8.0...release_plz_core-v0.9.0) - 2023-04-21
 
 ### Added
-- add pr labels (#708)
+- add `pr_labels` configuration option to add labels to the PR opened by release-plz (#708)
 
 ## [0.8.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.7.1...release_plz_core-v0.8.0) - 2023-04-16
 
