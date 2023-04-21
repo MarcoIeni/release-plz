@@ -29,18 +29,6 @@ a tag or creates a release, you can use one of these workarounds:
   [recommended by GitHub](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
   Note that the account that owns the PAT will be the author of the release pull request.
   PAT works with:
-  ```yaml
-  on:
-    release:
-      types: [published]
-  ```
-  We don't know why it doesn't work with:
-  ```yaml
-  on:
-    push:
-      tags:
-        - "*"
-   ```
   There are two types of PAT:
   - classic: less secure because you can't scope it to a single repository. Release-plz needs `repo` permissions:
     ![](../assets/pat-classic.png)
@@ -59,6 +47,46 @@ a tag or creates a release, you can use one of these workarounds:
   [release-plz](https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/release-plz.yml)
   repo itself.
   If you want to use the release-plz logo for the GitHub app, you can find it [here](../assets/robot_head.jpeg).
+
+In any case, pass your GitHub token to both the `actions/checkout` and `release-plz` actions:
+
+```yaml
+jobs:
+  release-plz:
+    name: Release-plz
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.MY_GITHUB_TOKEN }} # <-- Your token here
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }} # <-- Your token here
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+```
+
+## Examples of workflows that can be triggered
+- When a release is published:
+
+  ```yaml
+  on:
+    release:
+      types: [published]
+  ```
+
+- When a tag is pushed:
+
+  ```yaml
+  on:
+    push:
+      tags:
+        - "*"
+   ```
 
 ## Credits
 
