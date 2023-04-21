@@ -15,7 +15,24 @@ use crate::{
 #[derive(Debug)]
 pub struct ReleasePrRequest {
     pub git: GitBackend,
+    /// Labels to add to the release PR.
+    labels: Vec<String>,
     pub update_request: UpdateRequest,
+}
+
+impl ReleasePrRequest {
+    pub fn new(git: GitBackend, update_request: UpdateRequest) -> Self {
+        Self {
+            git,
+            labels: vec![],
+            update_request,
+        }
+    }
+
+    pub fn with_labels(mut self, labels: Vec<String>) -> Self {
+        self.labels = labels;
+        self
+    }
 }
 
 /// Open a pull request with the next packages versions of a local rust project
@@ -41,8 +58,14 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         let repo = Repo::new(new_manifest_dir)?;
         let there_are_commits_to_push = repo.is_clean().is_err();
         if there_are_commits_to_push {
-            open_or_update_release_pr(&local_manifest, &packages_to_update, &git_client, &repo)
-                .await?;
+            open_or_update_release_pr(
+                &local_manifest,
+                &packages_to_update,
+                &git_client,
+                &repo,
+                input.labels.clone(),
+            )
+            .await?;
         }
     }
 
@@ -54,6 +77,7 @@ async fn open_or_update_release_pr(
     packages_to_update: &PackagesUpdate,
     git_client: &GitClient,
     repo: &Repo,
+    pr_labels: Vec<String>,
 ) -> anyhow::Result<()> {
     let opened_release_prs = git_client
         .opened_prs(BRANCH_PREFIX)
@@ -76,6 +100,7 @@ async fn open_or_update_release_pr(
             packages_to_update,
             project_contains_multiple_pub_packages,
         )
+        .with_labels(pr_labels)
     };
     match opened_release_prs.first() {
         Some(opened_pr) => {

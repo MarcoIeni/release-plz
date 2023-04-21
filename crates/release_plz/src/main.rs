@@ -31,16 +31,15 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             println!("{}", updates.0.summary());
         }
         args::Command::ReleasePr(cmd_args) => {
+            let pr_labels = config.workspace.release_pr.pr_labels.clone();
             let update_request = cmd_args.update.update_request(config)?;
             let repo_url = update_request
                 .repo_url()
                 .context("can't determine repo url")?;
-            let request = ReleasePrRequest {
-                git: cmd_args
-                    .git_backend(repo_url.clone())
-                    .context("invalid git backend settings")?,
-                update_request,
-            };
+            let git = cmd_args
+                .git_backend(repo_url.clone())
+                .context("invalid git backend settings")?;
+            let request = ReleasePrRequest::new(git, update_request).with_labels(pr_labels);
             release_plz_core::release_pr(&request).await?;
         }
         args::Command::Release(cmd_args) => {
