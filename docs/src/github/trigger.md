@@ -30,7 +30,8 @@ a tag or creates a release, you can use one of these workarounds:
   [recommended by GitHub](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
   Note that the account that owns the PAT will be the author of the release pull request.
 
-- Use [SSH (deploy keys)](#push-using-ssh-deploy-keys) to push the pull request branch.
+- Use [SSH (deploy keys)](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#push-using-ssh-deploy-keys)
+  to push the pull request branch.
   Note that this method will only trigger `on: push` workflows.
 
 - Use a
