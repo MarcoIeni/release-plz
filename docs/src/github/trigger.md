@@ -30,9 +30,11 @@ a tag or creates a release, you can use one of these workarounds:
   Note that the account that owns the PAT will be the author of the release pull request.
   PAT works with:
   There are two types of PAT:
-  - classic: less secure because you can't scope it to a single repository. Release-plz needs `repo` permissions:
+  - classic: less secure because you can't scope it to a single repository.
+    Release-plz needs `repo` permissions:
     ![](../assets/pat-classic.png)
-  - fine-grained: more secure because you can select the repositories where the PAT can be used. Release-plz needs the following:
+  - fine-grained: more secure because you can select the repositories where the PAT can be used.
+    Release-plz needs the following:
     - Select the repositories where you want to use the PAT, to give it write access:
       ![](../assets/repository-access.png)
     - Assign "Contents" and "Pull requests" read and write permissions:
@@ -71,6 +73,7 @@ jobs:
 ```
 
 ## Examples of workflows that can be triggered
+
 - When a release is published:
 
   ```yaml
