@@ -523,6 +523,7 @@ changelog_config = &quot;config/git-cliff.toml&quot; # use a custom git-cliff co
 changelog_update = false # disable changelog updates
 dependencies_update = true # update dependencies with `cargo update`
 git_release_enable = false # disable GitHub/Gitea releases
+pr_labels = [&quot;release&quot;] # add the `release` label to the release Pull Request
 publish_allow_dirty = true # add `--allow-dirty` to `cargo publish`
 semver_check = false # disable API breaking changes checks
 
@@ -548,6 +549,7 @@ the following sections:</p>
 <li><a href="config.html#the-changelog_update-field"><code>changelog_update</code></a> — Update changelog.</li>
 <li><a href="config.html#the-dependencies_update-field"><code>dependencies_update</code></a> — Update all dependencies.</li>
 <li><a href="config.html#the-git_release_enable-field"><code>git_release_enable</code></a> — Enable git release.</li>
+<li><a href="config.html#the-pr_labels-field"><code>pr_labels</code></a> — Add labels to the release Pull Request.</li>
 <li><a href="config.html#the-publish_allow_dirty-field"><code>publish_allow_dirty</code></a> — Package dirty directories.</li>
 <li><a href="config.html#the-publish_no_verify-field"><code>publish_no_verify</code></a> — Don’t verify package build.</li>
 <li><a href="config.html#the-repo_url-field"><code>repo_url</code></a> — Repository URL.</li>
@@ -617,6 +619,9 @@ You can learn more in the <a href="changelog-format.html">changelog format</a> s
 <li><a href="https://docs.gitea.io/en-us/">Gitea</a></li>
 <li><a href="https://docs.gitlab.com/ee/user/project/releases/#releases">GitLab</a></li>
 </ul>
+<h4 id="the-pr_labels-field"><a class="header" href="#the-pr_labels-field">The <code>pr_labels</code> field</a></h4>
+<p>Add labels to the Pull Request opened by release-plz.
+<em>(GitHub only)</em>.</p>
 <h4 id="the-publish_allow_dirty-field"><a class="header" href="#the-publish_allow_dirty-field">The <code>publish_allow_dirty</code> field</a></h4>
 <p>Allow dirty working directories to be packaged.
 When <code>true</code>, <code>release-plz</code> adds the <code>--allow-dirty</code> flag to <code>cargo publish</code>.</p>
