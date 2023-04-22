@@ -41,6 +41,7 @@ a tag or creates a release, you can use one of these workarounds:
       ![pat repository access](../assets/repository-access.png)
     - Assign "Contents" and "Pull requests" read and write permissions:
       ![pat fine permissions](../assets/pat-overview.png)
+
 - Use [SSH (deploy keys)](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#push-using-ssh-deploy-keys)
   to push the pull request branch.
   Note that this method will only trigger `on: push` workflows.
