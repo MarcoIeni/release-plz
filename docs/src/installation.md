@@ -18,11 +18,16 @@ The latest release is on [GitHub](https://github.com/MarcoIeni/release-plz/relea
 
 Run `docker pull marcoieni/release-plz`.
 
-## AUR
+## Arch Linux
 
-`release-plz` can be installed from available
-[AUR packages](https://aur.archlinux.org/packages?O=0&SeB=b&K=release-plz&outdated=&SB=n&SO=a&PP=50&submit=Go)
-using an [AUR helper](https://wiki.archlinux.org/index.php/AUR_helpers). For example:
+`release-plz` can be installed from the
+[community repository](https://archlinux.org/packages/community/x86_64/release-plz/)
+using [pacman](https://wiki.archlinux.org/title/Pacman).
 
-* `paru -S release-plz`
-* `paru -S release-plz-git` (VCS package)
+* `pacman -S release-plz`
+
+There is also a VCS package available in the AUR
+and it can be installed with an [AUR helper](https://wiki.archlinux.org/title/AUR_helpers).
+For example:
+
+* `paru -S release-plz-git`
