@@ -23,12 +23,11 @@ a tag or creates a release, you need to use one of these workarounds:
 
 - To run `on: pull_request` workflows, manually close and reopen the release pull request.
 
-- [Personal Access Token (PAT)](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
+- Use a [Personal Access Token (PAT)](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
   created on an account with write access to the repository.
   This is the standard workaround
   [recommended by GitHub](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
   Note that the account that owns the PAT will be the author of the release pull request.
-  PAT works with:
   There are two types of PAT:
   - [Classic](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#personal-access-tokens-classic):
     less secure because you can't scope it to a single repository.
