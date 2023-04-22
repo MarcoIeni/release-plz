@@ -16,10 +16,10 @@ configured to run when `push` events occur.
 
 ## Workarounds to trigger further workflow runs
 
-Release-plz can release your packages without triggering further workflow runs.
+Release-plz doesn't need to trigger further workflow runs to release your packages.
 However, if you want to run CI checks on the release PR,
 or if you want to trigger another workflow after release-plz pushes
-a tag or creates a release, you can use one of these workarounds:
+a tag or creates a release, you need to use one of these workarounds:
 
 - To run `on: pull_request` workflows, manually close and reopen the release pull request.
 
