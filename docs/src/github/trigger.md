@@ -30,10 +30,12 @@ a tag or creates a release, you can use one of these workarounds:
   Note that the account that owns the PAT will be the author of the release pull request.
   PAT works with:
   There are two types of PAT:
-  - classic: less secure because you can't scope it to a single repository.
+  - [Classic](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#personal-access-tokens-classic):
+    less secure because you can't scope it to a single repository.
     Release-plz needs `repo` permissions:
     ![pat classic permissions](../assets/pat-classic.png)
-  - fine-grained: more secure because you can select the repositories where the PAT can be used.
+  - [Fine-grained](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#fine-grained-personal-access-tokens):
+    more secure because you can select the repositories where the PAT can be used.
     Release-plz needs the following:
     - Select the repositories where you want to use the PAT, to give it write access:
       ![pat repository access](../assets/repository-access.png)
@@ -72,7 +74,11 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
-## Examples of workflows that can be triggered
+## How to trigger further workflows
+
+You can trigger workflows on different
+[events](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows).
+For example:
 
 - When a release is published:
 
