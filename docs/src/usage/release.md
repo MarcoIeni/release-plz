@@ -13,7 +13,8 @@ For every release, release-plz:
 - Creates a git tag named `<package_name>-v<version>` (e.g. `tokio-v1.8.1`).
 - Publishes the package to the cargo registry by running `cargo publish`.
 
-Usually, you use the `release-plz release` command after you run `release-plz update`
+Usually, you use the `release-plz release` command in the main branch,
+after you run `release-plz update`
 or you merge a pull request opened with `release-plz release-pr`.
 
 To learn more, run `release-plz release --help`.
