@@ -4,15 +4,32 @@
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
 [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/marcoieni/release-plz)
 
-Release-plz updates the versions and changelogs of your rust packages, by analyzing your git history,
-based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/):
-- `release-plz update` updates your project locally, without committing any change.
-- `release-plz release-pr` opens a GitHub Pull Request.
-- `release-plz release` publishes the new versions of the packages.
+Release-plz helps you release your Rust packages by automating:
+- CHANGELOG generation (with [git-cliff](https://github.com/orhun/git-cliff))
+- Creation of GitHub/Gitea releases
+- Publishing to a cargo registry (`crates.io` by default)
+- Version bumps.
 
-Here's an example of a release Pull Request created on the release-plz repository itself:
+Release-plz updates your packages with a release Pull Request based on:
+- Your git history, following [Conventional commits](https://www.conventionalcommits.org/)
+- API breaking changes (detected by [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks))
+
+## What's a Release PR?
+
+Rather than continuously releasing what's landed to your default branch,
+release-plz maintains Release PRs:
 
 ![pr](docs/src/assets/pr.png)
+
+These Release PRs are kept up-to-date as additional work is merged. When you're
+ready to tag a release, simply merge the release PR.
+
+When the Release PR is merged (or when you edit the `Cargo.toml` versions by yourself),
+release-plz takes the following steps:
+
+- Creates a git tag named `<package_name>-v<version>` (e.g. `tokio-v1.8.1`).
+- Publishes the package to the cargo registry by running `cargo publish`.
+- Publishes a GitHub/Gitea release based on the git tag.
 
 ## Docs
 
@@ -30,7 +47,7 @@ page show the public GitHub repositories using release-plz in CI.
 - [release-please](https://github.com/googleapis/release-please): release-plz is inspired by release-please,
   but instead of determining the next versions based on git tags, release-plz compares local packages with
   the ones published in the cargo registry.
-  Plus, release-plz doesn't need any configuration.
+  Plus, release-plz doesn't need any configuration and is optimized for Rust projects.
 - [cargo smart-release](https://github.com/Byron/gitoxide/tree/main/cargo-smart-release):
   Fearlessly release workspace crates and with beautiful semi-handcrafted changelogs.
 
