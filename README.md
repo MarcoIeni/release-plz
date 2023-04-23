@@ -8,9 +8,7 @@ Release-plz updates the versions and changelogs of your rust packages, by analyz
 based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/):
 - `release-plz update` updates your project locally, without committing any change.
 - `release-plz release-pr` opens a GitHub Pull Request.
-
-Once the changes are merged to the main branch, you can use
-`release-plz release` to publish the new versions of the packages.
+- `release-plz release` publishes the new versions of the packages.
 
 Here's an example of a release Pull Request created on the release-plz repository itself:
 
