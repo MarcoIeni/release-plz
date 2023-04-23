@@ -20,6 +20,10 @@ pub struct Release {
     /// Both Cargo workspaces and single packages are supported.
     #[arg(long, value_parser = PathBufValueParser::new())]
     project_manifest: Option<PathBuf>,
+    /// Prevent the packages from being published to a registry.
+    /// Publishing will be performed unless this flag is set or the `publish` field of the package manifest is set to `false` or `[]`.
+    #[arg(long, value_enum)]
+    no_publish: bool,
     /// Registry where you want to publish the packages.
     /// The registry name needs to be present in the Cargo config.
     /// If unspecified, the `publish` field of the package manifest is used.
@@ -86,9 +90,13 @@ impl Release {
             None
         };
         let mut req = ReleaseRequest::new(local_manifest(self.project_manifest.as_deref()))
-            .with_dry_run(self.dry_run);
+            .with_dry_run(self.dry_run)
+            .with_prevent_publish(self.no_publish);
 
         if let Some(registry) = self.registry {
+            if self.no_publish {
+                anyhow::bail!("Both --no-publish and --registry are set.");
+            }
             req = req.with_registry(registry);
         }
         if let Some(token) = self.token {
@@ -172,6 +180,7 @@ mod tests {
             allow_dirty: false,
             no_verify: false,
             project_manifest: None,
+            no_publish: false,
             registry: None,
             token: None,
             dry_run: false,

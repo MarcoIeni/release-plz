@@ -23,6 +23,8 @@ use crate::{
 pub struct ReleaseRequest {
     /// The manifest of the project you want to release.
     local_manifest: PathBuf,
+    /// Publishes packages to registry unless the `publish` field of the package manifest is set to `false` or `[]`.
+    maybe_publish: bool,
     /// Registry where you want to publish the packages.
     /// The registry name needs to be present in the Cargo config.
     /// If unspecified, the `publish` field of the package manifest is used.
@@ -48,6 +50,11 @@ impl ReleaseRequest {
             local_manifest,
             ..Default::default()
         }
+    }
+
+    pub fn with_prevent_publish(mut self, prevent_publish: bool) -> Self {
+        self.maybe_publish = !prevent_publish;
+        self
     }
 
     pub fn with_registry(mut self, registry: impl Into<String>) -> Self {
@@ -290,31 +297,34 @@ async fn release_package(
     input: &ReleaseRequest,
     git_tag: String,
 ) -> anyhow::Result<()> {
-    let mut args = vec!["publish"];
-    args.push("--color");
-    args.push("always");
-    args.push("--manifest-path");
-    args.push(package.manifest_path.as_ref());
-    if let Some(token) = &input.token {
-        args.push("--token");
-        args.push(token.expose_secret());
-    }
-    if input.dry_run {
-        args.push("--dry-run");
-    }
-    if input.allow_dirty(&package.name) {
-        args.push("--allow-dirty");
-    }
-    if input.no_verify(&package.name) {
-        args.push("--no-verify");
-    }
     let workspace_root = input.workspace_root()?;
 
     let repo = Repo::new(workspace_root)?;
-    let (_, stderr) = run_cargo(workspace_root, &args)?;
 
-    if !stderr.contains("Uploading") || stderr.contains("error:") {
-        anyhow::bail!("failed to publish {}: {}", package.name, stderr);
+    if input.maybe_publish {
+        let mut args = vec!["publish"];
+        args.push("--color");
+        args.push("always");
+        args.push("--manifest-path");
+        args.push(package.manifest_path.as_ref());
+        if let Some(token) = &input.token {
+            args.push("--token");
+            args.push(token.expose_secret());
+        }
+        if input.dry_run {
+            args.push("--dry-run");
+        }
+        if input.allow_dirty(&package.name) {
+            args.push("--allow-dirty");
+        }
+        if input.no_verify(&package.name) {
+            args.push("--no-verify");
+        }
+        let (_, stderr) = run_cargo(workspace_root, &args)?;
+
+        if !stderr.contains("Uploading") || stderr.contains("error:") {
+            anyhow::bail!("failed to publish {}: {}", package.name, stderr);
+        }
     }
 
     if input.dry_run {
