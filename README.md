@@ -35,6 +35,13 @@ release-plz takes the following steps:
 
 Learn how to use release-plz in the mdbook [docs](https://marcoieni.github.io/release-plz/).
 
+## Running release-plz
+
+There are two ways to run release-plz:
+
+- [GitHub Action](https://marcoieni.github.io/release-plz/github/index.html): Run Release-plz for CI. It both updates and releases your packages. *(Recommended)*
+- [cli](https://marcoieni.github.io/release-plz/usage/index.html): Run release-plz from your terminal. Or other CI systems (Gitea supported).
+
 ## Users
 
 [This](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action)
