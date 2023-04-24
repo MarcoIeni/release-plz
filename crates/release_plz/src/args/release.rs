@@ -90,8 +90,7 @@ impl Release {
             None
         };
         let mut req = ReleaseRequest::new(local_manifest(self.project_manifest.as_deref()))
-            .with_dry_run(self.dry_run)
-            .with_prevent_publish(self.no_publish);
+            .with_dry_run(self.dry_run);
 
         if let Some(registry) = self.registry {
             if self.no_publish {
@@ -109,7 +108,7 @@ impl Release {
             req = req.with_git_release(git_release);
         }
 
-        req = config.fill_release_config(self.allow_dirty, self.no_verify, req);
+        req = config.fill_release_config(self.no_publish, self.allow_dirty, self.no_verify, req);
 
         Ok(req)
     }

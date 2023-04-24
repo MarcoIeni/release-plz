@@ -23,8 +23,6 @@ use crate::{
 pub struct ReleaseRequest {
     /// The manifest of the project you want to release.
     local_manifest: PathBuf,
-    /// Publishes packages to registry unless the `publish` field of the package manifest is set to `false` or `[]`.
-    maybe_publish: bool,
     /// Registry where you want to publish the packages.
     /// The registry name needs to be present in the Cargo config.
     /// If unspecified, the `publish` field of the package manifest is used.
@@ -50,11 +48,6 @@ impl ReleaseRequest {
             local_manifest,
             ..Default::default()
         }
-    }
-
-    pub fn with_prevent_publish(mut self, prevent_publish: bool) -> Self {
-        self.maybe_publish = !prevent_publish;
-        self
     }
 
     pub fn with_registry(mut self, registry: impl Into<String>) -> Self {
@@ -109,6 +102,11 @@ impl ReleaseRequest {
                     .join(CHANGELOG_FILENAME)
             })
     }
+    
+    fn is_publish_enabled(&self, package: &str) -> bool {
+        let config = self.get_package_config(package);
+        config.generic.publish.enabled
+    }
 
     fn is_git_release_enabled(&self, package: &str) -> bool {
         let config = self.get_package_config(package);
@@ -158,6 +156,7 @@ impl PackagesConfig {
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ReleaseConfig {
+    publish: PublishConfig,
     git_release: GitReleaseConfig,
     /// Don't verify the contents by building them.
     /// If true, `release-plz` adds the `--no-verify` flag to `cargo publish`.
@@ -168,6 +167,11 @@ pub struct ReleaseConfig {
 }
 
 impl ReleaseConfig {
+    pub fn with_publish(mut self, publish: PublishConfig) -> Self {
+        self.publish = publish;
+        self
+    }
+
     pub fn with_git_release(mut self, git_release: GitReleaseConfig) -> Self {
         self.git_release = git_release;
         self
@@ -183,8 +187,33 @@ impl ReleaseConfig {
         self
     }
 
+    pub fn publish(&self) -> &PublishConfig {
+        &self.publish
+    }
+
     pub fn git_release(&self) -> &GitReleaseConfig {
         &self.git_release
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PublishConfig {
+    enabled: bool,
+}
+
+impl Default for PublishConfig {
+    fn default() -> Self {
+        Self::enabled(true)
+    }
+}
+
+impl PublishConfig {
+    pub fn enabled(enabled: bool) -> Self {
+        Self { enabled }
+    }
+
+    pub fn is_enabled(&self) -> bool {
+        self.enabled
     }
 }
 
@@ -301,7 +330,8 @@ async fn release_package(
 
     let repo = Repo::new(workspace_root)?;
 
-    if input.maybe_publish {
+    let publish = input.is_publish_enabled(&package.name);
+    if publish {
         let mut args = vec!["publish"];
         args.push("--color");
         args.push("always");
@@ -333,7 +363,9 @@ async fn release_package(
             package.name, package.version
         );
     } else {
-        wait_until_published(index, package)?;
+        if publish {
+            wait_until_published(index, package)?;
+        }
 
         repo.tag(&git_tag)?;
         repo.push(&git_tag)?;

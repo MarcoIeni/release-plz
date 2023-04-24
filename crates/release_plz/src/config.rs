@@ -49,11 +49,15 @@ impl Config {
 
     pub fn fill_release_config(
         &self,
+        no_publish: bool,
         allow_dirty: bool,
         no_verify: bool,
         release_request: ReleaseRequest,
     ) -> ReleaseRequest {
         let mut default_config = self.workspace.packages_defaults.release.clone();
+        if no_publish {
+            default_config.release.publish = Some(false);
+        }
         if no_verify {
             default_config.release.no_verify = Some(true);
         }
@@ -67,6 +71,9 @@ impl Config {
             let mut release_config = config.clone();
             release_config = release_config.merge(self.workspace.packages_defaults.clone());
 
+            if no_publish {
+                release_config.release.release.publish = Some(false);
+            }
             if no_verify {
                 release_config.release.release.no_verify = Some(true);
             }
@@ -167,10 +174,11 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
 
 impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
     fn from(value: PackageReleaseConfig) -> Self {
+        let is_publish_enabled = value.release.publish != Some(false);
         let is_git_release_enabled = value.git_release.enable != Some(false);
-        let mut cfg = Self::default().with_git_release(
-            release_plz_core::GitReleaseConfig::enabled(is_git_release_enabled),
-        );
+        let mut cfg = Self::default()
+            .with_publish(release_plz_core::PublishConfig::enabled(is_publish_enabled))
+            .with_git_release(release_plz_core::GitReleaseConfig::enabled(is_git_release_enabled));
         if let Some(no_verify) = value.release.no_verify {
             cfg = cfg.with_no_verify(no_verify);
         }
@@ -262,6 +270,9 @@ impl PackageReleaseConfig {
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct ReleaseConfig {
+    /// If `Some(false)`, don't run `cargo publish`.
+    #[serde(rename = "publish")]
+    pub publish: Option<bool>,
     /// If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.
     #[serde(rename = "publish_allow_dirty")]
     pub allow_dirty: Option<bool>,
@@ -274,6 +285,7 @@ impl ReleaseConfig {
     /// Merge the package-specific configuration with the global configuration.
     pub fn merge(self, default: ReleaseConfig) -> ReleaseConfig {
         ReleaseConfig {
+            publish: self.allow_dirty.or(default.publish),
             allow_dirty: self.allow_dirty.or(default.allow_dirty),
             no_verify: self.no_verify.or(default.no_verify),
         }
@@ -425,6 +437,7 @@ mod tests {
                             draft: Some(false),
                         },
                         release: ReleaseConfig {
+                            publish: None,
                             allow_dirty: None,
                             no_verify: None,
                         },
