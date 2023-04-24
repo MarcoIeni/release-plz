@@ -37,7 +37,7 @@ Learn how to use release-plz in the mdbook [docs](https://marcoieni.github.io/re
 There are two ways to run release-plz:
 
 - [GitHub Action](https://marcoieni.github.io/release-plz/github/index.html): Run Release-plz from CI. The action both updates and releases your packages.
-- [CLI](https://marcoieni.github.io/release-plz/usage/index.html): Run release-plz from your terminal. Or other CI systems (Gitea supported).
+- [CLI](https://marcoieni.github.io/release-plz/usage/index.html): Run release-plz from your terminal or other CI systems (Gitea supported).
 
 ## Users
 
