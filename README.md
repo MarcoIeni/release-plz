@@ -8,7 +8,7 @@ Release-plz helps you release your Rust packages by automating:
 - CHANGELOG generation (with [git-cliff](https://github.com/orhun/git-cliff)).
 - Creation of GitHub/Gitea releases.
 - Publishing to a cargo registry (`crates.io` by default).
-- Version bumps.
+- Version bumps in `Cargo.toml`.
 
 Release-plz updates your packages with a release Pull Request based on:
 - Your git history, following [Conventional commits](https://www.conventionalcommits.org/).
