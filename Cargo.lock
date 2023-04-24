@@ -384,7 +384,7 @@ dependencies = [
 
 [[package]]
 name = "cargo_utils"
-version = "0.1.17"
+version = "0.1.18"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -2797,7 +2797,7 @@ checksum = "a5996294f19bd3aae0453a862ad728f60e6600695733dd5df01da90c54363a3c"
 
 [[package]]
 name = "release-plz"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -2822,7 +2822,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.9.0"
+version = "0.9.1"
 dependencies = [
  "anyhow",
  "cargo",
@@ -3495,7 +3495,7 @@ checksum = "3369f5ac52d5eb6ab48c6b4ffdc8efbcad6b89c765749064ba298f2c68a16a76"
 
 [[package]]
 name = "test_logs"
-version = "0.1.13"
+version = "0.1.14"
 dependencies = [
  "once_cell",
  "tracing",
