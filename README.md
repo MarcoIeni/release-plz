@@ -11,8 +11,8 @@ Release-plz helps you release your Rust packages by automating:
 - Version bumps.
 
 Release-plz updates your packages with a release Pull Request based on:
-- Your git history, following [Conventional commits](https://www.conventionalcommits.org/)
-- API breaking changes (detected by [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks))
+- Your git history, following [Conventional commits](https://www.conventionalcommits.org/).
+- API breaking changes (detected by [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks)).
 
 ## What's a Release PR?
 
