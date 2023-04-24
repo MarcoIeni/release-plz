@@ -16,22 +16,19 @@ Release-plz updates your packages with a release Pull Request based on:
 
 ## What's a Release PR?
 
-Rather than continuously releasing what's landed to your default branch,
-release-plz maintains Release PRs:
+Release-plz maintains Release PRs, keeping them up-to-date as you merge additional commits. When you're
+ready to tag a release, simply merge the release PR.
 
 ![pr](docs/src/assets/pr.png)
 
-These Release PRs are kept up-to-date as additional work is merged. When you're
-ready to tag a release, simply merge the release PR.
-
-When the Release PR is merged (or when you edit the `Cargo.toml` versions by yourself),
+When you merge the Release PR (or when you edit the `Cargo.toml` versions by yourself),
 release-plz takes the following steps:
 
 - Creates a git tag named `<package_name>-v<version>` (e.g. `tokio-v1.8.1`).
 - Publishes the package to the cargo registry by running `cargo publish`.
 - Publishes a GitHub/Gitea release based on the git tag.
 
-## Docs
+## 📚 Docs
 
 Learn how to use release-plz in the mdbook [docs](https://marcoieni.github.io/release-plz/).
 
