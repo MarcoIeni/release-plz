@@ -1,6 +1,6 @@
 [package]
 name = "cargo_utils"
-version = "0.1.17"
+version = "0.1.18"
 edition = "2021"
 description = "Utilities around cargo and Rust workspaces"
 repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/cargo_utils"

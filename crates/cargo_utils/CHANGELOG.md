@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.18](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.17...cargo_utils-v0.1.18) - 2023-04-24
+
+### Other
+- update dependencies
+
 ## [0.1.17](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.16...cargo_utils-v0.1.17) - 2023-04-16
 
 ### Other
