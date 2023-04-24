@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Usage - Release-plz</title>
+        <title>CLI Usage - Release-plz</title>
 
 
         <!-- Custom HTML head -->
@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../usage/index.html" class="active"><strong aria-hidden="true">2.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../usage/update.html"><strong aria-hidden="true">2.1.</strong> update</a></li><li class="chapter-item expanded "><a href="../usage/release-pr.html"><strong aria-hidden="true">2.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="../usage/release.html"><strong aria-hidden="true">2.3.</strong> release</a></li><li class="chapter-item expanded "><a href="../usage/shell-completions.html"><strong aria-hidden="true">2.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="../github/index.html"><strong aria-hidden="true">3.</strong> GitHub Action</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../github/trigger.html"><strong aria-hidden="true">3.1.</strong> Triggering further workflows</a></li></ol></li><li class="chapter-item expanded "><a href="../changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="../config.html"><strong aria-hidden="true">5.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="../why.html"><strong aria-hidden="true">6.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="../extra/index.html"><strong aria-hidden="true">7.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../extra/releasing-binaries.html"><strong aria-hidden="true">7.1.</strong> Releasing binaries</a></li><li class="chapter-item expanded "><a href="../extra/single-changelog.html"><strong aria-hidden="true">7.2.</strong> Single changelog</a></li><li class="chapter-item expanded "><a href="../extra/yanked-packages.html"><strong aria-hidden="true">7.3.</strong> Yanked packages</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../usage/index.html" class="active"><strong aria-hidden="true">2.</strong> CLI Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../usage/update.html"><strong aria-hidden="true">2.1.</strong> update</a></li><li class="chapter-item expanded "><a href="../usage/release-pr.html"><strong aria-hidden="true">2.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="../usage/release.html"><strong aria-hidden="true">2.3.</strong> release</a></li><li class="chapter-item expanded "><a href="../usage/shell-completions.html"><strong aria-hidden="true">2.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="../github/index.html"><strong aria-hidden="true">3.</strong> GitHub Action</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../github/trigger.html"><strong aria-hidden="true">3.1.</strong> Triggering further workflows</a></li><li class="chapter-item expanded "><a href="../github/update.html"><strong aria-hidden="true">3.2.</strong> Keep the action up-to-date</a></li></ol></li><li class="chapter-item expanded "><a href="../changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="../config.html"><strong aria-hidden="true">5.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="../why.html"><strong aria-hidden="true">6.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="../extra/index.html"><strong aria-hidden="true">7.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../extra/releasing-binaries.html"><strong aria-hidden="true">7.1.</strong> Releasing binaries</a></li><li class="chapter-item expanded "><a href="../extra/single-changelog.html"><strong aria-hidden="true">7.2.</strong> Single changelog</a></li><li class="chapter-item expanded "><a href="../extra/yanked-packages.html"><strong aria-hidden="true">7.3.</strong> Yanked packages</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -152,15 +152,20 @@
                     <main>
                         <h1 id="usage"><a class="header" href="#usage">Usage</a></h1>
 <p>Release-plz updates the versions and changelogs of your rust packages, by
-analyzing your git history:</p>
+analyzing your git history.
+There are three main commands:</p>
 <ul>
 <li><a href="update.html"><code>release-plz update</code></a> updates your project locally, without
 committing any change.</li>
 <li><a href="release-pr.html"><code>release-plz release-pr</code></a> opens a GitHub Pull Request.</li>
+<li><a href="release.html"><code>release-plz release</code></a> publishes the new versions of the packages.</li>
 </ul>
-<p>Once the changes are merged to the main branch, you can use
-<a href="release.html"><code>release-plz release</code></a> to publish the new versions of the packages.</p>
 <p>To learn more about how to use release-plz, run <code>release-plz --help</code>.</p>
+<h2 id="faq"><a class="header" href="#faq">FAQ</a></h2>
+<h3 id="are-packages-with-publish--false-in-the-cargotoml-updated"><a class="header" href="#are-packages-with-publish--false-in-the-cargotoml-updated">Are packages with <code>publish = false</code> in the <code>Cargo.toml</code> updated?</a></h3>
+<p>Release-plz ignores packages with <code>publish = false</code> in the <code>Cargo.toml</code>.
+Release-plz only updates their <code>Cargo.toml</code> to bump the version of
+a local dependency when needed.</p>
 
                     </main>
 
