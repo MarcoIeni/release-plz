@@ -285,7 +285,7 @@ impl ReleaseConfig {
     /// Merge the package-specific configuration with the global configuration.
     pub fn merge(self, default: ReleaseConfig) -> ReleaseConfig {
         ReleaseConfig {
-            publish: self.allow_dirty.or(default.publish),
+            publish: self.publish.or(default.publish),
             allow_dirty: self.allow_dirty.or(default.allow_dirty),
             no_verify: self.no_verify.or(default.no_verify),
         }
