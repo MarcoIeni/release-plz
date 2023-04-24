@@ -10,6 +10,7 @@
   - [shell-completions](usage/shell-completions.md)
 - [GitHub Action](github/README.md)
   - [Triggering further workflows](github/trigger.md)
+  - [Keep the action up-to-date](github/update.md)
 - [Changelog format](changelog-format.md)
 - [Configuration](config.md)
 - [Why yet another release tool](why.md)
