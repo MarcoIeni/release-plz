@@ -27,7 +27,7 @@ Here's an example of a release Pull Request created on the release-plz repositor
 
 ## Release-plz features
 
-- Version update based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
+- Version update based on [conventional commits](https://www.conventionalcommits.org/).
 - Changelog update with [git-cliff](https://github.com/orhun/git-cliff),
   using the [keep a changelog](https://keepachangelog.com/en/1.1.0/) format by default.
 - API breaking changes detection with [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks).

@@ -3,7 +3,7 @@
 [Introduction](README.md)
 
 - [Installation](installation.md)
-- [Usage](usage/README.md)
+- [CLI Usage](usage/README.md)
   - [update](usage/update.md)
   - [release-pr](usage/release-pr.md)
   - [release](usage/release.md)
