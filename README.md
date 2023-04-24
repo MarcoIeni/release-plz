@@ -22,7 +22,7 @@ ready to create a release, simply merge the release PR.
 ![pr](docs/src/assets/pr.png)
 
 When you merge the Release PR (or when you edit the `Cargo.toml` versions by yourself),
-release-plz takes the following steps:
+release-plz:
 
 - Creates a git tag named `<package_name>-v<version>` (e.g. `tokio-v1.8.1`).
 - Publishes the package to the cargo registry by running `cargo publish`.
