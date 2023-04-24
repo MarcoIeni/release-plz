@@ -5,9 +5,9 @@
 [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/marcoieni/release-plz)
 
 Release-plz helps you release your Rust packages by automating:
-- CHANGELOG generation (with [git-cliff](https://github.com/orhun/git-cliff))
-- Creation of GitHub/Gitea releases
-- Publishing to a cargo registry (`crates.io` by default)
+- CHANGELOG generation (with [git-cliff](https://github.com/orhun/git-cliff)).
+- Creation of GitHub/Gitea releases.
+- Publishing to a cargo registry (`crates.io` by default).
 - Version bumps.
 
 Release-plz updates your packages with a release Pull Request based on:
@@ -39,7 +39,7 @@ Learn how to use release-plz in the mdbook [docs](https://marcoieni.github.io/re
 
 There are two ways to run release-plz:
 
-- [GitHub Action](https://marcoieni.github.io/release-plz/github/index.html): Run Release-plz for CI. It both updates and releases your packages. *(Recommended)*
+- [GitHub Action](https://marcoieni.github.io/release-plz/github/index.html): Run Release-plz for CI. It both updates and releases your packages. *(Recommended)*.
 - [cli](https://marcoieni.github.io/release-plz/usage/index.html): Run release-plz from your terminal. Or other CI systems (Gitea supported).
 
 ## Users
