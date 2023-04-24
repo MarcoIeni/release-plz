@@ -525,8 +525,21 @@ impl Updater<'_> {
                 .should_update_changelog()
                 .then_some(self.req.changelog_req.clone());
             let old_changelog = fs::read_to_string(self.req.changelog_path(package)).ok();
+            let commits_title: Vec<String> = commits
+                .iter()
+                .filter_map(|c| c.lines().next())
+                .map(|c| c.to_string())
+                .collect();
             changelog_req
-                .map(|r| get_changelog(commits, &version, Some(r), old_changelog, release_link))
+                .map(|r| {
+                    get_changelog(
+                        commits_title,
+                        &version,
+                        Some(r),
+                        old_changelog,
+                        release_link,
+                    )
+                })
                 .transpose()
         }?;
 
