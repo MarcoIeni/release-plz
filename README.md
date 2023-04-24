@@ -17,7 +17,7 @@ Release-plz updates your packages with a release Pull Request based on:
 ## What's a Release PR?
 
 Release-plz maintains Release PRs, keeping them up-to-date as you merge additional commits. When you're
-ready to tag a release, simply merge the release PR.
+ready to create a release, simply merge the release PR.
 
 ![pr](docs/src/assets/pr.png)
 
