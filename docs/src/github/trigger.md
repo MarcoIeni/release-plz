@@ -58,13 +58,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.MY_GITHUB_TOKEN }} # <-- Your token here
+          token: ${{ secrets.RELEASE_PLZ_TOKEN }} # <-- Your token here
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@v0.5
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }} # <-- Your token here
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }} # <-- Your token here
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
@@ -86,13 +86,14 @@ Here's how to use a GitHub app to generate a GitHub token:
    - Under `Repository permissions: Pull requests` select `Access: Read & write`.
    - (Optional) Set the release-plz [logo](../assets/robot_head.jpeg).
 
-2. Create a Private key from the App settings page and
-   [store it securely](https://docs.github.com/en/actions/security-guides/encrypted-secrets).
+2. Create a Private key from the App settings page and store it securely.
 
 3. Install the App on the repositories where you want to run release-plz.
 
-4. Set secrets on your repository containing the GitHub App ID, and the private
-   key you created in step 2. e.g. `APP_ID`, `APP_PRIVATE_KEY`.
+4. Store the GitHub App ID, and the private
+   key you created in step 2 in GitHub
+   [secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets).
+   E.g. `APP_ID`, `APP_PRIVATE_KEY`.
 
 5. The following example workflow shows how to use
    [tibdex/github-app-token](https://github.com/tibdex/github-app-token)
