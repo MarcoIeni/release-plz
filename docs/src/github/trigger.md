@@ -63,13 +63,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_PLZ_TOKEN }} # <-- Your token here
+          token: ${{ secrets.RELEASE_PLZ_TOKEN }} # <-- PAT secret name
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@v0.5
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }} # <-- Your token here
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }} # <-- PAT secret name
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
@@ -112,8 +112,8 @@ Here's how to use a GitHub app to generate a GitHub token:
       uses: tibdex/github-app-token@v1
       id: generate-token
       with:
-        app_id: ${{ secrets.APP_ID }}
-        private_key: ${{ secrets.APP_PRIVATE_KEY }}
+        app_id: ${{ secrets.APP_ID }} # <-- GitHub App ID secret name
+        private_key: ${{ secrets.APP_PRIVATE_KEY }} # <-- GitHub App private key secret name
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
