@@ -23,7 +23,7 @@ a tag or creates a release, you need to use one of the following methods.
 
 To run `on: pull_request` workflows you can manually close and reopen the release pull request.
 
-### Use a PAT
+### Use a Personal Access Token
 
 Use a [Personal Access Token (PAT)](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
 created on an account with write access to the repository.
