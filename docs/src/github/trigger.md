@@ -1,6 +1,6 @@
 # Triggering further workflow runs
 
-Pull requests created by GitHub actions using the default `GITHUB_TOKEN` cannot
+Pull requests created by GitHub Actions using the default `GITHUB_TOKEN` cannot
 trigger other workflows.
 For example, `on: pull_request` or `on: push` workflows acting as checks on pull
 requests won't run.
@@ -61,12 +61,12 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
-### Use a GitHub action
+### Use a GitHub Action
 
 Generate a GitHub token with a GitHub App.
 This is the approach used by the
 [release-plz](https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/release-plz.yml)
-repo itself. With this approach, 
+repo itself. With this approach,
 If you want to use the release-plz logo for the GitHub app, you can find it [here](../assets/robot_head.jpeg).
 Here's how to use a GitHub app to generate a GitHub token:
 

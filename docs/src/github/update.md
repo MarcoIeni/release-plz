@@ -1,6 +1,6 @@
 # Keep the action up-to-date
 
-To receive Dependabot updates when a new version of a GitHub action (including release-plz)
+To receive Dependabot updates when a new version of a GitHub Action (including release-plz)
 is available, add the following to your `/.github/dependabot.yml` file:
 
 ```yaml

@@ -110,5 +110,5 @@ Some projects to consider for this task:
 - [cargo-dist](https://crates.io/crates/cargo-dist):
   shippable application packaging for Rust.
 
-Note: to release a binary after release, the release-plz GitHub action needs to
+Note: to release a binary after release, the release-plz GitHub Action needs to
 [trigger further workflow runs](../github/trigger.md).
