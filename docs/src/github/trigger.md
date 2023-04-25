@@ -73,8 +73,6 @@ Generate a GitHub token with a GitHub App.
 This is the approach used by the
 [release-plz](https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/release-plz.yml)
 repo itself. With this approach, the GitHub App will be the author of the release pull request.
-If you want to use the release-plz logo for the GitHub app, you can find it
-[here](../assets/robot_head.jpeg).
 Here's how to use a GitHub app to generate a GitHub token:
 
 1. Create a minimal [GitHub App](https://docs.github.com/en/developers/apps/creating-a-github-app),
@@ -84,6 +82,7 @@ Here's how to use a GitHub app to generate a GitHub token:
    - Uncheck `Active` under `Webhook`. You do not need to enter a `Webhook URL`.
    - Under `Repository permissions: Contents` select `Access: Read & write`.
    - Under `Repository permissions: Pull requests` select `Access: Read & write`.
+   - (Optional) Set the release-plz [logo](../assets/robot_head.jpeg)
 
 2. Create a Private key from the App settings page and store it securely.
 
