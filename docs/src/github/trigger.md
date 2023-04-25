@@ -142,9 +142,3 @@ For example:
       tags:
         - "*"
    ```
-
-## Credits
-
-This section is inspired by
-[this](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs)
-guide.
