@@ -104,29 +104,29 @@ Here's how to use a GitHub app to generate a GitHub token:
    [tibdex/github-app-token](https://github.com/tibdex/github-app-token)
    to generate a token from the GitHub Action:
 
-  ```yaml
-  steps:
-    # Generating a GitHub token, so that PRs and tags created by
-    # the release-plz-action can trigger actions workflows.
-    - name: Generate GitHub token
-      uses: tibdex/github-app-token@v1
-      id: generate-token
-      with:
-        app_id: ${{ secrets.APP_ID }} # <-- GitHub App ID secret name
-        private_key: ${{ secrets.APP_PRIVATE_KEY }} # <-- GitHub App private key secret name
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        token: ${{ steps.generate-token.outputs.token }}
-    - name: Install Rust toolchain
-      uses: dtolnay/rust-toolchain@stable
-    - name: Run release-plz
-      uses: MarcoIeni/release-plz-action@main
-      env:
-        GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-        CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-  ```
+   ```yaml
+   steps:
+     # Generating a GitHub token, so that PRs and tags created by
+     # the release-plz-action can trigger actions workflows.
+     - name: Generate GitHub token
+       uses: tibdex/github-app-token@v1
+       id: generate-token
+       with:
+         app_id: ${{ secrets.APP_ID }} # <-- GitHub App ID secret name
+         private_key: ${{ secrets.APP_PRIVATE_KEY }} # <-- GitHub App private key secret name
+     - name: Checkout repository
+       uses: actions/checkout@v3
+       with:
+         fetch-depth: 0
+         token: ${{ steps.generate-token.outputs.token }}
+     - name: Install Rust toolchain
+       uses: dtolnay/rust-toolchain@stable
+     - name: Run release-plz
+       uses: MarcoIeni/release-plz-action@main
+       env:
+         GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+         CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+   ```
 
 ## How to trigger further workflows
 
