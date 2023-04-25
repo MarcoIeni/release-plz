@@ -35,7 +35,7 @@ a tag or creates a release, you need to use one of these workarounds:
     - Assign "Contents" and "Pull requests" read and write permissions:
       ![pat fine permissions](../assets/pat-overview.png)
 
-  In any case, pass your GitHub token to both the `actions/checkout` and `release-plz` actions:
+  In any case, pass your PAT to both the `actions/checkout` and `release-plz` actions:
 
   ```yaml
   jobs:
