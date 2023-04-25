@@ -30,6 +30,7 @@ created on an account with write access to the repository.
 This is the standard method
 [recommended by GitHub](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
 Note that the account that owns the PAT will be the author of the release pull request.
+
 Create the PAT, choosing one of the two types:
 - [Classic](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#personal-access-tokens-classic):
   less secure because you can't scope it to a single repository.
@@ -73,6 +74,7 @@ Generate a GitHub token with a GitHub App.
 This is the approach used by the
 [release-plz](https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/release-plz.yml)
 repo itself. With this approach, the GitHub App will be the author of the release pull request.
+
 Here's how to use a GitHub app to generate a GitHub token:
 
 1. Create a minimal [GitHub App](https://docs.github.com/en/developers/apps/creating-a-github-app),
