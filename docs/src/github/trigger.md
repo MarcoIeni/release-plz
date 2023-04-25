@@ -1,19 +1,22 @@
 # Triggering further workflow runs
 
-Pull requests created by GitHub Actions using the default `GITHUB_TOKEN` cannot
+GitHub Actions using the default `GITHUB_TOKEN` cannot
 trigger other workflows.
-For example, `on: pull_request` or `on: push` workflows acting as checks on pull
-requests won't run.
+For example:
+- `on: pull_request` or `on: push` workflows acting as checks on pull
+  requests opened by GitHub Actions won't run.
+- `on: release` or `on: push: tags` workflows acting on releases or
+  tags created by GitHub actions won't run.
 
 You can learn more in the GitHub
 [docs](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
 
-## Workarounds to trigger further workflow runs
+## How to trigger further workflow runs
 
 Release-plz doesn't need to trigger further workflow runs to release your packages.
 However, if you want to run CI checks on the release PR,
 or if you want to trigger another workflow after release-plz pushes
-a tag or creates a release, you need to use one of the following workarounds.
+a tag or creates a release, you need to use one of the following methods.
 
 ### Trigger workflow manually
 
@@ -23,7 +26,7 @@ To run `on: pull_request` workflows you can manually close and reopen the releas
 
 Use a [Personal Access Token (PAT)](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
 created on an account with write access to the repository.
-This is the standard workaround
+This is the standard method
 [recommended by GitHub](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
 Note that the account that owns the PAT will be the author of the release pull request.
 There are two types of PAT:
