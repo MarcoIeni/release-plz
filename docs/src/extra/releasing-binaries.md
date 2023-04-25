@@ -65,21 +65,21 @@ jobs:
           - target: aarch64-unknown-linux-musl
             os: ubuntu-22.04
           - target: aarch64-apple-darwin
-            os: macos-11
+            os: macos-12
           - target: aarch64-pc-windows-msvc
-            os: windows-2019
+            os: windows-2022
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-22.04
           - target: x86_64-unknown-linux-musl
             os: ubuntu-22.04
           - target: x86_64-apple-darwin
-            os: macos-11
+            os: macos-12
           - target: x86_64-pc-windows-msvc
-            os: windows-2019
+            os: windows-2022
           - target: x86_64-unknown-freebsd
             os: ubuntu-22.04
           - target: universal-apple-darwin
-            os: macos-11
+            os: macos-12
     timeout-minutes: 60
     steps:
       - name: Checkout repository
