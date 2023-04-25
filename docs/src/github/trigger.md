@@ -42,7 +42,9 @@ There are two types of PAT:
   - Assign "Contents" and "Pull requests" read and write permissions:
     ![pat fine permissions](../assets/pat-overview.png)
 
-In any case, pass your PAT to both the `actions/checkout` and `release-plz` actions:
+Once you generated your token, and saved it in the
+[secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets),
+pass it to both the `actions/checkout` and `release-plz` actions:
 
 ```yaml
 jobs:
