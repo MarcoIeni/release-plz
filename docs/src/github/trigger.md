@@ -37,10 +37,6 @@ consider creating a
 If your machine user needs a cool avatar, you can use the release-plz [logo](../assets/robot_head.jpeg)).
 
 Create the PAT, choosing one of the two types:
-- [Classic](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#personal-access-tokens-classic):
-  less secure because you can't scope it to a single repository.
-  Release-plz needs `repo` permissions:
-  ![pat classic permissions](../assets/pat-classic.png)
 - [Fine-grained](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#fine-grained-personal-access-tokens):
   more secure because you can select the repositories where the PAT can be used.
   Release-plz needs the following:
@@ -48,6 +44,10 @@ Create the PAT, choosing one of the two types:
     ![pat repository access](../assets/repository-access.png)
   - Assign "Contents" and "Pull requests" read and write permissions:
     ![pat fine permissions](../assets/pat-overview.png)
+- [Classic](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#personal-access-tokens-classic):
+  less secure because you can't scope it to a single repository.
+  Release-plz needs `repo` permissions:
+  ![pat classic permissions](../assets/pat-classic.png)
 
 Once you generated your token, save it in the
 [secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets),
