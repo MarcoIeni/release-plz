@@ -89,7 +89,7 @@ Here's how to use a GitHub app to generate a GitHub token:
 2. Create a Private key from the App settings page and
    [store it securely](https://docs.github.com/en/actions/security-guides/encrypted-secrets).
 
-3. Install the App on any repository where workflows will run requiring tokens.
+3. Install the App on the repositories where you want to run release-plz.
 
 4. Set secrets on your repository containing the GitHub App ID, and the private
    key you created in step 2. e.g. `APP_ID`, `APP_PRIVATE_KEY`.
