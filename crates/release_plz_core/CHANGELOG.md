@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.9.1...release_plz_core-v0.9.2) - 2023-04-25
 
-### Other
-- update dependencies
+### Fixed
+- downgrade cargo to fix windows compilation
 
 ## [0.9.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.9.0...release_plz_core-v0.9.1) - 2023-04-24
 
