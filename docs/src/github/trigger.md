@@ -84,9 +84,10 @@ Here's how to use a GitHub app to generate a GitHub token:
    - Uncheck `Active` under `Webhook`. You do not need to enter a `Webhook URL`.
    - Under `Repository permissions: Contents` select `Access: Read & write`.
    - Under `Repository permissions: Pull requests` select `Access: Read & write`.
-   - (Optional) Set the release-plz [logo](../assets/robot_head.jpeg)
+   - (Optional) Set the release-plz [logo](../assets/robot_head.jpeg).
 
-2. Create a Private key from the App settings page and store it securely.
+2. Create a Private key from the App settings page and
+   [store it securely](https://docs.github.com/en/actions/security-guides/encrypted-secrets).
 
 3. Install the App on any repository where workflows will run requiring tokens.
 
