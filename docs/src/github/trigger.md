@@ -1,7 +1,8 @@
 # Triggering further workflow runs
 
-GitHub Actions using the default `GITHUB_TOKEN` cannot
-trigger other workflows.
+GitHub Actions using the default
+[`GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication)
+cannot trigger other workflows.
 For example:
 - `on: pull_request` or `on: push` workflows acting as checks on pull
   requests opened by GitHub Actions won't run.
