@@ -111,7 +111,7 @@ You can trigger workflows on different
 [events](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows).
 For example:
 
-- When a release is published:
+- When a GitHub release is published:
 
   ```yaml
   on:
@@ -119,7 +119,7 @@ For example:
       types: [published]
   ```
 
-- When a tag is pushed:
+- When a git tag is pushed:
 
   ```yaml
   on:
