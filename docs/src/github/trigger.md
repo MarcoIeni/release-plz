@@ -35,38 +35,75 @@ a tag or creates a release, you need to use one of these workarounds:
     - Assign "Contents" and "Pull requests" read and write permissions:
       ![pat fine permissions](../assets/pat-overview.png)
 
-- Use [SSH (deploy keys)](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#push-using-ssh-deploy-keys)
-  to push the pull request branch.
-  Note that this method will only trigger `on: push` workflows.
+  In any case, pass your GitHub token to both the `actions/checkout` and `release-plz` actions:
 
-- Use a
-  [GitHub App to generate a token](https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#authenticating-with-github-app-generated-tokens)
-  that can be used with this action. This is the approach used by the
+  ```yaml
+  jobs:
+    release-plz:
+      name: Release-plz
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+            token: ${{ secrets.MY_GITHUB_TOKEN }} # <-- Your token here
+        - name: Install Rust toolchain
+          uses: dtolnay/rust-toolchain@stable
+        - name: Run release-plz
+          uses: MarcoIeni/release-plz-action@v0.5
+          env:
+            GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }} # <-- Your token here
+            CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  ```
+
+- Generate a GitHub token with a GitHub App.
+  This is the approach used by the
   [release-plz](https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/release-plz.yml)
   repo itself.
   If you want to use the release-plz logo for the GitHub app, you can find it [here](../assets/robot_head.jpeg).
+  Here's how to use a GitHub app to generate a GitHub token:
 
-In any case, pass your GitHub token to both the `actions/checkout` and `release-plz` actions:
+  1. Create a minimal [GitHub App](https://docs.github.com/en/developers/apps/creating-a-github-app), setting the following fields:
 
-```yaml
-jobs:
-  release-plz:
-    name: Release-plz
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.MY_GITHUB_TOKEN }} # <-- Your token here
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }} # <-- Your token here
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-```
+    - Set `GitHub App name`.
+    - Set `Homepage URL` to anything you like, such as your GitHub profile page.
+    - Uncheck `Active` under `Webhook`. You do not need to enter a `Webhook URL`.
+    - Under `Repository permissions: Contents` select `Access: Read & write`.
+    - Under `Repository permissions: Pull requests` select `Access: Read & write`.
+
+  2. Create a Private key from the App settings page and store it securely.
+
+  3. Install the App on any repository where workflows will run requiring tokens.
+
+  4. Set secrets on your repository containing the GitHub App ID, and the private key you created in step 2. e.g. `APP_ID`, `APP_PRIVATE_KEY`.
+
+  5. The following example workflow shows how to use [tibdex/github-app-token](https://github.com/tibdex/github-app-token) to generate a token for use with this action.
+
+  ```yaml
+  steps:
+    # Generating a GitHub token, so that PRs and tags created by
+    # the release-plz-action can trigger actions workflows.
+    - name: Generate GitHub token
+      uses: tibdex/github-app-token@v1
+      id: generate-token
+      with:
+        app_id: ${{ secrets.APP_ID }}
+        private_key: ${{ secrets.APP_PRIVATE_KEY }}
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        token: ${{ steps.generate-token.outputs.token }}
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+    - name: Run release-plz
+      uses: MarcoIeni/release-plz-action@main
+      env:
+        GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+        CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  ```
+
 
 ## How to trigger further workflows
 
