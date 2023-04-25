@@ -72,7 +72,7 @@ jobs:
 Generate a GitHub token with a GitHub App.
 This is the approach used by the
 [release-plz](https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/release-plz.yml)
-repo itself. With this approach,
+repo itself. With this approach, the GitHub App will be the author of the release pull request.
 If you want to use the release-plz logo for the GitHub app, you can find it
 [here](../assets/robot_head.jpeg).
 Here's how to use a GitHub app to generate a GitHub token:
