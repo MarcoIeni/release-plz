@@ -13,11 +13,11 @@ You can learn more in the GitHub
 Release-plz doesn't need to trigger further workflow runs to release your packages.
 However, if you want to run CI checks on the release PR,
 or if you want to trigger another workflow after release-plz pushes
-a tag or creates a release, you need to use one of these workarounds:
+a tag or creates a release, you need to use one of the following workarounds.
 
 ### Trigger workflow manually
 
-To run `on: pull_request` workflows, manually close and reopen the release pull request.
+To run `on: pull_request` workflows you can manually close and reopen the release pull request.
 
 ### Use a PAT
 
@@ -67,24 +67,28 @@ Generate a GitHub token with a GitHub App.
 This is the approach used by the
 [release-plz](https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/release-plz.yml)
 repo itself. With this approach,
-If you want to use the release-plz logo for the GitHub app, you can find it [here](../assets/robot_head.jpeg).
+If you want to use the release-plz logo for the GitHub app, you can find it
+[here](../assets/robot_head.jpeg).
 Here's how to use a GitHub app to generate a GitHub token:
 
-1. Create a minimal [GitHub App](https://docs.github.com/en/developers/apps/creating-a-github-app), setting the following fields:
-
-  - Set `GitHub App name`.
-  - Set `Homepage URL` to anything you like, such as your GitHub profile page.
-  - Uncheck `Active` under `Webhook`. You do not need to enter a `Webhook URL`.
-  - Under `Repository permissions: Contents` select `Access: Read & write`.
-  - Under `Repository permissions: Pull requests` select `Access: Read & write`.
+1. Create a minimal [GitHub App](https://docs.github.com/en/developers/apps/creating-a-github-app),
+   setting the following fields:
+   - Set `GitHub App name`.
+   - Set `Homepage URL` to anything you like, such as your GitHub profile page.
+   - Uncheck `Active` under `Webhook`. You do not need to enter a `Webhook URL`.
+   - Under `Repository permissions: Contents` select `Access: Read & write`.
+   - Under `Repository permissions: Pull requests` select `Access: Read & write`.
 
 2. Create a Private key from the App settings page and store it securely.
 
 3. Install the App on any repository where workflows will run requiring tokens.
 
-4. Set secrets on your repository containing the GitHub App ID, and the private key you created in step 2. e.g. `APP_ID`, `APP_PRIVATE_KEY`.
+4. Set secrets on your repository containing the GitHub App ID, and the private
+   key you created in step 2. e.g. `APP_ID`, `APP_PRIVATE_KEY`.
 
-5. The following example workflow shows how to use [tibdex/github-app-token](https://github.com/tibdex/github-app-token) to generate a token for use with this action.
+5. The following example workflow shows how to use
+   [tibdex/github-app-token](https://github.com/tibdex/github-app-token)
+   to generate a token for use with this action.
 
 ```yaml
 steps:
