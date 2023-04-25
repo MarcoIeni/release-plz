@@ -151,60 +151,55 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="triggering-further-workflow-runs"><a class="header" href="#triggering-further-workflow-runs">Triggering further workflow runs</a></h1>
-<p>Pull requests created by GitHub actions using the default <code>GITHUB_TOKEN</code> cannot
-trigger other workflows.
-For example, <code>on: pull_request</code> or <code>on: push</code> workflows acting as checks on pull
-requests won’t run.</p>
+<p>GitHub Actions using the default
+<a href="https://docs.github.com/en/actions/security-guides/automatic-token-authentication"><code>GITHUB_TOKEN</code></a>
+cannot trigger other workflows.
+For example:</p>
+<ul>
+<li><code>on: pull_request</code> or <code>on: push</code> workflows acting as checks on pull
+requests opened by GitHub Actions won’t run.</li>
+<li><code>on: release</code> or <code>on: push: tags</code> workflows acting on releases or
+tags created by GitHub actions won’t run.</li>
+</ul>
 <p>You can learn more in the GitHub
 <a href="https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow">docs</a>.</p>
-<h2 id="workarounds-to-trigger-further-workflow-runs"><a class="header" href="#workarounds-to-trigger-further-workflow-runs">Workarounds to trigger further workflow runs</a></h2>
+<h2 id="how-to-trigger-further-workflow-runs"><a class="header" href="#how-to-trigger-further-workflow-runs">How to trigger further workflow runs</a></h2>
 <p>Release-plz doesn’t need to trigger further workflow runs to release your packages.
 However, if you want to run CI checks on the release PR,
 or if you want to trigger another workflow after release-plz pushes
-a tag or creates a release, you need to use one of these workarounds:</p>
-<ul>
-<li>
-<p>To run <code>on: pull_request</code> workflows, manually close and reopen the release pull request.</p>
-</li>
-<li>
+a tag or creates a release, you need to use one of the following methods.</p>
+<h3 id="trigger-workflow-manually"><a class="header" href="#trigger-workflow-manually">Trigger workflow manually</a></h3>
+<p>To run <code>on: pull_request</code> workflows you can manually close and reopen the release pull request.</p>
+<h3 id="use-a-personal-access-token"><a class="header" href="#use-a-personal-access-token">Use a Personal Access Token</a></h3>
 <p>Use a <a href="https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token">Personal Access Token (PAT)</a>
 created on an account with write access to the repository.
-This is the standard workaround
-<a href="https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow">recommended by GitHub</a>.
-Note that the account that owns the PAT will be the author of the release pull request.
-There are two types of PAT:</p>
+This is the standard method
+<a href="https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow">recommended by GitHub</a>.</p>
+<p>Note that the account that owns the PAT will be the author of the release pull request.
+If you don’t want release-plz to open release pull requests with your account,
+consider creating a
+<a href="https://docs.github.com/en/get-started/learning-about-github/types-of-github-accounts#personal-accounts">machine user</a>.
+If your machine user needs a cool avatar, you can use the release-plz <a href="../assets/robot_head.jpeg">logo</a>).</p>
+<p>Create the PAT, choosing one of the two types:</p>
 <ul>
-<li><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#personal-access-tokens-classic">Classic</a>:
-less secure because you can’t scope it to a single repository.
-Release-plz needs <code>repo</code> permissions:
-<img src="../assets/pat-classic.png" alt="pat classic permissions" /></li>
 <li><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#fine-grained-personal-access-tokens">Fine-grained</a>:
 more secure because you can select the repositories where the PAT can be used.
 Release-plz needs the following:
 <ul>
-<li>Select the repositories where you want to use the PAT, to give it write access:
+<li>Select the repositories where you want to use the PAT, to give release-plz write access:
 <img src="../assets/repository-access.png" alt="pat repository access" /></li>
 <li>Assign “Contents” and “Pull requests” read and write permissions:
 <img src="../assets/pat-overview.png" alt="pat fine permissions" /></li>
 </ul>
 </li>
+<li><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#personal-access-tokens-classic">Classic</a>:
+less secure because you can’t scope it to a single repository.
+Release-plz needs <code>repo</code> permissions:
+<img src="../assets/pat-classic.png" alt="pat classic permissions" /></li>
 </ul>
-</li>
-<li>
-<p>Use <a href="https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#push-using-ssh-deploy-keys">SSH (deploy keys)</a>
-to push the pull request branch.
-Note that this method will only trigger <code>on: push</code> workflows.</p>
-</li>
-<li>
-<p>Use a
-<a href="https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#authenticating-with-github-app-generated-tokens">GitHub App to generate a token</a>
-that can be used with this action. This is the approach used by the
-<a href="https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/release-plz.yml">release-plz</a>
-repo itself.
-If you want to use the release-plz logo for the GitHub app, you can find it <a href="../assets/robot_head.jpeg">here</a>.</p>
-</li>
-</ul>
-<p>In any case, pass your GitHub token to both the <code>actions/checkout</code> and <code>release-plz</code> actions:</p>
+<p>Once you generated your token, save it in the
+<a href="https://docs.github.com/en/actions/security-guides/encrypted-secrets">secrets</a>,
+and pass it to both the <code>actions/checkout</code> and <code>release-plz</code> actions:</p>
 <pre><code class="language-yaml">jobs:
   release-plz:
     name: Release-plz
@@ -214,29 +209,88 @@ If you want to use the release-plz logo for the GitHub app, you can find it <a h
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.MY_GITHUB_TOKEN }} # &lt;-- Your token here
+          token: ${{ secrets.RELEASE_PLZ_TOKEN }} # &lt;-- PAT secret name
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@v0.5
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }} # &lt;-- Your token here
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }} # &lt;-- PAT secret name
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 </code></pre>
+<h3 id="use-a-github-action"><a class="header" href="#use-a-github-action">Use a GitHub Action</a></h3>
+<p>Generate a GitHub token with a GitHub App.
+This is the approach used by the
+<a href="https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/release-plz.yml">release-plz</a>
+repo itself. With this approach, the GitHub App will be the author of the release pull request.</p>
+<p>Here’s how to use a GitHub app to generate a GitHub token:</p>
+<ol>
+<li>
+<p>Create a minimal <a href="https://docs.github.com/en/developers/apps/creating-a-github-app">GitHub App</a>,
+setting the following fields:</p>
+<ul>
+<li>Set <code>GitHub App name</code>.</li>
+<li>Set <code>Homepage URL</code> to anything you like, such as your GitHub profile page.</li>
+<li>Uncheck <code>Active</code> under <code>Webhook</code>. You do not need to enter a <code>Webhook URL</code>.</li>
+<li>Under <code>Repository permissions: Contents</code> select <code>Access: Read &amp; write</code>.</li>
+<li>Under <code>Repository permissions: Pull requests</code> select <code>Access: Read &amp; write</code>.</li>
+<li>(Optional) Set the release-plz <a href="../assets/robot_head.jpeg">logo</a>.</li>
+</ul>
+</li>
+<li>
+<p>Create a Private key from the App settings page and store it securely.</p>
+</li>
+<li>
+<p>Install the App on the repositories where you want to run release-plz.</p>
+</li>
+<li>
+<p>Store the GitHub App ID, and the private
+key you created in step 2 in GitHub
+<a href="https://docs.github.com/en/actions/security-guides/encrypted-secrets">secrets</a>.
+E.g. <code>APP_ID</code>, <code>APP_PRIVATE_KEY</code>.</p>
+</li>
+<li>
+<p>Use
+<a href="https://github.com/tibdex/github-app-token">tibdex/github-app-token</a>
+to generate a token from the GitHub Action:</p>
+<pre><code class="language-yaml">steps:
+  # Generating a GitHub token, so that PRs and tags created by
+  # the release-plz-action can trigger actions workflows.
+  - name: Generate GitHub token
+    uses: tibdex/github-app-token@v1
+    id: generate-token
+    with:
+      app_id: ${{ secrets.APP_ID }} # &lt;-- GitHub App ID secret name
+      private_key: ${{ secrets.APP_PRIVATE_KEY }} # &lt;-- GitHub App private key secret name
+  - name: Checkout repository
+    uses: actions/checkout@v3
+    with:
+      fetch-depth: 0
+      token: ${{ steps.generate-token.outputs.token }}
+  - name: Install Rust toolchain
+    uses: dtolnay/rust-toolchain@stable
+  - name: Run release-plz
+    uses: MarcoIeni/release-plz-action@main
+    env:
+      GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+</code></pre>
+</li>
+</ol>
 <h2 id="how-to-trigger-further-workflows"><a class="header" href="#how-to-trigger-further-workflows">How to trigger further workflows</a></h2>
 <p>You can trigger workflows on different
 <a href="https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows">events</a>.
 For example:</p>
 <ul>
 <li>
-<p>When a release is published:</p>
+<p>When a GitHub release is published:</p>
 <pre><code class="language-yaml">on:
   release:
     types: [published]
 </code></pre>
 </li>
 <li>
-<p>When a tag is pushed:</p>
+<p>When a git tag is pushed:</p>
 <pre><code class="language-yaml">on:
   push:
     tags:
@@ -244,10 +298,6 @@ For example:</p>
 </code></pre>
 </li>
 </ul>
-<h2 id="credits"><a class="header" href="#credits">Credits</a></h2>
-<p>This section is inspired by
-<a href="https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs">this</a>
-guide.</p>
 
                     </main>
 
