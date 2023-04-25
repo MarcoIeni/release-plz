@@ -44,9 +44,9 @@ Create the PAT, choosing one of the two types:
   - Assign "Contents" and "Pull requests" read and write permissions:
     ![pat fine permissions](../assets/pat-overview.png)
 
-Once you generated your token, and saved it in the
+Once you generated your token, save it in the
 [secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets),
-pass it to both the `actions/checkout` and `release-plz` actions:
+and pass it to both the `actions/checkout` and `release-plz` actions:
 
 ```yaml
 jobs:
