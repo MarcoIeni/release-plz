@@ -1,8 +1,8 @@
-# GitHub action
+# GitHub Action
 
-The simplest way to run release-plz is via the [GitHub action](https://github.com/marketplace/actions/release-plz).
+The simplest way to run release-plz is via the [GitHub Action](https://github.com/marketplace/actions/release-plz).
 
-By default, every time you merge a commit to the main branch, the GitHub action
+By default, every time you merge a commit to the main branch, the GitHub Action
 runs two commands, one after the other:
 
 - [`release-plz release-pr`](../usage/release-pr.md): creates the release pr.
@@ -161,13 +161,13 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
-## Change GitHub actions permissions
+## Change GitHub Actions permissions
 
-1. Go to the GitHub actions settings:
+1. Go to the GitHub Actions settings:
 
    ![actions settings](../assets/actions_settings.png)
 
-2. Change "Workflow permissions" to allow GitHub actions to create and approve
+2. Change "Workflow permissions" to allow GitHub Actions to create and approve
    pull requests (needed to create and update the PR).
 
    ![workflow permission](../assets/workflow_permissions.png)
