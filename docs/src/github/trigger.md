@@ -4,6 +4,7 @@ GitHub Actions using the default
 [`GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication)
 cannot trigger other workflows.
 For example:
+
 - `on: pull_request` or `on: push` workflows acting as checks on pull
   requests opened by GitHub Actions won't run.
 - `on: release` or `on: push: tags` workflows acting on releases or
@@ -37,6 +38,7 @@ consider creating a
 If your machine user needs a cool avatar, you can use the release-plz [logo](../assets/robot_head.jpeg)).
 
 Create the PAT, choosing one of the two types:
+
 - [Fine-grained](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#fine-grained-personal-access-tokens):
   more secure because you can select the repositories where the PAT can be used.
   Release-plz needs the following:
