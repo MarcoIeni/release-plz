@@ -38,7 +38,7 @@ There are two types of PAT:
 - [Fine-grained](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#fine-grained-personal-access-tokens):
   more secure because you can select the repositories where the PAT can be used.
   Release-plz needs the following:
-  - Select the repositories where you want to use the PAT, to give it write access:
+  - Select the repositories where you want to use the PAT, to give release-plz write access:
     ![pat repository access](../assets/repository-access.png)
   - Assign "Contents" and "Pull requests" read and write permissions:
     ![pat fine permissions](../assets/pat-overview.png)
