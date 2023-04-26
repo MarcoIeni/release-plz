@@ -102,7 +102,7 @@ impl ReleaseRequest {
                     .join(CHANGELOG_FILENAME)
             })
     }
-    
+
     fn is_publish_enabled(&self, package: &str) -> bool {
         let config = self.get_package_config(package);
         config.generic.publish.enabled

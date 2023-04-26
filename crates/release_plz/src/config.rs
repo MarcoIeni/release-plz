@@ -178,7 +178,9 @@ impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
         let is_git_release_enabled = value.git_release.enable != Some(false);
         let mut cfg = Self::default()
             .with_publish(release_plz_core::PublishConfig::enabled(is_publish_enabled))
-            .with_git_release(release_plz_core::GitReleaseConfig::enabled(is_git_release_enabled));
+            .with_git_release(release_plz_core::GitReleaseConfig::enabled(
+                is_git_release_enabled,
+            ));
         if let Some(no_verify) = value.release.no_verify {
             cfg = cfg.with_no_verify(no_verify);
         }
