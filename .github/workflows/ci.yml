@@ -11,7 +11,6 @@ on:
       - "**.md"
 
 jobs:
-
   test:
     name: Test Suite
     runs-on: ubuntu-22.04
@@ -22,7 +21,7 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@v1.10.0
         with:
           repo: obi1kenobi/cargo-semver-checks
-          tag: v0.18.3
+          tag: v0.20.0
           cache: enable
       - name: Install dependencies
         run: sudo apt update && sudo apt install -y libssl-dev
@@ -31,6 +30,31 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
         run: cargo test --all-features --workspace
+
+  check:
+    name: Check
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-pc-windows-msvc
+            os: windows-2022
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-22.04
+          - target: x86_64-apple-darwin
+            os: macos-12
+          - target: x86_64-pc-windows-msvc
+            os: windows-2022
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Install OpenSSL
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt update && sudo apt install -y libssl-dev
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cargo check
+        run: cargo check --all-features --workspace
 
   rustfmt:
     name: Rustfmt

@@ -191,7 +191,7 @@ of the same directory of the `Cargo.toml` of the package:
 If the changelog of a package is in a different location, you can specify it with this field.
 
 This field is relative to the root `Cargo.toml` file.
-In GitHub actions, this is the root of the repository.
+In GitHub Actions, this is the root of the repository.
 
 This field cannot be set in the `[workspace]` section.
 
