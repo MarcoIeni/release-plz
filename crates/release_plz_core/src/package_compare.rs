@@ -27,7 +27,7 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyh
     let walker = ignore::WalkBuilder::new(local_package)
         // Read hidden files
         .hidden(false)
-        // Don't read `.ignore` files.
+        // Don't consider `.ignore` files.
         .ignore(false)
         .filter_entry(|e| {
             !((is_dir(e.file_type()) && e.path().file_name() == Some(OsStr::new(".git")))
