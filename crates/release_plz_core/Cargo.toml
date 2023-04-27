@@ -25,6 +25,7 @@ fs_extra.workspace = true
 git-cliff.workspace = true
 git-cliff-core.workspace = true
 git-url-parse.workspace = true
+ignore.workspace = true
 lazy_static.workspace = true
 parse-changelog.workspace = true
 regex.workspace = true
