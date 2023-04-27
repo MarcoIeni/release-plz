@@ -2,14 +2,14 @@ use crate::CARGO_TOML;
 use std::{
     collections::hash_map::DefaultHasher,
     ffi::OsStr,
-    fs::{self, File, FileType},
+    fs::{self, File},
     hash::{Hash, Hasher},
     io::{self, Read},
     path::Path,
 };
 
-fn is_dir(file_type: Option<FileType>) -> bool {
-    match file_type {
+fn is_dir(entry: &ignore::DirEntry) -> bool {
+    match entry.file_type() {
         Some(ft) => ft.is_dir(),
         None => false,
     }
@@ -30,14 +30,14 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyh
         // Don't consider `.ignore` files.
         .ignore(false)
         .filter_entry(|e| {
-            !((is_dir(e.file_type()) && e.path().file_name() == Some(OsStr::new(".git")))
+            !((is_dir(e) && e.path().file_name() == Some(OsStr::new(".git")))
                 || e.path_is_symlink())
         })
         .build()
         .filter_map(Result::ok)
-        .filter(|e| !(is_dir(e.file_type()) && e.path() == local_package))
+        .filter(|e| !(is_dir(e) && e.path() == local_package))
         .filter(|e| !{
-            !is_dir(e.file_type())
+            !is_dir(e)
                 && (e.path().file_name() == Some(OsStr::new(".cargo_vcs_info.json"))
                     || e.path().file_name() == Some(OsStr::new(CARGO_TOML)))
         });
@@ -45,7 +45,7 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyh
     for entry in walker {
         let path_without_prefix = entry.path().strip_prefix(local_package)?;
         let file_in_second_path = registry_package.join(path_without_prefix);
-        if is_dir(entry.file_type()) {
+        if is_dir(&entry) {
             let dir1 = fs::read_dir(entry.path())?;
             let dir2 = fs::read_dir(entry.path())?;
             if dir1.count() != dir2.count() {
