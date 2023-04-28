@@ -15,7 +15,7 @@ For every release, release-plz:
 - Publishes a GitHub/Gitea release based on the git tag.
 
 In the tag name, `<package_name>-` is omitted if there's only one
-package to publish (i.e. with `publish != flase` in the `Cargo.toml` file).
+package to publish (i.e. with `publish != false` in the `Cargo.toml` file).
 
 Usually, you use the `release-plz release` command in the main branch,
 after you run `release-plz update`
