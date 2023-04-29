@@ -1,6 +1,3 @@
-use std::str::FromStr;
-
-use anyhow::Context;
 use clap::builder::NonEmptyStringValueParser;
 use clap::ValueEnum;
 use release_plz_core::{GitBackend, GitHub, Gitea, RepoUrl};
@@ -14,7 +11,7 @@ pub struct ReleasePr {
     pub update: Update,
     /// Git token used to create the pull request.
     #[arg(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github-token")]
-    git_token: String,
+    git_token: SecretString,
     /// Kind of git host where your project is hosted.
     #[arg(long, value_enum, default_value_t = GitBackendKind::Github)]
     backend: GitBackendKind,
@@ -30,7 +27,7 @@ pub enum GitBackendKind {
 
 impl ReleasePr {
     pub fn git_backend(&self, repo: RepoUrl) -> anyhow::Result<GitBackend> {
-        let token = SecretString::from_str(&self.git_token).context("Invalid git backend token")?;
+        let token = self.git_token.clone();
         Ok(match self.backend {
             GitBackendKind::Github => {
                 anyhow::ensure!(

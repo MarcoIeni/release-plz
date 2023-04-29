@@ -28,7 +28,7 @@ pub struct Release {
     registry: Option<String>,
     /// Token used to publish to the cargo registry.
     #[arg(long, value_parser = NonEmptyStringValueParser::new())]
-    token: Option<String>,
+    token: Option<SecretString>,
     /// Perform all checks without uploading.
     #[arg(long)]
     pub dry_run: bool,
@@ -47,7 +47,7 @@ pub struct Release {
     pub repo_url: Option<String>,
     /// Git token used to publish the GitHub release.
     #[arg(long, value_parser = NonEmptyStringValueParser::new())]
-    pub git_token: Option<String>,
+    pub git_token: Option<SecretString>,
     /// Kind of git backend
     #[arg(long, value_enum, default_value_t = ReleaseGitBackendKind::Github)]
     backend: ReleaseGitBackendKind,
@@ -66,7 +66,7 @@ pub enum ReleaseGitBackendKind {
 impl Release {
     pub fn release_request(self, config: Config) -> anyhow::Result<ReleaseRequest> {
         let git_release = if let Some(git_token) = &self.git_token {
-            let git_token = SecretString::from(git_token.clone());
+            let git_token = git_token.clone();
             let repo_url = self.repo_url()?;
             let release = release_plz_core::GitRelease {
                 backend: match self.backend {
@@ -92,7 +92,7 @@ impl Release {
             req = req.with_registry(registry);
         }
         if let Some(token) = self.token {
-            req = req.with_token(SecretString::from(token));
+            req = req.with_token(token);
         }
         if let Some(repo_url) = self.repo_url {
             req = req.with_repo_url(repo_url);
