@@ -22,7 +22,6 @@ chrono = { workspace = true, features = ["clock"] }
 crates-index.workspace = true
 dunce.workspace = true
 fs_extra.workspace = true
-git-cliff.workspace = true
 git-cliff-core.workspace = true
 git-url-parse.workspace = true
 ignore.workspace = true

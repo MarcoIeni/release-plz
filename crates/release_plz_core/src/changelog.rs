@@ -1,6 +1,6 @@
 use anyhow::Context;
 use chrono::{DateTime, NaiveDate, Utc};
-use git_cliff::changelog::Changelog as GitCliffChangelog;
+use git_cliff_core::changelog::Changelog as GitCliffChangelog;
 use git_cliff_core::{
     commit::Commit,
     config::{ChangelogConfig, CommitParser, Config, GitConfig},
