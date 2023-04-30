@@ -1292,8 +1292,6 @@ version = "1.2.0"
 dependencies = [
  "config",
  "git-conventional",
- "glob",
- "indexmap",
  "lazy-regex",
  "log",
  "regex",
