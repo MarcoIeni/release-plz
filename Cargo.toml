@@ -2,7 +2,7 @@
 members = ["crates/*"]
 
 [workspace.dependencies]
-anyhow = "1.0.70"
+anyhow = "1.0.71"
 cargo_metadata = "0.15.4"
 cargo = "0.70.1"
 chrono = { version = "0.4.24", default-features = false }
