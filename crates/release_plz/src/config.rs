@@ -503,8 +503,8 @@ mod tests {
         expect_test::expect![[r#"
             [workspace]
             changelog_config = "../git-cliff.toml"
-            repo_url = "https://github.com/MarcoIeni/release-plz"
             pr_labels = ["label1"]
+            repo_url = "https://github.com/MarcoIeni/release-plz"
             changelog_update = true
             git_release_enable = true
             git_release_type = "prod"
