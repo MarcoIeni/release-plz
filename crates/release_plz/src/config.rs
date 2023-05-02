@@ -95,9 +95,20 @@ pub struct Workspace {
     pub update: UpdateConfig,
     #[serde(flatten)]
     pub release_pr: ReleasePrConfig,
+    #[serde(flatten)]
+    pub common: CommonCmdConfig,
     /// Configuration applied to all packages by default.
     #[serde(flatten)]
     pub packages_defaults: PackageConfig,
+}
+
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
+/// Configuration shared among various commands.
+pub struct CommonCmdConfig {
+    /// GitHub/Gitea repository url where your project is hosted.
+    /// It is used to generate the changelog release link.
+    /// It defaults to the url of the default remote.
+    pub repo_url: Option<Url>,
 }
 
 /// Configuration for the `update` command.
@@ -112,10 +123,6 @@ pub struct UpdateConfig {
     /// - If `true`, allow dirty working directories to be updated. The uncommitted changes will be part of the update.
     /// - If `false` or [`Option::None`], the command will fail if the working directory is dirty.
     pub allow_dirty: Option<bool>,
-    /// GitHub/Gitea repository url where your project is hosted.
-    /// It is used to generate the changelog release link.
-    /// It defaults to the url of the default remote.
-    pub repo_url: Option<Url>,
 }
 
 /// Configuration for the `release-pr` command.
@@ -379,6 +386,8 @@ mod tests {
                     dependencies_update: Some(false),
                     changelog_config: Some("../git-cliff.toml".into()),
                     allow_dirty: None,
+                },
+                common: CommonCmdConfig {
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
                 packages_defaults: PackageConfig {
@@ -424,6 +433,8 @@ mod tests {
                     dependencies_update: None,
                     changelog_config: Some("../git-cliff.toml".into()),
                     allow_dirty: Some(false),
+                },
+                common: CommonCmdConfig {
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
                 release_pr: ReleasePrConfig { pr_labels: vec![] },
@@ -461,6 +472,8 @@ mod tests {
                     dependencies_update: None,
                     changelog_config: Some("../git-cliff.toml".into()),
                     allow_dirty: None,
+                },
+                common: CommonCmdConfig {
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
                 release_pr: ReleasePrConfig {
@@ -505,8 +518,8 @@ mod tests {
         expect_test::expect![[r#"
             [workspace]
             changelog_config = "../git-cliff.toml"
-            repo_url = "https://github.com/MarcoIeni/release-plz"
             pr_labels = ["label1"]
+            repo_url = "https://github.com/MarcoIeni/release-plz"
             changelog_update = true
             git_release_enable = true
             git_release_type = "prod"

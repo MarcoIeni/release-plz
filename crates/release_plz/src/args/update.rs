@@ -4,10 +4,11 @@ use anyhow::Context;
 use chrono::NaiveDate;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use git_cliff_core::config::Config as GitCliffConfig;
-use git_cmd::Repo;
-use release_plz_core::{ChangelogRequest, RepoUrl, UpdateRequest};
+use release_plz_core::{ChangelogRequest, UpdateRequest};
 
 use crate::config::Config;
+
+use super::repo_command::RepoCommand;
 
 /// Update your project locally, without opening a PR.
 /// If `repo_url` contains a GitHub URL, release-plz uses it to add a release
@@ -80,23 +81,17 @@ pub struct Update {
     repo_url: Option<String>,
 }
 
+impl RepoCommand for Update {
+    fn optional_project_manifest(&self) -> Option<&Path> {
+        self.project_manifest.as_deref()
+    }
+
+    fn repo_url(&self) -> Option<&str> {
+        self.repo_url.as_deref()
+    }
+}
+
 impl Update {
-    pub fn project_manifest(&self) -> PathBuf {
-        super::local_manifest(self.project_manifest.as_deref())
-    }
-
-    fn get_repo_url(&self, config: &Config) -> anyhow::Result<RepoUrl> {
-        match &self.user_repo_url(config) {
-            Some(url) => RepoUrl::new(url),
-            None => {
-                let project_manifest = self.project_manifest();
-                let project_dir = release_plz_core::manifest_dir(&project_manifest)?;
-                let repo = Repo::new(project_dir)?;
-                RepoUrl::from_repo(&repo)
-            }
-        }
-    }
-
     fn dependencies_update(&self, config: &Config) -> bool {
         self.update_deps || config.workspace.update.dependencies_update == Some(true)
     }
@@ -185,18 +180,6 @@ impl Update {
         self.changelog_config
             .as_deref()
             .or(config.workspace.update.changelog_config.as_deref())
-    }
-
-    /// Repo url specified by user
-    fn user_repo_url<'a>(&'a self, config: &'a Config) -> Option<&str> {
-        self.repo_url.as_deref().or_else(|| {
-            config
-                .workspace
-                .update
-                .repo_url
-                .as_ref()
-                .map(|u| u.as_str())
-        })
     }
 }
 

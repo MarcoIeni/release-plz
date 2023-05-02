@@ -1,17 +1,15 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
-use anyhow::Context;
 use clap::{
     builder::{NonEmptyStringValueParser, PathBufValueParser},
     ValueEnum,
 };
-use git_cmd::Repo;
-use release_plz_core::{GitBackend, GitHub, GitLab, Gitea, ReleaseRequest, RepoUrl};
+use release_plz_core::{GitBackend, GitHub, GitLab, Gitea, ReleaseRequest};
 use secrecy::SecretString;
 
 use crate::config::Config;
 
-use super::local_manifest;
+use super::{local_manifest, repo_command::RepoCommand};
 
 #[derive(clap::Parser, Debug)]
 pub struct Release {
@@ -71,7 +69,7 @@ impl Release {
     pub fn release_request(self, config: Config) -> anyhow::Result<ReleaseRequest> {
         let git_release = if let Some(git_token) = &self.git_token {
             let git_token = SecretString::from(git_token.clone());
-            let repo_url = self.repo_url()?;
+            let repo_url = self.get_repo_url(&config)?;
             let release = release_plz_core::GitRelease {
                 backend: match self.backend {
                     ReleaseGitBackendKind::Gitea => {
@@ -114,20 +112,13 @@ impl Release {
     }
 }
 
-impl Release {
-    pub fn project_manifest(&self) -> PathBuf {
-        super::local_manifest(self.project_manifest.as_deref())
+impl RepoCommand for Release {
+    fn optional_project_manifest(&self) -> Option<&Path> {
+        self.project_manifest.as_deref()
     }
-    pub fn repo_url(&self) -> anyhow::Result<RepoUrl> {
-        match &self.repo_url {
-            Some(url) => RepoUrl::new(url.as_str()),
-            None => {
-                let project_manifest = self.project_manifest();
-                let project_dir = project_manifest.parent().context("At least a parent")?;
-                let repo = Repo::new(project_dir)?;
-                RepoUrl::from_repo(&repo)
-            }
-        }
+
+    fn repo_url(&self) -> Option<&str> {
+        self.repo_url.as_deref()
     }
 }
 
