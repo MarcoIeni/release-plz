@@ -32,7 +32,7 @@ pub trait RepoCommand {
         self.repo_url().or_else(|| {
             config
                 .workspace
-                .update
+                .common
                 .repo_url
                 .as_ref()
                 .map(|u| u.as_str())
