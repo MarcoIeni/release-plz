@@ -305,9 +305,12 @@ In this case, release-plz would release <code>pkg-b</code>.</p>
 </ul>
 <p>In the tag name, <code>&lt;package_name&gt;-</code> is omitted if there’s only one
 package to publish (i.e. with <code>publish != false</code> in the <code>Cargo.toml</code> file).</p>
-<p>Usually, you use the <code>release-plz release</code> command in the main branch,
+<p>Note that <code>release-plz release</code> doesn’t edit your <code>Cargo.toml</code> files and doesn’t
+push new commits. It releases the packages as they are in your repository.
+For this reason, you typically use the <code>release-plz release</code> command in the main branch
 after you run <code>release-plz update</code>
 or you merge a pull request opened with <code>release-plz release-pr</code>.</p>
+<p>If all packages are already published, the <code>release-plz release</code> command does nothing.</p>
 <p>To learn more, run <code>release-plz release --help</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="generate-shell-completions"><a class="header" href="#generate-shell-completions">Generate shell completions</a></h1>
 <p>To learn more, run <code>release-plz generate-completions --help</code>.</p>
@@ -357,6 +360,13 @@ directory).</li>
 For example <code>release-plz-v0.2.45</code>. (Default: <code>&quot;latest&quot;</code>).</li>
 </ul>
 <h2 id="example-release-pr-and-release"><a class="header" href="#example-release-pr-and-release">Example: release-pr and release</a></h2>
+<p>This is the suggested configuration if you are getting started with release-plz.
+With this configuration, when you make changes to the <code>main</code> branch:</p>
+<ul>
+<li>release-plz creates a pull request with the new versions,
+where it prepares the next release.</li>
+<li>release-plz releases the unpublished packages.</li>
+</ul>
 <pre><code class="language-yaml">name: Release-plz
 
 permissions:
@@ -385,11 +395,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 </code></pre>
+<p>Notes:</p>
 <ul>
 <li><code>fetch-depth: 0</code> is needed to clone all the git history, which is necessary to
 determine the next version and build the changelog.</li>
 </ul>
-<h2 id="example-release-pr"><a class="header" href="#example-release-pr">Example: release-pr</a></h2>
+<h2 id="example-release-pr-only"><a class="header" href="#example-release-pr-only">Example: release-pr only</a></h2>
+<p>Use this configuration if you want release-plz to only update your packages,
+and you want to handle <code>cargo publish</code> and git tag push by yourself.</p>
 <pre><code class="language-yaml">name: Release-plz
 
 permissions:
@@ -419,7 +432,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 </code></pre>
-<h2 id="example-release"><a class="header" href="#example-release">Example: release</a></h2>
+<h2 id="example-release-only"><a class="header" href="#example-release-only">Example: release only</a></h2>
+<p>Use this configuration if you want release-plz to only release your packages,
+and you want to update <code>Cargo.toml</code> versions and changelogs by yourself.</p>
 <pre><code class="language-yaml">name: Release-plz
 
 permissions:

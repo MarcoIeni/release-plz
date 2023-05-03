@@ -167,9 +167,12 @@ In this case, release-plz would release <code>pkg-b</code>.</p>
 </ul>
 <p>In the tag name, <code>&lt;package_name&gt;-</code> is omitted if there’s only one
 package to publish (i.e. with <code>publish != false</code> in the <code>Cargo.toml</code> file).</p>
-<p>Usually, you use the <code>release-plz release</code> command in the main branch,
+<p>Note that <code>release-plz release</code> doesn’t edit your <code>Cargo.toml</code> files and doesn’t
+push new commits. It releases the packages as they are in your repository.
+For this reason, you typically use the <code>release-plz release</code> command in the main branch
 after you run <code>release-plz update</code>
 or you merge a pull request opened with <code>release-plz release-pr</code>.</p>
+<p>If all packages are already published, the <code>release-plz release</code> command does nothing.</p>
 <p>To learn more, run <code>release-plz release --help</code>.</p>
 
                     </main>
