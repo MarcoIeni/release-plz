@@ -17,8 +17,12 @@ For every release, release-plz:
 In the tag name, `<package_name>-` is omitted if there's only one
 package to publish (i.e. with `publish != false` in the `Cargo.toml` file).
 
-Usually, you use the `release-plz release` command in the main branch,
+Note that `release-plz release` doesn't edit your `Cargo.toml` files and doesn't
+push new commits. It releases the packages as they are in your repository.
+For this reason, you typically use the `release-plz release` command in the main branch
 after you run `release-plz update`
 or you merge a pull request opened with `release-plz release-pr`.
+
+If all packages are already published, the `release-plz release` command does nothing.
 
 To learn more, run `release-plz release --help`.

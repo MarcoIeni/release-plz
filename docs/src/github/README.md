@@ -23,6 +23,13 @@ runs two commands, one after the other:
 
 ## Example: release-pr and release
 
+This is the suggested configuration if you are getting started with release-plz.
+With this configuration, when you make changes to the `main` branch:
+
+- release-plz creates a pull request with the new versions,
+  where it prepares the next release.
+- release-plz releases the unpublished packages.
+
 ```yaml
 name: Release-plz
 
@@ -53,10 +60,15 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
+Notes:
+
 - `fetch-depth: 0` is needed to clone all the git history, which is necessary to
   determine the next version and build the changelog.
 
-## Example: release-pr
+## Example: release-pr only
+
+Use this configuration if you want release-plz to only update your packages,
+and you want to handle `cargo publish` and git tag push by yourself.
 
 ```yaml
 name: Release-plz
@@ -89,7 +101,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-## Example: release
+## Example: release only
+
+Use this configuration if you want release-plz to only release your packages,
+and you want to update `Cargo.toml` versions and changelogs by yourself.
 
 ```yaml
 name: Release-plz
