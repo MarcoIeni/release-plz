@@ -23,6 +23,12 @@ runs two commands, one after the other:
 
 ## Example: release-pr and release
 
+This is the suggested configuration if you are getting started with release-plz.
+With this configuration, release-plz both updates and publishes your project.
+When you make changes to the `main` branch:
+- release-plz creates a pull request with the new versions, where it prepares the next release.
+- release-plz releases the unpublished packages.
+
 ```yaml
 name: Release-plz
 
