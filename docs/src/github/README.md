@@ -25,6 +25,7 @@ runs two commands, one after the other:
 
 This is the suggested configuration if you are getting started with release-plz.
 With this configuration, when you make changes to the `main` branch:
+
 - release-plz creates a pull request with the new versions,
   where it prepares the next release.
 - release-plz releases the unpublished packages.
@@ -60,6 +61,7 @@ jobs:
 ```
 
 Notes:
+
 - `fetch-depth: 0` is needed to clone all the git history, which is necessary to
   determine the next version and build the changelog.
 
