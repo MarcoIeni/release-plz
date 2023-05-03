@@ -67,7 +67,7 @@ Notes:
 
 ## Example: release-pr only
 
-Use this configuration if you only need release-plz to update your packages,
+Use this configuration if you want release-plz to only update your packages,
 and you want to handle `cargo publish` and git tag push by yourself.
 
 ```yaml
@@ -103,7 +103,7 @@ jobs:
 
 ## Example: release only
 
-Use this configuration if you only need release-plz to release your packages,
+Use this configuration if you want release-plz to only release your packages,
 and you want to update `Cargo.toml` versions and changelogs by yourself.
 
 ```yaml
