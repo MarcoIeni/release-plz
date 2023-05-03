@@ -2,7 +2,7 @@ use anyhow::Context;
 use reqwest::header::{HeaderMap, HeaderValue};
 use secrecy::{ExposeSecret, SecretString};
 
-use crate::backend::Remote;
+use crate::git::backend::Remote;
 
 #[derive(Debug, Clone)]
 pub struct GitLab {

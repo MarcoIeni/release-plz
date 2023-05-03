@@ -12,7 +12,7 @@ use tracing::{info, instrument, warn};
 use url::Url;
 
 use crate::{
-    backend::GitClient,
+    git::backend::GitClient,
     cargo::{is_published, run_cargo, wait_until_published},
     changelog_parser,
     release_order::release_order,
