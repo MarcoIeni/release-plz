@@ -1,4 +1,4 @@
-use crate::backend::Remote;
+use crate::git::backend::Remote;
 use crate::RepoUrl;
 use anyhow::{bail, Context};
 use reqwest::header::HeaderMap;

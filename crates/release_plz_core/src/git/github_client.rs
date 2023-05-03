@@ -3,7 +3,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use secrecy::{ExposeSecret, SecretString};
 use url::Url;
 
-use crate::backend::Remote;
+use crate::git::backend::Remote;
 
 #[derive(Debug, Clone)]
 pub struct GitHub {
