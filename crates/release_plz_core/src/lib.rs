@@ -19,9 +19,9 @@ mod tmp_repo;
 mod update;
 mod version;
 
-pub use git::backend::GitBackend;
 pub use changelog::*;
 pub use download::read_package;
+pub use git::backend::GitBackend;
 pub use git::gitea_client::Gitea;
 pub use git::github_client::GitHub;
 pub use git::gitlab_client::GitLab;
