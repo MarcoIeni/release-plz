@@ -1,5 +1,5 @@
+use crate::git::{gitea_client::Gitea, gitlab_client::GitLab};
 use crate::GitHub;
-use crate::{gitea_client::Gitea, gitlab_client::GitLab};
 
 use crate::pr::Pr;
 use anyhow::Context;
