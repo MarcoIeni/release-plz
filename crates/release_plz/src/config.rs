@@ -280,7 +280,6 @@ impl PackageReleaseConfig {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct ReleaseConfig {
     /// If `Some(false)`, don't run `cargo publish`.
-    #[serde(rename = "publish")]
     pub publish: Option<bool>,
     /// If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.
     #[serde(rename = "publish_allow_dirty")]
