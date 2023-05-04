@@ -628,13 +628,6 @@ fn get_diff(
             return Ok(diff);
         }
     }
-    if let Some(registry_package) = registry_package {
-        if should_check_semver(package, run_semver_check) {
-            let semver_check =
-                semver_check::run_semver_check(&package_path, registry_package.package_path()?)?;
-            diff.set_semver_check(semver_check);
-        }
-    }
     loop {
         let current_commit_message = repository.current_commit_message()?;
         if let Some(registry_package) = registry_package {
