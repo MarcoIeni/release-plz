@@ -8,7 +8,7 @@ runs two commands, one after the other:
 - [`release-plz release-pr`](../usage/release-pr.md): creates the release pr.
 - [`release-plz release`](../usage/release.md): publishes the unpublished packages.
 
-Follow the following steps to setup the GitHub Action.
+Follow the steps below to set up the GitHub Action.
 
 ## 1. Change GitHub Actions permissions
 
