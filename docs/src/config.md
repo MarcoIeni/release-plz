@@ -30,6 +30,7 @@ name = "package_a"
 changelog_path = "docs/CHANGELOG.md" # use a custom changelog path for `package_a`
 changelog_update = true # enable changelog update for `package_a`
 git_release_enable = true # enable GitHub/Gitea releases for `package_a`
+publish = false # disable `cargo publish` for `package_a`
 
 [[package]]
 name = "package_b"
@@ -49,6 +50,7 @@ the following sections:
   - [`dependencies_update`](#the-dependencies_update-field) — Update all dependencies.
   - [`git_release_enable`](#the-git_release_enable-field) — Enable git release.
   - [`pr_labels`](#the-pr_labels-field) — Add labels to the release Pull Request.
+  - [`publish`](#the-publish-field) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
@@ -58,6 +60,7 @@ the following sections:
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
   - [`changelog_update`](#the-changelog_update-field-package-section) — Update changelog.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
+  - [`publish`](#the-publish-field-package-section) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field-package-section) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field-package-section) —
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
@@ -127,6 +130,15 @@ The supported git releases are:
 Add labels to the Pull Request opened by release-plz.
 *(GitHub only)*.
 
+#### The `publish` field
+
+Publish to cargo registry.
+
+- If `true`, `release-plz` runs `cargo publish`. *(Default)*.
+- If `false`, `release-plz` doesn't run `cargo publish`.
+  You can use this option if you are only interested in git tags or if you want to
+  run `cargo publish` by yourself.
+
 #### The `publish_allow_dirty` field
 
 Allow dirty working directories to be packaged.
@@ -167,6 +179,7 @@ changelog_path = "docs/CHANGELOG.md"
 semver_check = false
 changelog_update = false
 git_release_enable = true
+publish = true
 publish_allow_dirty = true
 publish_no_verify = true
 ```
@@ -206,6 +219,10 @@ This field cannot be set in the `[workspace]` section.
 #### The `git_release_enable` field (`package` section)
 
 Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) field.
+
+#### The `publish` field (`package` section)
+
+Overrides the [`workspace.publish`](#the-publish-field) field.
 
 #### The `publish_allow_dirty` field (`package` section)
 
