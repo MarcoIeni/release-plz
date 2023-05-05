@@ -34,6 +34,7 @@ Release-plz needs a token to publish your packages to the cargo registry.
 
 As specified in the `cargo publish`
 [options](https://doc.rust-lang.org/cargo/commands/cargo-publish.html#publish-options):
+
 - The token for [crates.io](https://crates.io/) shall be specified with the `CARGO_REGISTRY_TOKEN`
   environment variable.
 - Tokens for other registries shall be specified with environment variables of the form
