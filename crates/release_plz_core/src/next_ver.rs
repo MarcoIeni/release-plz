@@ -434,13 +434,11 @@ impl Updater<'_> {
                 &self.project.root,
             )?;
 
-            let package_path = {
-                let relative_path = p
-                    .package_path()?
-                    .strip_prefix(&self.project.root)
-                    .context("error while retrieving package_path")?;
-                repository.directory().join(relative_path)
-            };
+            let package_path = get_package_path(
+                p,
+                repository,
+                &self.project.root,
+            );
             
             let registry_package = registry_packages.get_package(&p.name);
             if let Some(registry_package) = registry_package {
@@ -596,6 +594,18 @@ fn get_changelog(
     Ok(changelog)
 }
 
+fn get_package_path(
+    package: &Package,
+    repository: &Repo,
+    project_root: &Path,
+) -> PathBuf {
+    let package_path = package.package_path().unwrap();
+    let relative_path = package_path.strip_prefix(project_root).unwrap();
+    let result_path = repository.directory().join(relative_path);
+
+    result_path
+}
+
 #[instrument(
     skip_all,
     fields(package = %package.name)
@@ -607,13 +617,12 @@ fn get_diff(
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<Diff> {
-    let package_path = {
-        let relative_path = package
-            .package_path()?
-            .strip_prefix(project_root)
-            .context("error while retrieving package_path")?;
-        repository.directory().join(relative_path)
-    };
+
+    let package_path = get_package_path(
+        package, 
+        repository, 
+        project_root
+    );
     repository.checkout_head()?;
     let registry_package = registry_packages.get_package(&package.name);
     let mut diff = Diff::new(registry_package.is_some());
