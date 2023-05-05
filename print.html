@@ -346,20 +346,42 @@ runs two commands, one after the other:</p>
 <li><a href="github/../usage/release-pr.html"><code>release-plz release-pr</code></a>: creates the release pr.</li>
 <li><a href="github/../usage/release.html"><code>release-plz release</code></a>: publishes the unpublished packages.</li>
 </ul>
-<h2 id="input-variables"><a class="header" href="#input-variables">Input variables</a></h2>
+<p>Follow the steps below to set up the GitHub Action.</p>
+<h2 id="1-change-github-actions-permissions"><a class="header" href="#1-change-github-actions-permissions">1. Change GitHub Actions permissions</a></h2>
+<ol>
+<li>
+<p>Go to the GitHub Actions settings:</p>
+<p><img src="github/../assets/actions_settings.png" alt="actions settings" /></p>
+</li>
+<li>
+<p>Change “Workflow permissions” to allow GitHub Actions to create and approve
+pull requests (needed to create and update the PR).</p>
+<p><img src="github/../assets/workflow_permissions.png" alt="workflow permission" /></p>
+</li>
+</ol>
+<h2 id="2-set-the-cargo_registry_token-secret"><a class="header" href="#2-set-the-cargo_registry_token-secret">2. Set the <code>CARGO_REGISTRY_TOKEN</code> secret</a></h2>
+<p>Release-plz needs a token to publish your packages to the cargo registry.</p>
+<ol>
+<li>Retrieve your registry token following
+<a href="https://doc.rust-lang.org/cargo/reference/publishing.html#before-your-first-publish">this</a>
+guide.</li>
+<li>Add your cargo registry token as a secret in your repository following
+<a href="https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository">this</a>
+guide.</li>
+</ol>
+<p>As specified in the <code>cargo publish</code>
+<a href="https://doc.rust-lang.org/cargo/commands/cargo-publish.html#publish-options">options</a>:</p>
 <ul>
-<li><code>command</code>: The release-plz command to run. Accepted values: <code>release-pr</code>,
-<code>release</code>. (By default it runs both commands).</li>
-<li><code>registry</code>: Registry where the packages are stored.
-The registry name needs to be present in the Cargo config.
-If unspecified, crates.io is used. (Defaults to crates.io).</li>
-<li><code>project_manifest</code>: Path to the Cargo.toml of the project you want to update.
-Both Cargo workspaces and single packages are supported. (Defaults to the root
-directory).</li>
-<li><code>version</code>: Release-plz version to use. It must be an existing git tag name.
-For example <code>release-plz-v0.2.45</code>. (Default: <code>&quot;latest&quot;</code>).</li>
+<li>The token for <a href="https://crates.io/">crates.io</a> shall be specified with the <code>CARGO_REGISTRY_TOKEN</code>
+environment variable.</li>
+<li>Tokens for other registries shall be specified with environment variables of the form
+<code>CARGO_REGISTRIES_NAME_TOKEN</code> where <code>NAME</code> is the name of the registry in all capital letters.</li>
 </ul>
-<h2 id="example-release-pr-and-release"><a class="header" href="#example-release-pr-and-release">Example: release-pr and release</a></h2>
+<h2 id="3-setup-the-workflow"><a class="header" href="#3-setup-the-workflow">3. Setup the workflow</a></h2>
+<p>Add the release-plz workflow file under the <code>.github/workflows</code> directory.
+For example <code>.github/workflows/release-plz.yml</code>.</p>
+<p>Use one of the following examples as a starting point.</p>
+<h3 id="example-release-pr-and-release"><a class="header" href="#example-release-pr-and-release">Example: release-pr and release</a></h3>
 <p>This is the suggested configuration if you are getting started with release-plz.
 With this configuration, when you make changes to the <code>main</code> branch:</p>
 <ul>
@@ -400,7 +422,7 @@ jobs:
 <li><code>fetch-depth: 0</code> is needed to clone all the git history, which is necessary to
 determine the next version and build the changelog.</li>
 </ul>
-<h2 id="example-release-pr-only"><a class="header" href="#example-release-pr-only">Example: release-pr only</a></h2>
+<h3 id="example-release-pr-only"><a class="header" href="#example-release-pr-only">Example: release-pr only</a></h3>
 <p>Use this configuration if you want release-plz to only update your packages,
 and you want to handle <code>cargo publish</code> and git tag push by yourself.</p>
 <pre><code class="language-yaml">name: Release-plz
@@ -432,7 +454,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 </code></pre>
-<h2 id="example-release-only"><a class="header" href="#example-release-only">Example: release only</a></h2>
+<h3 id="example-release-only"><a class="header" href="#example-release-only">Example: release only</a></h3>
 <p>Use this configuration if you want release-plz to only release your packages,
 and you want to update <code>Cargo.toml</code> versions and changelogs by yourself.</p>
 <pre><code class="language-yaml">name: Release-plz
@@ -465,7 +487,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 </code></pre>
-<h2 id="example-release-pr-and-relase-on-schedule"><a class="header" href="#example-release-pr-and-relase-on-schedule">Example: release-pr and relase on schedule</a></h2>
+<h3 id="example-release-pr-and-relase-on-schedule"><a class="header" href="#example-release-pr-and-relase-on-schedule">Example: release-pr and relase on schedule</a></h3>
 <p>In the above examples, release-plz runs every time you merge a commit to the <code>main</code> branch.</p>
 <p>To run release-plz periodically, you can use the
 <a href="https://docs.github.com/en/actions/reference/events-that-trigger-workflows#schedule"><code>schedule</code></a> event:</p>
@@ -498,18 +520,44 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 </code></pre>
-<h2 id="change-github-actions-permissions"><a class="header" href="#change-github-actions-permissions">Change GitHub Actions permissions</a></h2>
-<ol>
-<li>
-<p>Go to the GitHub Actions settings:</p>
-<p><img src="github/../assets/actions_settings.png" alt="actions settings" /></p>
-</li>
-<li>
-<p>Change “Workflow permissions” to allow GitHub Actions to create and approve
-pull requests (needed to create and update the PR).</p>
-<p><img src="github/../assets/workflow_permissions.png" alt="workflow permission" /></p>
-</li>
-</ol>
+<h2 id="4-set-input-variables-optional"><a class="header" href="#4-set-input-variables-optional">4. Set input variables (optional)</a></h2>
+<p>The GitHub action accepts the following input variables:</p>
+<ul>
+<li><code>command</code>: The release-plz command to run. Accepted values: <code>release-pr</code>,
+<code>release</code>. (By default it runs both commands).</li>
+<li><code>registry</code>: Registry where the packages are stored.
+The registry name needs to be present in the Cargo config.
+If unspecified, crates.io is used. (Defaults to crates.io).</li>
+<li><code>project_manifest</code>: Path to the Cargo.toml of the project you want to update.
+Both Cargo workspaces and single packages are supported. (Defaults to the root
+directory).</li>
+<li><code>version</code>: Release-plz version to use. It must be an existing git tag name.
+For example <code>release-plz-v0.2.45</code>. (Default: <code>&quot;latest&quot;</code>).</li>
+</ul>
+<p>You can specify the input variables by using the <code>with</code> keyword.
+For example:</p>
+<pre><code class="language-yaml">jobs:
+  release-plz:
+    name: Release-plz
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.5
+        with: # &lt;--- Input variables
+          command: release-pr
+          registry: my-registry
+          project_manifest: rust-crates/my-crate/Cargo.toml
+          version: release-plz-v0.2.45
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="triggering-further-workflow-runs"><a class="header" href="#triggering-further-workflow-runs">Triggering further workflow runs</a></h1>
 <p>GitHub Actions using the default
 <a href="https://docs.github.com/en/actions/security-guides/automatic-token-authentication"><code>GITHUB_TOKEN</code></a>
@@ -714,6 +762,7 @@ name = &quot;package_a&quot;
 changelog_path = &quot;docs/CHANGELOG.md&quot; # use a custom changelog path for `package_a`
 changelog_update = true # enable changelog update for `package_a`
 git_release_enable = true # enable GitHub/Gitea releases for `package_a`
+publish = false # disable `cargo publish` for `package_a`
 
 [[package]]
 name = &quot;package_b&quot;
@@ -732,6 +781,7 @@ the following sections:</p>
 <li><a href="config.html#the-dependencies_update-field"><code>dependencies_update</code></a> — Update all dependencies.</li>
 <li><a href="config.html#the-git_release_enable-field"><code>git_release_enable</code></a> — Enable git release.</li>
 <li><a href="config.html#the-pr_labels-field"><code>pr_labels</code></a> — Add labels to the release Pull Request.</li>
+<li><a href="config.html#the-publish-field"><code>publish</code></a> — Publish to cargo registry.</li>
 <li><a href="config.html#the-publish_allow_dirty-field"><code>publish_allow_dirty</code></a> — Package dirty directories.</li>
 <li><a href="config.html#the-publish_no_verify-field"><code>publish_no_verify</code></a> — Don’t verify package build.</li>
 <li><a href="config.html#the-repo_url-field"><code>repo_url</code></a> — Repository URL.</li>
@@ -744,6 +794,7 @@ the following sections:</p>
 <li><a href="config.html#the-changelog_path-field-package-section"><code>changelog_path</code></a> — Changelog path.</li>
 <li><a href="config.html#the-changelog_update-field-package-section"><code>changelog_update</code></a> — Update changelog.</li>
 <li><a href="config.html#the-git_release_enable-field-package-section"><code>git_release_enable</code></a> — Enable git release.</li>
+<li><a href="config.html#the-publish-field-package-section"><code>publish</code></a> — Publish to cargo registry.</li>
 <li><a href="config.html#the-publish_allow_dirty-field-package-section"><code>publish_allow_dirty</code></a> — Package dirty directories.</li>
 <li><a href="config.html#the-publish_no_verify-field-package-section"><code>publish_no_verify</code></a> —</li>
 <li><a href="config.html#the-semver_check-field-package-section"><code>semver_check</code></a> — Run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>.
@@ -804,6 +855,14 @@ You can learn more in the <a href="changelog-format.html">changelog format</a> s
 <h4 id="the-pr_labels-field"><a class="header" href="#the-pr_labels-field">The <code>pr_labels</code> field</a></h4>
 <p>Add labels to the Pull Request opened by release-plz.
 <em>(GitHub only)</em>.</p>
+<h4 id="the-publish-field"><a class="header" href="#the-publish-field">The <code>publish</code> field</a></h4>
+<p>Publish to cargo registry.</p>
+<ul>
+<li>If <code>true</code>, <code>release-plz</code> runs <code>cargo publish</code>. <em>(Default)</em>.</li>
+<li>If <code>false</code>, <code>release-plz</code> doesn’t run <code>cargo publish</code>.
+You can use this option if you are only interested in git tags or if you want to
+run <code>cargo publish</code> by yourself.</li>
+</ul>
 <h4 id="the-publish_allow_dirty-field"><a class="header" href="#the-publish_allow_dirty-field">The <code>publish_allow_dirty</code> field</a></h4>
 <p>Allow dirty working directories to be packaged.
 When <code>true</code>, <code>release-plz</code> adds the <code>--allow-dirty</code> flag to <code>cargo publish</code>.</p>
@@ -832,6 +891,7 @@ changelog_path = &quot;docs/CHANGELOG.md&quot;
 semver_check = false
 changelog_update = false
 git_release_enable = true
+publish = true
 publish_allow_dirty = true
 publish_no_verify = true
 </code></pre>
@@ -857,6 +917,8 @@ In GitHub Actions, this is the root of the repository.</p>
 </ul>
 <h4 id="the-git_release_enable-field-package-section"><a class="header" href="#the-git_release_enable-field-package-section">The <code>git_release_enable</code> field (<code>package</code> section)</a></h4>
 <p>Overrides the <a href="config.html#the-git_release_enable-field"><code>workspace.git_release_enable</code></a> field.</p>
+<h4 id="the-publish-field-package-section"><a class="header" href="#the-publish-field-package-section">The <code>publish</code> field (<code>package</code> section)</a></h4>
+<p>Overrides the <a href="config.html#the-publish-field"><code>workspace.publish</code></a> field.</p>
 <h4 id="the-publish_allow_dirty-field-package-section"><a class="header" href="#the-publish_allow_dirty-field-package-section">The <code>publish_allow_dirty</code> field (<code>package</code> section)</a></h4>
 <p>Overrides the
 <a href="config.html#the-publish_allow_dirty-field"><code>workspace.publish_allow_dirty</code></a> field.</p>

@@ -158,20 +158,42 @@ runs two commands, one after the other:</p>
 <li><a href="../usage/release-pr.html"><code>release-plz release-pr</code></a>: creates the release pr.</li>
 <li><a href="../usage/release.html"><code>release-plz release</code></a>: publishes the unpublished packages.</li>
 </ul>
-<h2 id="input-variables"><a class="header" href="#input-variables">Input variables</a></h2>
+<p>Follow the steps below to set up the GitHub Action.</p>
+<h2 id="1-change-github-actions-permissions"><a class="header" href="#1-change-github-actions-permissions">1. Change GitHub Actions permissions</a></h2>
+<ol>
+<li>
+<p>Go to the GitHub Actions settings:</p>
+<p><img src="../assets/actions_settings.png" alt="actions settings" /></p>
+</li>
+<li>
+<p>Change “Workflow permissions” to allow GitHub Actions to create and approve
+pull requests (needed to create and update the PR).</p>
+<p><img src="../assets/workflow_permissions.png" alt="workflow permission" /></p>
+</li>
+</ol>
+<h2 id="2-set-the-cargo_registry_token-secret"><a class="header" href="#2-set-the-cargo_registry_token-secret">2. Set the <code>CARGO_REGISTRY_TOKEN</code> secret</a></h2>
+<p>Release-plz needs a token to publish your packages to the cargo registry.</p>
+<ol>
+<li>Retrieve your registry token following
+<a href="https://doc.rust-lang.org/cargo/reference/publishing.html#before-your-first-publish">this</a>
+guide.</li>
+<li>Add your cargo registry token as a secret in your repository following
+<a href="https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository">this</a>
+guide.</li>
+</ol>
+<p>As specified in the <code>cargo publish</code>
+<a href="https://doc.rust-lang.org/cargo/commands/cargo-publish.html#publish-options">options</a>:</p>
 <ul>
-<li><code>command</code>: The release-plz command to run. Accepted values: <code>release-pr</code>,
-<code>release</code>. (By default it runs both commands).</li>
-<li><code>registry</code>: Registry where the packages are stored.
-The registry name needs to be present in the Cargo config.
-If unspecified, crates.io is used. (Defaults to crates.io).</li>
-<li><code>project_manifest</code>: Path to the Cargo.toml of the project you want to update.
-Both Cargo workspaces and single packages are supported. (Defaults to the root
-directory).</li>
-<li><code>version</code>: Release-plz version to use. It must be an existing git tag name.
-For example <code>release-plz-v0.2.45</code>. (Default: <code>&quot;latest&quot;</code>).</li>
+<li>The token for <a href="https://crates.io/">crates.io</a> shall be specified with the <code>CARGO_REGISTRY_TOKEN</code>
+environment variable.</li>
+<li>Tokens for other registries shall be specified with environment variables of the form
+<code>CARGO_REGISTRIES_NAME_TOKEN</code> where <code>NAME</code> is the name of the registry in all capital letters.</li>
 </ul>
-<h2 id="example-release-pr-and-release"><a class="header" href="#example-release-pr-and-release">Example: release-pr and release</a></h2>
+<h2 id="3-setup-the-workflow"><a class="header" href="#3-setup-the-workflow">3. Setup the workflow</a></h2>
+<p>Add the release-plz workflow file under the <code>.github/workflows</code> directory.
+For example <code>.github/workflows/release-plz.yml</code>.</p>
+<p>Use one of the following examples as a starting point.</p>
+<h3 id="example-release-pr-and-release"><a class="header" href="#example-release-pr-and-release">Example: release-pr and release</a></h3>
 <p>This is the suggested configuration if you are getting started with release-plz.
 With this configuration, when you make changes to the <code>main</code> branch:</p>
 <ul>
@@ -212,7 +234,7 @@ jobs:
 <li><code>fetch-depth: 0</code> is needed to clone all the git history, which is necessary to
 determine the next version and build the changelog.</li>
 </ul>
-<h2 id="example-release-pr-only"><a class="header" href="#example-release-pr-only">Example: release-pr only</a></h2>
+<h3 id="example-release-pr-only"><a class="header" href="#example-release-pr-only">Example: release-pr only</a></h3>
 <p>Use this configuration if you want release-plz to only update your packages,
 and you want to handle <code>cargo publish</code> and git tag push by yourself.</p>
 <pre><code class="language-yaml">name: Release-plz
@@ -244,7 +266,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 </code></pre>
-<h2 id="example-release-only"><a class="header" href="#example-release-only">Example: release only</a></h2>
+<h3 id="example-release-only"><a class="header" href="#example-release-only">Example: release only</a></h3>
 <p>Use this configuration if you want release-plz to only release your packages,
 and you want to update <code>Cargo.toml</code> versions and changelogs by yourself.</p>
 <pre><code class="language-yaml">name: Release-plz
@@ -277,7 +299,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 </code></pre>
-<h2 id="example-release-pr-and-relase-on-schedule"><a class="header" href="#example-release-pr-and-relase-on-schedule">Example: release-pr and relase on schedule</a></h2>
+<h3 id="example-release-pr-and-relase-on-schedule"><a class="header" href="#example-release-pr-and-relase-on-schedule">Example: release-pr and relase on schedule</a></h3>
 <p>In the above examples, release-plz runs every time you merge a commit to the <code>main</code> branch.</p>
 <p>To run release-plz periodically, you can use the
 <a href="https://docs.github.com/en/actions/reference/events-that-trigger-workflows#schedule"><code>schedule</code></a> event:</p>
@@ -310,18 +332,44 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 </code></pre>
-<h2 id="change-github-actions-permissions"><a class="header" href="#change-github-actions-permissions">Change GitHub Actions permissions</a></h2>
-<ol>
-<li>
-<p>Go to the GitHub Actions settings:</p>
-<p><img src="../assets/actions_settings.png" alt="actions settings" /></p>
-</li>
-<li>
-<p>Change “Workflow permissions” to allow GitHub Actions to create and approve
-pull requests (needed to create and update the PR).</p>
-<p><img src="../assets/workflow_permissions.png" alt="workflow permission" /></p>
-</li>
-</ol>
+<h2 id="4-set-input-variables-optional"><a class="header" href="#4-set-input-variables-optional">4. Set input variables (optional)</a></h2>
+<p>The GitHub action accepts the following input variables:</p>
+<ul>
+<li><code>command</code>: The release-plz command to run. Accepted values: <code>release-pr</code>,
+<code>release</code>. (By default it runs both commands).</li>
+<li><code>registry</code>: Registry where the packages are stored.
+The registry name needs to be present in the Cargo config.
+If unspecified, crates.io is used. (Defaults to crates.io).</li>
+<li><code>project_manifest</code>: Path to the Cargo.toml of the project you want to update.
+Both Cargo workspaces and single packages are supported. (Defaults to the root
+directory).</li>
+<li><code>version</code>: Release-plz version to use. It must be an existing git tag name.
+For example <code>release-plz-v0.2.45</code>. (Default: <code>&quot;latest&quot;</code>).</li>
+</ul>
+<p>You can specify the input variables by using the <code>with</code> keyword.
+For example:</p>
+<pre><code class="language-yaml">jobs:
+  release-plz:
+    name: Release-plz
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.5
+        with: # &lt;--- Input variables
+          command: release-pr
+          registry: my-registry
+          project_manifest: rust-crates/my-crate/Cargo.toml
+          version: release-plz-v0.2.45
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+</code></pre>
 
                     </main>
 

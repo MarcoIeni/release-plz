@@ -175,6 +175,7 @@ name = &quot;package_a&quot;
 changelog_path = &quot;docs/CHANGELOG.md&quot; # use a custom changelog path for `package_a`
 changelog_update = true # enable changelog update for `package_a`
 git_release_enable = true # enable GitHub/Gitea releases for `package_a`
+publish = false # disable `cargo publish` for `package_a`
 
 [[package]]
 name = &quot;package_b&quot;
@@ -193,6 +194,7 @@ the following sections:</p>
 <li><a href="#the-dependencies_update-field"><code>dependencies_update</code></a> — Update all dependencies.</li>
 <li><a href="#the-git_release_enable-field"><code>git_release_enable</code></a> — Enable git release.</li>
 <li><a href="#the-pr_labels-field"><code>pr_labels</code></a> — Add labels to the release Pull Request.</li>
+<li><a href="#the-publish-field"><code>publish</code></a> — Publish to cargo registry.</li>
 <li><a href="#the-publish_allow_dirty-field"><code>publish_allow_dirty</code></a> — Package dirty directories.</li>
 <li><a href="#the-publish_no_verify-field"><code>publish_no_verify</code></a> — Don’t verify package build.</li>
 <li><a href="#the-repo_url-field"><code>repo_url</code></a> — Repository URL.</li>
@@ -205,6 +207,7 @@ the following sections:</p>
 <li><a href="#the-changelog_path-field-package-section"><code>changelog_path</code></a> — Changelog path.</li>
 <li><a href="#the-changelog_update-field-package-section"><code>changelog_update</code></a> — Update changelog.</li>
 <li><a href="#the-git_release_enable-field-package-section"><code>git_release_enable</code></a> — Enable git release.</li>
+<li><a href="#the-publish-field-package-section"><code>publish</code></a> — Publish to cargo registry.</li>
 <li><a href="#the-publish_allow_dirty-field-package-section"><code>publish_allow_dirty</code></a> — Package dirty directories.</li>
 <li><a href="#the-publish_no_verify-field-package-section"><code>publish_no_verify</code></a> —</li>
 <li><a href="#the-semver_check-field-package-section"><code>semver_check</code></a> — Run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>.
@@ -265,6 +268,14 @@ You can learn more in the <a href="changelog-format.html">changelog format</a> s
 <h4 id="the-pr_labels-field"><a class="header" href="#the-pr_labels-field">The <code>pr_labels</code> field</a></h4>
 <p>Add labels to the Pull Request opened by release-plz.
 <em>(GitHub only)</em>.</p>
+<h4 id="the-publish-field"><a class="header" href="#the-publish-field">The <code>publish</code> field</a></h4>
+<p>Publish to cargo registry.</p>
+<ul>
+<li>If <code>true</code>, <code>release-plz</code> runs <code>cargo publish</code>. <em>(Default)</em>.</li>
+<li>If <code>false</code>, <code>release-plz</code> doesn’t run <code>cargo publish</code>.
+You can use this option if you are only interested in git tags or if you want to
+run <code>cargo publish</code> by yourself.</li>
+</ul>
 <h4 id="the-publish_allow_dirty-field"><a class="header" href="#the-publish_allow_dirty-field">The <code>publish_allow_dirty</code> field</a></h4>
 <p>Allow dirty working directories to be packaged.
 When <code>true</code>, <code>release-plz</code> adds the <code>--allow-dirty</code> flag to <code>cargo publish</code>.</p>
@@ -293,6 +304,7 @@ changelog_path = &quot;docs/CHANGELOG.md&quot;
 semver_check = false
 changelog_update = false
 git_release_enable = true
+publish = true
 publish_allow_dirty = true
 publish_no_verify = true
 </code></pre>
@@ -318,6 +330,8 @@ In GitHub Actions, this is the root of the repository.</p>
 </ul>
 <h4 id="the-git_release_enable-field-package-section"><a class="header" href="#the-git_release_enable-field-package-section">The <code>git_release_enable</code> field (<code>package</code> section)</a></h4>
 <p>Overrides the <a href="#the-git_release_enable-field"><code>workspace.git_release_enable</code></a> field.</p>
+<h4 id="the-publish-field-package-section"><a class="header" href="#the-publish-field-package-section">The <code>publish</code> field (<code>package</code> section)</a></h4>
+<p>Overrides the <a href="#the-publish-field"><code>workspace.publish</code></a> field.</p>
 <h4 id="the-publish_allow_dirty-field-package-section"><a class="header" href="#the-publish_allow_dirty-field-package-section">The <code>publish_allow_dirty</code> field (<code>package</code> section)</a></h4>
 <p>Overrides the
 <a href="#the-publish_allow_dirty-field"><code>workspace.publish_allow_dirty</code></a> field.</p>
