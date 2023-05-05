@@ -30,13 +30,13 @@ Release-plz needs a token to publish your packages to the cargo registry.
    guide.
 2. Add your cargo registry token as a secret in your repository following
    [this](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository)
-   guide. To be compatible with the examples below, name the secret `CARGO_REGISTRY_TOKEN`.
+   guide.
 
 As specified in the `cargo publish`
 [options](https://doc.rust-lang.org/cargo/commands/cargo-publish.html#publish-options):
 - The token for [crates.io](https://crates.io/) shall be specified with the `CARGO_REGISTRY_TOKEN`
   environment variable.
-- Tokens for other registries may be specified with environment variables of the form
+- Tokens for other registries shall be specified with environment variables of the form
   `CARGO_REGISTRIES_NAME_TOKEN` where `NAME` is the name of the registry in all capital letters.
 
 ## 3. Setup the workflow
