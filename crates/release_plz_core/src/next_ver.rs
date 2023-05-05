@@ -434,17 +434,15 @@ impl Updater<'_> {
                 &self.project.root,
             )?;
 
-            let package_path = get_package_path(
-                p,
-                repository,
-                &self.project.root,
-            );
-            
+            let package_path = get_package_path(p, repository, &self.project.root).unwrap();
+
             let registry_package = registry_packages.get_package(&p.name);
             if let Some(registry_package) = registry_package {
                 if should_check_semver(p, run_semver_check) && diff.should_update_version() {
-                    let semver_check =
-                        semver_check::run_semver_check(&package_path, registry_package.package_path()?)?;
+                    let semver_check = semver_check::run_semver_check(
+                        &package_path,
+                        registry_package.package_path()?,
+                    )?;
                     diff.set_semver_check(semver_check);
                 }
             }
@@ -598,12 +596,14 @@ fn get_package_path(
     package: &Package,
     repository: &Repo,
     project_root: &Path,
-) -> PathBuf {
+) -> anyhow::Result<PathBuf> {
     let package_path = package.package_path().unwrap();
-    let relative_path = package_path.strip_prefix(project_root).unwrap();
+    let relative_path = package_path
+        .strip_prefix(project_root)
+        .context("error while retrieving package_path: project root not found")?;
     let result_path = repository.directory().join(relative_path);
 
-    result_path
+    Ok(result_path)
 }
 
 #[instrument(
@@ -617,12 +617,8 @@ fn get_diff(
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<Diff> {
+    let package_path = get_package_path(package, repository, project_root).unwrap();
 
-    let package_path = get_package_path(
-        package, 
-        repository, 
-        project_root
-    );
     repository.checkout_head()?;
     let registry_package = registry_packages.get_package(&package.name);
     let mut diff = Diff::new(registry_package.is_some());
