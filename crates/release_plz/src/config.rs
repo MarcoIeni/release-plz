@@ -49,15 +49,11 @@ impl Config {
 
     pub fn fill_release_config(
         &self,
-        no_publish: bool,
         allow_dirty: bool,
         no_verify: bool,
         release_request: ReleaseRequest,
     ) -> ReleaseRequest {
         let mut default_config = self.workspace.packages_defaults.release.clone();
-        if no_publish {
-            default_config.release.publish = Some(false);
-        }
         if no_verify {
             default_config.release.no_verify = Some(true);
         }
@@ -71,9 +67,6 @@ impl Config {
             let mut release_config = config.clone();
             release_config = release_config.merge(self.workspace.packages_defaults.clone());
 
-            if no_publish {
-                release_config.release.release.publish = Some(false);
-            }
             if no_verify {
                 release_config.release.release.no_verify = Some(true);
             }
