@@ -7,8 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- allow prevention of publishing a crate to a registry
-  using a `--no-publish` CLI flag and corresponding `publish` config option (#718)
+- allow prevention of publishing a crate to a registry using a `publish` config option (#718)
 
 ## [0.3.4](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.3...release-plz-v0.3.4) - 2023-04-27
 
