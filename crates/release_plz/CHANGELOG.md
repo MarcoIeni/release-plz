@@ -11,11 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - set repo url also for release command (#751)
 
-### Other
-- Add a flag to prevent publishing (#718)
-
 ### Added
-- allow prevention of publishing a crate to a registry using a `publish` config option (#718)
+- Add `publish` config option to disable publishing to the cargo registry (#718)
 
 ## [0.3.4](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.3...release-plz-v0.3.4) - 2023-04-27
 
