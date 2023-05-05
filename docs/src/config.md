@@ -133,6 +133,7 @@ Add labels to the Pull Request opened by release-plz.
 #### The `publish` field
 
 Publish to cargo registry.
+
 - If `true`, `release-plz` runs `cargo publish`. *(Default)*.
 - If `false`, `release-plz` doesn't run `cargo publish`.
   You can use this option if you are only interested in git tags or if you want to
