@@ -103,6 +103,11 @@ impl ReleaseRequest {
             })
     }
 
+    fn is_publish_enabled(&self, package: &str) -> bool {
+        let config = self.get_package_config(package);
+        config.generic.publish.enabled
+    }
+
     fn is_git_release_enabled(&self, package: &str) -> bool {
         let config = self.get_package_config(package);
         config.generic.git_release.enabled
@@ -151,6 +156,7 @@ impl PackagesConfig {
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ReleaseConfig {
+    publish: PublishConfig,
     git_release: GitReleaseConfig,
     /// Don't verify the contents by building them.
     /// If true, `release-plz` adds the `--no-verify` flag to `cargo publish`.
@@ -161,6 +167,11 @@ pub struct ReleaseConfig {
 }
 
 impl ReleaseConfig {
+    pub fn with_publish(mut self, publish: PublishConfig) -> Self {
+        self.publish = publish;
+        self
+    }
+
     pub fn with_git_release(mut self, git_release: GitReleaseConfig) -> Self {
         self.git_release = git_release;
         self
@@ -176,8 +187,33 @@ impl ReleaseConfig {
         self
     }
 
+    pub fn publish(&self) -> &PublishConfig {
+        &self.publish
+    }
+
     pub fn git_release(&self) -> &GitReleaseConfig {
         &self.git_release
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PublishConfig {
+    enabled: bool,
+}
+
+impl Default for PublishConfig {
+    fn default() -> Self {
+        Self::enabled(true)
+    }
+}
+
+impl PublishConfig {
+    pub fn enabled(enabled: bool) -> Self {
+        Self { enabled }
+    }
+
+    pub fn is_enabled(&self) -> bool {
+        self.enabled
     }
 }
 
@@ -290,31 +326,35 @@ async fn release_package(
     input: &ReleaseRequest,
     git_tag: String,
 ) -> anyhow::Result<()> {
-    let mut args = vec!["publish"];
-    args.push("--color");
-    args.push("always");
-    args.push("--manifest-path");
-    args.push(package.manifest_path.as_ref());
-    if let Some(token) = &input.token {
-        args.push("--token");
-        args.push(token.expose_secret());
-    }
-    if input.dry_run {
-        args.push("--dry-run");
-    }
-    if input.allow_dirty(&package.name) {
-        args.push("--allow-dirty");
-    }
-    if input.no_verify(&package.name) {
-        args.push("--no-verify");
-    }
     let workspace_root = input.workspace_root()?;
 
     let repo = Repo::new(workspace_root)?;
-    let (_, stderr) = run_cargo(workspace_root, &args)?;
 
-    if !stderr.contains("Uploading") || stderr.contains("error:") {
-        anyhow::bail!("failed to publish {}: {}", package.name, stderr);
+    let publish = input.is_publish_enabled(&package.name);
+    if publish {
+        let mut args = vec!["publish"];
+        args.push("--color");
+        args.push("always");
+        args.push("--manifest-path");
+        args.push(package.manifest_path.as_ref());
+        if let Some(token) = &input.token {
+            args.push("--token");
+            args.push(token.expose_secret());
+        }
+        if input.dry_run {
+            args.push("--dry-run");
+        }
+        if input.allow_dirty(&package.name) {
+            args.push("--allow-dirty");
+        }
+        if input.no_verify(&package.name) {
+            args.push("--no-verify");
+        }
+        let (_, stderr) = run_cargo(workspace_root, &args)?;
+
+        if !stderr.contains("Uploading") || stderr.contains("error:") {
+            anyhow::bail!("failed to publish {}: {}", package.name, stderr);
+        }
     }
 
     if input.dry_run {
@@ -323,7 +363,9 @@ async fn release_package(
             package.name, package.version
         );
     } else {
-        wait_until_published(index, package)?;
+        if publish {
+            wait_until_published(index, package)?;
+        }
 
         repo.tag(&git_tag)?;
         repo.push(&git_tag)?;
