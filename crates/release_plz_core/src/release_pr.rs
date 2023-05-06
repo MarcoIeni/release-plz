@@ -115,7 +115,7 @@ async fn open_or_update_release_pr(
                 let update_outcome =
                     update_pr(git_client, opened_pr, pr_commits.len(), repo, &new_pr).await;
                 if let Err(e) = update_outcome {
-                    tracing::error!("cannot update release pr {}: {}. I'm closing the old release pr and opening a new one", opened_pr.number, e);
+                    tracing::error!("cannot update release pr {}: {:?}. I'm closing the old release pr and opening a new one", opened_pr.number, e);
                     git_client
                         .close_pr(opened_pr.number)
                         .await
@@ -159,7 +159,7 @@ async fn update_pr(
     reset_branch(opened_pr, commits_number, repository).map_err(|e| {
         // restore local work
         if let Err(e) = repository.stash_pop() {
-            tracing::error!("cannot restore local work: {}", e);
+            tracing::error!("cannot restore local work: {:?}", e);
         }
         e
     })?;
