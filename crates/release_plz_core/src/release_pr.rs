@@ -200,7 +200,7 @@ fn reset_branch(pr: &GitPr, commits_number: usize, repository: &Repo) -> anyhow:
     if let Err(e) = repository.git(&["rebase", repository.original_branch()]) {
         // Get back to the state before "git rebase" to clean the merge conflict.
         repository.git(&["rebase ", "--abort"])?;
-        anyhow::bail!("cannot rebase from default branch: {}", e);
+        return Err(e.context("cannot rebase from default branch"));
     }
 
     Ok(())
