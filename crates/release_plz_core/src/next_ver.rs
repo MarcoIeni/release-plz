@@ -426,12 +426,7 @@ impl Updater<'_> {
         let mut packages_to_update = PackagesUpdate { updates: vec![] };
         for p in &self.project.packages {
             let run_semver_check = self.req.get_package_config(&p.name).semver_check();
-            let mut diff = get_diff(
-                p,
-                registry_packages,
-                repository,
-                &self.project.root,
-            )?;
+            let mut diff = get_diff(p, registry_packages, repository, &self.project.root)?;
 
             let package_path = get_package_path(p, repository, &self.project.root).unwrap();
 
