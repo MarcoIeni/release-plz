@@ -428,7 +428,6 @@ impl Updater<'_> {
             let run_semver_check = self.req.get_package_config(&p.name).semver_check();
             let mut diff = get_diff(
                 p,
-                run_semver_check,
                 registry_packages,
                 repository,
                 &self.project.root,
