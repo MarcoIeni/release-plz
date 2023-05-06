@@ -612,7 +612,6 @@ fn get_package_path(
 )]
 fn get_diff(
     package: &Package,
-    _run_semver_check: RunSemverCheck,
     registry_packages: &PackagesCollection,
     repository: &Repo,
     project_root: &Path,
