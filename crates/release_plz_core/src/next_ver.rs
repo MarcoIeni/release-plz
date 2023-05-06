@@ -597,7 +597,7 @@ fn get_package_path(
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<PathBuf> {
-    let package_path = package.package_path().unwrap();
+    let package_path = package.package_path()?;
     let relative_path = package_path
         .strip_prefix(project_root)
         .context("error while retrieving package_path: project root not found")?;
@@ -612,7 +612,7 @@ fn get_package_path(
 )]
 fn get_diff(
     package: &Package,
-    run_semver_check: RunSemverCheck,
+    _run_semver_check: RunSemverCheck,
     registry_packages: &PackagesCollection,
     repository: &Repo,
     project_root: &Path,
