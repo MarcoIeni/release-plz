@@ -428,7 +428,7 @@ impl Updater<'_> {
             let run_semver_check = self.req.get_package_config(&p.name).semver_check();
             let mut diff = get_diff(p, registry_packages, repository, &self.project.root)?;
 
-            let package_path = get_package_path(p, repository, &self.project.root).unwrap();
+            let package_path = get_package_path(p, repository, &self.project.root)?;
 
             let registry_package = registry_packages.get_package(&p.name);
             if let Some(registry_package) = registry_package {
