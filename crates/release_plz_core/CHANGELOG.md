@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.9.4...release_plz_core-v0.9.5) - 2023-05-07
+
+### Fixed
+- abort failed rebase (#760)
+
 ## [0.9.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.9.3...release_plz_core-v0.9.4) - 2023-05-05
 
 ### Added
