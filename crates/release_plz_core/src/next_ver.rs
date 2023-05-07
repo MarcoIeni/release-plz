@@ -425,14 +425,22 @@ impl Updater<'_> {
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate { updates: vec![] };
         for p in &self.project.packages {
-            let semver_check = self.req.get_package_config(&p.name).semver_check();
-            let diff = get_diff(
-                p,
-                semver_check,
-                registry_packages,
-                repository,
-                &self.project.root,
-            )?;
+            let run_semver_check = self.req.get_package_config(&p.name).semver_check();
+            let mut diff = get_diff(p, registry_packages, repository, &self.project.root)?;
+
+            let package_path = get_package_path(p, repository, &self.project.root)?;
+
+            let registry_package = registry_packages.get_package(&p.name);
+            if let Some(registry_package) = registry_package {
+                if should_check_semver(p, run_semver_check) && diff.should_update_version() {
+                    let semver_check = semver_check::run_semver_check(
+                        &package_path,
+                        registry_package.package_path()?,
+                    )?;
+                    diff.set_semver_check(semver_check);
+                }
+            }
+
             let current_version = p.version.clone();
             let next_version = p.version.next_from_diff(&diff);
 
@@ -578,24 +586,32 @@ fn get_changelog(
     Ok(changelog)
 }
 
+fn get_package_path(
+    package: &Package,
+    repository: &Repo,
+    project_root: &Path,
+) -> anyhow::Result<PathBuf> {
+    let package_path = package.package_path()?;
+    let relative_path = package_path
+        .strip_prefix(project_root)
+        .context("error while retrieving package_path: project root not found")?;
+    let result_path = repository.directory().join(relative_path);
+
+    Ok(result_path)
+}
+
 #[instrument(
     skip_all,
     fields(package = %package.name)
 )]
 fn get_diff(
     package: &Package,
-    run_semver_check: RunSemverCheck,
     registry_packages: &PackagesCollection,
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<Diff> {
-    let package_path = {
-        let relative_path = package
-            .package_path()?
-            .strip_prefix(project_root)
-            .context("error while retrieving package_path")?;
-        repository.directory().join(relative_path)
-    };
+    let package_path = get_package_path(package, repository, project_root)?;
+
     repository.checkout_head()?;
     let registry_package = registry_packages.get_package(&package.name);
     let mut diff = Diff::new(registry_package.is_some());
@@ -608,13 +624,6 @@ fn get_diff(
         } else {
             info!("{}: there are no commits", package.name);
             return Ok(diff);
-        }
-    }
-    if let Some(registry_package) = registry_package {
-        if should_check_semver(package, run_semver_check) {
-            let semver_check =
-                semver_check::run_semver_check(&package_path, registry_package.package_path()?)?;
-            diff.set_semver_check(semver_check);
         }
     }
     loop {
