@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.6](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.9.5...release_plz_core-v0.9.6) - 2023-05-07
 
 ### Other
-- prevent run-semver-checks in all packages (#754)
+- Performance improvement: run semver-checks only on changed packages (#754)
 
 ## [0.9.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.9.4...release_plz_core-v0.9.5) - 2023-05-07
 
