@@ -610,7 +610,7 @@ fn get_diff(
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<Diff> {
-    let package_path = get_package_path(package, repository, project_root).unwrap();
+    let package_path = get_package_path(package, repository, project_root)?;
 
     repository.checkout_head()?;
     let registry_package = registry_packages.get_package(&package.name);
