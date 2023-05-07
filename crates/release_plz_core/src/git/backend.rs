@@ -271,11 +271,12 @@ impl GitClient {
 
     #[instrument(skip(self))]
     pub async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
-        debug!("closing pr");
+        debug!("closing pr #{pr_number}");
         let edit = PrEdit::new().with_state("closed");
         self.edit_pr(pr_number, &edit)
             .await
             .with_context(|| format!("cannot close pr {pr_number}"))?;
+        info!("closed pr #{pr_number}");
         Ok(())
     }
 
