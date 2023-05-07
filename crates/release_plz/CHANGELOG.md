@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.6](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.5...release-plz-v0.3.6) - 2023-05-07
 
-### Other
-- updated the following local packages: release_plz_core
+### Fixed
+- abort failed rebase (#760)
 
 ## [0.3.5](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.4...release-plz-v0.3.5) - 2023-05-05
 
