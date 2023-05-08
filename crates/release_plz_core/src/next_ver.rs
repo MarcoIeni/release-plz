@@ -471,13 +471,12 @@ impl Updater<'_> {
                         .context("can't retrieve package path")?;
                     let run_semver_check = self.req.get_package_config(&p.name).semver_check();
                     if should_check_semver(p, run_semver_check) && diff.should_update_version() {
-                        let semver_check = semver_check::run_semver_check(
-                            &package_path,
-                            registry_package
-                                .package_path()
-                                .context("can't retrieve registry package path")?,
-                        )
-                        .context("error while running cargo-semver-checks")?;
+                        let registry_package_path = registry_package
+                            .package_path()
+                            .context("can't retrieve registry package path")?;
+                        let semver_check =
+                            semver_check::run_semver_check(&package_path, registry_package_path)
+                                .context("error while running cargo-semver-checks")?;
                         diff.set_semver_check(semver_check);
                     }
                 }
