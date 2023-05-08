@@ -91,7 +91,9 @@ impl PackagesConfig {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UpdateConfig {
     /// Controls when to run cargo-semver-checks.
-    pub semver_check: RunSemverCheck,
+    /// Note: You can only run cargo-semver-checks if the package contains a library.
+    ///       For example, if it has a `lib.rs` file.
+    pub semver_check: bool,
     /// Whether to create/update changelog or not.
     /// Default: `true`.
     pub changelog_update: bool,
@@ -110,7 +112,7 @@ pub struct PackageUpdateConfig {
 }
 
 impl PackageUpdateConfig {
-    pub fn semver_check(&self) -> RunSemverCheck {
+    pub fn semver_check(&self) -> bool {
         self.generic.semver_check
     }
 
@@ -122,14 +124,14 @@ impl PackageUpdateConfig {
 impl Default for UpdateConfig {
     fn default() -> Self {
         Self {
-            semver_check: RunSemverCheck::default(),
+            semver_check: true,
             changelog_update: true,
         }
     }
 }
 
 impl UpdateConfig {
-    pub fn with_semver_check(self, semver_check: RunSemverCheck) -> Self {
+    pub fn with_semver_check(self, semver_check: bool) -> Self {
         Self {
             semver_check,
             ..self
@@ -142,18 +144,6 @@ impl UpdateConfig {
             ..self
         }
     }
-}
-
-/// Whether to run cargo-semver-checks or not.
-#[derive(Default, PartialEq, Eq, Debug, Clone, Copy)]
-pub enum RunSemverCheck {
-    /// Run cargo-semver-checks if the package is a library.
-    #[default]
-    Lib,
-    /// Run cargo-semver-checks.
-    Yes,
-    /// Don't run cargo-semver-checks.
-    No,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -425,13 +415,12 @@ impl Updater<'_> {
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate { updates: vec![] };
         for p in &self.project.packages {
-            let run_semver_check = self.req.get_package_config(&p.name).semver_check();
             let mut diff = get_diff(p, registry_packages, repository, &self.project.root)?;
-
-            let package_path = get_package_path(p, repository, &self.project.root)?;
 
             let registry_package = registry_packages.get_package(&p.name);
             if let Some(registry_package) = registry_package {
+                let package_path = get_package_path(p, repository, &self.project.root)?;
+                let run_semver_check = self.req.get_package_config(&p.name).semver_check();
                 if should_check_semver(p, run_semver_check) && diff.should_update_version() {
                     let semver_check = semver_check::run_semver_check(
                         &package_path,
@@ -677,14 +666,11 @@ fn get_diff(
     Ok(diff)
 }
 
-fn should_check_semver(package: &Package, run_semver_check: RunSemverCheck) -> bool {
+/// Check if release-plz should check the semver compatibility of the package.
+/// - `run_semver_check` is true if the user wants to run the semver check.
+fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
     let is_cargo_semver_checks_installed = semver_check::is_cargo_semver_checks_installed;
-    let user_wants_to_run_check = match run_semver_check {
-        RunSemverCheck::Lib => is_library(package),
-        RunSemverCheck::Yes => true,
-        RunSemverCheck::No => false,
-    };
-    user_wants_to_run_check && is_cargo_semver_checks_installed()
+    run_semver_check && is_library(package) && is_cargo_semver_checks_installed()
 }
 
 /// Compare the dependencies of the registry package and the local one.

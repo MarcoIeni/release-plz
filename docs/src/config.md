@@ -158,11 +158,13 @@ because release-plz defaults to the URL of the default git remote.
 
 #### The `semver_check` field
 
-With this field, you can tell release-plz when to run [cargo-semver-checks]:
+With this field, you can tell release-plz to run [cargo-semver-checks] to check
+API breaking changes of your package:
 
-- If `false`, never run it.
-- If `true`, always run it.
-- If unspecified, run it if the package is a library. *(Default)*.
+- If `true`, run it. *(Default)*.
+- If `false`, don't run it.
+
+Note that [cargo-semver-checks] only works with packages containing a library.
 
 This field can be overridden in the [`[package]`](#the-package-section) section.
 
