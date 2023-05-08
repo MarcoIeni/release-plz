@@ -454,17 +454,17 @@ impl Updater<'_> {
         registry_packages: &PackagesCollection,
         repository: &Repo,
     ) -> anyhow::Result<Vec<(&Package, Diff)>> {
-        let mut packages_with_diff: Vec<(&Package, Diff)> = vec![];
+        let mut packages_diffs: Vec<(&Package, Diff)> = vec![];
 
         // Store diff for each package. This operation is not thread safe, so we do it in one
         // package at a time.
         for p in &self.project.packages {
             let diff = get_diff(p, registry_packages, repository, &self.project.root)?;
-            packages_with_diff.push((p, diff));
+            packages_diffs.push((p, diff));
         }
 
         let semver_check_result: anyhow::Result<()> =
-            packages_with_diff.par_iter_mut().try_for_each(|(p, diff)| {
+            packages_diffs.par_iter_mut().try_for_each(|(p, diff)| {
                 let registry_package = registry_packages.get_package(&p.name);
                 if let Some(registry_package) = registry_package {
                     let package_path = get_package_path(p, repository, &self.project.root)
@@ -485,7 +485,7 @@ impl Updater<'_> {
             });
         semver_check_result?;
 
-        Ok(packages_with_diff)
+        Ok(packages_diffs)
     }
 
     /// Return the packages that depend on the `changed_packages`.
