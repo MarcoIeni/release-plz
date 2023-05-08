@@ -204,7 +204,7 @@ pub struct PackageConfig {
 impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
     fn from(config: PackageUpdateConfig) -> Self {
         Self {
-            semver_check: config.semver_check().into(),
+            semver_check: config.semver_check != Some(false),
             changelog_update: config.changelog_update != Some(false),
         }
     }
@@ -237,16 +237,6 @@ impl PackageUpdateConfig {
         PackageUpdateConfig {
             semver_check: self.semver_check.or(default.semver_check),
             changelog_update: self.changelog_update.or(default.changelog_update),
-        }
-    }
-}
-
-impl PackageUpdateConfig {
-    pub fn semver_check(&self) -> SemverCheck {
-        match self.semver_check {
-            Some(true) => SemverCheck::Yes,
-            Some(false) => SemverCheck::No,
-            None => SemverCheck::Lib,
         }
     }
 }
@@ -294,26 +284,15 @@ impl ReleaseConfig {
 }
 
 /// Whether to run cargo-semver-checks or not.
+/// Note: you can only run cargo-semver-checks on a library.
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum SemverCheck {
-    /// Run cargo-semver-checks if the package is a library.
-    #[default]
-    Lib,
     /// Run cargo-semver-checks.
+    #[default]
     Yes,
     /// Don't run cargo-semver-checks.
     No,
-}
-
-impl From<SemverCheck> for release_plz_core::RunSemverCheck {
-    fn from(config: SemverCheck) -> Self {
-        match config {
-            SemverCheck::Lib => Self::Lib,
-            SemverCheck::Yes => Self::Yes,
-            SemverCheck::No => Self::No,
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
