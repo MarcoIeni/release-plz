@@ -414,11 +414,10 @@ impl Updater<'_> {
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
-        let packages_with_diff = self.get_packages_diffs(registry_packages, repository)?;
-
+        let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate { updates: vec![] };
-        for (p, diff) in packages_with_diff {
+        for (p, diff) in packages_diffs {
             let current_version = p.version.clone();
             let next_version = p.version.next_from_diff(&diff);
 
@@ -454,15 +453,19 @@ impl Updater<'_> {
         registry_packages: &PackagesCollection,
         repository: &Repo,
     ) -> anyhow::Result<Vec<(&Package, Diff)>> {
-        let mut packages_diffs: Vec<(&Package, Diff)> = vec![];
-
         // Store diff for each package. This operation is not thread safe, so we do it in one
         // package at a time.
-        for p in &self.project.packages {
-            let diff = get_diff(p, registry_packages, repository, &self.project.root)?;
-            packages_diffs.push((p, diff));
-        }
+        let packages_diffs_res: anyhow::Result<Vec<(&Package, Diff)>> = self
+            .project
+            .packages
+            .iter()
+            .map(|p| {
+                let diff = get_diff(p, registry_packages, repository, &self.project.root)?;
+                Ok((p, diff))
+            })
+            .collect();
 
+        let mut packages_diffs = packages_diffs_res?;
         let semver_check_result: anyhow::Result<()> =
             packages_diffs.par_iter_mut().try_for_each(|(p, diff)| {
                 let registry_package = registry_packages.get_package(&p.name);
