@@ -18,6 +18,7 @@ use fs_extra::dir;
 use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
+use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use std::{
     collections::BTreeMap,
     fs, io,
@@ -412,24 +413,11 @@ impl Updater<'_> {
         repository: &Repo,
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
+
+        let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate { updates: vec![] };
-        for p in &self.project.packages {
-            let mut diff = get_diff(p, registry_packages, repository, &self.project.root)?;
-
-            let registry_package = registry_packages.get_package(&p.name);
-            if let Some(registry_package) = registry_package {
-                let package_path = get_package_path(p, repository, &self.project.root)?;
-                let run_semver_check = self.req.get_package_config(&p.name).semver_check();
-                if should_check_semver(p, run_semver_check) && diff.should_update_version() {
-                    let semver_check = semver_check::run_semver_check(
-                        &package_path,
-                        registry_package.package_path()?,
-                    )?;
-                    diff.set_semver_check(semver_check);
-                }
-            }
-
+        for (p, diff) in packages_diffs {
             let current_version = p.version.clone();
             let next_version = p.version.next_from_diff(&diff);
 
@@ -458,6 +446,48 @@ impl Updater<'_> {
             self.dependent_packages(&packages_to_check_for_deps, &changed_packages)?;
         packages_to_update.updates.extend(dependent_packages);
         Ok(packages_to_update)
+    }
+
+    fn get_packages_diffs(
+        &self,
+        registry_packages: &PackagesCollection,
+        repository: &Repo,
+    ) -> anyhow::Result<Vec<(&Package, Diff)>> {
+        // Store diff for each package. This operation is not thread safe, so we do it in one
+        // package at a time.
+        let packages_diffs_res: anyhow::Result<Vec<(&Package, Diff)>> = self
+            .project
+            .packages
+            .iter()
+            .map(|p| {
+                let diff = get_diff(p, registry_packages, repository, &self.project.root)?;
+                Ok((p, diff))
+            })
+            .collect();
+
+        let mut packages_diffs = packages_diffs_res?;
+        let semver_check_result: anyhow::Result<()> =
+            packages_diffs.par_iter_mut().try_for_each(|(p, diff)| {
+                let registry_package = registry_packages.get_package(&p.name);
+                if let Some(registry_package) = registry_package {
+                    let package_path = get_package_path(p, repository, &self.project.root)
+                        .context("can't retrieve package path")?;
+                    let run_semver_check = self.req.get_package_config(&p.name).semver_check();
+                    if should_check_semver(p, run_semver_check) && diff.should_update_version() {
+                        let registry_package_path = registry_package
+                            .package_path()
+                            .context("can't retrieve registry package path")?;
+                        let semver_check =
+                            semver_check::run_semver_check(&package_path, registry_package_path)
+                                .context("error while running cargo-semver-checks")?;
+                        diff.set_semver_check(semver_check);
+                    }
+                }
+                Ok(())
+            });
+        semver_check_result?;
+
+        Ok(packages_diffs)
     }
 
     /// Return the packages that depend on the `changed_packages`.
@@ -589,6 +619,7 @@ fn get_package_path(
     Ok(result_path)
 }
 
+/// This operation is not thread-safe, because we do `git checkout` on the repository.
 #[instrument(
     skip_all,
     fields(package = %package.name)

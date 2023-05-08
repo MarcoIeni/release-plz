@@ -2851,6 +2851,7 @@ dependencies = [
  "lazy_static",
  "next_version",
  "parse-changelog",
+ "rayon",
  "regex",
  "reqwest",
  "reqwest-middleware",

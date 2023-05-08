@@ -28,6 +28,7 @@ git-url-parse.workspace = true
 ignore.workspace = true
 lazy_static.workspace = true
 parse-changelog.workspace = true
+rayon.workspace = true
 regex.workspace = true
 reqwest = { workspace = true, features = ["json"] }
 reqwest-middleware.workspace = true
