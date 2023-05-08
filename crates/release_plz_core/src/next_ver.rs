@@ -666,13 +666,11 @@ fn get_diff(
     Ok(diff)
 }
 
+/// Check if release-plz should check the semver compatibility of the package.
+/// - `run_semver_check` is true if the user wants to run the semver check.
 fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
     let is_cargo_semver_checks_installed = semver_check::is_cargo_semver_checks_installed;
-    let user_wants_to_run_check = match run_semver_check {
-        true => is_library(package),
-        false => false,
-    };
-    user_wants_to_run_check && is_cargo_semver_checks_installed()
+    run_semver_check && is_library(package) && is_cargo_semver_checks_installed()
 }
 
 /// Compare the dependencies of the registry package and the local one.
