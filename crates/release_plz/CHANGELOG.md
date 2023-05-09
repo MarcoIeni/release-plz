@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.8](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.7...release-plz-v0.3.8) - 2023-05-08
+
+### Other
+- run cargo-semver-check in parallel (#766)
+- represent semver_check config as bool (#765)
+
 ## [0.3.7](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.6...release-plz-v0.3.7) - 2023-05-07
 
 ### Other

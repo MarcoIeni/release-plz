@@ -1,6 +1,6 @@
 [package]
 name = "release-plz"
-version = "0.3.7"
+version = "0.3.8"
 edition = "2021"
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz"
@@ -13,7 +13,7 @@ categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 git_cmd = { path = "../git_cmd", version = "0.4.4" }
-release_plz_core = { path = "../release_plz_core", version = "0.9.6" }
+release_plz_core = { path = "../release_plz_core", version = "0.10.0" }
 
 anyhow.workspace = true
 chrono = { workspace = true, features = ["clock"] }
