@@ -288,12 +288,13 @@ It is used to generate the changelog release link and open the PR.
 Normally, you don’t need to set this field,
 because release-plz defaults to the URL of the default git remote.</p>
 <h4 id="the-semver_check-field"><a class="header" href="#the-semver_check-field">The <code>semver_check</code> field</a></h4>
-<p>With this field, you can tell release-plz when to run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>:</p>
+<p>With this field, you can tell release-plz to run <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a> to check
+API breaking changes of your package:</p>
 <ul>
-<li>If <code>false</code>, never run it.</li>
-<li>If <code>true</code>, always run it.</li>
-<li>If unspecified, run it if the package is a library. <em>(Default)</em>.</li>
+<li>If <code>true</code>, run it. <em>(Default)</em>.</li>
+<li>If <code>false</code>, don’t run it.</li>
 </ul>
+<p>Note that <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a> only works with packages containing a library.</p>
 <p>This field can be overridden in the <a href="#the-package-section"><code>[package]</code></a> section.</p>
 <h3 id="the-package-section"><a class="header" href="#the-package-section">The <code>[[package]]</code> section</a></h3>
 <p>In this section, you can override some of the <code>workspace</code> fields for specific packages.</p>
