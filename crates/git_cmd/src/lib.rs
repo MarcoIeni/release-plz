@@ -52,6 +52,7 @@ impl Repo {
                 "rev-parse",
                 "--abbrev-ref",
                 "--symbolic-full-name",
+                "--",
                 "@{upstream}",
             ],
         ) {
@@ -76,7 +77,7 @@ impl Repo {
     }
 
     fn get_current_branch(directory: impl AsRef<Path>) -> anyhow::Result<String> {
-        git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "HEAD"])
+        git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "--", "HEAD"])
         .map_err(|e|
             if e.to_string().contains("fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.") {
                 anyhow!("git repository does not contain any commit.")
