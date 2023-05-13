@@ -175,6 +175,19 @@ release-plz closes the PR to preserve the git history.
 <p><code>release-plz release-pr</code> also supports creating PRs for repositories hosted on
 Gitea with the <code>--backend</code> flag:</p>
 <p><code>release-plz release-pr --token &lt;gitea application token&gt; --backend gitea</code></p>
+<h2 id="faq"><a class="header" href="#faq">FAQ</a></h2>
+<h3 id="can-i-edit-the-release-pr-before-merging-it"><a class="header" href="#can-i-edit-the-release-pr-before-merging-it">Can I edit the release PR before merging it?</a></h3>
+<p>Yes, you can edit the release PR as you would do with any other PR.</p>
+<p>Here are some reasons why you might want to edit the release PR:</p>
+<ul>
+<li>edit the changelog: the changelog produced by release-plz is a good starting point,
+but you might want to add more details to it.</li>
+<li>edit the version: if you forgot to mark a commit as a
+<a href="https://www.conventionalcommits.org/en/v1.0.0/#commit-message-with-description-and-breaking-change-footer">breaking change</a>,
+or if cargo-semver-checks
+<a href="https://github.com/obi1kenobi/cargo-semver-checks#will-cargo-semver-checks-catch-every-semver-violation">failed</a>
+to detect a breaking change, you can manually edit the version of the package.</li>
+</ul>
 
                     </main>
 
