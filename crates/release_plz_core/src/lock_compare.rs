@@ -20,8 +20,8 @@ pub fn are_lock_dependencies_updated(
 }
 
 fn are_dependencies_updated(local_lock: &Path, registry_lock: &Path) -> anyhow::Result<bool> {
-    let local_lock = Lockfile::load(local_lock).unwrap();
-    let registry_lock = Lockfile::load(registry_lock).unwrap();
+    let local_lock = Lockfile::load(local_lock)?;
+    let registry_lock = Lockfile::load(registry_lock)?;
     for local_package in local_lock.packages {
         // Cargo.lock can contain multiple packages with the same name but different versions.
         let registry_packages: Vec<&cargo_lock::Package> = registry_lock
