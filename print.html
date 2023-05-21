@@ -276,13 +276,18 @@ itself.
 packages with unpublished changes.</p>
 <p><img src="https://user-images.githubusercontent.com/11428655/160772903-544c7578-7c17-4311-b6ca-a1aefeabe799.gif" alt="release-plz release-pr" /></p>
 <p>To learn more, run <code>release-plz release-pr --help</code>.</p>
-<h2 id="pr-update"><a class="header" href="#pr-update">Pr update</a></h2>
+<h2 id="pr-update"><a class="header" href="#pr-update">PR update</a></h2>
 <p>If there’s already an open release PR:</p>
 <ul>
-<li>if the PR contains commits that are not from bots (except the first one),
+<li>If the PR contains commits that are not from bots (except the first one),
 release-plz closes the PR to preserve the git history.
+The update mechanism is simple: overwrite everything and force-push. 💥
+Reasoning: changes done by bots are not valuable, so we can overwrite them.
 (Not available on Gitea).</li>
-<li>otherwise, release-plz closes the old PR and opens a new one.</li>
+<li>Otherwise, release-plz closes the old PR and opens a new one.
+This is done to preserve the git history of maintainers’ changes.
+Release-plz also closes the release PR when it cannot update it
+(for example, the force-push fails due to merge conflicts).</li>
 </ul>
 <h2 id="gitea"><a class="header" href="#gitea">Gitea</a></h2>
 <p><code>release-plz release-pr</code> also supports creating PRs for repositories hosted on
@@ -872,10 +877,11 @@ You can learn more in the <a href="changelog-format.html">changelog format</a> s
 <p>Publish to cargo registry.</p>
 <ul>
 <li>If <code>true</code>, <code>release-plz</code> runs <code>cargo publish</code>. <em>(Default)</em>.</li>
-<li>If <code>false</code>, <code>release-plz</code> doesn’t run <code>cargo publish</code>.
-You can use this option if you are only interested in git tags or if you want to
-run <code>cargo publish</code> by yourself.</li>
+<li>If <code>false</code>, <code>release-plz</code> doesn’t run <code>cargo publish</code>.</li>
 </ul>
+<p>With this option disabled, release-plz will continue creating git tags.
+However, note that release-plz will still use the cargo registry to check what’s the latest release,
+so you still need to run <code>cargo publish</code> by yourself.</p>
 <h4 id="the-publish_allow_dirty-field"><a class="header" href="#the-publish_allow_dirty-field">The <code>publish_allow_dirty</code> field</a></h4>
 <p>Allow dirty working directories to be packaged.
 When <code>true</code>, <code>release-plz</code> adds the <code>--allow-dirty</code> flag to <code>cargo publish</code>.</p>

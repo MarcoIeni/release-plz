@@ -272,10 +272,11 @@ You can learn more in the <a href="changelog-format.html">changelog format</a> s
 <p>Publish to cargo registry.</p>
 <ul>
 <li>If <code>true</code>, <code>release-plz</code> runs <code>cargo publish</code>. <em>(Default)</em>.</li>
-<li>If <code>false</code>, <code>release-plz</code> doesn’t run <code>cargo publish</code>.
-You can use this option if you are only interested in git tags or if you want to
-run <code>cargo publish</code> by yourself.</li>
+<li>If <code>false</code>, <code>release-plz</code> doesn’t run <code>cargo publish</code>.</li>
 </ul>
+<p>With this option disabled, release-plz will continue creating git tags.
+However, note that release-plz will still use the cargo registry to check what’s the latest release,
+so you still need to run <code>cargo publish</code> by yourself.</p>
 <h4 id="the-publish_allow_dirty-field"><a class="header" href="#the-publish_allow_dirty-field">The <code>publish_allow_dirty</code> field</a></h4>
 <p>Allow dirty working directories to be packaged.
 When <code>true</code>, <code>release-plz</code> adds the <code>--allow-dirty</code> flag to <code>cargo publish</code>.</p>

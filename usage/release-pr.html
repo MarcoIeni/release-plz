@@ -163,13 +163,18 @@ itself.
 packages with unpublished changes.</p>
 <p><img src="https://user-images.githubusercontent.com/11428655/160772903-544c7578-7c17-4311-b6ca-a1aefeabe799.gif" alt="release-plz release-pr" /></p>
 <p>To learn more, run <code>release-plz release-pr --help</code>.</p>
-<h2 id="pr-update"><a class="header" href="#pr-update">Pr update</a></h2>
+<h2 id="pr-update"><a class="header" href="#pr-update">PR update</a></h2>
 <p>If there’s already an open release PR:</p>
 <ul>
-<li>if the PR contains commits that are not from bots (except the first one),
+<li>If the PR contains commits that are not from bots (except the first one),
 release-plz closes the PR to preserve the git history.
+The update mechanism is simple: overwrite everything and force-push. 💥
+Reasoning: changes done by bots are not valuable, so we can overwrite them.
 (Not available on Gitea).</li>
-<li>otherwise, release-plz closes the old PR and opens a new one.</li>
+<li>Otherwise, release-plz closes the old PR and opens a new one.
+This is done to preserve the git history of maintainers’ changes.
+Release-plz also closes the release PR when it cannot update it
+(for example, the force-push fails due to merge conflicts).</li>
 </ul>
 <h2 id="gitea"><a class="header" href="#gitea">Gitea</a></h2>
 <p><code>release-plz release-pr</code> also supports creating PRs for repositories hosted on
