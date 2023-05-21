@@ -707,7 +707,8 @@ fn get_diff(
                         || lock_compare::are_lock_dependencies_updated(
                             &project.cargo_lock_path(),
                             registry_package_path,
-                        )?;
+                        )
+                        .context("Can't check if Cargo.lock dependencies are up to date")?;
                     if are_dependencies_updated {
                         diff.commits.push("chore: update dependencies".to_string());
                     } else {
