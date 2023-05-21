@@ -29,7 +29,14 @@ fn are_dependencies_updated(local_lock: &Path, registry_lock: &Path) -> anyhow::
             registry_lock
         )
     })?;
-    for local_package in local_lock.packages {
+    Ok(are_dependencies_of_lockfiles_updated(
+        &local_lock,
+        &registry_lock,
+    ))
+}
+
+fn are_dependencies_of_lockfiles_updated(local_lock: &Lockfile, registry_lock: &Lockfile) -> bool {
+    for local_package in &local_lock.packages {
         // Cargo.lock can contain multiple packages with the same name but different versions.
         let registry_packages: Vec<&cargo_lock::Package> = registry_lock
             .packages
@@ -46,8 +53,8 @@ fn are_dependencies_updated(local_lock: &Path, registry_lock: &Path) -> anyhow::
                 "Version of package {} changed to version {:?}",
                 local_package.name, local_package.version
             );
-            return Ok(true);
+            return true;
         }
     }
-    Ok(false)
+    false
 }
