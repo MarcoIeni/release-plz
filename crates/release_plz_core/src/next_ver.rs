@@ -668,18 +668,18 @@ fn get_diff(
             return Ok(diff);
         }
     }
+    let ignored_dirs: Vec<PathBuf> = workspace_packages
+        .iter()
+        .filter(|p| p.name != package.name)
+        .map(|p| get_package_path(p, repository, project_root).unwrap())
+        .collect();
     loop {
         let current_commit_message = repository.current_commit_message()?;
         if let Some(registry_package) = registry_package {
             debug!("package {} found in cargo registry", registry_package.name);
             let are_packages_equal = {
                 let registry_package_path = registry_package.package_path()?;
-                let ignored_dirs: Vec<&Path> = workspace_packages
-                    .iter()
-                    .filter(|p| p.name != package.name)
-                    .map(|p| p.package_path().unwrap())
-                    .collect();
-                are_packages_equal(&package_path, registry_package_path, &ignored_dirs)
+                are_packages_equal(&package_path, registry_package_path, ignored_dirs.clone())
                     .context("cannot compare packages")?
             };
             if are_packages_equal {

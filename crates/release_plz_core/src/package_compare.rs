@@ -22,7 +22,7 @@ fn is_dir(entry: &ignore::DirEntry) -> bool {
 pub fn are_packages_equal(
     local_package: &Path,
     registry_package: &Path,
-    ignored_dirs: &[&Path],
+    ignored_dirs: Vec<PathBuf>,
 ) -> anyhow::Result<bool> {
     if !are_cargo_toml_equal(local_package, registry_package) {
         return Ok(false);
@@ -32,7 +32,6 @@ pub fn are_packages_equal(
     // We ignore ignored files because we don't want to compare local files that are
     // not present in the package (such as `.DS_Store` or `Cargo.lock`, that might be generated
     // for libraries)
-    let ignored_dirs: Vec<PathBuf> = ignored_dirs.iter().map(|p| p.to_path_buf()).collect();
     let walker = ignore::WalkBuilder::new(local_package)
         // Read hidden files
         .hidden(false)
