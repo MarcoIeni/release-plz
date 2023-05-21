@@ -668,11 +668,12 @@ fn get_diff(
             return Ok(diff);
         }
     }
-    let ignored_dirs: Vec<PathBuf> = workspace_packages
+    let ignored_dirs: anyhow::Result<Vec<PathBuf>> = workspace_packages
         .iter()
         .filter(|p| p.name != package.name)
-        .map(|p| get_package_path(p, repository, project_root).unwrap())
+        .map(|p| get_package_path(p, repository, project_root))
         .collect();
+    let ignored_dirs = ignored_dirs?;
     loop {
         let current_commit_message = repository.current_commit_message()?;
         if let Some(registry_package) = registry_package {
