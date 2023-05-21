@@ -311,7 +311,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     let packages_to_update = updater.packages_to_update(
         &registry_packages,
         &repository.repo,
-        &local_project.all_packages(),
+        &local_project.workspace_packages(),
     )?;
     Ok((packages_to_update, repository))
 }
@@ -363,8 +363,8 @@ impl Project {
             .collect()
     }
 
-    /// Including packages that are not publishable.
-    pub fn all_packages(&self) -> Vec<&Package> {
+    /// Get all packages, including non-publishable.
+    pub fn workspace_packages(&self) -> Vec<&Package> {
         self.packages.iter().collect()
     }
 
