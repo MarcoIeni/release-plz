@@ -18,14 +18,19 @@ packages with unpublished changes.
 
 To learn more, run `release-plz release-pr --help`.
 
-## Pr update
+## PR update
 
 If there's already an open release PR:
 
-- if the PR contains commits that are not from bots (except the first one),
+- If the PR contains commits that are not from bots (except the first one),
   release-plz closes the PR to preserve the git history.
+  The update mechanism is simple: overwrite everything and force-push. 💥
+  Reasoning: changes done by bots are not valuable, so we can overwrite them.
   (Not available on Gitea).
-- otherwise, release-plz closes the old PR and opens a new one.
+- Otherwise, release-plz closes the old PR and opens a new one.
+  This is done to preserve the git history of maintainers' changes.
+  Release-plz also closes the release PR when it cannot update it
+  (for example, the force-push fails due to merge conflicts).
 
 ## Gitea
 
