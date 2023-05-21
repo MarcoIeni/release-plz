@@ -8,7 +8,7 @@ use tracing::{info, instrument};
 use crate::git::backend::{contributors_from_commits, GitClient, GitPr, PrEdit};
 use crate::pr::{Pr, BRANCH_PREFIX};
 use crate::{
-    copy_to_temp_dir, publishable_packages, update, GitBackend, PackagesUpdate, UpdateRequest,
+    copy_to_temp_dir, update, workspace_packages, GitBackend, PackagesUpdate, UpdateRequest,
     CARGO_TOML,
 };
 
@@ -93,8 +93,7 @@ async fn open_or_update_release_pr(
     }
 
     let new_pr = {
-        let project_contains_multiple_pub_packages =
-            publishable_packages(local_manifest)?.len() > 1;
+        let project_contains_multiple_pub_packages = workspace_packages(local_manifest)?.len() > 1;
         Pr::new(
             repo.original_branch(),
             packages_to_update,
