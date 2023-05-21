@@ -308,7 +308,11 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
-    let packages_to_update = updater.packages_to_update(&registry_packages, &repository.repo)?;
+    let packages_to_update = updater.packages_to_update(
+        &registry_packages,
+        &repository.repo,
+        &local_project.workspace_packages(),
+    )?;
     Ok((packages_to_update, repository))
 }
 
@@ -359,9 +363,9 @@ impl Project {
             .collect()
     }
 
-    /// Including packages that are not publishable.
-    pub fn all_packages(&self) -> &[Package] {
-        &self.packages
+    /// Get all packages, including non-publishable.
+    pub fn workspace_packages(&self) -> Vec<&Package> {
+        self.packages.iter().collect()
     }
 
     /// Copy this project in a temporary repository and return the repository.
@@ -419,10 +423,12 @@ impl Updater<'_> {
         &self,
         registry_packages: &PackagesCollection,
         repository: &Repo,
+        workspace_packages: &[&Package],
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
-        let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
+        let packages_diffs =
+            self.get_packages_diffs(registry_packages, repository, workspace_packages)?;
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate { updates: vec![] };
         for (p, diff) in packages_diffs {
@@ -460,6 +466,7 @@ impl Updater<'_> {
         &self,
         registry_packages: &PackagesCollection,
         repository: &Repo,
+        workspace_packages: &[&Package],
     ) -> anyhow::Result<Vec<(&Package, Diff)>> {
         // Store diff for each package. This operation is not thread safe, so we do it in one
         // package at a time.
@@ -468,7 +475,13 @@ impl Updater<'_> {
             .publishable_packages()
             .iter()
             .map(|&p| {
-                let diff = get_diff(p, registry_packages, repository, &self.project.root)?;
+                let diff = get_diff(
+                    p,
+                    registry_packages,
+                    repository,
+                    &self.project.root,
+                    workspace_packages,
+                )?;
                 Ok((p, diff))
             })
             .collect();
@@ -637,6 +650,7 @@ fn get_diff(
     registry_packages: &PackagesCollection,
     repository: &Repo,
     project_root: &Path,
+    workspace_packages: &[&Package],
 ) -> anyhow::Result<Diff> {
     let package_path = get_package_path(package, repository, project_root)?;
 
@@ -654,13 +668,19 @@ fn get_diff(
             return Ok(diff);
         }
     }
+    let ignored_dirs: anyhow::Result<Vec<PathBuf>> = workspace_packages
+        .iter()
+        .filter(|p| p.name != package.name)
+        .map(|p| get_package_path(p, repository, project_root))
+        .collect();
+    let ignored_dirs = ignored_dirs?;
     loop {
         let current_commit_message = repository.current_commit_message()?;
         if let Some(registry_package) = registry_package {
             debug!("package {} found in cargo registry", registry_package.name);
             let are_packages_equal = {
                 let registry_package_path = registry_package.package_path()?;
-                are_packages_equal(&package_path, registry_package_path)
+                are_packages_equal(&package_path, registry_package_path, ignored_dirs.clone())
                     .context("cannot compare packages")?
             };
             if are_packages_equal {
