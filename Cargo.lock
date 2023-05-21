@@ -396,7 +396,7 @@ dependencies = [
 
 [[package]]
 name = "cargo_utils"
-version = "0.1.19"
+version = "0.1.20"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -2817,7 +2817,7 @@ checksum = "a5996294f19bd3aae0453a862ad728f60e6600695733dd5df01da90c54363a3c"
 
 [[package]]
 name = "release-plz"
-version = "0.3.8"
+version = "0.3.9"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -2842,7 +2842,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "anyhow",
  "cargo",
