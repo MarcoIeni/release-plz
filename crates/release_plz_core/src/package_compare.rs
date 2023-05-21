@@ -42,7 +42,9 @@ pub fn are_packages_equal(
             !((is_dir(e)
                 && (e.path().file_name() == Some(OsStr::new(".git"))
                     || ignored_dirs.contains(&e.path())))
-                || e.path_is_symlink())
+                || e.path_is_symlink()
+                // Ignore `Cargo.lock` because the local one is different from the published one in workspaces.
+                || e.path().file_name() == Some(OsStr::new("Cargo.lock")))
         })
         .build()
         .filter_map(Result::ok)
