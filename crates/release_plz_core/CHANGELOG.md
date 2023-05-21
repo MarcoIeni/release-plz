@@ -9,14 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.11.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.10.0...release_plz_core-v0.11.0) - 2023-05-21
 
 ### Added
-- compare `Cargo.lock` changes (#784)
+- check if `Cargo.lock` packages were updated (#784)
 
 ### Fixed
-- ignore other crates' dirs (#783)
-
-### Other
-- store all workspace packages (#782)
-- group commands in  module (#781)
+- support nested crates (#783)
 
 ## [0.10.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.9.6...release_plz_core-v0.10.0) - 2023-05-08
 
