@@ -300,7 +300,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     };
     let registry_packages = registry_packages::get_registry_packages(
         input.registry_manifest.as_ref(),
-        &local_project.packages,
+        &local_project.publishable_packages(),
         input.registry.as_deref(),
     )?;
 
@@ -336,7 +336,7 @@ impl Project {
             PathBuf::from(project_root)
         };
         debug!("project_root: {root:?}");
-        let mut packages = publishable_packages(manifest)?;
+        let mut packages = workspace_packages(manifest)?;
         let contains_multiple_pub_packages = packages.len() > 1;
         if let Some(pac) = single_package {
             packages.retain(|p| p.name == pac);
@@ -352,7 +352,15 @@ impl Project {
         })
     }
 
-    pub fn packages(&self) -> &[Package] {
+    pub fn publishable_packages(&self) -> Vec<&Package> {
+        self.packages
+            .iter()
+            .filter(|p| p.is_publishable())
+            .collect()
+    }
+
+    /// Including packages that are not publishable.
+    pub fn all_packages(&self) -> &[Package] {
         &self.packages
     }
 
@@ -457,9 +465,9 @@ impl Updater<'_> {
         // package at a time.
         let packages_diffs_res: anyhow::Result<Vec<(&Package, Diff)>> = self
             .project
-            .packages
+            .publishable_packages()
             .iter()
-            .map(|p| {
+            .map(|&p| {
                 let diff = get_diff(p, registry_packages, repository, &self.project.root)?;
                 Ok((p, diff))
             })
@@ -715,14 +723,20 @@ fn are_dependencies_updated(
         .any(|d| d.path.is_none() && !registry_dependencies.contains(d))
 }
 
-pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
+fn workspace_members(manifest: impl AsRef<Path>) -> anyhow::Result<impl Iterator<Item = Package>> {
     let manifest = manifest.as_ref();
     let packages = cargo_utils::workspace_members(Some(manifest))
         .map_err(|e| anyhow!("cannot read workspace members in manifest {manifest:?}: {e}"))?
-        .into_iter()
-        .filter(|p| p.is_publishable())
-        .collect();
+        .into_iter();
     Ok(packages)
+}
+
+pub fn workspace_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
+    workspace_members(manifest).map(|members| members.collect())
+}
+
+pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
+    workspace_members(manifest).map(|members| members.filter(|p| p.is_publishable()).collect())
 }
 
 pub trait Publishable {
