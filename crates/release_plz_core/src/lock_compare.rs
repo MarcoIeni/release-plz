@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use anyhow::Context;
 use cargo_lock::Lockfile;
 use tracing::debug;
 
@@ -20,8 +21,14 @@ pub fn are_lock_dependencies_updated(
 }
 
 fn are_dependencies_updated(local_lock: &Path, registry_lock: &Path) -> anyhow::Result<bool> {
-    let local_lock = Lockfile::load(local_lock)?;
-    let registry_lock = Lockfile::load(registry_lock)?;
+    let local_lock = Lockfile::load(local_lock)
+        .with_context(|| format!("failed to load lockfile of local package {:?}", local_lock))?;
+    let registry_lock = Lockfile::load(registry_lock).with_context(|| {
+        format!(
+            "failed to load lockfile of registry package {:?}",
+            registry_lock
+        )
+    })?;
     for local_package in local_lock.packages {
         // Cargo.lock can contain multiple packages with the same name but different versions.
         let registry_packages: Vec<&cargo_lock::Package> = registry_lock
