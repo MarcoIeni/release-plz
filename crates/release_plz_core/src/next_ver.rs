@@ -723,23 +723,20 @@ fn are_dependencies_updated(
         .any(|d| d.path.is_none() && !registry_dependencies.contains(d))
 }
 
-pub fn workspace_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
+fn workspace_members(manifest: impl AsRef<Path>) -> anyhow::Result<impl Iterator<Item = Package>> {
     let manifest = manifest.as_ref();
     let packages = cargo_utils::workspace_members(Some(manifest))
         .map_err(|e| anyhow!("cannot read workspace members in manifest {manifest:?}: {e}"))?
-        .into_iter()
-        .collect();
+        .into_iter();
     Ok(packages)
 }
 
+pub fn workspace_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
+    workspace_members(manifest).map(|members| members.collect())
+}
+
 pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
-    let manifest = manifest.as_ref();
-    let packages = cargo_utils::workspace_members(Some(manifest))
-        .map_err(|e| anyhow!("cannot read workspace members in manifest {manifest:?}: {e}"))?
-        .into_iter()
-        .filter(|p| p.is_publishable())
-        .collect();
-    Ok(packages)
+    workspace_members(manifest).map(|members| members.filter(|p| p.is_publishable()).collect())
 }
 
 pub trait Publishable {
