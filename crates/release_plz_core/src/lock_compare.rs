@@ -3,6 +3,22 @@ use std::path::Path;
 use cargo_lock::Lockfile;
 use tracing::debug;
 
+/// Compare the dependencies present in the `Cargo.lock` of the registry package and the local one.
+/// Check if the dependencies of the registry package were updated.
+/// This method doesn't detect if the local Cargo.lock added new packages: just if
+/// the version of the packages changed.
+/// This is enough to understand if the package was updated.
+pub fn are_lock_dependencies_updated(
+    local_lock: &Path,
+    registry_package: &Path,
+) -> anyhow::Result<bool> {
+    let registry_lock = &registry_package.join("Cargo.lock");
+    if !local_lock.exists() || !registry_lock.exists() {
+        return Ok(false);
+    }
+    are_dependencies_updated(local_lock, registry_lock)
+}
+
 fn are_dependencies_updated(local_lock: &Path, registry_lock: &Path) -> anyhow::Result<bool> {
     let local_lock = Lockfile::load(local_lock).unwrap();
     let registry_lock = Lockfile::load(registry_lock).unwrap();
@@ -27,20 +43,4 @@ fn are_dependencies_updated(local_lock: &Path, registry_lock: &Path) -> anyhow::
         }
     }
     Ok(false)
-}
-
-/// Compare the dependencies present in the `Cargo.lock` of the registry package and the local one.
-/// Check if the dependencies of the registry package were updated.
-/// This method doesn't detect if the local Cargo.lock added new packages: just if
-/// the version of the packages changed.
-/// This is enough to understand if the package was updated.
-pub fn are_lock_dependencies_updated(
-    local_lock: &Path,
-    registry_package: &Path,
-) -> anyhow::Result<bool> {
-    let registry_lock = &registry_package.join("Cargo.lock");
-    if !local_lock.exists() || !registry_lock.exists() {
-        return Ok(false);
-    }
-    are_dependencies_updated(local_lock, registry_lock)
 }
