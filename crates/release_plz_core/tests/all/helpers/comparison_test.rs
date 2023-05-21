@@ -111,7 +111,7 @@ impl ComparisonTest {
     }
 
     pub fn are_projects_equal(&self) -> bool {
-        are_packages_equal(&self.local_project(), &self.registry_project()).unwrap()
+        are_packages_equal(&self.local_project(), &self.registry_project(), &[]).unwrap()
     }
 
     pub fn write_local_project_changelog(&self, changelog: &str) {

@@ -5,7 +5,7 @@ use std::{
     fs::{self, File},
     hash::{Hash, Hasher},
     io::{self, Read},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 fn is_dir(entry: &ignore::DirEntry) -> bool {
@@ -15,7 +15,15 @@ fn is_dir(entry: &ignore::DirEntry) -> bool {
     }
 }
 
-pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyhow::Result<bool> {
+/// Check if two packages are equal.
+///
+/// ## Args
+/// - `ignored_dirs`: Directories of the `local_package` to ignore when comparing packages.
+pub fn are_packages_equal(
+    local_package: &Path,
+    registry_package: &Path,
+    ignored_dirs: &[&Path],
+) -> anyhow::Result<bool> {
     if !are_cargo_toml_equal(local_package, registry_package) {
         return Ok(false);
     }
@@ -24,13 +32,17 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyh
     // We ignore ignored files because we don't want to compare local files that are
     // not present in the package (such as `.DS_Store` or `Cargo.lock`, that might be generated
     // for libraries)
+    let ignored_dirs: Vec<PathBuf> = ignored_dirs.iter().map(|p| p.to_path_buf()).collect();
     let walker = ignore::WalkBuilder::new(local_package)
         // Read hidden files
         .hidden(false)
         // Don't consider `.ignore` files.
         .ignore(false)
-        .filter_entry(|e| {
-            !((is_dir(e) && e.path().file_name() == Some(OsStr::new(".git")))
+        .filter_entry(move |e| {
+            let ignored_dirs: Vec<&Path> = ignored_dirs.iter().map(|p| p.as_path()).collect();
+            !((is_dir(e)
+                && (e.path().file_name() == Some(OsStr::new(".git"))
+                    || ignored_dirs.contains(&e.path())))
                 || e.path_is_symlink())
         })
         .build()
