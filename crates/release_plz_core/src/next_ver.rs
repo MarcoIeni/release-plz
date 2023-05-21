@@ -728,6 +728,15 @@ pub fn workspace_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Pack
     let packages = cargo_utils::workspace_members(Some(manifest))
         .map_err(|e| anyhow!("cannot read workspace members in manifest {manifest:?}: {e}"))?
         .into_iter()
+        .collect();
+    Ok(packages)
+}
+
+pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
+    let manifest = manifest.as_ref();
+    let packages = cargo_utils::workspace_members(Some(manifest))
+        .map_err(|e| anyhow!("cannot read workspace members in manifest {manifest:?}: {e}"))?
+        .into_iter()
         .filter(|p| p.is_publishable())
         .collect();
     Ok(packages)
