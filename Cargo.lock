@@ -338,6 +338,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "cargo-lock"
+version = "9.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e11c675378efb449ed3ce8de78d75d0d80542fc98487c26aba28eb3b82feac72"
+dependencies = [
+ "semver",
+ "serde",
+ "toml 0.7.3",
+ "url",
+]
+
+[[package]]
 name = "cargo-platform"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2834,6 +2846,7 @@ version = "0.10.0"
 dependencies = [
  "anyhow",
  "cargo",
+ "cargo-lock",
  "cargo_metadata",
  "cargo_utils",
  "chrono",

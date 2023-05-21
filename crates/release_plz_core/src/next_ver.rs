@@ -1,6 +1,7 @@
 use crate::{
     changelog_parser::{self, ChangelogRelease},
     diff::Diff,
+    lock_compare,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection},
@@ -394,6 +395,10 @@ impl Project {
             format!("v{version}")
         }
     }
+
+    pub fn cargo_lock_path(&self) -> PathBuf {
+        self.root.join("Cargo.lock")
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -479,7 +484,7 @@ impl Updater<'_> {
                     p,
                     registry_packages,
                     repository,
-                    &self.project.root,
+                    self.project,
                     workspace_packages,
                 )?;
                 Ok((p, diff))
@@ -632,7 +637,15 @@ fn get_package_path(
     project_root: &Path,
 ) -> anyhow::Result<PathBuf> {
     let package_path = package.package_path()?;
-    let relative_path = package_path
+    get_repo_path(package_path, repository, project_root)
+}
+
+fn get_repo_path(
+    old_path: &Path,
+    repository: &Repo,
+    project_root: &Path,
+) -> anyhow::Result<PathBuf> {
+    let relative_path = old_path
         .strip_prefix(project_root)
         .context("error while retrieving package_path: project root not found")?;
     let result_path = repository.directory().join(relative_path);
@@ -649,10 +662,10 @@ fn get_diff(
     package: &Package,
     registry_packages: &PackagesCollection,
     repository: &Repo,
-    project_root: &Path,
+    project: &Project,
     workspace_packages: &[&Package],
 ) -> anyhow::Result<Diff> {
-    let package_path = get_package_path(package, repository, project_root)?;
+    let package_path = get_package_path(package, repository, &project.root)?;
 
     repository.checkout_head()?;
     let registry_package = registry_packages.get_package(&package.name);
@@ -671,28 +684,32 @@ fn get_diff(
     let ignored_dirs: anyhow::Result<Vec<PathBuf>> = workspace_packages
         .iter()
         .filter(|p| p.name != package.name)
-        .map(|p| get_package_path(p, repository, project_root))
+        .map(|p| get_package_path(p, repository, &project.root))
         .collect();
     let ignored_dirs = ignored_dirs?;
     loop {
         let current_commit_message = repository.current_commit_message()?;
         if let Some(registry_package) = registry_package {
             debug!("package {} found in cargo registry", registry_package.name);
-            let are_packages_equal = {
-                let registry_package_path = registry_package.package_path()?;
+            let registry_package_path = registry_package.package_path()?;
+            let are_packages_equal =
                 are_packages_equal(&package_path, registry_package_path, ignored_dirs.clone())
-                    .context("cannot compare packages")?
-            };
+                    .context("cannot compare packages")?;
             if are_packages_equal {
                 debug!(
                     "next version calculated starting from commit after `{current_commit_message}`"
                 );
                 if diff.commits.is_empty() {
-                    // Check if the workspace dependencies were updated.
-                    if are_dependencies_updated(
+                    let are_dependencies_updated = are_toml_dependencies_updated(
                         &registry_package.dependencies,
                         &package.dependencies,
-                    ) {
+                    )
+                        || lock_compare::are_lock_dependencies_updated(
+                            &project.cargo_lock_path(),
+                            registry_package_path,
+                        )
+                        .context("Can't check if Cargo.lock dependencies are up to date")?;
+                    if are_dependencies_updated {
                         diff.commits.push("chore: update dependencies".to_string());
                     } else {
                         info!("{}: already up to date", package.name);
@@ -734,7 +751,8 @@ fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
 
 /// Compare the dependencies of the registry package and the local one.
 /// Check if the dependencies of the registry package were updated.
-fn are_dependencies_updated(
+/// This function checks only dependencies of `Cargo.toml`.
+fn are_toml_dependencies_updated(
     registry_dependencies: &[Dependency],
     local_dependencies: &[Dependency],
 ) -> bool {

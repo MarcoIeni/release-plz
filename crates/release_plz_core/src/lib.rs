@@ -6,6 +6,7 @@ mod command;
 mod diff;
 mod download;
 mod git;
+mod lock_compare;
 mod next_ver;
 mod package_compare;
 mod package_path;
