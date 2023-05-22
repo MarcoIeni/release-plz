@@ -171,18 +171,11 @@ fn default_git_config() -> GitConfig {
         limit_commits: None,
         sort_commits: None,
         commit_preprocessors: None,
-        link_parsers: Some(vec![
-            LinkParser {
-                pattern: Regex::new("#(\\d+)").unwrap(),
-                href: String::from("https://github.com/$1"),
-                text: None,
-            },
-            LinkParser {
-                pattern: Regex::new("https://github.com/(.*)").unwrap(),
-                href: String::from("https://github.com/$1"),
-                text: Some(String::from("$1")),
-            },
-        ]),
+        link_parsers: Some(vec![LinkParser {
+            pattern: Regex::new("#(\\d+)").unwrap(),
+            href: String::from("https://github.com/MarcoIeni/rust-workspace-example/issues/$1"),
+            text: None,
+        }]),
     }
 }
 
@@ -267,7 +260,7 @@ fn default_changelog_body_config(release_link: Option<&str>) -> String {
 {%- if commit.scope -%}
 - *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
 {% else -%}
-- {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
+- {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
 {% endif -%}
 {% endfor -%}
 {% endfor %}"#;
