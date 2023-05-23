@@ -575,6 +575,9 @@ impl Updater<'_> {
 
         let pr_link = self.req.repo_url.as_ref().map(|r| r.git_pr_link());
 
+        lazy_static::lazy_static! {
+            static ref PR_RE: Regex = Regex::new("#(\\d+)").unwrap();
+        }
         let changelog = {
             let cfg = self.req.get_package_config(package.name.as_str());
             let changelog_req = cfg
@@ -588,8 +591,7 @@ impl Updater<'_> {
                 // replace (#123) with ([#123](https://link_to_issue))
                 .map(|c| {
                     if let Some(pr_link) = &pr_link {
-                        let re = Regex::new("#(\\d+)").unwrap();
-                        let result = re.replace_all(c, format!("[#$1]({pr_link}/$1)"));
+                        let result = PR_RE.replace_all(c, format!("[#$1]({pr_link}/$1)"));
                         result.to_string()
                     } else {
                         c.to_string()
