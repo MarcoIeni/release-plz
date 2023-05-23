@@ -20,6 +20,7 @@ use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
+use regex::Regex;
 use std::{
     collections::BTreeMap,
     fs, io,
@@ -572,6 +573,12 @@ impl Updater<'_> {
                 .map(|r| r.git_release_link(&prev_tag, &next_tag))
         };
 
+        let pr_link = self.req.repo_url.as_ref().map(|r| r.git_pr_link());
+
+        lazy_static::lazy_static! {
+            // match PR/issue numbers, e.g. `#123`
+            static ref PR_RE: Regex = Regex::new("#(\\d+)").unwrap();
+        }
         let changelog = {
             let cfg = self.req.get_package_config(package.name.as_str());
             let changelog_req = cfg
@@ -580,8 +587,18 @@ impl Updater<'_> {
             let old_changelog = fs::read_to_string(self.req.changelog_path(package)).ok();
             let commits_titles: Vec<String> = commits
                 .iter()
+                // only take commit title
                 .filter_map(|c| c.lines().next())
-                .map(|c| c.to_string())
+                // replace #123 with [#123](https://link_to_pr).
+                // If the number refers to an issue, GitHub redirects the PR link to the issue link.
+                .map(|c| {
+                    if let Some(pr_link) = &pr_link {
+                        let result = PR_RE.replace_all(c, format!("[#$1]({pr_link}/$1)"));
+                        result.to_string()
+                    } else {
+                        c.to_string()
+                    }
+                })
                 .collect();
             changelog_req
                 .map(|r| {
