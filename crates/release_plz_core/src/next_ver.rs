@@ -576,7 +576,7 @@ impl Updater<'_> {
         let pr_link = self.req.repo_url.as_ref().map(|r| r.git_pr_link());
 
         lazy_static::lazy_static! {
-            // match PR numbers, e.g. `#123`
+            // match PR/issue numbers, e.g. `#123`
             static ref PR_RE: Regex = Regex::new("#(\\d+)").unwrap();
         }
         let changelog = {
@@ -589,7 +589,8 @@ impl Updater<'_> {
                 .iter()
                 // only take commit title
                 .filter_map(|c| c.lines().next())
-                // replace #123 with [#123](https://link_to_pr)
+                // replace #123 with [#123](https://link_to_pr).
+                // If the number was an issue, GitHub redirects it.
                 .map(|c| {
                     if let Some(pr_link) = &pr_link {
                         let result = PR_RE.replace_all(c, format!("[#$1]({pr_link}/$1)"));
