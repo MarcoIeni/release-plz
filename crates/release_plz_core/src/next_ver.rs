@@ -584,11 +584,11 @@ impl Updater<'_> {
                 .should_update_changelog()
                 .then_some(self.req.changelog_req.clone());
             let old_changelog = fs::read_to_string(self.req.changelog_path(package)).ok();
-            let commits_with_issue_links: Vec<String> = commits
+            let commits_titles: Vec<String> = commits
                 .iter()
                 // only take commit title
                 .filter_map(|c| c.lines().next())
-                // replace (#123) with ([#123](https://link_to_issue))
+                // replace (#123) with ([#123](https://link_to_pr))
                 .map(|c| {
                     if let Some(pr_link) = &pr_link {
                         let result = PR_RE.replace_all(c, format!("[#$1]({pr_link}/$1)"));
@@ -601,7 +601,7 @@ impl Updater<'_> {
             changelog_req
                 .map(|r| {
                     get_changelog(
-                        commits_with_issue_links,
+                        commits_titles,
                         &version,
                         Some(r),
                         old_changelog,
