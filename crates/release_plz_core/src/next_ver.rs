@@ -20,6 +20,7 @@ use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
+use regex::Regex;
 use std::{
     collections::BTreeMap,
     fs, io,
@@ -572,21 +573,33 @@ impl Updater<'_> {
                 .map(|r| r.git_release_link(&prev_tag, &next_tag))
         };
 
+        let pr_link = self.req.repo_url.as_ref().map(|r| r.git_pr_link());
+
         let changelog = {
             let cfg = self.req.get_package_config(package.name.as_str());
             let changelog_req = cfg
                 .should_update_changelog()
                 .then_some(self.req.changelog_req.clone());
             let old_changelog = fs::read_to_string(self.req.changelog_path(package)).ok();
-            let commits_titles: Vec<String> = commits
+            let commits_with_issue_links: Vec<String> = commits
                 .iter()
+                // only take commit title
                 .filter_map(|c| c.lines().next())
-                .map(|c| c.to_string())
+                // replace (#123) with ([#123](https://link_to_issue))
+                .map(|c| {
+                    if let Some(pr_link) = &pr_link {
+                        let re = Regex::new("#(\\d+)").unwrap();
+                        let result = re.replace_all(c, format!("[#$1]({pr_link}/$1)"));
+                        result.to_string()
+                    } else {
+                        c.to_string()
+                    }
+                })
                 .collect();
             changelog_req
                 .map(|r| {
                     get_changelog(
-                        commits_titles,
+                        commits_with_issue_links,
                         &version,
                         Some(r),
                         old_changelog,
