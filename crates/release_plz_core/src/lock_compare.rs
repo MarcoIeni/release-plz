@@ -50,10 +50,10 @@ fn are_dependencies_of_lockfiles_updated(
 ) -> bool {
     for local_package in &local_lock.packages {
         if let Some(registry_packages) = registry_lock.get(&local_package.name) {
-            let is_version_present = registry_packages
+            let is_same_version = registry_packages
                 .iter()
                 .any(|p| p.version == local_package.version);
-            if !is_version_present {
+            if !is_same_version {
                 debug!(
                     "Version of package {} changed to version {:?}",
                     local_package.name, local_package.version
@@ -67,6 +67,7 @@ fn are_dependencies_of_lockfiles_updated(
 
 #[derive(Deserialize, Debug)]
 struct Lockfile {
+    #[serde(rename = "package")]
     packages: Vec<Package>,
 }
 
