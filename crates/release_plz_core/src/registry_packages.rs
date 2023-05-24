@@ -21,7 +21,7 @@ impl PackagesCollection {
 
 pub fn get_registry_packages(
     registry_manifest: Option<&PathBuf>,
-    local_packages: &[Package],
+    local_packages: &[&Package],
     registry: Option<&str>,
 ) -> anyhow::Result<PackagesCollection> {
     let (temp_dir, registry_packages) = match registry_manifest {

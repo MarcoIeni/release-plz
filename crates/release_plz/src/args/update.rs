@@ -4,10 +4,11 @@ use anyhow::Context;
 use chrono::NaiveDate;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use git_cliff_core::config::Config as GitCliffConfig;
-use git_cmd::Repo;
-use release_plz_core::{ChangelogRequest, RepoUrl, UpdateRequest};
+use release_plz_core::{ChangelogRequest, UpdateRequest};
 
 use crate::config::Config;
+
+use super::repo_command::RepoCommand;
 
 /// Update your project locally, without opening a PR.
 /// If `repo_url` contains a GitHub URL, release-plz uses it to add a release
@@ -75,34 +76,28 @@ pub struct Update {
     allow_dirty: bool,
     /// GitHub/Gitea repository url where your project is hosted.
     /// It is used to generate the changelog release link.
-    /// It defaults to the `origin` url.
+    /// It defaults to the url of the default remote.
     #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     repo_url: Option<String>,
 }
 
+impl RepoCommand for Update {
+    fn optional_project_manifest(&self) -> Option<&Path> {
+        self.project_manifest.as_deref()
+    }
+
+    fn repo_url(&self) -> Option<&str> {
+        self.repo_url.as_deref()
+    }
+}
+
 impl Update {
-    pub fn project_manifest(&self) -> PathBuf {
-        super::local_manifest(self.project_manifest.as_deref())
-    }
-
-    fn get_repo_url(&self, config: &Config) -> anyhow::Result<RepoUrl> {
-        match &self.user_repo_url(config) {
-            Some(url) => RepoUrl::new(url),
-            None => {
-                let project_manifest = self.project_manifest();
-                let project_dir = release_plz_core::manifest_dir(&project_manifest)?;
-                let repo = Repo::new(project_dir)?;
-                RepoUrl::from_repo(&repo)
-            }
-        }
-    }
-
-    fn update_dependencies(&self, config: &Config) -> bool {
-        self.update_deps || config.workspace.update.update_dependencies
+    fn dependencies_update(&self, config: &Config) -> bool {
+        self.update_deps || config.workspace.update.dependencies_update == Some(true)
     }
 
     fn allow_dirty(&self, config: &Config) -> bool {
-        self.allow_dirty || config.workspace.update.allow_dirty
+        self.allow_dirty || config.workspace.update.allow_dirty == Some(true)
     }
 
     pub fn update_request(&self, config: Config) -> anyhow::Result<UpdateRequest> {
@@ -111,7 +106,7 @@ impl Update {
             .with_context(|| {
                 format!("Cannot find file {project_manifest:?}. Make sure you are inside a rust project or that --project-manifest points to a valid Cargo.toml file.")
             })?
-            .with_update_dependencies(self.update_dependencies(&config))
+            .with_dependencies_update(self.dependencies_update(&config))
             .with_allow_dirty(self.allow_dirty(&config));
         match self.get_repo_url(&config) {
             Ok(repo_url) => {
@@ -127,7 +122,8 @@ impl Update {
                     format!("cannot find project manifest {registry_project_manifest:?}")
                 })?;
         }
-        if !self.no_changelog {
+        update = config.fill_update_config(self.no_changelog, update);
+        {
             let release_date = self
                 .release_date
                 .as_ref()
@@ -140,7 +136,7 @@ impl Update {
                 release_date,
                 changelog_config: self.changelog_config(&config)?,
             };
-            update = update.with_changelog(changelog_req);
+            update = update.with_changelog_req(changelog_req);
         }
         if let Some(package) = &self.package {
             update = update.with_single_package(package.clone());
@@ -185,16 +181,29 @@ impl Update {
             .as_deref()
             .or(config.workspace.update.changelog_config.as_deref())
     }
+}
 
-    /// Repo url specified by user
-    fn user_repo_url<'a>(&'a self, config: &'a Config) -> Option<&str> {
-        self.repo_url.as_deref().or_else(|| {
-            config
-                .workspace
-                .update
-                .repo_url
-                .as_ref()
-                .map(|u| u.as_str())
-        })
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn input_generates_correct_release_request() {
+        let update_args = Update {
+            project_manifest: None,
+            registry_project_manifest: None,
+            package: None,
+            no_changelog: false,
+            release_date: None,
+            registry: None,
+            update_deps: false,
+            changelog_config: None,
+            allow_dirty: false,
+            repo_url: None,
+        };
+        let config: Config = toml::from_str("").unwrap();
+        let req = update_args.update_request(config).unwrap();
+        let pkg_config = req.get_package_config("aaa");
+        assert_eq!(pkg_config, release_plz_core::PackageUpdateConfig::default());
     }
 }

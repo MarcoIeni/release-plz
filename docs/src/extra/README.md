@@ -1,6 +1,5 @@
 # Extra
 
-This section contains information about use cases not covered directly by
-release-plz.
-You will learn how to use release-plz with other tools, to achieve awesome
+This section contains information about possible use cases of release-plz.
+You will also learn how to use release-plz with other tools, to achieve awesome
 things.

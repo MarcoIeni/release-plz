@@ -1,5 +1,3 @@
-use walkdir::WalkDir;
-
 use crate::CARGO_TOML;
 use std::{
     collections::hash_map::DefaultHasher,
@@ -7,24 +5,52 @@ use std::{
     fs::{self, File},
     hash::{Hash, Hasher},
     io::{self, Read},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
-pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyhow::Result<bool> {
+fn is_dir(entry: &ignore::DirEntry) -> bool {
+    match entry.file_type() {
+        Some(ft) => ft.is_dir(),
+        None => false,
+    }
+}
+
+/// Check if two packages are equal.
+///
+/// ## Args
+/// - `ignored_dirs`: Directories of the `local_package` to ignore when comparing packages.
+pub fn are_packages_equal(
+    local_package: &Path,
+    registry_package: &Path,
+    ignored_dirs: Vec<PathBuf>,
+) -> anyhow::Result<bool> {
     if !are_cargo_toml_equal(local_package, registry_package) {
         return Ok(false);
     }
 
-    let walker = WalkDir::new(local_package)
-        .into_iter()
-        .filter_entry(|e| {
-            !((e.file_type().is_dir() && e.path().file_name() == Some(OsStr::new(".git")))
-                || e.path_is_symlink())
+    // Recursively traverse directories ignoring files present in `.gitignore`.
+    // We ignore ignored files because we don't want to compare local files that are
+    // not present in the package (such as `.DS_Store` or `Cargo.lock`, that might be generated
+    // for libraries)
+    let walker = ignore::WalkBuilder::new(local_package)
+        // Read hidden files
+        .hidden(false)
+        // Don't consider `.ignore` files.
+        .ignore(false)
+        .filter_entry(move |e| {
+            let ignored_dirs: Vec<&Path> = ignored_dirs.iter().map(|p| p.as_path()).collect();
+            !((is_dir(e)
+                && (e.path().file_name() == Some(OsStr::new(".git"))
+                    || ignored_dirs.contains(&e.path())))
+                || e.path_is_symlink()
+                // Ignore `Cargo.lock` because the local one is different from the published one in workspaces.
+                || e.path().file_name() == Some(OsStr::new("Cargo.lock")))
         })
+        .build()
         .filter_map(Result::ok)
-        .filter(|e| !(e.file_type().is_dir() && e.path() == local_package))
+        .filter(|e| !(is_dir(e) && e.path() == local_package))
         .filter(|e| !{
-            !e.file_type().is_dir()
+            !is_dir(e)
                 && (e.path().file_name() == Some(OsStr::new(".cargo_vcs_info.json"))
                     || e.path().file_name() == Some(OsStr::new(CARGO_TOML)))
         });
@@ -32,7 +58,7 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyh
     for entry in walker {
         let path_without_prefix = entry.path().strip_prefix(local_package)?;
         let file_in_second_path = registry_package.join(path_without_prefix);
-        if entry.file_type().is_dir() {
+        if is_dir(&entry) {
             let dir1 = fs::read_dir(entry.path())?;
             let dir2 = fs::read_dir(entry.path())?;
             if dir1.count() != dir2.count() {

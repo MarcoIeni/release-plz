@@ -42,6 +42,24 @@
 //! assert_eq!(Version::new(0, 4, 4).next(&commits), Version::new(0, 5, 0));
 //! ```
 //!
+//! According to the [conventional commits specification](https://www.conventionalcommits.org/),
+//! breaking changes can also be specified in the footer:
+//!
+//! ```rust
+//! use semver::Version;
+//! use next_version::NextVersion;
+//!
+//! let breaking_commit = r#"feat: make coffe
+//!
+//! my change
+//!
+//! BREAKING CHANGE: user will be broken
+//! "#;
+//!
+//! let commits = vec![breaking_commit];
+//! assert_eq!(Version::new(1, 2, 4).next(&commits), Version::new(2, 0, 0));
+//! ```
+//!
 //! In 0.0.x versions the patch is always incremented:
 //!
 //! ```rust

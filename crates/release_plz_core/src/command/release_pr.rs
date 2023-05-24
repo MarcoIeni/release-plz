@@ -5,7 +5,7 @@ use git_cmd::Repo;
 use anyhow::{anyhow, Context};
 use tracing::{info, instrument};
 
-use crate::backend::{contributors_from_commits, GitClient, GitPr, PrEdit};
+use crate::git::backend::{contributors_from_commits, GitClient, GitPr, PrEdit};
 use crate::pr::{Pr, BRANCH_PREFIX};
 use crate::{
     copy_to_temp_dir, publishable_packages, update, GitBackend, PackagesUpdate, UpdateRequest,
@@ -15,7 +15,24 @@ use crate::{
 #[derive(Debug)]
 pub struct ReleasePrRequest {
     pub git: GitBackend,
+    /// Labels to add to the release PR.
+    labels: Vec<String>,
     pub update_request: UpdateRequest,
+}
+
+impl ReleasePrRequest {
+    pub fn new(git: GitBackend, update_request: UpdateRequest) -> Self {
+        Self {
+            git,
+            labels: vec![],
+            update_request,
+        }
+    }
+
+    pub fn with_labels(mut self, labels: Vec<String>) -> Self {
+        self.labels = labels;
+        self
+    }
 }
 
 /// Open a pull request with the next packages versions of a local rust project
@@ -41,8 +58,14 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         let repo = Repo::new(new_manifest_dir)?;
         let there_are_commits_to_push = repo.is_clean().is_err();
         if there_are_commits_to_push {
-            open_or_update_release_pr(&local_manifest, &packages_to_update, &git_client, &repo)
-                .await?;
+            open_or_update_release_pr(
+                &local_manifest,
+                &packages_to_update,
+                &git_client,
+                &repo,
+                input.labels.clone(),
+            )
+            .await?;
         }
     }
 
@@ -54,6 +77,7 @@ async fn open_or_update_release_pr(
     packages_to_update: &PackagesUpdate,
     git_client: &GitClient,
     repo: &Repo,
+    pr_labels: Vec<String>,
 ) -> anyhow::Result<()> {
     let opened_release_prs = git_client
         .opened_prs(BRANCH_PREFIX)
@@ -76,6 +100,7 @@ async fn open_or_update_release_pr(
             packages_to_update,
             project_contains_multiple_pub_packages,
         )
+        .with_labels(pr_labels)
     };
     match opened_release_prs.first() {
         Some(opened_pr) => {
@@ -90,7 +115,7 @@ async fn open_or_update_release_pr(
                 let update_outcome =
                     update_pr(git_client, opened_pr, pr_commits.len(), repo, &new_pr).await;
                 if let Err(e) = update_outcome {
-                    tracing::error!("cannot update release pr {}: {}. I'm closing the old release pr and opening a new one", opened_pr.number, e);
+                    tracing::error!("cannot update release pr {}: {:?}. I'm closing the old release pr and opening a new one", opened_pr.number, e);
                     git_client
                         .close_pr(opened_pr.number)
                         .await
@@ -134,7 +159,7 @@ async fn update_pr(
     reset_branch(opened_pr, commits_number, repository).map_err(|e| {
         // restore local work
         if let Err(e) = repository.stash_pop() {
-            tracing::error!("cannot restore local work: {}", e);
+            tracing::error!("cannot restore local work: {:?}", e);
         }
         e
     })?;
@@ -145,7 +170,7 @@ async fn update_pr(
         if opened_pr.title != new_pr.title {
             pr_edit = pr_edit.with_title(new_pr.title.clone());
         }
-        if opened_pr.body != new_pr.body {
+        if opened_pr.body.as_ref() != Some(&new_pr.body) {
             pr_edit = pr_edit.with_body(new_pr.body.clone());
         }
         pr_edit
@@ -173,7 +198,9 @@ fn reset_branch(pr: &GitPr, commits_number: usize, repository: &Repo) -> anyhow:
 
     // Update PR branch with latest changes from the default branch.
     if let Err(e) = repository.git(&["rebase", repository.original_branch()]) {
-        tracing::error!("cannot rebase from default branch: {}", e);
+        // Get back to the state before "git rebase" to clean the merge conflict.
+        repository.git(&["rebase ", "--abort"])?;
+        return Err(e.context("cannot rebase from default branch"));
     }
 
     Ok(())

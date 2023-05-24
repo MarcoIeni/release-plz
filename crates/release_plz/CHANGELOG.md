@@ -6,6 +6,96 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.9](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.8...release-plz-v0.3.9) - 2023-05-21
+
+### Added
+- check if `Cargo.lock` packages were updated (#784)
+
+### Fixed
+- support nested crates (#783)
+
+## [0.3.8](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.7...release-plz-v0.3.8) - 2023-05-08
+
+### Other
+- run cargo-semver-check in parallel (#766)
+- represent semver_check config as bool (#765)
+
+## [0.3.7](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.6...release-plz-v0.3.7) - 2023-05-07
+
+### Other
+- Performance improvement: run semver-checks only on changed packages (#754)
+
+## [0.3.6](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.5...release-plz-v0.3.6) - 2023-05-07
+
+### Fixed
+- abort failed rebase (#760)
+
+## [0.3.5](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.4...release-plz-v0.3.5) - 2023-05-05
+
+### Fixed
+- set repo url also for release command (#751)
+
+### Added
+- Add `publish` config option to disable publishing to the cargo registry (#718)
+
+## [0.3.4](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.3...release-plz-v0.3.4) - 2023-04-27
+
+### Fixed
+- don't compare ignored files (#739)
+
+## [0.3.3](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.2...release-plz-v0.3.3) - 2023-04-25
+
+### Fixed
+- downgrade cargo to fix windows compilation
+
+## [0.3.2](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.1...release-plz-v0.3.2) - 2023-04-24
+
+### Other
+- only add commit title in changelog (#729)
+
+## [0.3.1](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.0...release-plz-v0.3.1) - 2023-04-21
+
+### Added
+- add `pr_labels` configuration option to add labels to the PR opened by release-plz (#708)
+
+## [0.3.0](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.63...release-plz-v0.3.0) - 2023-04-16
+
+### Added
+- [**breaking**] changed config file format. See [docs](https://marcoieni.github.io/release-plz/config.html).
+- [**breaking**] removed `--git-release` flag. Now git releases are enabled by default.
+  You can disable them with the `git_release_enable` configuration option.
+- make cargo publish flags configurable (#684)
+
+### Fixed
+- config package override (#695)
+- don't return early when publishing crates (#691)
+
+## [0.2.63](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.62...release-plz-v0.2.63) - 2023-04-05
+
+### Fixed
+- changelog path handling (#669)
+- detect allow-dirty error (#666)
+
+## [0.2.62](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.61...release-plz-v0.2.62) - 2023-04-02
+
+### Added
+- allow to provide a custom changelog path (#653)
+
+## [0.2.61](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.60...release-plz-v0.2.61) - 2023-04-02
+
+### Other
+- detect custom changelog header (#651)
+
+## [0.2.60](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.59...release-plz-v0.2.60) - 2023-04-02
+
+### Other
+- read opened PRs with empty body (#649)
+
+## [0.2.59](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.58...release-plz-v0.2.59) - 2023-04-01
+
+### Added
+- Add config file. See the [docs](https://marcoieni.github.io/release-plz/config.html) (#634)
+
 ## [0.2.58](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.57...release-plz-v0.2.58) - 2023-03-27
 
 ### Added

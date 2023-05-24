@@ -12,8 +12,17 @@ For every release, release-plz:
 
 - Creates a git tag named `<package_name>-v<version>` (e.g. `tokio-v1.8.1`).
 - Publishes the package to the cargo registry by running `cargo publish`.
+- Publishes a GitHub/Gitea release based on the git tag.
 
-Usually, you use the `release-plz release` command after you run `release-plz update`
+In the tag name, `<package_name>-` is omitted if there's only one
+package to publish (i.e. with `publish != false` in the `Cargo.toml` file).
+
+Note that `release-plz release` doesn't edit your `Cargo.toml` files and doesn't
+push new commits. It releases the packages as they are in your repository.
+For this reason, you typically use the `release-plz release` command in the main branch
+after you run `release-plz update`
 or you merge a pull request opened with `release-plz release-pr`.
+
+If all packages are already published, the `release-plz release` command does nothing.
 
 To learn more, run `release-plz release --help`.

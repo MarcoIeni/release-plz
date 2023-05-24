@@ -55,6 +55,12 @@ impl RepoUrl {
         }
     }
 
+    pub fn git_pr_link(&self) -> String {
+        let host = format!("https://{}/{}/{}", self.host, self.owner, self.name);
+        let pull_path = if self.is_on_github() { "pull" } else { "pulls" };
+        format!("{host}/{pull_path}",)
+    }
+
     pub fn gitea_api_url(&self) -> String {
         let v1 = "api/v1/";
         if let Some(port) = self.port {

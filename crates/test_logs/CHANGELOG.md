@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.16](https://github.com/MarcoIeni/release-plz/compare/test_logs-v0.1.15...test_logs-v0.1.16) - 2023-05-05
+
+### Other
+- update dependencies
+
+## [0.1.15](https://github.com/MarcoIeni/release-plz/compare/test_logs-v0.1.14...test_logs-v0.1.15) - 2023-04-27
+
+### Other
+- update dependencies
+
+## [0.1.14](https://github.com/MarcoIeni/release-plz/compare/test_logs-v0.1.13...test_logs-v0.1.14) - 2023-04-24
+
+### Other
+- update dependencies
+
 ## [0.1.13](https://github.com/MarcoIeni/release-plz/compare/test_logs-v0.1.12...test_logs-v0.1.13) - 2023-02-20
 
 ### Other

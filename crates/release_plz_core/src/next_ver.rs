@@ -1,6 +1,7 @@
 use crate::{
     changelog_parser::{self, ChangelogRelease},
     diff::Diff,
+    lock_compare,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection},
@@ -8,7 +9,7 @@ use crate::{
     semver_check::{self, SemverCheck},
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
-    ChangelogBuilder, PackagesUpdate, CARGO_TOML,
+    ChangelogBuilder, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::{anyhow, Context};
 use cargo_metadata::{semver::Version, Dependency, Package};
@@ -18,7 +19,10 @@ use fs_extra::dir;
 use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
+use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
+use regex::Regex;
 use std::{
+    collections::BTreeMap,
     fs, io,
     path::{Path, PathBuf},
 };
@@ -33,24 +37,119 @@ pub struct UpdateRequest {
     registry_manifest: Option<PathBuf>,
     /// Update just this package.
     single_package: Option<String>,
-    /// If [`Option::Some`], changelog is updated.
-    changelog_req: Option<ChangelogRequest>,
+    /// Changelog options.
+    changelog_req: ChangelogRequest,
     /// Registry where the packages are stored.
     /// The registry name needs to be present in the Cargo config.
     /// If unspecified, crates.io is used.
     registry: Option<String>,
     /// - If true, update all the dependencies in Cargo.lock by running `cargo update`.
     /// - If false, updates the workspace packages in Cargo.lock by running `cargo update --workspace`.
-    update_dependencies: bool,
+    dependencies_update: bool,
     /// Allow dirty working directories to be updated.
     /// The uncommitted changes will be part of the update.
     allow_dirty: bool,
     /// Repository Url. If present, the new changelog entry contains a link to the diff between the old and new version.
     /// Format: `https://{repo_host}/{repo_owner}/{repo_name}/compare/{old_tag}...{new_tag}`.
     repo_url: Option<RepoUrl>,
+    /// Package-specific configurations.
+    packages_config: PackagesConfig,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
+struct PackagesConfig {
+    /// Config for packages that don't have a specific configuration.
+    default: UpdateConfig,
+    /// Configurations that override `default`.
+    /// The key is the package name.
+    overrides: BTreeMap<String, PackageUpdateConfig>,
+}
+
+impl From<UpdateConfig> for PackageUpdateConfig {
+    fn from(config: UpdateConfig) -> Self {
+        Self {
+            generic: config,
+            changelog_path: None,
+        }
+    }
+}
+
+impl PackagesConfig {
+    fn get(&self, package_name: &str) -> PackageUpdateConfig {
+        self.overrides
+            .get(package_name)
+            .cloned()
+            .unwrap_or(self.default.clone().into())
+    }
+
+    fn set_default(&mut self, config: UpdateConfig) {
+        self.default = config;
+    }
+
+    fn set(&mut self, package_name: String, config: PackageUpdateConfig) {
+        self.overrides.insert(package_name, config);
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UpdateConfig {
+    /// Controls when to run cargo-semver-checks.
+    /// Note: You can only run cargo-semver-checks if the package contains a library.
+    ///       For example, if it has a `lib.rs` file.
+    pub semver_check: bool,
+    /// Whether to create/update changelog or not.
+    /// Default: `true`.
+    pub changelog_update: bool,
+}
+
+/// Package-specific config
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct PackageUpdateConfig {
+    /// config that can be applied by default to all packages.
+    pub generic: UpdateConfig,
+    /// The changelog path can only be specified for a single package.
+    /// I.e. it cannot be applied to `[workspace]` configuration.
+    /// This path needs to be a relative path to the Cargo.toml of the project.
+    /// I.e. if you have a workspace, it needs to be relative to the workspace root.
+    pub changelog_path: Option<PathBuf>,
+}
+
+impl PackageUpdateConfig {
+    pub fn semver_check(&self) -> bool {
+        self.generic.semver_check
+    }
+
+    pub fn should_update_changelog(&self) -> bool {
+        self.generic.changelog_update
+    }
+}
+
+impl Default for UpdateConfig {
+    fn default() -> Self {
+        Self {
+            semver_check: true,
+            changelog_update: true,
+        }
+    }
+}
+
+impl UpdateConfig {
+    pub fn with_semver_check(self, semver_check: bool) -> Self {
+        Self {
+            semver_check,
+            ..self
+        }
+    }
+
+    pub fn with_changelog_update(self, changelog_update: bool) -> Self {
+        Self {
+            changelog_update,
+            ..self
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct ChangelogRequest {
     /// When the new release is published. If unspecified, current date is used.
     pub release_date: Option<NaiveDate>,
@@ -71,12 +170,26 @@ impl UpdateRequest {
             local_manifest: canonical_local_manifest(local_manifest.as_ref())?,
             registry_manifest: None,
             single_package: None,
-            changelog_req: None,
+            changelog_req: ChangelogRequest::default(),
             registry: None,
-            update_dependencies: false,
+            dependencies_update: false,
             allow_dirty: false,
             repo_url: None,
+            packages_config: PackagesConfig::default(),
         })
+    }
+
+    pub fn changelog_path(&self, package: &Package) -> PathBuf {
+        let config = self.get_package_config(&package.name);
+        config
+            .changelog_path
+            .map(|p| self.local_manifest.parent().unwrap().join(p))
+            .unwrap_or_else(|| {
+                package
+                    .package_path()
+                    .expect("can't determine package path")
+                    .join(CHANGELOG_FILENAME)
+            })
     }
 
     pub fn set_local_manifest(self, local_manifest: impl AsRef<Path>) -> io::Result<Self> {
@@ -94,11 +207,31 @@ impl UpdateRequest {
         })
     }
 
-    pub fn with_changelog(self, changelog_req: ChangelogRequest) -> Self {
+    pub fn with_changelog_req(self, changelog_req: ChangelogRequest) -> Self {
         Self {
-            changelog_req: Some(changelog_req),
+            changelog_req,
             ..self
         }
+    }
+
+    /// Set update config for all packages.
+    pub fn with_default_package_config(mut self, config: UpdateConfig) -> Self {
+        self.packages_config.set_default(config);
+        self
+    }
+
+    /// Set update config for a specific package.
+    pub fn with_package_config(
+        mut self,
+        package: impl Into<String>,
+        config: PackageUpdateConfig,
+    ) -> Self {
+        self.packages_config.set(package.into(), config);
+        self
+    }
+
+    pub fn get_package_config(&self, package: &str) -> PackageUpdateConfig {
+        self.packages_config.get(package)
     }
 
     pub fn with_registry(self, registry: String) -> Self {
@@ -136,15 +269,15 @@ impl UpdateRequest {
         self.registry_manifest.as_deref()
     }
 
-    pub fn with_update_dependencies(self, update_dependencies: bool) -> Self {
+    pub fn with_dependencies_update(self, dependencies_update: bool) -> Self {
         Self {
-            update_dependencies,
+            dependencies_update,
             ..self
         }
     }
 
     pub fn should_update_dependencies(&self) -> bool {
-        self.update_dependencies
+        self.dependencies_update
     }
 
     pub fn with_allow_dirty(self, allow_dirty: bool) -> Self {
@@ -169,7 +302,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     };
     let registry_packages = registry_packages::get_registry_packages(
         input.registry_manifest.as_ref(),
-        &local_project.packages,
+        &local_project.publishable_packages(),
         input.registry.as_deref(),
     )?;
 
@@ -177,7 +310,11 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
-    let packages_to_update = updater.packages_to_update(&registry_packages, &repository.repo)?;
+    let packages_to_update = updater.packages_to_update(
+        &registry_packages,
+        &repository.repo,
+        &local_project.workspace_packages(),
+    )?;
     Ok((packages_to_update, repository))
 }
 
@@ -205,7 +342,7 @@ impl Project {
             PathBuf::from(project_root)
         };
         debug!("project_root: {root:?}");
-        let mut packages = publishable_packages(manifest)?;
+        let mut packages = workspace_packages(manifest)?;
         let contains_multiple_pub_packages = packages.len() > 1;
         if let Some(pac) = single_package {
             packages.retain(|p| p.name == pac);
@@ -221,8 +358,16 @@ impl Project {
         })
     }
 
-    pub fn packages(&self) -> &[Package] {
-        &self.packages
+    pub fn publishable_packages(&self) -> Vec<&Package> {
+        self.packages
+            .iter()
+            .filter(|p| p.is_publishable())
+            .collect()
+    }
+
+    /// Get all packages, including non-publishable.
+    pub fn workspace_packages(&self) -> Vec<&Package> {
+        self.packages.iter().collect()
     }
 
     /// Copy this project in a temporary repository and return the repository.
@@ -250,6 +395,10 @@ impl Project {
         } else {
             format!("v{version}")
         }
+    }
+
+    pub fn cargo_lock_path(&self) -> PathBuf {
+        self.root.join("Cargo.lock")
     }
 }
 
@@ -280,12 +429,15 @@ impl Updater<'_> {
         &self,
         registry_packages: &PackagesCollection,
         repository: &Repo,
+        workspace_packages: &[&Package],
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
+
+        let packages_diffs =
+            self.get_packages_diffs(registry_packages, repository, workspace_packages)?;
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate { updates: vec![] };
-        for p in &self.project.packages {
-            let diff = get_diff(p, registry_packages, repository, &self.project.root)?;
+        for (p, diff) in packages_diffs {
             let current_version = p.version.clone();
             let next_version = p.version.next_from_diff(&diff);
 
@@ -314,6 +466,55 @@ impl Updater<'_> {
             self.dependent_packages(&packages_to_check_for_deps, &changed_packages)?;
         packages_to_update.updates.extend(dependent_packages);
         Ok(packages_to_update)
+    }
+
+    fn get_packages_diffs(
+        &self,
+        registry_packages: &PackagesCollection,
+        repository: &Repo,
+        workspace_packages: &[&Package],
+    ) -> anyhow::Result<Vec<(&Package, Diff)>> {
+        // Store diff for each package. This operation is not thread safe, so we do it in one
+        // package at a time.
+        let packages_diffs_res: anyhow::Result<Vec<(&Package, Diff)>> = self
+            .project
+            .publishable_packages()
+            .iter()
+            .map(|&p| {
+                let diff = get_diff(
+                    p,
+                    registry_packages,
+                    repository,
+                    self.project,
+                    workspace_packages,
+                )?;
+                Ok((p, diff))
+            })
+            .collect();
+
+        let mut packages_diffs = packages_diffs_res?;
+        let semver_check_result: anyhow::Result<()> =
+            packages_diffs.par_iter_mut().try_for_each(|(p, diff)| {
+                let registry_package = registry_packages.get_package(&p.name);
+                if let Some(registry_package) = registry_package {
+                    let package_path = get_package_path(p, repository, &self.project.root)
+                        .context("can't retrieve package path")?;
+                    let run_semver_check = self.req.get_package_config(&p.name).semver_check();
+                    if should_check_semver(p, run_semver_check) && diff.should_update_version() {
+                        let registry_package_path = registry_package
+                            .package_path()
+                            .context("can't retrieve registry package path")?;
+                        let semver_check =
+                            semver_check::run_semver_check(&package_path, registry_package_path)
+                                .context("error while running cargo-semver-checks")?;
+                        diff.set_semver_check(semver_check);
+                    }
+                }
+                Ok(())
+            });
+        semver_check_result?;
+
+        Ok(packages_diffs)
     }
 
     /// Return the packages that depend on the `changed_packages`.
@@ -372,12 +573,45 @@ impl Updater<'_> {
                 .map(|r| r.git_release_link(&prev_tag, &next_tag))
         };
 
-        let changelog = self
-            .req
-            .changelog_req
-            .as_ref()
-            .map(|r| get_changelog(commits, &version, Some(r.clone()), package, release_link))
-            .transpose()?;
+        let pr_link = self.req.repo_url.as_ref().map(|r| r.git_pr_link());
+
+        lazy_static::lazy_static! {
+            // match PR/issue numbers, e.g. `#123`
+            static ref PR_RE: Regex = Regex::new("#(\\d+)").unwrap();
+        }
+        let changelog = {
+            let cfg = self.req.get_package_config(package.name.as_str());
+            let changelog_req = cfg
+                .should_update_changelog()
+                .then_some(self.req.changelog_req.clone());
+            let old_changelog = fs::read_to_string(self.req.changelog_path(package)).ok();
+            let commits_titles: Vec<String> = commits
+                .iter()
+                // only take commit title
+                .filter_map(|c| c.lines().next())
+                // replace #123 with [#123](https://link_to_pr).
+                // If the number refers to an issue, GitHub redirects the PR link to the issue link.
+                .map(|c| {
+                    if let Some(pr_link) = &pr_link {
+                        let result = PR_RE.replace_all(c, format!("[#$1]({pr_link}/$1)"));
+                        result.to_string()
+                    } else {
+                        c.to_string()
+                    }
+                })
+                .collect();
+            changelog_req
+                .map(|r| {
+                    get_changelog(
+                        commits_titles,
+                        &version,
+                        Some(r),
+                        old_changelog,
+                        release_link,
+                    )
+                })
+                .transpose()
+        }?;
 
         Ok(UpdateResult {
             version,
@@ -391,7 +625,7 @@ fn get_changelog(
     commits: Vec<String>,
     next_version: &Version,
     changelog_req: Option<ChangelogRequest>,
-    package: &Package,
+    old_changelog: Option<String>,
     release_link: Option<String>,
 ) -> anyhow::Result<String> {
     let mut changelog_builder = ChangelogBuilder::new(commits, next_version.to_string());
@@ -407,13 +641,36 @@ fn get_changelog(
         }
     }
     let new_changelog = changelog_builder.build();
-    let changelog = match fs::read_to_string(package.changelog_path()?) {
-        Ok(old_changelog) => new_changelog.prepend(old_changelog)?,
-        Err(_err) => new_changelog.generate(), // Old changelog doesn't exist.
+    let changelog = match old_changelog {
+        Some(old_changelog) => new_changelog.prepend(old_changelog)?,
+        None => new_changelog.generate(), // Old changelog doesn't exist.
     };
     Ok(changelog)
 }
 
+fn get_package_path(
+    package: &Package,
+    repository: &Repo,
+    project_root: &Path,
+) -> anyhow::Result<PathBuf> {
+    let package_path = package.package_path()?;
+    get_repo_path(package_path, repository, project_root)
+}
+
+fn get_repo_path(
+    old_path: &Path,
+    repository: &Repo,
+    project_root: &Path,
+) -> anyhow::Result<PathBuf> {
+    let relative_path = old_path
+        .strip_prefix(project_root)
+        .context("error while retrieving package_path: project root not found")?;
+    let result_path = repository.directory().join(relative_path);
+
+    Ok(result_path)
+}
+
+/// This operation is not thread-safe, because we do `git checkout` on the repository.
 #[instrument(
     skip_all,
     fields(package = %package.name)
@@ -422,48 +679,54 @@ fn get_diff(
     package: &Package,
     registry_packages: &PackagesCollection,
     repository: &Repo,
-    project_root: &Path,
+    project: &Project,
+    workspace_packages: &[&Package],
 ) -> anyhow::Result<Diff> {
-    let package_path = {
-        let relative_path = package
-            .package_path()?
-            .strip_prefix(project_root)
-            .context("error while retrieving package_path")?;
-        repository.directory().join(relative_path)
-    };
+    let package_path = get_package_path(package, repository, &project.root)?;
+
     repository.checkout_head()?;
     let registry_package = registry_packages.get_package(&package.name);
     let mut diff = Diff::new(registry_package.is_some());
-    if let Err(_err) = repository.checkout_last_commit_at_path(&package_path) {
-        info!("{}: there are no commits", package.name);
-        return Ok(diff);
-    }
-    if let Some(registry_package) = registry_package {
-        if is_library(package) {
-            let semver_check =
-                semver_check::run_semver_check(&package_path, registry_package.package_path()?)?;
-            diff.set_semver_check(semver_check);
+    if let Err(err) = repository.checkout_last_commit_at_path(&package_path) {
+        if err
+            .to_string()
+            .contains("Your local changes to the following files would be overwritten")
+        {
+            return Err(err.context("The allow-dirty option can't be used in this case"));
+        } else {
+            info!("{}: there are no commits", package.name);
+            return Ok(diff);
         }
     }
+    let ignored_dirs: anyhow::Result<Vec<PathBuf>> = workspace_packages
+        .iter()
+        .filter(|p| p.name != package.name)
+        .map(|p| get_package_path(p, repository, &project.root))
+        .collect();
+    let ignored_dirs = ignored_dirs?;
     loop {
         let current_commit_message = repository.current_commit_message()?;
         if let Some(registry_package) = registry_package {
             debug!("package {} found in cargo registry", registry_package.name);
-            let are_packages_equal = {
-                let registry_package_path = registry_package.package_path()?;
-                are_packages_equal(&package_path, registry_package_path)
-                    .context("cannot compare packages")?
-            };
+            let registry_package_path = registry_package.package_path()?;
+            let are_packages_equal =
+                are_packages_equal(&package_path, registry_package_path, ignored_dirs.clone())
+                    .context("cannot compare packages")?;
             if are_packages_equal {
                 debug!(
                     "next version calculated starting from commit after `{current_commit_message}`"
                 );
                 if diff.commits.is_empty() {
-                    // Check if the workspace dependencies were updated.
-                    if are_dependencies_updated(
+                    let are_dependencies_updated = are_toml_dependencies_updated(
                         &registry_package.dependencies,
                         &package.dependencies,
-                    ) {
+                    )
+                        || lock_compare::are_lock_dependencies_updated(
+                            &project.cargo_lock_path(),
+                            registry_package_path,
+                        )
+                        .context("Can't check if Cargo.lock dependencies are up to date")?;
+                    if are_dependencies_updated {
                         diff.commits.push("chore: update dependencies".to_string());
                     } else {
                         info!("{}: already up to date", package.name);
@@ -496,9 +759,17 @@ fn get_diff(
     Ok(diff)
 }
 
+/// Check if release-plz should check the semver compatibility of the package.
+/// - `run_semver_check` is true if the user wants to run the semver check.
+fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
+    let is_cargo_semver_checks_installed = semver_check::is_cargo_semver_checks_installed;
+    run_semver_check && is_library(package) && is_cargo_semver_checks_installed()
+}
+
 /// Compare the dependencies of the registry package and the local one.
 /// Check if the dependencies of the registry package were updated.
-fn are_dependencies_updated(
+/// This function checks only dependencies of `Cargo.toml`.
+fn are_toml_dependencies_updated(
     registry_dependencies: &[Dependency],
     local_dependencies: &[Dependency],
 ) -> bool {
@@ -507,14 +778,20 @@ fn are_dependencies_updated(
         .any(|d| d.path.is_none() && !registry_dependencies.contains(d))
 }
 
-pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
+fn workspace_members(manifest: impl AsRef<Path>) -> anyhow::Result<impl Iterator<Item = Package>> {
     let manifest = manifest.as_ref();
     let packages = cargo_utils::workspace_members(Some(manifest))
         .map_err(|e| anyhow!("cannot read workspace members in manifest {manifest:?}: {e}"))?
-        .into_iter()
-        .filter(|p| p.is_publishable())
-        .collect();
+        .into_iter();
     Ok(packages)
+}
+
+pub fn workspace_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
+    workspace_members(manifest).map(|members| members.collect())
+}
+
+pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
+    workspace_members(manifest).map(|members| members.filter(|p| p.is_publishable()).collect())
 }
 
 pub trait Publishable {

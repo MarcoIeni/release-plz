@@ -18,14 +18,19 @@ packages with unpublished changes.
 
 To learn more, run `release-plz release-pr --help`.
 
-## Pr update
+## PR update
 
 If there's already an open release PR:
 
-- if the PR contains commits that are not from bots (except the first one),
+- If the PR contains commits that are not from bots (except the first one),
   release-plz closes the PR to preserve the git history.
+  The update mechanism is simple: overwrite everything and force-push. 💥
+  Reasoning: changes done by bots are not valuable, so we can overwrite them.
   (Not available on Gitea).
-- otherwise, release-plz closes the old PR and opens a new one.
+- Otherwise, release-plz closes the old PR and opens a new one.
+  This is done to preserve the git history of maintainers' changes.
+  Release-plz also closes the release PR when it cannot update it
+  (for example, the force-push fails due to merge conflicts).
 
 ## Gitea
 
@@ -33,3 +38,19 @@ If there's already an open release PR:
 Gitea with the `--backend` flag:
 
 `release-plz release-pr --token <gitea application token> --backend gitea`
+
+## FAQ
+
+### Can I edit the release PR before merging it?
+
+Yes, you can edit the release PR as you would do with any other PR.
+
+Here are some reasons why you might want to edit the release PR:
+
+- edit the changelog: the changelog produced by release-plz is a good starting point,
+  but you might want to add more details to it.
+- edit the version: if you forgot to mark a commit as a
+  [breaking change](https://www.conventionalcommits.org/en/v1.0.0/#commit-message-with-description-and-breaking-change-footer),
+  or if cargo-semver-checks
+  [failed](https://github.com/obi1kenobi/cargo-semver-checks#will-cargo-semver-checks-catch-every-semver-violation)
+  to detect a breaking change, you can manually edit the version of the package.
