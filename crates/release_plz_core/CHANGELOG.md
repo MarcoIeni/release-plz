@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.11.0...release_plz_core-v0.11.1) - 2023-05-24
+
+### Added
+- add pr/issue link to changelog entries (#793)
+
+### Other
+- parse cargo lock faster (#795)
+
 ## [0.11.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.10.0...release_plz_core-v0.11.0) - 2023-05-21
 
 ### Added
