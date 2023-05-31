@@ -17,6 +17,17 @@ pub struct PackagesUpdate {
 }
 
 impl PackagesUpdate {
+    pub fn set_update_result_version(&mut self, package_name: &str, version: Version) {
+        for (package, update) in &mut self.updates {
+            if package.name == package_name {
+                update.version = version;
+                return;
+            }
+        }
+    }
+}
+
+impl PackagesUpdate {
     pub fn summary(&self) -> String {
         let updates = self.updates_summary();
         let breaking_changes = self.breaking_changes();
@@ -97,7 +108,7 @@ impl PackagesUpdate {
 /// Update a local rust project
 #[instrument]
 pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
-    let (packages_to_update, repository) = crate::next_versions(input)?;
+    let (mut packages_to_update, repository) = crate::next_versions(input)?;
     let local_manifest_path = input.local_manifest();
     let all_packages = cargo_utils::workspace_members(Some(local_manifest_path)).map_err(|e| {
         anyhow!(
@@ -105,7 +116,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
             input.local_manifest()
         )
     })?;
-    update_manifests(&packages_to_update, local_manifest_path, &all_packages)?;
+    update_manifests(&mut packages_to_update, local_manifest_path, &all_packages)?;
     update_changelogs(input, &packages_to_update)?;
     if !packages_to_update.updates.is_empty() {
         let local_manifest_dir = input.local_manifest_dir()?;
@@ -121,7 +132,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
 }
 
 fn update_manifests(
-    packages_to_update: &PackagesUpdate,
+    packages_to_update: &mut PackagesUpdate,
     local_manifest_path: &Path,
     all_packages: &[Package],
 ) -> anyhow::Result<()> {
@@ -146,6 +157,9 @@ fn update_manifests(
             debug!("new workspace version: {}", new_workspace_version);
             if new_workspace_version > workspace_version {
                 local_manifest.set_workspace_version(&new_workspace_version);
+                for (pkg, _) in workspace_version_pkgs {
+                    packages_to_update.set_update_result_version(&pkg.name, new_workspace_version.clone());
+                }
                 local_manifest
                     .write()
                     .context("can't update workspace version")?;
