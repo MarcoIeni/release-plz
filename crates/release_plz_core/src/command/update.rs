@@ -158,7 +158,8 @@ fn update_manifests(
             if new_workspace_version > workspace_version {
                 local_manifest.set_workspace_version(&new_workspace_version);
                 for (pkg, _) in workspace_version_pkgs {
-                    packages_to_update.set_update_result_version(&pkg.name, new_workspace_version.clone());
+                    packages_to_update
+                        .set_update_result_version(&pkg.name, new_workspace_version.clone());
                 }
                 local_manifest
                     .write()
