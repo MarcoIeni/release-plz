@@ -27,7 +27,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use tempfile::{tempdir, TempDir};
-use tracing::{debug, info, instrument};
+use tracing::{debug, info, instrument, warn};
 
 #[derive(Debug, Clone)]
 pub struct UpdateRequest {
@@ -704,8 +704,14 @@ fn get_diff(
         .map(|p| get_package_path(p, repository, &project.root))
         .collect();
     let ignored_dirs = ignored_dirs?;
+
+    let tag_commit = {
+        let git_tag = project.git_tag(&package.name, &package.version.to_string());
+        repository.get_tag_commit(&git_tag)
+    };
     loop {
         let current_commit_message = repository.current_commit_message()?;
+        let current_commit_hash = repository.current_commit_hash()?;
         if let Some(registry_package) = registry_package {
             debug!("package {} found in cargo registry", registry_package.name);
             let registry_package_path = registry_package.package_path()?;
@@ -740,6 +746,9 @@ fn get_diff(
             } else if registry_package.version != package.version {
                 info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
                 diff.set_version_unpublished();
+                break;
+            } else if Some(current_commit_hash) == tag_commit {
+                warn!("stopping looking at git history because the current commit has been already tagged. Please report this issue");
                 break;
             } else {
                 debug!("packages are different");

@@ -245,8 +245,18 @@ impl Repo {
         self.git(&["log", "-1", "--pretty=format:%B"])
     }
 
+    pub fn current_commit_hash(&self) -> anyhow::Result<String> {
+        self.git(&["log", "-1", "--pretty=format:%H"])
+    }
+
+    /// Create a git tag
     pub fn tag(&self, name: &str) -> anyhow::Result<String> {
         self.git(&["tag", name])
+    }
+
+    /// Get the commit hash of the given tag
+    pub fn get_tag_commit(&self, tag: &str) -> Option<String> {
+        self.git(&["rev-list", "-n", "1", tag]).ok()
     }
 
     /// Url of the remote when the [`Repo`] was created.
