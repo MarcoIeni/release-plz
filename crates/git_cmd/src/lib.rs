@@ -259,6 +259,27 @@ impl Repo {
         self.git(&["rev-list", "-n", "1", tag]).ok()
     }
 
+    /// Check if a commit comes before another one.
+    ///
+    /// ## Example
+    ///
+    /// For this git log:
+    /// ```
+    /// commit d6ec399b80d44bf9c4391e4a9ead8482faa9bffd
+    /// commit e880d8786cb16aa9a3f258e7503932445d708df7
+    /// ```
+    ///
+    /// `git.is_ancestor("e880d8786cb16aa9a3f258e7503932445d708df7", "d6ec399b80d44bf9c4391e4a9ead8482faa9bffd")` returns true.
+    pub fn is_ancestor(&self, maybe_ancestor_commit: &str, descendant_commit: &str) -> bool {
+        self.git(&[
+            "merge-base",
+            "--is-ancestor",
+            maybe_ancestor_commit,
+            descendant_commit,
+        ])
+        .is_ok()
+    }
+
     /// Url of the remote when the [`Repo`] was created.
     pub fn original_remote_url(&self) -> anyhow::Result<String> {
         let param = format!("remote.{}.url", self.original_remote);

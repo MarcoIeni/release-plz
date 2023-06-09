@@ -747,9 +747,11 @@ fn get_diff(
                 info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
                 diff.set_version_unpublished();
                 break;
-            } else if Some(current_commit_hash) == tag_commit {
-                warn!("stopping looking at git history because the current commit has been already tagged. Please report this issue");
-                break;
+            } else if let Some(tag_commit) = tag_commit.as_ref() {
+                if repository.is_ancestor(&current_commit_hash, tag_commit) {
+                    debug!("{}: stopping looking at git history because the current commit is an ancestor of the commit tagged with the previous version.", package.name);
+                    break;
+                }
             } else {
                 debug!("packages are different");
                 // At this point of the git history, the two packages are different,
