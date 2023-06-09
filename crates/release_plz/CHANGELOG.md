@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.12](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.11...release-plz-v0.3.12) - 2023-06-09
+
+- update dependencies ([#814](https://github.com/MarcoIeni/release-plz/pull/814))
+- stop looking at git history if commit tagged ([#813](https://github.com/MarcoIeni/release-plz/pull/813))
+
 ## [0.3.11](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.10...release-plz-v0.3.11) - 2023-05-31
 
 ### Fixed
