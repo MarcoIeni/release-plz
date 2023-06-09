@@ -451,11 +451,14 @@ impl Updater<'_> {
             .map(|(p, _u)| p.name.to_string())
             .collect();
 
-        let max_workspace_version = new_workspace_version(
+        let new_workspace_version = new_workspace_version(
             local_manifest_path,
             &packages_diffs,
             &workspace_version_pkgs,
         )?;
+        if let Some(new_workspace_version) = &new_workspace_version {
+            packages_to_update.with_workspace_version(new_workspace_version.clone());
+        }
 
         // Calculate next version without taking into account workspace version
         let packages_diffs_versions: Vec<(&Package, (Diff, Version))> = packages_diffs
@@ -468,7 +471,7 @@ impl Updater<'_> {
             .collect();
 
         for (p, (diff, next_version)) in packages_diffs_versions {
-            let next_version = if let Some(max_workspace_version) = &max_workspace_version {
+            let next_version = if let Some(max_workspace_version) = &new_workspace_version {
                 if workspace_version_pkgs.contains(p.name.as_str()) {
                     max_workspace_version.clone()
                 } else {
