@@ -440,8 +440,7 @@ impl Updater<'_> {
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate::default();
 
-        let workspace_version_pkgs: HashSet<String> = packages_to_update
-            .updates()
+        let workspace_version_pkgs: HashSet<String> = packages_diffs
             .iter()
             .filter(|(p, _)| {
                 let local_manifest_path = p.package_path().unwrap().join(CARGO_TOML);
@@ -675,12 +674,12 @@ fn new_workspace_version(
     };
     let new_workspace_version = workspace_version_pkgs
         .iter()
-        .filter_map(|p| {
-            for (pp, uu) in packages_diffs.iter() {
-                if p == &pp.name {
-                    let next = pp.version.next_from_diff(uu);
+        .filter_map(|workspace_package| {
+            for (p, diff) in packages_diffs.iter() {
+                if workspace_package == &p.name {
+                    let next = p.version.next_from_diff(diff);
                     if let Some(workspace_version) = &workspace_version {
-                        if &next > workspace_version {
+                        if &next >= workspace_version {
                             return Some(next);
                         }
                     }
