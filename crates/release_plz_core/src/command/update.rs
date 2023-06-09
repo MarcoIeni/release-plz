@@ -6,6 +6,7 @@ use cargo_metadata::{semver::Version, Package};
 use cargo_utils::upgrade_requirement;
 use cargo_utils::LocalManifest;
 use git_cmd::Repo;
+use rayon::iter::Update;
 use std::{fs, path::Path};
 use tracing::{info, warn};
 
@@ -161,7 +162,8 @@ fn update_manifests(
             .context("can't update workspace version")?;
     }
 
-    let independent_pkgs: Vec<_> = packages_to_update
+    // Avoid updating the version of packages that inherit the version from the workspace
+    let independent_pkgs: Vec<(Package, UpdateResult)> = packages_to_update
         .updates
         .clone()
         .into_iter()
