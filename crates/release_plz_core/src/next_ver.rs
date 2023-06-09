@@ -447,7 +447,7 @@ impl Updater<'_> {
                 let local_manifest = LocalManifest::try_new(&local_manifest_path).unwrap();
                 local_manifest.version_is_inherited()
             })
-            .map(|(p, _u)| p.name.to_string())
+            .map(|(p, _)| p.name.to_string())
             .collect();
 
         let new_workspace_version = new_workspace_version(
