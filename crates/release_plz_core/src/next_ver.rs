@@ -22,7 +22,7 @@ use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashSet},
     fs, io,
     path::{Path, PathBuf},
 };
@@ -314,6 +314,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
         &registry_packages,
         &repository.repo,
         &local_project.workspace_packages(),
+        input.local_manifest(),
     )?;
     Ok((packages_to_update, repository))
 }
@@ -430,18 +431,48 @@ impl Updater<'_> {
         registry_packages: &PackagesCollection,
         repository: &Repo,
         workspace_packages: &[&Package],
+        local_manifest_path: &Path,
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
         let packages_diffs =
             self.get_packages_diffs(registry_packages, repository, workspace_packages)?;
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
-        let mut packages_to_update = PackagesUpdate { updates: vec![] };
+        let mut packages_to_update = PackagesUpdate::default();
+
+        let workspace_version_pkgs: HashSet<String> = packages_diffs
+            .iter()
+            .filter(|(p, _)| {
+                let local_manifest_path = p.package_path().unwrap().join(CARGO_TOML);
+                let local_manifest = LocalManifest::try_new(&local_manifest_path).unwrap();
+                local_manifest.version_is_inherited()
+            })
+            .map(|(p, _)| p.name.clone())
+            .collect();
+
+        let new_workspace_version = new_workspace_version(
+            local_manifest_path,
+            &packages_diffs,
+            &workspace_version_pkgs,
+        )?;
+        if let Some(new_workspace_version) = &new_workspace_version {
+            packages_to_update.with_workspace_version(new_workspace_version.clone());
+        }
+
         for (p, diff) in packages_diffs {
-            let current_version = p.version.clone();
-            let next_version = p.version.next_from_diff(&diff);
+            // Calculate next version without taking into account workspace version
+            let next_version = if let Some(max_workspace_version) = &new_workspace_version {
+                if workspace_version_pkgs.contains(p.name.as_str()) {
+                    max_workspace_version.clone()
+                } else {
+                    p.version.next_from_diff(&diff)
+                }
+            } else {
+                p.version.next_from_diff(&diff)
+            };
 
             debug!("diff: {:?}, next_version: {}", &diff, next_version);
+            let current_version = p.version.clone();
             if next_version != current_version || !diff.registry_package_exists {
                 info!(
                     "{}: next version is {next_version}{}",
@@ -451,20 +482,22 @@ impl Updater<'_> {
                 let update_result =
                     self.update_result(diff.commits, next_version, p, diff.semver_check)?;
 
-                packages_to_update.updates.push((p.clone(), update_result));
+                packages_to_update
+                    .updates_mut()
+                    .push((p.clone(), update_result));
             } else if diff.is_version_published {
                 packages_to_check_for_deps.push(p);
             }
         }
 
         let changed_packages: Vec<(&Package, &Version)> = packages_to_update
-            .updates
+            .updates()
             .iter()
             .map(|(p, u)| (p, &u.version))
             .collect();
         let dependent_packages =
             self.dependent_packages(&packages_to_check_for_deps, &changed_packages)?;
-        packages_to_update.updates.extend(dependent_packages);
+        packages_to_update.updates_mut().extend(dependent_packages);
         Ok(packages_to_update)
     }
 
@@ -619,6 +652,34 @@ impl Updater<'_> {
             semver_check,
         })
     }
+}
+
+fn new_workspace_version(
+    local_manifest_path: &Path,
+    packages_diffs: &[(&Package, Diff)],
+    workspace_version_pkgs: &HashSet<String>,
+) -> anyhow::Result<Option<Version>> {
+    let workspace_version = {
+        let local_manifest = LocalManifest::try_new(local_manifest_path)?;
+        local_manifest.get_workspace_version()
+    };
+    let new_workspace_version = workspace_version_pkgs
+        .iter()
+        .filter_map(|workspace_package| {
+            for (p, diff) in packages_diffs {
+                if workspace_package == &p.name {
+                    let next = p.version.next_from_diff(diff);
+                    if let Some(workspace_version) = &workspace_version {
+                        if &next >= workspace_version {
+                            return Some(next);
+                        }
+                    }
+                }
+            }
+            None
+        })
+        .max();
+    Ok(new_workspace_version)
 }
 
 fn get_changelog(

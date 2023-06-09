@@ -11,19 +11,36 @@ use tracing::{info, warn};
 
 use tracing::{debug, instrument};
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct PackagesUpdate {
-    pub updates: Vec<(Package, UpdateResult)>,
+    updates: Vec<(Package, UpdateResult)>,
+    /// New workspace version. If None, the workspace version is not updated.
+    /// See cargo [docs](https://doc.rust-lang.org/cargo/reference/workspaces.html#root-package).
+    workspace_version: Option<Version>,
 }
 
 impl PackagesUpdate {
-    pub fn set_update_result_version(&mut self, package_name: &str, version: Version) {
-        for (package, update) in &mut self.updates {
-            if package.name == package_name {
-                update.version = version;
-                return;
-            }
+    pub fn new(updates: Vec<(Package, UpdateResult)>) -> Self {
+        Self {
+            updates,
+            workspace_version: None,
         }
+    }
+
+    pub fn with_workspace_version(&mut self, workspace_version: Version) {
+        self.workspace_version = Some(workspace_version);
+    }
+
+    pub fn updates(&self) -> &[(Package, UpdateResult)] {
+        &self.updates
+    }
+
+    pub fn updates_mut(&mut self) -> &mut Vec<(Package, UpdateResult)> {
+        &mut self.updates
+    }
+
+    pub fn workspace_version(&self) -> Option<&Version> {
+        self.workspace_version.as_ref()
     }
 }
 
@@ -108,7 +125,7 @@ impl PackagesUpdate {
 /// Update a local rust project
 #[instrument]
 pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
-    let (mut packages_to_update, repository) = crate::next_versions(input)?;
+    let (packages_to_update, repository) = crate::next_versions(input)?;
     let local_manifest_path = input.local_manifest();
     let all_packages = cargo_utils::workspace_members(Some(local_manifest_path)).map_err(|e| {
         anyhow!(
@@ -116,7 +133,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
             input.local_manifest()
         )
     })?;
-    update_manifests(&mut packages_to_update, local_manifest_path, &all_packages)?;
+    update_manifests(&packages_to_update, local_manifest_path, &all_packages)?;
     update_changelogs(input, &packages_to_update)?;
     if !packages_to_update.updates.is_empty() {
         let local_manifest_dir = input.local_manifest_dir()?;
@@ -132,47 +149,30 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
 }
 
 fn update_manifests(
-    packages_to_update: &mut PackagesUpdate,
+    packages_to_update: &PackagesUpdate,
     local_manifest_path: &Path,
     all_packages: &[Package],
 ) -> anyhow::Result<()> {
-    let mut local_manifest = LocalManifest::try_new(local_manifest_path)?;
-    let workspace_version = local_manifest.get_workspace_version();
-    let (workspace_version_pkgs, independent_pkgs): (Vec<_>, Vec<_>) = packages_to_update
+    if let Some(new_workspace_version) = packages_to_update.workspace_version() {
+        let mut local_manifest = LocalManifest::try_new(local_manifest_path)?;
+        local_manifest.set_workspace_version(new_workspace_version);
+        local_manifest
+            .write()
+            .context("can't update workspace version")?;
+    }
+
+    // Avoid updating the version of packages that inherit the version from the workspace
+    let independent_pkgs: Vec<(Package, UpdateResult)> = packages_to_update
         .updates
         .clone()
         .into_iter()
-        .partition(|(p, _)| {
+        .filter(|(p, _)| {
             let local_manifest_path = p.package_path().unwrap().join(CARGO_TOML);
             let local_manifest = LocalManifest::try_new(&local_manifest_path).unwrap();
-            local_manifest.version_is_inherited()
-        });
-    if let Some(workspace_version) = workspace_version {
-        debug!("current workspace version: {}", workspace_version);
-        let max_workspace_version = workspace_version_pkgs
-            .iter()
-            .map(|(_, u)| u.version.clone())
-            .max();
-        if let Some(new_workspace_version) = max_workspace_version {
-            debug!("new workspace version: {}", new_workspace_version);
-            if new_workspace_version > workspace_version {
-                local_manifest.set_workspace_version(&new_workspace_version);
-                for (pkg, _) in workspace_version_pkgs {
-                    packages_to_update
-                        .set_update_result_version(&pkg.name, new_workspace_version.clone());
-                }
-                local_manifest
-                    .write()
-                    .context("can't update workspace version")?;
-            }
-        }
-    }
-    update_versions(
-        all_packages,
-        &PackagesUpdate {
-            updates: independent_pkgs,
-        },
-    )?;
+            !local_manifest.version_is_inherited()
+        })
+        .collect();
+    update_versions(all_packages, &PackagesUpdate::new(independent_pkgs))?;
     Ok(())
 }
 
@@ -303,26 +303,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - complex update
         "#
         .to_string();
-        let pkgs = PackagesUpdate {
-            updates: vec![
-                (
-                    fake_package::FakePackage::new("foo").into(),
-                    UpdateResult {
-                        version: Version::parse("0.2.0").unwrap(),
-                        changelog: Some(changelog.clone()),
-                        semver_check: SemverCheck::Compatible,
-                    },
-                ),
-                (
-                    fake_package::FakePackage::new("bar").into(),
-                    UpdateResult {
-                        version: Version::parse("0.2.0").unwrap(),
-                        changelog: Some(changelog),
-                        semver_check: SemverCheck::Compatible,
-                    },
-                ),
-            ],
-        };
+        let pkgs = PackagesUpdate::new(vec![
+            (
+                fake_package::FakePackage::new("foo").into(),
+                UpdateResult {
+                    version: Version::parse("0.2.0").unwrap(),
+                    changelog: Some(changelog.clone()),
+                    semver_check: SemverCheck::Compatible,
+                },
+            ),
+            (
+                fake_package::FakePackage::new("bar").into(),
+                UpdateResult {
+                    version: Version::parse("0.2.0").unwrap(),
+                    changelog: Some(changelog),
+                    semver_check: SemverCheck::Compatible,
+                },
+            ),
+        ]);
         expect_test::expect![[r#"
             ## `foo`
             <blockquote>
@@ -381,16 +379,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - complex update
         "#
         .to_string();
-        let pkgs = PackagesUpdate {
-            updates: vec![(
-                fake_package::FakePackage::new("foo").into(),
-                UpdateResult {
-                    version: Version::parse("0.2.0").unwrap(),
-                    changelog: Some(changelog),
-                    semver_check: SemverCheck::Compatible,
-                },
-            )],
-        };
+        let pkgs = PackagesUpdate::new(vec![(
+            fake_package::FakePackage::new("foo").into(),
+            UpdateResult {
+                version: Version::parse("0.2.0").unwrap(),
+                changelog: Some(changelog),
+                semver_check: SemverCheck::Compatible,
+            },
+        )]);
         expect_test::expect![[r#"
             <blockquote>
 

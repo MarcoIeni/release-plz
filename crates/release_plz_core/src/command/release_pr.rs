@@ -54,7 +54,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .context("can't find temporary project")?;
     let (packages_to_update, _temp_repository) = update(&new_update_request)?;
     let git_client = GitClient::new(input.git.clone())?;
-    if !packages_to_update.updates.is_empty() {
+    if !packages_to_update.updates().is_empty() {
         let repo = Repo::new(new_manifest_dir)?;
         let there_are_commits_to_push = repo.is_clean().is_err();
         if there_are_commits_to_push {

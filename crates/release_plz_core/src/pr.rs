@@ -47,10 +47,10 @@ fn pr_title(
     packages_to_update: &PackagesUpdate,
     project_contains_multiple_pub_packages: bool,
 ) -> String {
-    if packages_to_update.updates.len() > 1 {
+    if packages_to_update.updates().len() > 1 {
         "chore: release".to_string()
     } else {
-        let (package, update) = &packages_to_update.updates[0];
+        let (package, update) = &packages_to_update.updates()[0];
         if project_contains_multiple_pub_packages {
             format!("chore({}): release v{}", package.name, update.version)
         } else {

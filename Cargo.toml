@@ -15,7 +15,7 @@ dunce = "1.0.4"
 expect-test = "1.4.1"
 fake = "2.6.1"
 fs_extra = "1.3.0"
-git-cliff-core = "1.2.0"
+git-cliff-core = { version = "1.2.0", default-features = false }
 git-url-parse = "0.4.4"
 ignore = "0.4.20"
 lazy_static = "1.4.0"
