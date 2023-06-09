@@ -666,7 +666,7 @@ fn new_workspace_version(
     let new_workspace_version = workspace_version_pkgs
         .iter()
         .filter_map(|workspace_package| {
-            for (p, diff) in packages_diffs.iter() {
+            for (p, diff) in packages_diffs {
                 if workspace_package == &p.name {
                     let next = p.version.next_from_diff(diff);
                     if let Some(workspace_version) = &workspace_version {
