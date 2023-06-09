@@ -459,17 +459,9 @@ impl Updater<'_> {
             packages_to_update.with_workspace_version(new_workspace_version.clone());
         }
 
-        // Calculate next version without taking into account workspace version
-        let packages_diffs_versions: Vec<(&Package, (Diff, Version))> = packages_diffs
-            .into_iter()
-            .map(|(p, diff)| {
-                let next_version = p.version.next_from_diff(&diff);
-                debug!("diff: {:?}, next_version: {}", &diff, next_version);
-                (p, (diff, next_version))
-            })
-            .collect();
-
-        for (p, (diff, next_version)) in packages_diffs_versions {
+        for (p, diff) in packages_diffs {
+            // Calculate next version without taking into account workspace version
+            let next_version = p.version.next_from_diff(&diff);
             let next_version = if let Some(max_workspace_version) = &new_workspace_version {
                 if workspace_version_pkgs.contains(p.name.as_str()) {
                     max_workspace_version.clone()
