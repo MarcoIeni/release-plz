@@ -32,15 +32,6 @@ impl PackagesUpdate {
         self
     }
 
-    pub fn set_update_result_version(&mut self, package_name: &str, version: Version) {
-        for (package, update) in &mut self.updates {
-            if package.name == package_name {
-                update.version = version;
-                return;
-            }
-        }
-    }
-
     pub fn updates(&self) -> &[(Package, UpdateResult)] {
         &self.updates
     }
@@ -135,7 +126,7 @@ impl PackagesUpdate {
 /// Update a local rust project
 #[instrument]
 pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
-    let (mut packages_to_update, repository) = crate::next_versions(input)?;
+    let (packages_to_update, repository) = crate::next_versions(input)?;
     let local_manifest_path = input.local_manifest();
     let all_packages = cargo_utils::workspace_members(Some(local_manifest_path)).map_err(|e| {
         anyhow!(
@@ -143,7 +134,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
             input.local_manifest()
         )
     })?;
-    update_manifests(&mut packages_to_update, local_manifest_path, &all_packages)?;
+    update_manifests(&packages_to_update, local_manifest_path, &all_packages)?;
     update_changelogs(input, &packages_to_update)?;
     if !packages_to_update.updates.is_empty() {
         let local_manifest_dir = input.local_manifest_dir()?;
@@ -159,52 +150,29 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
 }
 
 fn update_manifests(
-    packages_to_update: &mut PackagesUpdate,
+    packages_to_update: &PackagesUpdate,
     local_manifest_path: &Path,
     all_packages: &[Package],
 ) -> anyhow::Result<()> {
-    let mut local_manifest = LocalManifest::try_new(local_manifest_path)?;
-    let workspace_version = local_manifest.get_workspace_version();
-    let (workspace_version_pkgs, independent_pkgs): (Vec<_>, Vec<_>) = packages_to_update
+    if let Some(new_workspace_version) = packages_to_update.workspace_version() {
+        let mut local_manifest = LocalManifest::try_new(local_manifest_path)?;
+        local_manifest.set_workspace_version(new_workspace_version);
+        local_manifest
+            .write()
+            .context("can't update workspace version")?;
+    }
+
+    let independent_pkgs: Vec<_> = packages_to_update
         .updates
         .clone()
         .into_iter()
-        .partition(|(p, _)| {
+        .filter(|(p, _)| {
             let local_manifest_path = p.package_path().unwrap().join(CARGO_TOML);
             let local_manifest = LocalManifest::try_new(&local_manifest_path).unwrap();
-            local_manifest.version_is_inherited()
-        });
-    if let Some(workspace_version) = workspace_version {
-        debug!("current workspace version: {}", workspace_version);
-        let max_workspace_version = workspace_version_pkgs
-            .iter()
-            .map(|(_, u)| u.version.clone())
-            .max();
-        if let Some(new_workspace_version) = max_workspace_version {
-            info!("new workspace version: {}", new_workspace_version);
-            if new_workspace_version > workspace_version {
-                local_manifest.set_workspace_version(&new_workspace_version);
-                for (pkg, _) in workspace_version_pkgs {
-                    info!(
-                        "updating workspace version of {} to {}",
-                        pkg.name, &new_workspace_version
-                    );
-                    packages_to_update
-                        .set_update_result_version(&pkg.name, new_workspace_version.clone());
-                }
-                local_manifest
-                    .write()
-                    .context("can't update workspace version")?;
-            }
-        }
-    }
-    update_versions(
-        all_packages,
-        &PackagesUpdate {
-            updates: independent_pkgs,
-            workspace_version: packages_to_update.workspace_version.clone(),
-        },
-    )?;
+            !local_manifest.version_is_inherited()
+        })
+        .collect();
+    update_versions(all_packages, &PackagesUpdate::new(independent_pkgs))?;
     Ok(())
 }
 
