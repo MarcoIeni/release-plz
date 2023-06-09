@@ -718,7 +718,9 @@ fn get_diff(
             let are_packages_equal =
                 are_packages_equal(&package_path, registry_package_path, ignored_dirs.clone())
                     .context("cannot compare packages")?;
-            if are_packages_equal {
+            if are_packages_equal
+                || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
+            {
                 debug!(
                     "next version calculated starting from commit after `{current_commit_message}`"
                 );
@@ -747,11 +749,6 @@ fn get_diff(
                 info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
                 diff.set_version_unpublished();
                 break;
-            } else if let Some(tag_commit) = tag_commit.as_ref() {
-                if repository.is_ancestor(&current_commit_hash, tag_commit) {
-                    debug!("{}: stopping looking at git history because the current commit is an ancestor of the commit tagged with the previous version.", package.name);
-                    break;
-                }
             } else {
                 debug!("packages are different");
                 // At this point of the git history, the two packages are different,
@@ -768,6 +765,20 @@ fn get_diff(
     }
     repository.checkout_head()?;
     Ok(diff)
+}
+
+fn is_commit_too_old(
+    repository: &Repo,
+    tag_commit: Option<&str>,
+    current_commit_hash: &str,
+) -> bool {
+    if let Some(tag_commit) = tag_commit.as_ref() {
+        if repository.is_ancestor(current_commit_hash, tag_commit) {
+            debug!("stopping looking at git history because the current commit ({}) is an ancestor of the commit ({}) tagged with the previous version.", current_commit_hash, tag_commit);
+            return true;
+        }
+    }
+    false
 }
 
 /// Check if release-plz should check the semver compatibility of the package.
