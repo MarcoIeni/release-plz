@@ -461,15 +461,14 @@ impl Updater<'_> {
 
         for (p, diff) in packages_diffs {
             // Calculate next version without taking into account workspace version
-            let next_version = p.version.next_from_diff(&diff);
             let next_version = if let Some(max_workspace_version) = &new_workspace_version {
                 if workspace_version_pkgs.contains(p.name.as_str()) {
                     max_workspace_version.clone()
                 } else {
-                    next_version
+                    p.version.next_from_diff(&diff)
                 }
             } else {
-                next_version
+                p.version.next_from_diff(&diff)
             };
 
             debug!("diff: {:?}, next_version: {}", &diff, next_version);
