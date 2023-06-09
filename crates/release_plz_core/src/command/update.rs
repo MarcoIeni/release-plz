@@ -11,12 +11,25 @@ use tracing::{info, warn};
 
 use tracing::{debug, instrument};
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct PackagesUpdate {
-    pub updates: Vec<(Package, UpdateResult)>,
+    updates: Vec<(Package, UpdateResult)>,
+    workspace_version: Option<Version>,
 }
 
 impl PackagesUpdate {
+    pub fn new(updates: Vec<(Package, UpdateResult)>) -> Self {
+        Self {
+            updates,
+            workspace_version: None,
+        }
+    }
+
+    pub fn with_workspace_version(mut self, workspace_version: Version) -> Self {
+        self.workspace_version = Some(workspace_version);
+        self
+    }
+
     pub fn set_update_result_version(&mut self, package_name: &str, version: Version) {
         for (package, update) in &mut self.updates {
             if package.name == package_name {
@@ -24,6 +37,18 @@ impl PackagesUpdate {
                 return;
             }
         }
+    }
+
+    pub fn updates(&self) -> &[(Package, UpdateResult)] {
+        &self.updates
+    }
+
+    pub fn updates_mut(&mut self) -> &mut Vec<(Package, UpdateResult)> {
+        &mut self.updates
+    }
+
+    pub fn workspace_version(&self) -> Option<&Version> {
+        self.workspace_version.as_ref()
     }
 }
 
@@ -154,10 +179,14 @@ fn update_manifests(
             .map(|(_, u)| u.version.clone())
             .max();
         if let Some(new_workspace_version) = max_workspace_version {
-            debug!("new workspace version: {}", new_workspace_version);
+            info!("new workspace version: {}", new_workspace_version);
             if new_workspace_version > workspace_version {
                 local_manifest.set_workspace_version(&new_workspace_version);
                 for (pkg, _) in workspace_version_pkgs {
+                    info!(
+                        "updating workspace version of {} to {}",
+                        pkg.name, &new_workspace_version
+                    );
                     packages_to_update
                         .set_update_result_version(&pkg.name, new_workspace_version.clone());
                 }
@@ -171,6 +200,7 @@ fn update_manifests(
         all_packages,
         &PackagesUpdate {
             updates: independent_pkgs,
+            workspace_version: packages_to_update.workspace_version.clone(),
         },
     )?;
     Ok(())
@@ -303,26 +333,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - complex update
         "#
         .to_string();
-        let pkgs = PackagesUpdate {
-            updates: vec![
-                (
-                    fake_package::FakePackage::new("foo").into(),
-                    UpdateResult {
-                        version: Version::parse("0.2.0").unwrap(),
-                        changelog: Some(changelog.clone()),
-                        semver_check: SemverCheck::Compatible,
-                    },
-                ),
-                (
-                    fake_package::FakePackage::new("bar").into(),
-                    UpdateResult {
-                        version: Version::parse("0.2.0").unwrap(),
-                        changelog: Some(changelog),
-                        semver_check: SemverCheck::Compatible,
-                    },
-                ),
-            ],
-        };
+        let pkgs = PackagesUpdate::new(vec![
+            (
+                fake_package::FakePackage::new("foo").into(),
+                UpdateResult {
+                    version: Version::parse("0.2.0").unwrap(),
+                    changelog: Some(changelog.clone()),
+                    semver_check: SemverCheck::Compatible,
+                },
+            ),
+            (
+                fake_package::FakePackage::new("bar").into(),
+                UpdateResult {
+                    version: Version::parse("0.2.0").unwrap(),
+                    changelog: Some(changelog),
+                    semver_check: SemverCheck::Compatible,
+                },
+            ),
+        ]);
         expect_test::expect![[r#"
             ## `foo`
             <blockquote>
@@ -381,16 +409,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - complex update
         "#
         .to_string();
-        let pkgs = PackagesUpdate {
-            updates: vec![(
-                fake_package::FakePackage::new("foo").into(),
-                UpdateResult {
-                    version: Version::parse("0.2.0").unwrap(),
-                    changelog: Some(changelog),
-                    semver_check: SemverCheck::Compatible,
-                },
-            )],
-        };
+        let pkgs = PackagesUpdate::new(vec![(
+            fake_package::FakePackage::new("foo").into(),
+            UpdateResult {
+                version: Version::parse("0.2.0").unwrap(),
+                changelog: Some(changelog),
+                semver_check: SemverCheck::Compatible,
+            },
+        )]);
         expect_test::expect![[r#"
             <blockquote>
 

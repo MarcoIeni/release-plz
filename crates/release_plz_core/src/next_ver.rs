@@ -436,7 +436,7 @@ impl Updater<'_> {
         let packages_diffs =
             self.get_packages_diffs(registry_packages, repository, workspace_packages)?;
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
-        let mut packages_to_update = PackagesUpdate { updates: vec![] };
+        let mut packages_to_update = PackagesUpdate::default();
         for (p, diff) in packages_diffs {
             let current_version = p.version.clone();
             let next_version = p.version.next_from_diff(&diff);
@@ -451,20 +451,22 @@ impl Updater<'_> {
                 let update_result =
                     self.update_result(diff.commits, next_version, p, diff.semver_check)?;
 
-                packages_to_update.updates.push((p.clone(), update_result));
+                packages_to_update
+                    .updates_mut()
+                    .push((p.clone(), update_result));
             } else if diff.is_version_published {
                 packages_to_check_for_deps.push(p);
             }
         }
 
         let changed_packages: Vec<(&Package, &Version)> = packages_to_update
-            .updates
+            .updates()
             .iter()
             .map(|(p, u)| (p, &u.version))
             .collect();
         let dependent_packages =
             self.dependent_packages(&packages_to_check_for_deps, &changed_packages)?;
-        packages_to_update.updates.extend(dependent_packages);
+        packages_to_update.updates_mut().extend(dependent_packages);
         Ok(packages_to_update)
     }
 
