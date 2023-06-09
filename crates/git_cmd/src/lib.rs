@@ -245,8 +245,39 @@ impl Repo {
         self.git(&["log", "-1", "--pretty=format:%B"])
     }
 
+    pub fn current_commit_hash(&self) -> anyhow::Result<String> {
+        self.git(&["log", "-1", "--pretty=format:%H"])
+    }
+
+    /// Create a git tag
     pub fn tag(&self, name: &str) -> anyhow::Result<String> {
         self.git(&["tag", name])
+    }
+
+    /// Get the commit hash of the given tag
+    pub fn get_tag_commit(&self, tag: &str) -> Option<String> {
+        self.git(&["rev-list", "-n", "1", tag]).ok()
+    }
+
+    /// Check if a commit comes before another one.
+    ///
+    /// ## Example
+    ///
+    /// For this git log:
+    /// ```txt
+    /// commit d6ec399b80d44bf9c4391e4a9ead8482faa9bffd
+    /// commit e880d8786cb16aa9a3f258e7503932445d708df7
+    /// ```
+    ///
+    /// `git.is_ancestor("e880d8786cb16aa9a3f258e7503932445d708df7", "d6ec399b80d44bf9c4391e4a9ead8482faa9bffd")` returns true.
+    pub fn is_ancestor(&self, maybe_ancestor_commit: &str, descendant_commit: &str) -> bool {
+        self.git(&[
+            "merge-base",
+            "--is-ancestor",
+            maybe_ancestor_commit,
+            descendant_commit,
+        ])
+        .is_ok()
     }
 
     /// Url of the remote when the [`Repo`] was created.

@@ -27,7 +27,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use tempfile::{tempdir, TempDir};
-use tracing::{debug, info, instrument};
+use tracing::{debug, info, instrument, warn};
 
 #[derive(Debug, Clone)]
 pub struct UpdateRequest {
@@ -704,17 +704,25 @@ fn get_diff(
         .map(|p| get_package_path(p, repository, &project.root))
         .collect();
     let ignored_dirs = ignored_dirs?;
+
+    let tag_commit = {
+        let git_tag = project.git_tag(&package.name, &package.version.to_string());
+        repository.get_tag_commit(&git_tag)
+    };
     loop {
         let current_commit_message = repository.current_commit_message()?;
+        let current_commit_hash = repository.current_commit_hash()?;
         if let Some(registry_package) = registry_package {
             debug!("package {} found in cargo registry", registry_package.name);
             let registry_package_path = registry_package.package_path()?;
             let are_packages_equal =
                 are_packages_equal(&package_path, registry_package_path, ignored_dirs.clone())
                     .context("cannot compare packages")?;
-            if are_packages_equal {
+            if are_packages_equal
+                || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
+            {
                 debug!(
-                    "next version calculated starting from commit after `{current_commit_message}`"
+                    "next version calculated starting from commits after `{current_commit_hash}`"
                 );
                 if diff.commits.is_empty() {
                     let are_dependencies_updated = are_toml_dependencies_updated(
@@ -757,6 +765,21 @@ fn get_diff(
     }
     repository.checkout_head()?;
     Ok(diff)
+}
+
+/// Check if commit belongs to a previous version of the package.
+fn is_commit_too_old(
+    repository: &Repo,
+    tag_commit: Option<&str>,
+    current_commit_hash: &str,
+) -> bool {
+    if let Some(tag_commit) = tag_commit.as_ref() {
+        if repository.is_ancestor(current_commit_hash, tag_commit) {
+            debug!("stopping looking at git history because the current commit ({}) is an ancestor of the commit ({}) tagged with the previous version.", current_commit_hash, tag_commit);
+            return true;
+        }
+    }
+    false
 }
 
 /// Check if release-plz should check the semver compatibility of the package.
