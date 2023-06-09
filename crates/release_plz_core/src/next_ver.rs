@@ -767,6 +767,7 @@ fn get_diff(
     Ok(diff)
 }
 
+/// Check if commit belongs to a previous version of the package.
 fn is_commit_too_old(
     repository: &Repo,
     tag_commit: Option<&str>,
