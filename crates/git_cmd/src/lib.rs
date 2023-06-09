@@ -264,7 +264,7 @@ impl Repo {
     /// ## Example
     ///
     /// For this git log:
-    /// ```
+    /// ```txt
     /// commit d6ec399b80d44bf9c4391e4a9ead8482faa9bffd
     /// commit e880d8786cb16aa9a3f258e7503932445d708df7
     /// ```
