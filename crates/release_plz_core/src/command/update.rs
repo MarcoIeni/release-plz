@@ -14,6 +14,8 @@ use tracing::{debug, instrument};
 #[derive(Clone, Default)]
 pub struct PackagesUpdate {
     updates: Vec<(Package, UpdateResult)>,
+    /// New workspace version. If None, the workspace version is not updated.
+    /// See cargo [docs](https://doc.rust-lang.org/cargo/reference/workspaces.html#root-package).
     workspace_version: Option<Version>,
 }
 
