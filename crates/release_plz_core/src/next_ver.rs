@@ -722,7 +722,7 @@ fn get_diff(
                 || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
             {
                 debug!(
-                    "next version calculated starting from commit after `{current_commit_message}`"
+                    "next version calculated starting from commits after `{current_commit_hash}`"
                 );
                 if diff.commits.is_empty() {
                     let are_dependencies_updated = are_toml_dependencies_updated(
