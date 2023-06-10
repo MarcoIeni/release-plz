@@ -16,7 +16,8 @@ Example:
 
 ![pr](assets/pr.png)
 
-You can configure whether to run `cargo-semver-checks` or not in the [configuration file](config.md#the-semver_check-field).
+You can configure whether to run `cargo-semver-checks` or not in the
+[configuration file](config.md#the-semver_check-field).
 
 ## FAQ
 
