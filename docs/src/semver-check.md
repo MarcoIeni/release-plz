@@ -1,6 +1,6 @@
 # Semver check
 
-Release plz uses [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks)
+Release-plz uses [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks)
 to check for API breaking changes in libraries.
 
 The check results are shown in the release Pull Request and in the output of the
