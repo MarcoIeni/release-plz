@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.14](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.13...release-plz-v0.3.14) - 2023-06-10
 
-### Other
-- update dependencies
+### Fixed
+- ignore Cargo.lock dev dependencies changes ([#820](https://github.com/MarcoIeni/release-plz/pull/820))
 
 ## [0.3.13](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.12...release-plz-v0.3.13) - 2023-06-09
 
