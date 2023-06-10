@@ -40,6 +40,10 @@ As specified in the `cargo publish`
 - Tokens for other registries shall be specified with environment variables of the form
   `CARGO_REGISTRIES_NAME_TOKEN` where `NAME` is the name of the registry in all capital letters.
 
+For crates.io, specify the following scope:
+
+![token scope](../assets/token_scope.png)
+
 ## 3. Setup the workflow
 
 Add the release-plz workflow file under the `.github/workflows` directory.
