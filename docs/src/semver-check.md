@@ -33,3 +33,14 @@ because the users of your library will have to update their code to use the new 
 
 No, it won't. There are many ways to break semver, and `cargo-semver-checks`
 [doesn't yet have lints for all of them](https://github.com/obi1kenobi/cargo-semver-checks/issues/5).
+
+## What happens when release-plz detects API breaking changes?
+
+When release-plz detects API breaking changes, it updates the version of the package
+with a "major semver Bump". For example, in the image above, you can see that release-plz updated
+the `release_plz_core` version from `0.4.21` to `0.5.0`.
+In this way, the users of your library know that the new version contains API breaking
+changes, and `cargo update` will not update to it automatically.
+
+You can learn more about semver in the [semver website](https://semver.org/)
+and in the [cargo book](https://doc.rust-lang.org/cargo/reference/semver.html)
