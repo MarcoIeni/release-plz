@@ -31,4 +31,5 @@ because the users of your library will have to update their code to use the new 
 
 ## Will cargo-semver-checks catch every semver violation?
 
-No, it won't. There are many ways to break semver, and `cargo-semver-checks` [doesn't yet have lints for all of them](https://github.com/obi1kenobi/cargo-semver-checks/issues/5).
+No, it won't. There are many ways to break semver, and `cargo-semver-checks`
+[doesn't yet have lints for all of them](https://github.com/obi1kenobi/cargo-semver-checks/issues/5).
