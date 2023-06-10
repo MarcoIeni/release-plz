@@ -29,10 +29,10 @@ fn are_dependencies_updated(local_lock: &Path, registry_lock: &Path) -> anyhow::
             registry_lock
         )
     })?;
-    let registry_lock_packages = PackagesByName::new(&registry_lock.packages);
+    let local_lock_packages = PackagesByName::new(&local_lock.packages);
     Ok(are_dependencies_of_lockfiles_updated(
-        &local_lock,
-        &registry_lock_packages,
+        &registry_lock,
+        &local_lock_packages,
     ))
 }
 
@@ -45,11 +45,11 @@ fn read_lockfile(path: &Path) -> anyhow::Result<Lockfile> {
 }
 
 fn are_dependencies_of_lockfiles_updated(
-    local_lock: &Lockfile,
-    registry_lock: &PackagesByName,
+    registry_lock: &Lockfile,
+    local_lock: &PackagesByName,
 ) -> bool {
-    for local_package in &local_lock.packages {
-        if let Some(registry_packages) = registry_lock.get(&local_package.name) {
+    for local_package in &registry_lock.packages {
+        if let Some(registry_packages) = local_lock.get(&local_package.name) {
             let is_same_version = registry_packages
                 .iter()
                 .any(|p| p.version == local_package.version);
