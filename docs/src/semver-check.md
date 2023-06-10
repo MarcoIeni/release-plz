@@ -13,3 +13,5 @@ The check results are shown in the release Pull Request and in the output of the
 Example:
 
 ![pr](assets/pr.png)
+
+You can configure whether to run the check or not in the [configuration file](config.md#the-semver_check-field).
