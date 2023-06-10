@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Why yet another release tool - Release-plz</title>
+        <title>Semver check - Release-plz</title>
 
 
         <!-- Custom HTML head -->
@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">2.</strong> CLI Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">2.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">2.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">2.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">2.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="github/index.html"><strong aria-hidden="true">3.</strong> GitHub Action</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="github/trigger.html"><strong aria-hidden="true">3.1.</strong> Triggering further workflows</a></li><li class="chapter-item expanded "><a href="github/update.html"><strong aria-hidden="true">3.2.</strong> Keep the action up-to-date</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="config.html"><strong aria-hidden="true">5.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="semver-check.html"><strong aria-hidden="true">6.</strong> Semver check</a></li><li class="chapter-item expanded "><a href="why.html" class="active"><strong aria-hidden="true">7.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="extra/index.html"><strong aria-hidden="true">8.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="extra/releasing-binaries.html"><strong aria-hidden="true">8.1.</strong> Releasing binaries</a></li><li class="chapter-item expanded "><a href="extra/single-changelog.html"><strong aria-hidden="true">8.2.</strong> Single changelog</a></li><li class="chapter-item expanded "><a href="extra/yanked-packages.html"><strong aria-hidden="true">8.3.</strong> Yanked packages</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">2.</strong> CLI Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">2.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">2.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">2.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">2.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="github/index.html"><strong aria-hidden="true">3.</strong> GitHub Action</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="github/trigger.html"><strong aria-hidden="true">3.1.</strong> Triggering further workflows</a></li><li class="chapter-item expanded "><a href="github/update.html"><strong aria-hidden="true">3.2.</strong> Keep the action up-to-date</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="config.html"><strong aria-hidden="true">5.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="semver-check.html" class="active"><strong aria-hidden="true">6.</strong> Semver check</a></li><li class="chapter-item expanded "><a href="why.html"><strong aria-hidden="true">7.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="extra/index.html"><strong aria-hidden="true">8.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="extra/releasing-binaries.html"><strong aria-hidden="true">8.1.</strong> Releasing binaries</a></li><li class="chapter-item expanded "><a href="extra/single-changelog.html"><strong aria-hidden="true">8.2.</strong> Single changelog</a></li><li class="chapter-item expanded "><a href="extra/yanked-packages.html"><strong aria-hidden="true">8.3.</strong> Yanked packages</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -121,7 +121,7 @@
                         <a href="https://github.com/MarcoIeni/release-plz" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
-                        <a href="https://github.com/MarcoIeni/release-plz/edit/main/docs/src/why.md" title="Suggest an edit" aria-label="Suggest an edit">
+                        <a href="https://github.com/MarcoIeni/release-plz/edit/main/docs/src/semver-check.md" title="Suggest an edit" aria-label="Suggest an edit">
                             <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
 
@@ -150,71 +150,50 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="why-yet-another-release-tool"><a class="header" href="#why-yet-another-release-tool">Why yet another release tool</a></h1>
-<p>New Rust apps and rewrites are mushrooming every day.
-Choosing which tools to add to your developer toolbox is becoming harder and harder.</p>
-<p>I feel obliged to explain why I created this project and how it compares with
-similar tools.</p>
-<h2 id="differences-with-release-please"><a class="header" href="#differences-with-release-please">Differences with release-please</a></h2>
-<p>Like release-plz, release-please is an open-source project that manages releases
-via pull requests.
-However, there are some differences.</p>
-<h3 id="no-configuration-needed"><a class="header" href="#no-configuration-needed">No configuration needed</a></h3>
-<p>Release-please requires two configuration files: <code>.release-please-manifest.json</code>
-and <code>release-please-config.json</code>.
-Most of the fields you have to write in these two files are already in the
-<code>Cargo.toml</code> files.</p>
-<p>Release-plz obtains all the information it needs from the <code>Cargo.toml</code> files
-and the cargo registry,
-so no configuration files are required.</p>
-<h3 id="versions-retrieved-from-the-cargo-registry"><a class="header" href="#versions-retrieved-from-the-cargo-registry">Versions retrieved from the cargo registry</a></h3>
-<p>Release-please considers a package “published” only when the relative git tag exists.
-Release-please doesn’t interact at all with cargo registries.
-However, some Rust projects don’t create git tags.
-Instead, they just publish the package to crates.io.</p>
-<p>Release-plz looks at the cargo registry if the relative git tag doesn’t exist,
-making it compatible with both workflows and with the majority of the Rust projects.</p>
-<h3 id="no-multiple-programming-languages-support"><a class="header" href="#no-multiple-programming-languages-support">No multiple programming languages support</a></h3>
-<p>Release-please supports multiple programming languages, while release-plz only
-supports Rust projects.</p>
-<h2 id="differences-with-other-rust-release-tools"><a class="header" href="#differences-with-other-rust-release-tools">Differences with other Rust release tools</a></h2>
-<p>These are other release tools in the Rust ecosystem, but they primarily focus on
-the CLI use case, while release-plz focuses mainly on CI.</p>
+                        <h1 id="semver-check"><a class="header" href="#semver-check">Semver check</a></h1>
+<p>Release-plz uses <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>
+to check for API breaking changes in libraries.</p>
+<p>The check results are shown in the release Pull Request and in the output of the
+<code>release-plz update</code> command:</p>
 <ul>
-<li><a href="https://github.com/crate-ci/cargo-release">cargo-release</a>:
-<ul>
-<li>Bumps the version and publishes Rust packages from the CLI.</li>
-<li>It supports automatic releases with <code>cargo release --unpublished</code></li>
-<li>It doesn’t have first-class support for changelogs.
-See <a href="https://github.com/crate-ci/cargo-release/issues/231">this</a> issue.</li>
-<li>It supports hooks (release-plz doesn’t).</li>
+<li>If the check is skipped, release-plz shows nothing. This happens when the package
+doesn’t contain a library.</li>
+<li>If the check is successful, release-plz shows “(✓ API compatible changes)”.</li>
+<li>If the check failed, release-plz shows “(⚠️ API breaking changes)”, with a report
+of what went wrong.</li>
 </ul>
-</li>
-<li><a href="https://github.com/pksunkara/cargo-workspaces">cargo-workspaces</a>:
-<ul>
-<li>It’s a set of commands to manage cargo workspaces and their crates.</li>
-<li>The <code>publish</code> command releases the packages from the CLI similarly to <code>cargo-release</code>.</li>
-</ul>
-</li>
-<li><a href="https://github.com/Byron/gitoxide/tree/main/cargo-smart-release">cargo-smart-release</a>:
-<ul>
-<li>Updates and publishes packages from the CLI.</li>
-<li>It’s very similar to release-plz, but it is not meant to be run in CI (see
-<a href="https://github.com/MarcoIeni/release-plz/issues/13#issuecomment-1065790846">this</a>
-comment from the author).</li>
-</ul>
-</li>
-</ul>
+<p>Example:</p>
+<p><img src="assets/pr.png" alt="pr" /></p>
+<p>You can configure whether to run <code>cargo-semver-checks</code> or not in the
+<a href="config.html#the-semver_check-field">configuration file</a>.</p>
+<h2 id="faq"><a class="header" href="#faq">FAQ</a></h2>
+<h2 id="whats-an-api-breaking-change"><a class="header" href="#whats-an-api-breaking-change">What’s an API breaking change?</a></h2>
+<p>It is a change that makes the new version of your library
+incompatible with the previous one.</p>
+<p>For example, renaming a public function of your library is an API breaking change,
+because the users of your library will have to update their code to use the new name.</p>
+<h2 id="will-cargo-semver-checks-catch-every-semver-violation"><a class="header" href="#will-cargo-semver-checks-catch-every-semver-violation">Will cargo-semver-checks catch every semver violation?</a></h2>
+<p>No, it won’t — not yet! There are many ways to break semver, and <code>cargo-semver-checks</code>
+<a href="https://github.com/obi1kenobi/cargo-semver-checks/issues/5">doesn’t yet have lints for all of them</a>.
+You still need to check for semver violations manually.</p>
+<h2 id="what-happens-when-release-plz-detects-api-breaking-changes"><a class="header" href="#what-happens-when-release-plz-detects-api-breaking-changes">What happens when release-plz detects API breaking changes?</a></h2>
+<p>When release-plz detects API breaking changes, it updates the version of the package
+with a “major semver Bump”. For example, in the image above, you can see that release-plz updated
+the <code>release_plz_core</code> version from <code>0.4.21</code> to <code>0.5.0</code>.
+In this way, the users of your library know that the new version contains API breaking
+changes, and <code>cargo update</code> will not update to it automatically.</p>
+<p>You can learn more about semver in the <a href="https://semver.org/">semver website</a>
+and in the <a href="https://doc.rust-lang.org/cargo/reference/semver.html">cargo book</a></p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="semver-check.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="config.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="extra/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="why.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -224,11 +203,11 @@ comment from the author).</li>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="semver-check.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="config.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="extra/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="why.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
