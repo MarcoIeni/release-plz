@@ -16,7 +16,7 @@ Example:
 
 ![pr](assets/pr.png)
 
-You can configure whether to run the check or not in the [configuration file](config.md#the-semver_check-field).
+You can configure whether to run `cargo-semver-checks` or not in the [configuration file](config.md#the-semver_check-field).
 
 ## FAQ
 
@@ -30,4 +30,4 @@ because the users of your library will have to update their code to use the new 
 
 ## Will cargo-semver-checks catch every semver violation?
 
-No, it won't. There are many ways to break semver, and cargo-semver-checks [doesn't yet have lints for all of them](https://github.com/obi1kenobi/cargo-semver-checks/issues/5).
+No, it won't. There are many ways to break semver, and `cargo-semver-checks` [doesn't yet have lints for all of them](https://github.com/obi1kenobi/cargo-semver-checks/issues/5).
