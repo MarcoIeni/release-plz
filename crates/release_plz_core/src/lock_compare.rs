@@ -48,15 +48,17 @@ fn are_dependencies_of_lockfiles_updated(
     registry_lock: &Lockfile,
     local_lock: &PackagesByName,
 ) -> bool {
-    for local_package in &registry_lock.packages {
-        if let Some(registry_packages) = local_lock.get(&local_package.name) {
-            let is_same_version = registry_packages
+    // We iterate over registry packages, because the local package can have more packages.
+    // In particular, the local package contains the dependencies of the dev dependencies.
+    for registry_package in &registry_lock.packages {
+        if let Some(local_packages) = local_lock.get(&registry_package.name) {
+            let is_same_version = local_packages
                 .iter()
-                .any(|p| p.version == local_package.version);
+                .any(|p| p.version == registry_package.version);
             if !is_same_version {
                 debug!(
                     "Version of package {} changed to version {:?}",
-                    local_package.name, local_package.version
+                    registry_package.name, registry_package.version
                 );
                 return true;
             }
