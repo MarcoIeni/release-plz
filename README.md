@@ -14,7 +14,7 @@ Release-plz updates your packages with a release Pull Request based on:
 - Your git history, following [Conventional commits](https://www.conventionalcommits.org/).
 - API breaking changes (detected by [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks)).
 
-## What's a Release PR?
+## 🤔 What's a Release PR?
 
 Release-plz maintains Release PRs, keeping them up-to-date as you merge additional commits. When you're
 ready to create a release, simply merge the release PR.
@@ -32,21 +32,21 @@ release-plz:
 
 Learn how to use release-plz in the mdbook [docs](https://marcoieni.github.io/release-plz/).
 
-## Running release-plz
+## 🤖 Running release-plz
 
 There are two ways to run release-plz:
 
 - [GitHub Action](https://marcoieni.github.io/release-plz/github/index.html): Run Release-plz from CI. The action both updates and releases your packages.
 - [CLI](https://marcoieni.github.io/release-plz/usage/index.html): Run release-plz from your terminal or other CI systems (Gitea supported).
 
-## Users
+## 👯 Users
 
 [This](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action)
 search
 and [this](https://github.com/MarcoIeni/release-plz-action/network/dependents)
 page show the public GitHub repositories using release-plz in CI.
 
-## Similar projects
+## 🌓 Similar projects
 
 - [release-please](https://github.com/googleapis/release-please): release-plz is inspired by release-please,
   but instead of determining the next versions based on git tags, release-plz compares local packages with
@@ -55,7 +55,7 @@ page show the public GitHub repositories using release-plz in CI.
 - [cargo smart-release](https://github.com/Byron/gitoxide/tree/main/cargo-smart-release):
   Fearlessly release workspace crates and with beautiful semi-handcrafted changelogs.
 
-## Credits
+## 🙏 Credits
 
 Parts of the codebase are inspired by:
 - [cargo-clone](https://github.com/JanLikar/cargo-clone)

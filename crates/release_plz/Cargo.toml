@@ -4,6 +4,7 @@ version = "0.3.14"
 edition = "2021"
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz"
+homepage = "https://marcoieni.github.io/release-plz/"
 license = "MIT OR Apache-2.0"
 readme = "../../README.md"
 keywords = ["release", "please", "semver", "conventional", "commits"]
