@@ -4,3 +4,5 @@
 .vscode
 .idea
 /vendor
+/crates/release_plz/public
+/docs/public
