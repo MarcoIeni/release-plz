@@ -46,6 +46,8 @@ search
 and [this](https://github.com/MarcoIeni/release-plz-action/network/dependents)
 page show the public GitHub repositories using release-plz in CI.
 
+<div class="oranda-hide">
+
 ## 🌓 Similar projects
 
 - [release-please](https://github.com/googleapis/release-please): release-plz is inspired by release-please,
@@ -78,3 +80,5 @@ Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
 </sub>
+
+</div>
