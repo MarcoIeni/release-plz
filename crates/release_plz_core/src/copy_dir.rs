@@ -37,8 +37,8 @@ fn is_symlink_created() {
     let metadata = fs::symlink_metadata(&file2).unwrap();
     assert!(metadata.is_symlink());
     dbg!(metadata);
-    dbg!(fs::read_link(file2).unwrap());
-    // TODO: verify what's the linked file
+    let target =fs::read_link(file2).unwrap();
+    assert_eq!(target, file1);
 }
 
 fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::Result<()> {
