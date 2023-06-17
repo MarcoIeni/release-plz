@@ -17,6 +17,7 @@ mod repo_url;
 mod semver_check;
 mod tmp_repo;
 mod version;
+mod copy_dir;
 
 pub use changelog::*;
 pub use command::*;

@@ -1,5 +1,6 @@
 use crate::{
     changelog_parser::{self, ChangelogRelease},
+    copy_dir::dir_copy,
     diff::Diff,
     lock_compare,
     package_compare::are_packages_equal,
@@ -15,7 +16,6 @@ use anyhow::{anyhow, Context};
 use cargo_metadata::{semver::Version, Dependency, Package};
 use cargo_utils::{upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
-use fs_extra::dir;
 use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
@@ -906,12 +906,8 @@ fn is_library(package: &Package) -> bool {
 
 pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
     let tmp_dir = tempdir().context("cannot create temporary directory")?;
-    dir::copy(target, tmp_dir.as_ref(), &dir::CopyOptions::default()).map_err(|e| {
-        anyhow!(
-            "cannot copy directory {target:?} to {tmp_dir:?}: {e} Error kind: {:?}",
-            e.kind
-        )
-    })?;
+    dir_copy(target, tmp_dir.as_ref())
+        .map_err(|e| anyhow!("cannot copy directory {target:?} to {tmp_dir:?}: {e}",))?;
     Ok(tmp_dir)
 }
 
