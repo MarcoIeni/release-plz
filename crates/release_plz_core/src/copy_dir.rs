@@ -31,14 +31,16 @@ fn is_dir_copied_correctly() {
 fn is_symlink_created() {
     let temp = tempfile::tempdir().unwrap();
     let file1 = temp.path().join("file1");
-    std::fs::write(&file1, "aaa").unwrap();
     let file2 = temp.path().join("file2");
     create_symlink(&file1, &file2).unwrap();
+    std::fs::write(&file1, "aaa").unwrap();
     let metadata = fs::symlink_metadata(&file2).unwrap();
     assert!(metadata.is_symlink());
     dbg!(metadata);
-    let target =fs::read_link(file2).unwrap();
+    let target = fs::read_link(file2).unwrap();
     assert_eq!(target, file1);
+    assert_eq!(fs::read_to_string(target).unwrap(), "aaa");
+    assert_eq!(fs::read_to_string(file1).unwrap(), "aaa");
 }
 
 fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::Result<()> {
