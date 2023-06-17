@@ -20,7 +20,11 @@ fn is_dir_copied_correctly() {
     dir_copy(subdir_path, temp2.path()).unwrap();
     let temp2_subdir = temp2.path().join(subdir);
     let new_file2 = temp2_subdir.join("file2");
-    assert!(fs::symlink_metadata(new_file2).unwrap().is_symlink());
+    assert!(fs::symlink_metadata(&new_file2).unwrap().is_symlink());
+    let link_target = fs::read_link(new_file2).unwrap();
+    let file1_dest = temp2.path().join(subdir).join("file1");
+    assert!(file1_dest.exists());
+    assert_eq!(link_target, file1_dest);
 }
 
 #[test]
