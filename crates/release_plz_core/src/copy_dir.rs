@@ -22,7 +22,7 @@ pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<
     let dir_name = from
         .components()
         .last()
-        .context("invalid path")?
+        .with_context(|| format!("invalid path {from:?}"))?
         .as_os_str();
     let to = to.as_ref().join(dir_name);
     debug!("copying directory from {:?} to {:?}", from, to);
