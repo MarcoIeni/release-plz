@@ -1,5 +1,6 @@
 use crate::{
     changelog_parser::{self, ChangelogRelease},
+    copy_dir::copy_dir,
     diff::Diff,
     lock_compare,
     package_compare::are_packages_equal,
@@ -7,15 +8,15 @@ use crate::{
     registry_packages::{self, PackagesCollection},
     repo_url::RepoUrl,
     semver_check::{self, SemverCheck},
+    strip_prefix::strip_prefix,
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
     ChangelogBuilder, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
 };
-use anyhow::{anyhow, Context};
+use anyhow::Context;
 use cargo_metadata::{semver::Version, Dependency, Package};
 use cargo_utils::{upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
-use fs_extra::dir;
 use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
@@ -377,9 +378,7 @@ impl Project {
         let tmp_project_root = copy_to_temp_dir(&self.root)?;
         let tmp_manifest_dir = {
             let parent_root = self.root.parent().context("cannot determine parent root")?;
-            let relative_manifest_dir = self
-                .manifest_dir
-                .strip_prefix(parent_root)
+            let relative_manifest_dir = strip_prefix(&self.manifest_dir, parent_root)
                 .context("cannot strip prefix for manifest dir")?;
             debug!("relative_manifest_dir: {relative_manifest_dir:?}");
             tmp_project_root.as_ref().join(relative_manifest_dir)
@@ -723,8 +722,7 @@ fn get_repo_path(
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<PathBuf> {
-    let relative_path = old_path
-        .strip_prefix(project_root)
+    let relative_path = strip_prefix(old_path, project_root)
         .context("error while retrieving package_path: project root not found")?;
     let result_path = repository.directory().join(relative_path);
 
@@ -865,7 +863,7 @@ fn are_toml_dependencies_updated(
 fn workspace_members(manifest: impl AsRef<Path>) -> anyhow::Result<impl Iterator<Item = Package>> {
     let manifest = manifest.as_ref();
     let packages = cargo_utils::workspace_members(Some(manifest))
-        .map_err(|e| anyhow!("cannot read workspace members in manifest {manifest:?}: {e}"))?
+        .with_context(|| format!("cannot read workspace members in manifest {manifest:?}"))?
         .into_iter();
     Ok(packages)
 }
@@ -906,12 +904,8 @@ fn is_library(package: &Package) -> bool {
 
 pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
     let tmp_dir = tempdir().context("cannot create temporary directory")?;
-    dir::copy(target, tmp_dir.as_ref(), &dir::CopyOptions::default()).map_err(|e| {
-        anyhow!(
-            "cannot copy directory {target:?} to {tmp_dir:?}: {e} Error kind: {:?}",
-            e.kind
-        )
-    })?;
+    copy_dir(target, tmp_dir.as_ref())
+        .with_context(|| format!("cannot copy directory {target:?} to {tmp_dir:?}",))?;
     Ok(tmp_dir)
 }
 
