@@ -9,6 +9,9 @@
   "styles": {
     "theme": "dark"
   },
+  "funding": {
+    "yml_path": "../../.github/FUNDING.yml"
+  },
   "mdbook": {
     "path": "../../docs"
   }
