@@ -33,12 +33,11 @@ pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<
     Ok(())
 }
 
+/// `to` must exist.
 fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Error> {
     for entry in WalkDir::new(from) {
         let entry = entry.context("invalid entry")?;
-        let mut dest_path = to.clone();
-        let relative = entry.path().strip_prefix(from).unwrap();
-        dest_path.push(relative);
+        let dest_path = destination_path(&to, &entry, from)?;
 
         let file_type = entry.file_type();
         if file_type.is_dir() {
@@ -60,6 +59,17 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
         }
     }
     Ok(())
+}
+
+fn destination_path(
+    to: &Path,
+    entry: &walkdir::DirEntry,
+    from: &Path,
+) -> anyhow::Result<std::path::PathBuf> {
+    let mut dest_path = to.to_path_buf();
+    let relative = entry.path().strip_prefix(from).context("invalid path")?;
+    dest_path.push(relative);
+    Ok(dest_path)
 }
 
 #[cfg(test)]
