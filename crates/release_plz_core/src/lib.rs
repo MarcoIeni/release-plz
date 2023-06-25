@@ -3,6 +3,7 @@ mod changelog;
 mod changelog_parser;
 mod clone;
 mod command;
+mod copy_dir;
 mod diff;
 mod download;
 mod git;
@@ -17,7 +18,6 @@ mod repo_url;
 mod semver_check;
 mod tmp_repo;
 mod version;
-mod copy_dir;
 
 pub use changelog::*;
 pub use command::*;
