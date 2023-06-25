@@ -41,30 +41,36 @@ pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<
 fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Error> {
     for entry in WalkDir::new(from) {
         let entry = entry.context("invalid entry")?;
-        let dest_path = destination_path(&to, &entry, from)?;
+        let destination = destination_path(&to, &entry, from)?;
 
         let file_type = entry.file_type();
         if file_type.is_dir() {
-            if dest_path == to {
+            if destination == to {
                 continue;
             }
-            debug!("creating directory {:?}", dest_path);
-            fs::create_dir(&dest_path)
-                .with_context(|| format!("cannot create directory {dest_path:?}"))?;
+            debug!("creating directory {:?}", destination);
+            fs::create_dir(&destination)
+                .with_context(|| format!("cannot create directory {destination:?}"))?;
         } else if file_type.is_symlink() {
             let original_link = fs::read_link(entry.path())
                 .with_context(|| format!("cannot read link {:?}", entry.path()))?;
             debug!("found symlink {:?} -> {:?}", entry.path(), original_link);
-            let new_relative = strip_prefix(&original_link, from)?;
-            let new_link = to.join(new_relative);
-            debug!("creating symlink {:?} -> {:?}", &new_link, &dest_path);
-            create_symlink(&new_link, &dest_path).with_context(|| {
-                format!("cannot create symlink {:?} -> {:?}", &new_link, &dest_path)
+            anyhow::ensure!(
+                original_link.is_relative(),
+                "Absolute symlink detected. It shouldn't be present in a git repository"
+            );
+            let new_link = destination.join(original_link);
+            debug!("creating symlink {:?} -> {:?}", &new_link, &destination);
+            create_symlink(&new_link, &destination).with_context(|| {
+                format!(
+                    "cannot create symlink {:?} -> {:?}",
+                    &new_link, &destination
+                )
             })?;
         } else if file_type.is_file() {
-            debug!("copying file {:?} to {:?}", entry.path(), &dest_path);
-            fs::copy(entry.path(), &dest_path).with_context(|| {
-                format!("cannot copy file {:?} to {:?}", entry.path(), &dest_path)
+            debug!("copying file {:?} to {:?}", entry.path(), &destination);
+            fs::copy(entry.path(), &destination).with_context(|| {
+                format!("cannot copy file {:?} to {:?}", entry.path(), &destination)
             })?;
         }
     }
