@@ -54,6 +54,7 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
         } else if file_type.is_symlink() {
             let original_link = fs::read_link(entry.path())
                 .with_context(|| format!("cannot read link {:?}", entry.path()))?;
+            debug!("found symlink {:?} -> {:?}", entry.path(), original_link);
             let new_relative = strip_prefix(&original_link, from)?;
             let new_link = to.join(new_relative);
             debug!("creating symlink {:?} -> {:?}", &new_link, &dest_path);
