@@ -4,6 +4,8 @@ use anyhow::Context;
 use tracing::debug;
 use walkdir::WalkDir;
 
+use crate::strip_prefix::strip_prefix;
+
 fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::Result<()> {
     #[cfg(unix)]
     return std::os::unix::fs::symlink(original, link);
@@ -49,7 +51,7 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
         } else if file_type.is_symlink() {
             let original_link = fs::read_link(entry.path())
                 .with_context(|| format!("cannot read link {:?}", entry.path()))?;
-            let new_relative = original_link.strip_prefix(from)?;
+            let new_relative = strip_prefix(&original_link, from)?;
             let new_link = to.join(new_relative);
             create_symlink(&new_link, &dest_path).with_context(|| {
                 format!("cannot create symlink {:?} -> {:?}", &new_link, &dest_path)
@@ -69,7 +71,7 @@ fn destination_path(
     from: &Path,
 ) -> anyhow::Result<std::path::PathBuf> {
     let mut dest_path = to.to_path_buf();
-    let relative = entry.path().strip_prefix(from).context("invalid path")?;
+    let relative = strip_prefix(entry.path(), from)?;
     dest_path.push(relative);
     Ok(dest_path)
 }

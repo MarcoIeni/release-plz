@@ -1,4 +1,4 @@
-use crate::CARGO_TOML;
+use crate::{strip_prefix::strip_prefix, CARGO_TOML};
 use std::{
     collections::hash_map::DefaultHasher,
     ffi::OsStr,
@@ -56,7 +56,7 @@ pub fn are_packages_equal(
         });
 
     for entry in walker {
-        let path_without_prefix = entry.path().strip_prefix(local_package)?;
+        let path_without_prefix = strip_prefix(entry.path(), local_package)?;
         let file_in_second_path = registry_package.join(path_without_prefix);
         if is_dir(&entry) {
             let dir1 = fs::read_dir(entry.path())?;

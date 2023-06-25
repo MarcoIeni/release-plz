@@ -8,6 +8,7 @@ use crate::{
     registry_packages::{self, PackagesCollection},
     repo_url::RepoUrl,
     semver_check::{self, SemverCheck},
+    strip_prefix::strip_prefix,
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
     ChangelogBuilder, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
@@ -377,9 +378,7 @@ impl Project {
         let tmp_project_root = copy_to_temp_dir(&self.root)?;
         let tmp_manifest_dir = {
             let parent_root = self.root.parent().context("cannot determine parent root")?;
-            let relative_manifest_dir = self
-                .manifest_dir
-                .strip_prefix(parent_root)
+            let relative_manifest_dir = strip_prefix(&self.manifest_dir, parent_root)
                 .context("cannot strip prefix for manifest dir")?;
             debug!("relative_manifest_dir: {relative_manifest_dir:?}");
             tmp_project_root.as_ref().join(relative_manifest_dir)
@@ -723,8 +722,7 @@ fn get_repo_path(
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<PathBuf> {
-    let relative_path = old_path
-        .strip_prefix(project_root)
+    let relative_path = strip_prefix(old_path, project_root)
         .context("error while retrieving package_path: project root not found")?;
     let result_path = repository.directory().join(relative_path);
 
