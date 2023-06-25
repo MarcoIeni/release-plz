@@ -7,6 +7,12 @@ use walkdir::WalkDir;
 use crate::strip_prefix::strip_prefix;
 
 fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::Result<()> {
+    debug!(
+        "creating symlink {:?} -> {:?}",
+        &original.as_ref(),
+        &link.as_ref()
+    );
+
     #[cfg(unix)]
     return std::os::unix::fs::symlink(original, link);
 
@@ -59,12 +65,10 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
                 original_link.is_relative(),
                 "Absolute symlink detected. It shouldn't be present in a git repository"
             );
-            let new_link = destination.join(original_link);
-            debug!("creating symlink {:?} -> {:?}", &new_link, &destination);
-            create_symlink(&new_link, &destination).with_context(|| {
+            create_symlink(&original_link, &destination).with_context(|| {
                 format!(
                     "cannot create symlink {:?} -> {:?}",
-                    &new_link, &destination
+                    &original_link, &destination
                 )
             })?;
         } else if file_type.is_file() {
