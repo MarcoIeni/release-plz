@@ -51,11 +51,13 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
                 .with_context(|| format!("cannot read link {:?}", entry.path()))?;
             let new_relative = original_link.strip_prefix(from)?;
             let new_link = to.join(new_relative);
-            create_symlink(new_link, &dest_path)
-                .with_context(|| format!("cannot create symlink {:?}", dest_path))?;
+            create_symlink(&new_link, &dest_path).with_context(|| {
+                format!("cannot create symlink {:?} -> {:?}", &new_link, &dest_path)
+            })?;
         } else if file_type.is_file() {
-            fs::copy(entry.path(), &dest_path)
-                .with_context(|| format!("cannot copy file {:?}", entry.path()))?;
+            fs::copy(entry.path(), &dest_path).with_context(|| {
+                format!("cannot copy file {:?} to {:?}", entry.path(), &dest_path)
+            })?;
         }
     }
     Ok(())
