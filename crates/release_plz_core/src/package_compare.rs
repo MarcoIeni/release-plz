@@ -26,7 +26,10 @@ pub fn are_packages_equal(
     registry_package: &Path,
     ignored_dirs: Vec<PathBuf>,
 ) -> anyhow::Result<bool> {
-    debug!("compare local package {:?} with registry package {:?}", local_package, registry_package);
+    debug!(
+        "compare local package {:?} with registry package {:?}",
+        local_package, registry_package
+    );
     if !are_cargo_toml_equal(local_package, registry_package) {
         return Ok(false);
     }
