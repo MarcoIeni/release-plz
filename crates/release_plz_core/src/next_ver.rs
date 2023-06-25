@@ -1,6 +1,6 @@
 use crate::{
     changelog_parser::{self, ChangelogRelease},
-    copy_dir::dir_copy,
+    copy_dir::copy_dir,
     diff::Diff,
     lock_compare,
     package_compare::are_packages_equal,
@@ -906,7 +906,7 @@ fn is_library(package: &Package) -> bool {
 
 pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
     let tmp_dir = tempdir().context("cannot create temporary directory")?;
-    dir_copy(target, tmp_dir.as_ref())
+    copy_dir(target, tmp_dir.as_ref())
         .map_err(|e| anyhow!("cannot copy directory {target:?} to {tmp_dir:?}: {e}",))?;
     Ok(tmp_dir)
 }

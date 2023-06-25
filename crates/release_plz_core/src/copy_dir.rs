@@ -14,7 +14,7 @@ fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::R
 
 /// Copy directory preserving symlinks.
 /// `to` is created if it doesn't exist.
-pub fn dir_copy(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<()> {
+pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<()> {
     let from = from.as_ref();
     anyhow::ensure!(from.is_dir(), "not a directory: {:?}", from);
     let dir_name = from
@@ -75,7 +75,7 @@ mod tests {
 
         let temp2 = tempfile::tempdir().unwrap();
         println!("from: {:?} to temp2: {:?}", subdir_path, temp2.path());
-        dir_copy(subdir_path, temp2.path()).unwrap();
+        copy_dir(subdir_path, temp2.path()).unwrap();
         let temp2_subdir = temp2.path().join(subdir);
         let new_file2 = temp2_subdir.join("file2");
         assert!(fs::symlink_metadata(&new_file2).unwrap().is_symlink());
