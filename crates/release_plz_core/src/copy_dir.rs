@@ -61,10 +61,12 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
             let original_link = fs::read_link(entry.path())
                 .with_context(|| format!("cannot read link {:?}", entry.path()))?;
             debug!("found symlink {:?} -> {:?}", entry.path(), original_link);
-            anyhow::ensure!(
-                original_link.is_relative(),
-                "Absolute symlink detected. It shouldn't be present in a git repository"
-            );
+            let original_link = if original_link.is_relative() {
+                original_link
+            } else {
+                let new_relative = strip_prefix(&original_link, from)?;
+                to.join(new_relative)
+            };
             create_symlink(&original_link, &destination).with_context(|| {
                 format!(
                     "cannot create symlink {:?} -> {:?}",
