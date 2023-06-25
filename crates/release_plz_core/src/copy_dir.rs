@@ -1,67 +1,8 @@
 use std::{fs, io, path::Path};
 
 use anyhow::Context;
+use tracing::debug;
 use walkdir::WalkDir;
-
-#[test]
-fn is_dir_copied_correctly() {
-    let temp = tempfile::tempdir().unwrap();
-    let subdir = "subdir";
-    let subdir_path = temp.path().join(subdir);
-    fs::create_dir(&subdir_path).unwrap();
-
-    let file1 = subdir_path.join("file1");
-    std::fs::write(&file1, "aaa").unwrap();
-    let file2 = subdir_path.join("file2");
-    create_symlink(&file1, file2).unwrap();
-
-    let temp2 = tempfile::tempdir().unwrap();
-    println!("from: {:?} to temp2: {:?}", subdir_path, temp2.path());
-    dir_copy(subdir_path, temp2.path()).unwrap();
-    let temp2_subdir = temp2.path().join(subdir);
-    let new_file2 = temp2_subdir.join("file2");
-    assert!(fs::symlink_metadata(&new_file2).unwrap().is_symlink());
-    let link_target = fs::read_link(new_file2).unwrap();
-    let file1_dest = temp2.path().join(subdir).join("file1");
-    assert!(file1_dest.exists());
-    assert_eq!(link_target, file1_dest);
-}
-
-#[test]
-fn is_symlink_created_if_file_exists() {
-    let temp = tempfile::tempdir().unwrap();
-    let file1 = temp.path().join("file1");
-    let file2 = temp.path().join("file2");
-
-    // file already exists
-    std::fs::write(&file1, "aaa").unwrap();
-    create_symlink(&file1, &file2).unwrap();
-    let metadata = fs::symlink_metadata(&file2).unwrap();
-    assert!(metadata.is_symlink());
-    dbg!(metadata);
-    let target = fs::read_link(file2).unwrap();
-    assert_eq!(target, file1);
-    assert_eq!(fs::read_to_string(target).unwrap(), "aaa");
-    assert_eq!(fs::read_to_string(file1).unwrap(), "aaa");
-}
-
-#[test]
-fn is_symlink_created_before_file_exists() {
-    let temp = tempfile::tempdir().unwrap();
-    let file1 = temp.path().join("file1");
-    let file2 = temp.path().join("file2");
-
-    // file doesn't exist yet
-    create_symlink(&file1, &file2).unwrap();
-    std::fs::write(&file1, "aaa").unwrap();
-    let metadata = fs::symlink_metadata(&file2).unwrap();
-    assert!(metadata.is_symlink());
-    dbg!(metadata);
-    let target = fs::read_link(file2).unwrap();
-    assert_eq!(target, file1);
-    assert_eq!(fs::read_to_string(target).unwrap(), "aaa");
-    assert_eq!(fs::read_to_string(file1).unwrap(), "aaa");
-}
 
 fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::Result<()> {
     #[cfg(unix)]
@@ -75,17 +16,16 @@ fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::R
 /// `to` is created if it doesn't exist.
 pub fn dir_copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> anyhow::Result<()> {
     let from = from.as_ref();
+    anyhow::ensure!(from.is_dir(), "not a directory: {:?}", from);
     let dir_name = from
         .components()
         .last()
         .context("invalid path")?
         .as_os_str();
-    anyhow::ensure!(from.is_dir(), "not a directory: {:?}", from);
     let to = to.as_ref().join(dir_name);
-    println!("from: {:?}", from);
-    println!("to: {:?}", to);
+    debug!("copying directory from {:?} to {:?}", from, to);
     if !to.exists() {
-        fs::create_dir_all(&to).context("cannot create directory")?;
+        fs::create_dir_all(&to).with_context(|| format!("cannot create directory {to:?}"))?;
     }
     for entry in WalkDir::new(from) {
         println!("entry: {:?}", entry);
@@ -116,4 +56,69 @@ pub fn dir_copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> anyhow::Resul
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_dir_copied_correctly() {
+        let temp = tempfile::tempdir().unwrap();
+        let subdir = "subdir";
+        let subdir_path = temp.path().join(subdir);
+        fs::create_dir(&subdir_path).unwrap();
+
+        let file1 = subdir_path.join("file1");
+        std::fs::write(&file1, "aaa").unwrap();
+        let file2 = subdir_path.join("file2");
+        create_symlink(&file1, file2).unwrap();
+
+        let temp2 = tempfile::tempdir().unwrap();
+        println!("from: {:?} to temp2: {:?}", subdir_path, temp2.path());
+        dir_copy(subdir_path, temp2.path()).unwrap();
+        let temp2_subdir = temp2.path().join(subdir);
+        let new_file2 = temp2_subdir.join("file2");
+        assert!(fs::symlink_metadata(&new_file2).unwrap().is_symlink());
+        let link_target = fs::read_link(new_file2).unwrap();
+        let file1_dest = temp2.path().join(subdir).join("file1");
+        assert!(file1_dest.exists());
+        assert_eq!(link_target, file1_dest);
+    }
+
+    #[test]
+    fn is_symlink_created_if_file_exists() {
+        let temp = tempfile::tempdir().unwrap();
+        let file1 = temp.path().join("file1");
+        let file2 = temp.path().join("file2");
+
+        // file already exists
+        std::fs::write(&file1, "aaa").unwrap();
+        create_symlink(&file1, &file2).unwrap();
+        let metadata = fs::symlink_metadata(&file2).unwrap();
+        assert!(metadata.is_symlink());
+        dbg!(metadata);
+        let target = fs::read_link(file2).unwrap();
+        assert_eq!(target, file1);
+        assert_eq!(fs::read_to_string(target).unwrap(), "aaa");
+        assert_eq!(fs::read_to_string(file1).unwrap(), "aaa");
+    }
+
+    #[test]
+    fn is_symlink_created_before_file_exists() {
+        let temp = tempfile::tempdir().unwrap();
+        let file1 = temp.path().join("file1");
+        let file2 = temp.path().join("file2");
+
+        // file doesn't exist yet
+        create_symlink(&file1, &file2).unwrap();
+        std::fs::write(&file1, "aaa").unwrap();
+        let metadata = fs::symlink_metadata(&file2).unwrap();
+        assert!(metadata.is_symlink());
+        dbg!(metadata);
+        let target = fs::read_link(file2).unwrap();
+        assert_eq!(target, file1);
+        assert_eq!(fs::read_to_string(target).unwrap(), "aaa");
+        assert_eq!(fs::read_to_string(file1).unwrap(), "aaa");
+    }
 }
