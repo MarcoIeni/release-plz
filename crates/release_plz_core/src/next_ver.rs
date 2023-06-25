@@ -12,7 +12,7 @@ use crate::{
     version::NextVersionFromDiff,
     ChangelogBuilder, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
 };
-use anyhow::{anyhow, Context};
+use anyhow::Context;
 use cargo_metadata::{semver::Version, Dependency, Package};
 use cargo_utils::{upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
@@ -865,7 +865,7 @@ fn are_toml_dependencies_updated(
 fn workspace_members(manifest: impl AsRef<Path>) -> anyhow::Result<impl Iterator<Item = Package>> {
     let manifest = manifest.as_ref();
     let packages = cargo_utils::workspace_members(Some(manifest))
-        .map_err(|e| anyhow!("cannot read workspace members in manifest {manifest:?}: {e}"))?
+        .with_context(|| format!("cannot read workspace members in manifest {manifest:?}"))?
         .into_iter();
     Ok(packages)
 }
@@ -907,7 +907,7 @@ fn is_library(package: &Package) -> bool {
 pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
     let tmp_dir = tempdir().context("cannot create temporary directory")?;
     copy_dir(target, tmp_dir.as_ref())
-        .map_err(|e| anyhow!("cannot copy directory {target:?} to {tmp_dir:?}: {e}",))?;
+        .with_context(|| format!("cannot copy directory {target:?} to {tmp_dir:?}",))?;
     Ok(tmp_dir)
 }
 
