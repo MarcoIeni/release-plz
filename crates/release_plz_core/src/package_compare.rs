@@ -49,7 +49,7 @@ pub fn are_packages_equal(
             !(should_ignore_dir
                 || e.path_is_symlink()
                 // Ignore `Cargo.lock` because the local one is different from the published one in workspaces.
-                || e.file_name() =="Cargo.lock")
+                || e.file_name() == "Cargo.lock")
         })
         .build()
         .filter_map(Result::ok)
