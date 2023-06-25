@@ -27,6 +27,7 @@ pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<
     let to = to.as_ref().join(dir_name);
     debug!("copying directory from {:?} to {:?}", from, to);
     if !to.exists() {
+        debug!("creating directory {:?}", to);
         fs::create_dir_all(&to).with_context(|| format!("cannot create directory {to:?}"))?;
     }
 
@@ -36,6 +37,7 @@ pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<
 }
 
 /// `to` must exist.
+#[tracing::instrument]
 fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Error> {
     for entry in WalkDir::new(from) {
         let entry = entry.context("invalid entry")?;
@@ -46,6 +48,7 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
             if dest_path == to {
                 continue;
             }
+            debug!("creating directory {:?}", dest_path);
             fs::create_dir(&dest_path)
                 .with_context(|| format!("cannot create directory {dest_path:?}"))?;
         } else if file_type.is_symlink() {
@@ -53,10 +56,12 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
                 .with_context(|| format!("cannot read link {:?}", entry.path()))?;
             let new_relative = strip_prefix(&original_link, from)?;
             let new_link = to.join(new_relative);
+            debug!("creating symlink {:?} -> {:?}", &new_link, &dest_path);
             create_symlink(&new_link, &dest_path).with_context(|| {
                 format!("cannot create symlink {:?} -> {:?}", &new_link, &dest_path)
             })?;
         } else if file_type.is_file() {
+            debug!("copying file {:?} to {:?}", entry.path(), &dest_path);
             fs::copy(entry.path(), &dest_path).with_context(|| {
                 format!("cannot copy file {:?} to {:?}", entry.path(), &dest_path)
             })?;
