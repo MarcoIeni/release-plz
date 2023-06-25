@@ -27,13 +27,20 @@ pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<
     if !to.exists() {
         fs::create_dir_all(&to).with_context(|| format!("cannot create directory {to:?}"))?;
     }
+
+    copy_directory(from, to)?;
+
+    Ok(())
+}
+
+fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Error> {
     for entry in WalkDir::new(from) {
         let entry = entry.context("invalid entry")?;
-        let file_type = entry.file_type();
         let mut dest_path = to.clone();
         let relative = entry.path().strip_prefix(from).unwrap();
         dest_path.push(relative);
 
+        let file_type = entry.file_type();
         if file_type.is_dir() {
             if dest_path == to {
                 continue;
@@ -41,7 +48,6 @@ pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<
             fs::create_dir(&dest_path)
                 .with_context(|| format!("cannot create directory {dest_path:?}"))?;
         } else if file_type.is_symlink() {
-            // TODO: can we create symlink if new path exists?
             let original_link = fs::read_link(entry.path())
                 .with_context(|| format!("cannot read link {:?}", entry.path()))?;
             let new_relative = original_link.strip_prefix(from)?;
@@ -53,7 +59,6 @@ pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<
                 .with_context(|| format!("cannot copy file {:?}", entry.path()))?;
         }
     }
-
     Ok(())
 }
 
