@@ -45,9 +45,10 @@ pub fn are_packages_equal(
         .ignore(false)
         .filter_entry(move |e| {
             let ignored_dirs: Vec<&Path> = ignored_dirs.iter().map(|p| p.as_path()).collect();
-            !((is_dir(e)
+            let should_ignore_dir = is_dir(e)
                 && (e.path().file_name() == Some(OsStr::new(".git"))
-                    || ignored_dirs.contains(&e.path())))
+                    || ignored_dirs.contains(&e.path()));
+            !(should_ignore_dir
                 || e.path_is_symlink()
                 // Ignore `Cargo.lock` because the local one is different from the published one in workspaces.
                 || e.path().file_name() == Some(OsStr::new("Cargo.lock")))
