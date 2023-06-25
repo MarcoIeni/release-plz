@@ -14,7 +14,7 @@ fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::R
 
 /// Copy directory preserving symlinks.
 /// `to` is created if it doesn't exist.
-pub fn dir_copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> anyhow::Result<()> {
+pub fn dir_copy(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<()> {
     let from = from.as_ref();
     anyhow::ensure!(from.is_dir(), "not a directory: {:?}", from);
     let dir_name = from
@@ -28,7 +28,6 @@ pub fn dir_copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> anyhow::Resul
         fs::create_dir_all(&to).with_context(|| format!("cannot create directory {to:?}"))?;
     }
     for entry in WalkDir::new(from) {
-        println!("entry: {:?}", entry);
         let entry = entry.context("invalid entry")?;
         let file_type = entry.file_type();
         let mut dest_path = to.clone();
