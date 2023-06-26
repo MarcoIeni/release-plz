@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.15](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.14...release-plz-v0.3.15) - 2023-06-26
 
-### Other
-- add emojis to readme ([#825](https://github.com/MarcoIeni/release-plz/pull/825))
+### Fixed
+- copy symlinks ([#827](https://github.com/MarcoIeni/release-plz/pull/827))
 
 ## [0.3.14](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.13...release-plz-v0.3.14) - 2023-06-10
 
