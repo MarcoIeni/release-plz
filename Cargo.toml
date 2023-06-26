@@ -9,7 +9,7 @@ chrono = { version = "0.4.26", default-features = false }
 clap = "4.3.8"
 clap_complete = "4.3.1"
 conventional_commit_parser = "0.9.4"
-crates-index = "0.19.12"
+crates-index = "0.19.13"
 dirs = "5.0.1"
 dunce = "1.0.4"
 expect-test = "1.4.1"
