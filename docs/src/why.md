@@ -14,7 +14,7 @@ However, there are some differences.
 
 ### No configuration needed
 
-Release-please requires two configuration files: `.release-please-manifest.json`
+Release-please requires two configuration files in cargo workspaces: `.release-please-manifest.json`
 and `release-please-config.json`.
 Most of the fields you have to write in these two files are already in the
 `Cargo.toml` files.
@@ -37,6 +37,17 @@ making it compatible with both workflows and with the majority of the Rust proje
 
 Release-please supports multiple programming languages, while release-plz only
 supports Rust projects.
+
+### Conventional commits aren't required
+
+Release-please requires conventional commits to work.
+For example, it only generates a release PR if your commit messages
+start with `fix:`, `feat:`, or `deps:` (there are some exceptions based on the language).
+
+Release-plz, instead, generates a release PR for every commit affecting one of your packages,
+regardless of the commit message.
+Release-plz also generates a release PR if you change the dependencies of your packages
+(either in the `Cargo.toml` or in the `Cargo.lock` files).
 
 ## Differences with other Rust release tools
 
