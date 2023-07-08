@@ -14,7 +14,7 @@ However, there are some differences.
 
 ### No configuration needed
 
-Release-please requires two configuration files in workspaces: `.release-please-manifest.json`
+Release-please requires two configuration files in cargo workspaces: `.release-please-manifest.json`
 and `release-please-config.json`.
 Most of the fields you have to write in these two files are already in the
 `Cargo.toml` files.
