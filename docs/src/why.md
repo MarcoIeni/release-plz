@@ -47,7 +47,7 @@ start with `fix:`, `feat:`, or `deps:` (there are some exceptions based on the l
 Release-plz, instead, generates a release PR for every commit affecting one of your packages,
 regardless of the commit message.
 Release-plz also generates a release PR if you change the dependencies of your packages
-(either the `Cargo.toml` or the `Cargo.lock` files).
+(either in the `Cargo.toml` or in the `Cargo.lock` files).
 
 ## Differences with other Rust release tools
 
