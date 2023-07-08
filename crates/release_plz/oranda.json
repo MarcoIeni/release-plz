@@ -1,18 +1,25 @@
 {
-  "readme_path": "../../README.md",
-  "repository": "https://github.com/MarcoIeni/release-plz",
-  "social": {
-    "twitter_account": "@MarcoIeni"
+  "$schema": "https://github.com/axodotdev/oranda/releases/download/v0.1.1/oranda-config-schema.json",
+  "marketing": {
+    "social": {
+      "twitter_account": "@MarcoIeni"
+    }
   },
-  "static_dir": "../../docs",
-  "changelog": true,
+  "build": {
+    "readme_path": "../../README.md",
+    "repository": "https://github.com/MarcoIeni/release-plz",
+    "static_dir": "../../docs"
+  },
+  "components": {
+    "changelog": true,
+    "funding": {
+      "yml_path": "../../.github/FUNDING.yml"
+    },
+    "mdbook": {
+      "path": "../../docs"
+    }
+  },
   "styles": {
     "theme": "dark"
-  },
-  "funding": {
-    "yml_path": "../../.github/FUNDING.yml"
-  },
-  "mdbook": {
-    "path": "../../docs"
   }
 }
