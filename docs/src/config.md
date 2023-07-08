@@ -217,9 +217,6 @@ This field cannot be set in the `[workspace]` section.
 - If `true`, update the changelog of this package. *(Default)*.
 - If `false`, don't.
 
-[cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
-[git-cliff]: https://github.com/orhun/git-cliff
-
 #### The `git_release_enable` field (`package` section)
 
 Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) field.
@@ -243,3 +240,6 @@ Overrides the [`workspace.publish_no_verify`](#the-publish_no_verify-field) fiel
 - If `false`, don't.
 
 By default, release-plz runs [cargo-semver-checks] if the package is a library.
+
+[cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
+[git-cliff]: https://github.com/orhun/git-cliff
