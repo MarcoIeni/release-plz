@@ -1,6 +1,6 @@
 use anyhow::Context;
 use cargo_metadata::Package;
-use crates_index::Index;
+use crates_index::{Index, SparseIndex};
 use tracing::{debug, info};
 
 use std::{
@@ -8,9 +8,13 @@ use std::{
     io::{BufRead, BufReader},
     path::Path,
     process::{Command, Stdio},
-    thread::sleep,
     time::{Duration, Instant},
 };
+
+pub enum CargoIndex {
+    Git(Index),
+    Sparse(SparseIndex),
+}
 
 fn cargo_cmd() -> Command {
     let cargo = env::var("CARGO").unwrap_or_else(|_| "cargo".to_owned());
@@ -55,7 +59,14 @@ pub fn run_cargo(root: &Path, args: &[&str]) -> anyhow::Result<(String, String)>
     ))
 }
 
-pub fn is_published(index: &mut Index, package: &Package) -> anyhow::Result<bool> {
+pub async fn is_published(index: &mut CargoIndex, package: &Package) -> anyhow::Result<bool> {
+    match index {
+        CargoIndex::Git(index) => is_published_git(index, package),
+        CargoIndex::Sparse(index) => is_published_sparse(index, package).await,
+    }
+}
+
+pub fn is_published_git(index: &mut Index, package: &Package) -> anyhow::Result<bool> {
     // See if we already have the package in cache.
     if is_in_cache(index, package) {
         return Ok(true);
@@ -66,6 +77,16 @@ pub fn is_published(index: &mut Index, package: &Package) -> anyhow::Result<bool
 
     // Try again with updated index.
     Ok(is_in_cache(index, package))
+}
+
+pub async fn is_published_sparse(index: &SparseIndex, package: &Package) -> anyhow::Result<bool> {
+    let url = index.crate_url(&package.name);
+
+    match url {
+        // fetch manifest
+        Some(u) => Ok(reqwest::get(u).await?.status().is_success()),
+        None => Ok(false),
+    }
 }
 
 fn is_in_cache(index: &Index, package: &Package) -> bool {
@@ -81,14 +102,14 @@ fn is_in_cache(index: &Index, package: &Package) -> bool {
     false
 }
 
-pub fn wait_until_published(index: &mut Index, package: &Package) -> anyhow::Result<()> {
+pub async fn wait_until_published(index: &mut CargoIndex, package: &Package) -> anyhow::Result<()> {
     let now = Instant::now();
     let sleep_time = Duration::from_secs(2);
     let timeout = Duration::from_secs(300);
     let mut logged = false;
 
     loop {
-        if is_published(index, package)? {
+        if is_published(index, package).await? {
             break;
         } else if timeout < now.elapsed() {
             anyhow::bail!("timeout while publishing {}", package.name)
@@ -102,7 +123,7 @@ pub fn wait_until_published(index: &mut Index, package: &Package) -> anyhow::Res
             logged = true;
         }
 
-        sleep(sleep_time);
+        tokio::time::sleep(sleep_time).await;
     }
 
     Ok(())
