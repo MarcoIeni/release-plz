@@ -83,7 +83,8 @@ pub async fn is_published_sparse(index: &SparseIndex, package: &Package) -> anyh
     let url = index.crate_url(&package.name);
 
     match url {
-        // fetch manifest
+        // sparse protocol can fetch the manifest for a single crate, so we can
+        // hit the registry directly
         Some(u) => Ok(reqwest::get(u).await?.status().is_success()),
         None => Ok(false),
     }
