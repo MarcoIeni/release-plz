@@ -1,6 +1,6 @@
 use anyhow::Context;
 use cargo_metadata::Package;
-use crates_index::{Index, SparseIndex};
+use crates_index::{Crate, Index, SparseIndex};
 use tracing::{debug, info};
 
 use std::{
@@ -80,14 +80,7 @@ pub fn is_published_git(index: &mut Index, package: &Package) -> anyhow::Result<
 }
 
 pub async fn is_published_sparse(index: &SparseIndex, package: &Package) -> anyhow::Result<bool> {
-    let url = index.crate_url(&package.name);
-
-    match url {
-        // sparse protocol can fetch the manifest for a single crate, so we can
-        // hit the registry directly
-        Some(u) => Ok(reqwest::get(u).await?.status().is_success()),
-        None => Ok(false),
-    }
+    is_in_cache_sparse(index, package).await
 }
 
 fn is_in_cache(index: &Index, package: &Package) -> bool {
@@ -101,6 +94,51 @@ fn is_in_cache(index: &Index, package: &Package) -> bool {
         }
     }
     false
+}
+
+async fn is_in_cache_sparse(index: &SparseIndex, package: &Package) -> anyhow::Result<bool> {
+    if let Some(crate_data) = fetch_sparse_metadata(index, &package.name).await? {
+        if crate_data
+            .versions()
+            .iter()
+            .any(|v| v.version() == package.version.to_string())
+        {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
+async fn fetch_sparse_metadata(
+    index: &SparseIndex,
+    crate_name: &str,
+) -> anyhow::Result<Option<Crate>> {
+    let req = index.make_cache_request(crate_name)?;
+    let (parts, _) = req.into_parts();
+    let req = http::Request::from_parts(parts, vec![]);
+
+    let req: reqwest::Request = req.try_into()?;
+
+    let client = reqwest::ClientBuilder::new()
+        .gzip(true)
+        .http2_prior_knowledge()
+        .build()?;
+    let res = client.execute(req).await?;
+
+    let mut builder = http::Response::builder()
+        .status(res.status())
+        .version(res.version());
+
+    if let Some(headers) = builder.headers_mut() {
+        headers.extend(res.headers().iter().map(|(k, v)| (k.clone(), v.clone())));
+    }
+
+    let body = res.bytes().await?;
+    let res = builder.body(body.to_vec())?;
+
+    let crate_data = index.parse_cache_response(crate_name, res, true)?;
+
+    Ok(crate_data)
 }
 
 pub async fn wait_until_published(index: &mut CargoIndex, package: &Package) -> anyhow::Result<()> {
