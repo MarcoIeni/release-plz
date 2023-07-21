@@ -28,7 +28,7 @@ lazy_static.workspace = true
 parse-changelog.workspace = true
 rayon.workspace = true
 regex.workspace = true
-reqwest = { workspace = true, features = ["json", "gzip"] }
+reqwest = { workspace = true, features = ["json", "gzip", "native-tls-alpn"] }
 reqwest-middleware.workspace = true
 reqwest-retry.workspace = true
 secrecy.workspace = true
