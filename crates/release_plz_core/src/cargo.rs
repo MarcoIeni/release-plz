@@ -68,7 +68,7 @@ pub async fn is_published(index: &mut CargoIndex, package: &Package) -> anyhow::
 
 pub fn is_published_git(index: &mut Index, package: &Package) -> anyhow::Result<bool> {
     // See if we already have the package in cache.
-    if is_in_cache(index, package) {
+    if is_in_cache_git(index, package) {
         return Ok(true);
     }
 
@@ -76,37 +76,36 @@ pub fn is_published_git(index: &mut Index, package: &Package) -> anyhow::Result<
     index.update()?;
 
     // Try again with updated index.
-    Ok(is_in_cache(index, package))
+    Ok(is_in_cache_git(index, package))
 }
 
 pub async fn is_published_sparse(index: &SparseIndex, package: &Package) -> anyhow::Result<bool> {
     is_in_cache_sparse(index, package).await
 }
 
-fn is_in_cache(index: &Index, package: &Package) -> bool {
-    if let Some(crate_data) = index.crate_(&package.name) {
-        if crate_data
-            .versions()
-            .iter()
-            .any(|v| v.version() == package.version.to_string())
-        {
+fn is_in_cache_git(index: &Index, package: &Package) -> bool {
+    let crate_data = index.crate_(&package.name);
+    let version = &package.version.to_string();
+    is_in_cache(crate_data.as_ref(), version)
+}
+
+async fn is_in_cache_sparse(index: &SparseIndex, package: &Package) -> anyhow::Result<bool> {
+    let crate_data = fetch_sparse_metadata(index, &package.name).await?;
+    let version = &package.version.to_string();
+    Ok(is_in_cache(crate_data.as_ref(), version))
+}
+
+fn is_in_cache(crate_data: Option<&Crate>, version: &str) -> bool {
+    if let Some(crate_data) = crate_data {
+        if is_version_present(version, crate_data) {
             return true;
         }
     }
     false
 }
 
-async fn is_in_cache_sparse(index: &SparseIndex, package: &Package) -> anyhow::Result<bool> {
-    if let Some(crate_data) = fetch_sparse_metadata(index, &package.name).await? {
-        if crate_data
-            .versions()
-            .iter()
-            .any(|v| v.version() == package.version.to_string())
-        {
-            return Ok(true);
-        }
-    }
-    Ok(false)
+fn is_version_present(version: &str, crate_data: &Crate) -> bool {
+    crate_data.versions().iter().any(|v| v.version() == version)
 }
 
 async fn fetch_sparse_metadata(
