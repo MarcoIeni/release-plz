@@ -28,6 +28,7 @@ lazy_static.workspace = true
 parse-changelog.workspace = true
 rayon.workspace = true
 regex.workspace = true
+# native-tls-alpn is needed for http2 support. https://doc.rust-lang.org/cargo/reference/registry-index.html#sparse-protocol
 reqwest = { workspace = true, features = ["json", "gzip", "native-tls-alpn"] }
 reqwest-middleware.workspace = true
 reqwest-retry.workspace = true
