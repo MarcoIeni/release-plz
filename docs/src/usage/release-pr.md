@@ -38,19 +38,3 @@ If there's already an open release PR:
 Gitea with the `--backend` flag:
 
 `release-plz release-pr --token <gitea application token> --backend gitea`
-
-## FAQ
-
-### Can I edit the release PR before merging it?
-
-Yes, you can edit the release PR as you would do with any other PR.
-
-Here are some reasons why you might want to edit the release PR:
-
-- edit the changelog: the changelog produced by release-plz is a good starting point,
-  but you might want to add more details to it.
-- edit the version: if you forgot to mark a commit as a
-  [breaking change](https://www.conventionalcommits.org/en/v1.0.0/#commit-message-with-description-and-breaking-change-footer),
-  or if cargo-semver-checks
-  [failed](https://github.com/obi1kenobi/cargo-semver-checks#will-cargo-semver-checks-catch-every-semver-violation)
-  to detect a breaking change, you can manually edit the version of the package.
