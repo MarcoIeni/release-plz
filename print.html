@@ -84,7 +84,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">2.</strong> CLI Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">2.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">2.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">2.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">2.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="github/index.html"><strong aria-hidden="true">3.</strong> GitHub Action</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="github/trigger.html"><strong aria-hidden="true">3.1.</strong> Triggering further workflows</a></li><li class="chapter-item expanded "><a href="github/update.html"><strong aria-hidden="true">3.2.</strong> Keep the action up-to-date</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="config.html"><strong aria-hidden="true">5.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="semver-check.html"><strong aria-hidden="true">6.</strong> Semver check</a></li><li class="chapter-item expanded "><a href="why.html"><strong aria-hidden="true">7.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="extra/index.html"><strong aria-hidden="true">8.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="extra/releasing-binaries.html"><strong aria-hidden="true">8.1.</strong> Releasing binaries</a></li><li class="chapter-item expanded "><a href="extra/single-changelog.html"><strong aria-hidden="true">8.2.</strong> Single changelog</a></li><li class="chapter-item expanded "><a href="extra/yanked-packages.html"><strong aria-hidden="true">8.3.</strong> Yanked packages</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="usage/index.html"><strong aria-hidden="true">2.</strong> CLI Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="usage/update.html"><strong aria-hidden="true">2.1.</strong> update</a></li><li class="chapter-item expanded "><a href="usage/release-pr.html"><strong aria-hidden="true">2.2.</strong> release-pr</a></li><li class="chapter-item expanded "><a href="usage/release.html"><strong aria-hidden="true">2.3.</strong> release</a></li><li class="chapter-item expanded "><a href="usage/shell-completions.html"><strong aria-hidden="true">2.4.</strong> shell-completions</a></li></ol></li><li class="chapter-item expanded "><a href="github/index.html"><strong aria-hidden="true">3.</strong> GitHub Action</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="github/trigger.html"><strong aria-hidden="true">3.1.</strong> Triggering further workflows</a></li><li class="chapter-item expanded "><a href="github/update.html"><strong aria-hidden="true">3.2.</strong> Keep the action up-to-date</a></li></ol></li><li class="chapter-item expanded "><a href="changelog-format.html"><strong aria-hidden="true">4.</strong> Changelog format</a></li><li class="chapter-item expanded "><a href="config.html"><strong aria-hidden="true">5.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="semver-check.html"><strong aria-hidden="true">6.</strong> Semver check</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">7.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="why.html"><strong aria-hidden="true">8.</strong> Why yet another release tool</a></li><li class="chapter-item expanded "><a href="extra/index.html"><strong aria-hidden="true">9.</strong> Extra</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="extra/releasing-binaries.html"><strong aria-hidden="true">9.1.</strong> Releasing binaries</a></li><li class="chapter-item expanded "><a href="extra/single-changelog.html"><strong aria-hidden="true">9.2.</strong> Single changelog</a></li><li class="chapter-item expanded "><a href="extra/yanked-packages.html"><strong aria-hidden="true">9.3.</strong> Yanked packages</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -250,11 +250,6 @@ committing any change.</li>
 <li><a href="usage/release.html"><code>release-plz release</code></a> publishes the new versions of the packages.</li>
 </ul>
 <p>To learn more about how to use release-plz, run <code>release-plz --help</code>.</p>
-<h2 id="faq"><a class="header" href="#faq">FAQ</a></h2>
-<h3 id="are-packages-with-publish--false-in-the-cargotoml-updated"><a class="header" href="#are-packages-with-publish--false-in-the-cargotoml-updated">Are packages with <code>publish = false</code> in the <code>Cargo.toml</code> updated?</a></h3>
-<p>Release-plz ignores packages with <code>publish = false</code> in the <code>Cargo.toml</code>.
-Release-plz only updates their <code>Cargo.toml</code> to bump the version of
-a local dependency when needed.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="update"><a class="header" href="#update">Update</a></h1>
 <p>The <code>release-plz update</code> command updates the version and the changelog of the
 packages of a local workspace.</p>
@@ -277,14 +272,6 @@ on <a href="https://www.conventionalcommits.org/">conventional commits</a> and
 unpublished changes.</p>
 <p><img src="https://user-images.githubusercontent.com/11428655/160762832-54300ddb-ec9c-4538-a611-c66490c47333.gif" alt="release-plz update" /></p>
 <p>To learn more, run <code>release-plz update --help</code>.</p>
-<h2 id="faq-1"><a class="header" href="#faq-1">FAQ</a></h2>
-<h3 id="does-the-changelog-include-the-commits-from-the-whole-repo"><a class="header" href="#does-the-changelog-include-the-commits-from-the-whole-repo">Does the changelog include the commits from the whole repo?</a></h3>
-<p>The changelog of each crate includes the commit that changed one of the
-files of the crate or one of its dependencies.</p>
-<h3 id="what-if-a-commit-doesnt-follow-the-conventional-commits-format"><a class="header" href="#what-if-a-commit-doesnt-follow-the-conventional-commits-format">What if a commit doesn’t follow the conventional-commits format?</a></h3>
-<p>By default, it will be listed under the section <code>### Other</code>.
-Remember you can customize the changelog format by providing a
-<a href="https://github.com/orhun/git-cliff">git-cliff</a> config file.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="release-pr"><a class="header" href="#release-pr">Release PR</a></h1>
 <p>The <code>release-plz release-pr</code> command runs <a href="usage/update.html"><code>release-plz update</code></a> and
 opens a GitHub Pull Request that prepares the next release.</p>
@@ -315,19 +302,6 @@ Release-plz also closes the release PR when it cannot update it
 <p><code>release-plz release-pr</code> also supports creating PRs for repositories hosted on
 Gitea with the <code>--backend</code> flag:</p>
 <p><code>release-plz release-pr --token &lt;gitea application token&gt; --backend gitea</code></p>
-<h2 id="faq-2"><a class="header" href="#faq-2">FAQ</a></h2>
-<h3 id="can-i-edit-the-release-pr-before-merging-it"><a class="header" href="#can-i-edit-the-release-pr-before-merging-it">Can I edit the release PR before merging it?</a></h3>
-<p>Yes, you can edit the release PR as you would do with any other PR.</p>
-<p>Here are some reasons why you might want to edit the release PR:</p>
-<ul>
-<li>edit the changelog: the changelog produced by release-plz is a good starting point,
-but you might want to add more details to it.</li>
-<li>edit the version: if you forgot to mark a commit as a
-<a href="https://www.conventionalcommits.org/en/v1.0.0/#commit-message-with-description-and-breaking-change-footer">breaking change</a>,
-or if cargo-semver-checks
-<a href="https://github.com/obi1kenobi/cargo-semver-checks#will-cargo-semver-checks-catch-every-semver-violation">failed</a>
-to detect a breaking change, you can manually edit the version of the package.</li>
-</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="release"><a class="header" href="#release">Release</a></h1>
 <p>The <code>release-plz release</code> command releases all the unpublished packages.</p>
 <blockquote>
@@ -990,7 +964,7 @@ of what went wrong.</li>
 <p><img src="assets/pr.png" alt="pr" /></p>
 <p>You can configure whether to run <code>cargo-semver-checks</code> or not in the
 <a href="config.html#the-semver_check-field">configuration file</a>.</p>
-<h2 id="faq-3"><a class="header" href="#faq-3">FAQ</a></h2>
+<h2 id="faq"><a class="header" href="#faq">FAQ</a></h2>
 <h2 id="whats-an-api-breaking-change"><a class="header" href="#whats-an-api-breaking-change">What’s an API breaking change?</a></h2>
 <p>It is a change that makes the new version of your library
 incompatible with the previous one.</p>
@@ -1008,6 +982,30 @@ In this way, the users of your library know that the new version contains API br
 changes, and <code>cargo update</code> will not update to it automatically.</p>
 <p>You can learn more about semver in the <a href="https://semver.org/">semver website</a>
 and in the <a href="https://doc.rust-lang.org/cargo/reference/semver.html">cargo book</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="faq-1"><a class="header" href="#faq-1">FAQ</a></h1>
+<h2 id="are-packages-with-publish--false-in-the-cargotoml-updated"><a class="header" href="#are-packages-with-publish--false-in-the-cargotoml-updated">Are packages with <code>publish = false</code> in the <code>Cargo.toml</code> updated?</a></h2>
+<p>Release-plz ignores packages with <code>publish = false</code> in the <code>Cargo.toml</code>.
+Release-plz only updates their <code>Cargo.toml</code> to bump the version of
+a local dependency when needed.</p>
+<h2 id="can-i-edit-the-release-pr-before-merging-it"><a class="header" href="#can-i-edit-the-release-pr-before-merging-it">Can I edit the release PR before merging it?</a></h2>
+<p>Yes, you can edit the release PR as you would do with any other PR.</p>
+<p>Here are some reasons why you might want to edit the release PR:</p>
+<ul>
+<li>edit the changelog: the changelog produced by release-plz is a good starting point,
+but you might want to add more details to it.</li>
+<li>edit the version: if you forgot to mark a commit as a
+<a href="https://www.conventionalcommits.org/en/v1.0.0/#commit-message-with-description-and-breaking-change-footer">breaking change</a>,
+or if cargo-semver-checks
+<a href="https://github.com/obi1kenobi/cargo-semver-checks#will-cargo-semver-checks-catch-every-semver-violation">failed</a>
+to detect a breaking change, you can manually edit the version of the package.</li>
+</ul>
+<h2 id="does-the-changelog-include-the-commits-from-the-whole-repo"><a class="header" href="#does-the-changelog-include-the-commits-from-the-whole-repo">Does the changelog include the commits from the whole repo?</a></h2>
+<p>The changelog of each crate includes the commit that changed one of the
+files of the crate or one of its dependencies.</p>
+<h2 id="what-if-a-commit-doesnt-follow-the-conventional-commits-format"><a class="header" href="#what-if-a-commit-doesnt-follow-the-conventional-commits-format">What if a commit doesn’t follow the conventional-commits format?</a></h2>
+<p>By default, it will be listed under the section <code>### Other</code>.
+Remember you can customize the changelog format by providing a
+<a href="https://github.com/orhun/git-cliff">git-cliff</a> config file.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="why-yet-another-release-tool"><a class="header" href="#why-yet-another-release-tool">Why yet another release tool</a></h1>
 <p>New Rust apps and rewrites are mushrooming every day.
 Choosing which tools to add to your developer toolbox is becoming harder and harder.</p>
