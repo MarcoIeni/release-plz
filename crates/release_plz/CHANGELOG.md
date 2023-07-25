@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.16](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.15...release-plz-v0.3.16) - 2023-07-25
+
+### Other
+- *(deps)* bump assert_cmd from 2.0.11 to 2.0.12 ([#858](https://github.com/MarcoIeni/release-plz/pull/858))
+
 ## [0.3.15](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.14...release-plz-v0.3.15) - 2023-06-26
 
 ### Fixed
