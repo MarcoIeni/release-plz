@@ -14,6 +14,7 @@
 - [Changelog format](changelog-format.md)
 - [Configuration](config.md)
 - [Semver check](semver-check.md)
+- [FAQ](faq.md)
 - [Why yet another release tool](why.md)
 - [Extra](extra/README.md)
   - [Releasing binaries](extra/releasing-binaries.md)
