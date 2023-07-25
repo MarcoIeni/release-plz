@@ -28,7 +28,8 @@ lazy_static.workspace = true
 parse-changelog.workspace = true
 rayon.workspace = true
 regex.workspace = true
-reqwest = { workspace = true, features = ["json"] }
+# native-tls-alpn is needed for http2 support. https://doc.rust-lang.org/cargo/reference/registry-index.html#sparse-protocol
+reqwest = { workspace = true, features = ["json", "gzip", "native-tls-alpn"] }
 reqwest-middleware.workspace = true
 reqwest-retry.workspace = true
 secrecy.workspace = true
@@ -41,6 +42,8 @@ walkdir.workspace = true
 toml_edit.workspace = true
 serde_json.workspace = true
 strip-ansi-escapes.workspace = true
+tokio.workspace = true
+http.workspace = true
 
 [dev-dependencies]
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }

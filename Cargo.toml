@@ -9,13 +9,14 @@ chrono = { version = "0.4.26", default-features = false }
 clap = "4.3.19"
 clap_complete = "4.3.2"
 conventional_commit_parser = "0.9.4"
-crates-index = "0.19.13"
+crates-index = { version = "0.19.13", features = ["sparse-http"] }
 dirs = "5.0.1"
 dunce = "1.0.4"
 expect-test = "1.4.1"
 fake = "2.6.1"
 git-cliff-core = { version = "1.2.0", default-features = false }
 git-url-parse = "0.4.4"
+http = "0.2"
 ignore = "0.4.20"
 lazy_static = "1.4.0"
 once_cell = "1.18.0"
