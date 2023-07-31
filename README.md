@@ -5,12 +5,14 @@
 [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/marcoieni/release-plz)
 
 Release-plz helps you release your Rust packages by automating:
+
 - CHANGELOG generation (with [git-cliff](https://github.com/orhun/git-cliff)).
 - Creation of GitHub/Gitea releases.
 - Publishing to a cargo registry (`crates.io` by default).
 - Version bumps in `Cargo.toml`.
 
 Release-plz updates your packages with a release Pull Request based on:
+
 - Your git history, following [Conventional commits](https://www.conventionalcommits.org/).
 - API breaking changes (detected by [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks)).
 
@@ -30,14 +32,14 @@ release-plz:
 
 ## 📚 Docs
 
-Learn how to use release-plz in the mdbook [docs](https://marcoieni.github.io/release-plz/).
+Learn how to use release-plz in the mdbook [docs](https://release-plz.ieni.dev/).
 
 ## 🤖 Running release-plz
 
 There are two ways to run release-plz:
 
-- [GitHub Action](https://marcoieni.github.io/release-plz/github/index.html): Run Release-plz from CI. The action both updates and releases your packages.
-- [CLI](https://marcoieni.github.io/release-plz/usage/index.html): Run release-plz from your terminal or other CI systems (Gitea supported).
+- [GitHub Action](https://release-plz.ieni.dev/github/index.html): Run Release-plz from CI. The action both updates and releases your packages.
+- [CLI](https://release-plz.ieni.dev/usage/index.html): Run release-plz from your terminal or other CI systems (Gitea supported).
 
 ## 👯 Users
 
@@ -58,6 +60,7 @@ page show the public GitHub repositories using release-plz in CI.
 ## 🙏 Credits
 
 Parts of the codebase are inspired by:
+
 - [cargo-clone](https://github.com/JanLikar/cargo-clone)
 - [cargo-edit](https://github.com/killercup/cargo-edit)
 - [cargo-release](https://github.com/crate-ci/cargo-release)

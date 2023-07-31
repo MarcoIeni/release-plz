@@ -99,7 +99,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.63...release-plz-v0.3.0) - 2023-04-16
 
 ### Added
-- [**breaking**] changed config file format. See [docs](https://marcoieni.github.io/release-plz/config.html).
+- [**breaking**] changed config file format. See [docs](https://release-plz.ieni.dev/config.html).
 - [**breaking**] removed `--git-release` flag. Now git releases are enabled by default.
   You can disable them with the `git_release_enable` configuration option.
 - make cargo publish flags configurable (#684)
@@ -132,7 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.59](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.58...release-plz-v0.2.59) - 2023-04-01
 
 ### Added
-- Add config file. See the [docs](https://marcoieni.github.io/release-plz/config.html) (#634)
+- Add config file. See the [docs](https://release-plz.ieni.dev/config.html) (#634)
 
 ## [0.2.58](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.57...release-plz-v0.2.58) - 2023-03-27
 
