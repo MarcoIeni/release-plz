@@ -9,7 +9,7 @@ const TwitterSvg =
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: "Release-plz",
-  tagline: "Mnemonic key bindings for VSCode commands ⌨️",
+  tagline: "Publish Rust crates from CI with a Release PR.",
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
@@ -59,7 +59,7 @@ const config = {
           sidebarPath: require.resolve("./sidebars.js"),
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/MarcoIeni/release-plz/tree/main/docs/",
+          editUrl: "https://github.com/MarcoIeni/release-plz/tree/main/website/",
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
