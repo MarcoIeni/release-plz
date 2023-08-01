@@ -1,4 +1,4 @@
-name: Book CD # Continuous Deployment
+name: Website CD # Continuous Deployment
 
 permissions:
   contents: write
