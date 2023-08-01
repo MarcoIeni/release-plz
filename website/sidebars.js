@@ -25,7 +25,7 @@ const sidebars = {
         "usage/update",
         "usage/release-pr",
         "usage/release",
-        "usage/shell-completions",
+        "usage/shell-completion",
       ],
     },
     {
