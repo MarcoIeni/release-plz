@@ -35,7 +35,7 @@ Note that the account that owns the PAT will be the author of the release pull r
 If you don't want release-plz to open release pull requests with your account,
 consider creating a
 [machine user](https://docs.github.com/en/get-started/learning-about-github/types-of-github-accounts#personal-accounts).
-If your machine user needs a cool avatar, you can use the release-plz [logo](../assets/robot_head.jpeg).
+If your machine user needs a cool avatar, you can use the release-plz [logo](/img/robot_head.jpeg).
 
 Create the PAT, choosing one of the two types:
 
@@ -91,7 +91,7 @@ Here's how to use a GitHub app to generate a GitHub token:
    - Uncheck `Active` under `Webhook`. You do not need to enter a `Webhook URL`.
    - Under `Repository permissions: Contents` select `Access: Read & write`.
    - Under `Repository permissions: Pull requests` select `Access: Read & write`.
-   - (Optional) Set the release-plz [logo](../assets/robot_head.jpeg).
+   - (Optional) Set the release-plz [logo](/img/robot_head.jpeg).
 
 2. Create a Private key from the App settings page and store it securely.
 
