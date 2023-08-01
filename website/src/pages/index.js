@@ -48,8 +48,8 @@ export default function Home() {
   const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={`${siteConfig.title} VSCode extension`}
-      description="Mnemonic key bindings for VSCode commands"
+      title={`${siteConfig.title} Rust crate`}
+      description="Release Rust crates from CI with a Release PR"
     >
       <HomepageHeader />
       <main>
