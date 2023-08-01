@@ -7,7 +7,7 @@
 /* You can override the default Infima variables here. */
 :root {
   --site-primary-hue-saturation: 189 68%;
-  --ifm-color-primary: #012e86d1;
+  --ifm-color-primary: #b5330de0;
   --ifm-color-primary-dark: #022366df;
   --ifm-color-primary-darker: #022366ec;
   --ifm-color-primary-darkest: #022366;
@@ -20,7 +20,7 @@
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme="dark"] {
-  --ifm-color-primary: #5b93ffe3;
+  --ifm-color-primary: #ec6a2af2;
   --ifm-color-primary-dark: #022366df;
   --ifm-color-primary-darker: #022366ec;
   --ifm-color-primary-darkest: #022366;
