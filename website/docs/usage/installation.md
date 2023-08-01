@@ -1,7 +1,3 @@
----
-sidebar_position: 2
----
-
 # Installation
 
 Make sure you have `git` and `openssl` installed when running `release-plz`.
