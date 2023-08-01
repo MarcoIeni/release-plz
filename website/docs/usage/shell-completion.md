@@ -1,6 +1,7 @@
 # Shell completion
 
-In the following, you can find instructions on how to generate release-plz command completions for each shell.
+In the following, you can find instructions on how to generate release-plz command completions for
+each shell.
 To learn more, run `release-plz generate-completions --help`.
 
 ## zsh
