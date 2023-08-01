@@ -135,15 +135,15 @@ const config = {
             ],
           },
           {
-            title: "Download Extension",
+            title: "Release-plz",
             items: [
               {
-                label: "VSCode Marketplace",
-                href: "https://marketplace.visualstudio.com/items?itemName=ieni.release-plz",
+                label: "crates.io",
+                href: "https://crates.io/crates/release-plz",
               },
               {
-                label: "Open VSX",
-                href: "https://open-vsx.org/extension/ieni/release-plz",
+                label: "docs.rs",
+                href: "https://docs.rs/release_plz_core/",
               },
             ],
           },
