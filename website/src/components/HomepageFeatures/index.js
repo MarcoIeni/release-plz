@@ -4,30 +4,43 @@ import styles from "./styles.module.css";
 
 const FeatureList = [
   {
-    title: "Mnemonic 💡",
+    title: "Changelog generation 💡",
     description: (
       <>
-        The most useful VSCode Commands organized by mnemonic keys, like{" "}
-        <code>f</code> for <i>file</i> and <code>r</code> for <i>refactor</i>.
-        Plus, if you use Vim motions, you'll feel at home.
+        Release-plz updates your changelogs with{" "}
+        <a href="https://github.com/orhun/git-cliff">git-cliff</a> using{" "}
+        <a href="https://keepachangelog.com/en/1.0.0/">Keep a changelog</a>{" "}
+        format by default.
       </>
     ),
   },
   {
-    title: "Discoverable 🔎",
+    title: "GitHub/Gitea releases 🔎",
+    description: <>Release-plz creates GitHub and Gitea tag and releases.</>,
+  },
+  {
+    title: "Publish to crates.io ⚙",
     description: (
       <>
-        Discover new VSCode Commands you wish you knew before, and execute them
-        efficiently from your keyboard.
+        Release-plz publishes your Rust crates to{" "}
+        <a href="https://crates.io/">crates.io</a> by respecting the right
+        release order.
       </>
     ),
   },
   {
-    title: "Customizable ⚙",
+    title: "Version bump ⚙",
     description: (
       <>
-        No need to learn yet another configuration syntax: edit the Release-plz
-        menu and key bindings with plain JavaScript.
+        Release-plz bumps the versions of your crates, updating `Cargo.toml` and
+        `Cargo.lock` files. The versions are updated according to{" "}
+        <a href="https://semver.org/">Semantic Versioning</a>, based on{" "}
+        <a href="https://www.conventionalcommits.org/">Conventional Commits</a>{" "}
+        and API breaking changes detected by{" "}
+        <a href="https://github.com/obi1kenobi/cargo-semver-checks">
+          cargo-semver-checks
+        </a>
+        .
       </>
     ),
   },
