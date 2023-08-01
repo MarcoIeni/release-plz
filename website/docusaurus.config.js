@@ -80,7 +80,7 @@ const config = {
         title: "Release-plz",
         logo: {
           alt: "Release-plz Logo",
-          src: "img/icon_small.png",
+          src: "img/robot_head.jpeg",
         },
         items: [
           {
