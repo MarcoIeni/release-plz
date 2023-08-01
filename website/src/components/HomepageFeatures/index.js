@@ -18,8 +18,7 @@ const FeatureList = [
     title: "Version bump ⤴️",
     description: (
       <>
-        Release-plz bumps the versions of your crates, updating `Cargo.toml` and
-        `Cargo.lock` files. The versions are updated according to{" "}
+        Release-plz bumps the versions of your crates according to{" "}
         <a href="https://semver.org/">Semantic Versioning</a>, based on{" "}
         <a href="https://www.conventionalcommits.org/">Conventional Commits</a>{" "}
         and API breaking changes detected by{" "}
@@ -34,9 +33,11 @@ const FeatureList = [
     title: "Release PR 🤖",
     description: (
       <>
-        Release-plz opens a PR with the changes to `CHANGELOG.md`, `Cargo.toml`
-        and `Cargo.lock`. When you merge the PR, release-plz will create the tag
-        and the release on GitHub/Gitea and publish the crate to crates.io.
+        Release-plz opens a PR with the changes to <code>CHANGELOG.md</code>,{" "}
+        <code>Cargo.toml</code>
+        and <code>Cargo.lock</code>. When you merge the PR, release-plz will
+        create the tag and the release on GitHub/Gitea and publish the crate to
+        crates.io.
       </>
     ),
   },
