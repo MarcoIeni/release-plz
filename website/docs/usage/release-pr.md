@@ -1,4 +1,4 @@
-# Release PR
+# release-pr
 
 The `release-plz release-pr` command runs [`release-plz update`](update.md) and
 opens a GitHub Pull Request that prepares the next release.
