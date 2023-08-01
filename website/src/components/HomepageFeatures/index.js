@@ -15,21 +15,7 @@ const FeatureList = [
     ),
   },
   {
-    title: "GitHub/Gitea releases 🔎",
-    description: <>Release-plz creates GitHub and Gitea tag and releases.</>,
-  },
-  {
-    title: "Publish to crates.io ⚙",
-    description: (
-      <>
-        Release-plz publishes your Rust crates to{" "}
-        <a href="https://crates.io/">crates.io</a> by respecting the right
-        release order.
-      </>
-    ),
-  },
-  {
-    title: "Version bump ⚙",
+    title: "Version bump ⤴️",
     description: (
       <>
         Release-plz bumps the versions of your crates, updating `Cargo.toml` and
@@ -41,6 +27,16 @@ const FeatureList = [
           cargo-semver-checks
         </a>
         .
+      </>
+    ),
+  },
+  {
+    title: "Release PR 🤖",
+    description: (
+      <>
+        Release-plz opens a PR with the changes to `CHANGELOG.md`, `Cargo.toml`
+        and `Cargo.lock`. When you merge the PR, release-plz will create the tag
+        and the release on GitHub/Gitea and publish the crate to crates.io.
       </>
     ),
   },
@@ -66,9 +62,6 @@ export default function HomepageFeatures() {
             <Feature key={idx} {...props} />
           ))}
         </div>
-        <video loop controls autoPlay muted style={{ maxWidth: "100%" }}>
-          <source src="/release-plz.mp4" type="video/mp4" />
-        </video>
       </div>
     </section>
   );
