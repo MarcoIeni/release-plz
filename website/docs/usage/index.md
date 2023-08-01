@@ -1,4 +1,4 @@
-# Usage
+# CLI Usage
 
 Release-plz updates the versions and changelogs of your rust packages, by
 analyzing your git history.

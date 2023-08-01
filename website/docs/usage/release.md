@@ -1,4 +1,4 @@
-# Release
+# release
 
 The `release-plz release` command releases all the unpublished packages.
 
