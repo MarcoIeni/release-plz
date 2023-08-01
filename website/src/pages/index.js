@@ -12,14 +12,14 @@ function HomepageHeader() {
   return (
     <header className={clsx("hero hero--primary", styles.heroBanner)}>
       <div className="container">
-        <h1 className="hero__title">✨ {siteConfig.title} ✨</h1>
+        <h1 className="hero__title">{siteConfig.title}</h1>
         <img
           alt="Release-plz Logo"
-          src="img/icon.png"
+          src="img/robot.jpeg"
           style={{ maxHeight: 500, maxWidth: "100%" }}
         />
         <p className="hero__subtitle">
-          <b>Mnemonic</b> key bindings for <b>VSCode</b> commands ⌨️
+          Release Rust crates from <b>CI</b> with a <b>Release PR</b> 🤖
         </p>
         <div className={styles.buttons}>
           <Link
