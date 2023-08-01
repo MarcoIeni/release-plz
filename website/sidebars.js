@@ -19,7 +19,7 @@ const sidebars = {
       type: "category",
       label: "CLI Usage",
       collapsed: false,
-      link: {type: 'doc', id: 'usage/index'},
+      link: { type: "doc", id: "usage/index" },
       items: [
         "usage/installation",
         "usage/update",
@@ -32,7 +32,7 @@ const sidebars = {
       type: "category",
       label: "GitHub Action",
       collapsed: false,
-      link: {type: 'doc', id: 'github/index'},
+      link: { type: "doc", id: "github/index" },
       items: ["github/trigger", "github/update"],
     },
     "changelog-format",
@@ -44,12 +44,8 @@ const sidebars = {
       type: "category",
       label: "Extra",
       collapsed: false,
-      link: {type: 'doc', id: 'extra/index'},
-      items: [
-        "extra/releasing-binaries",
-        "extra/single-changelog",
-        "extra/yanked-packages",
-      ],
+      link: { type: "doc", id: "extra/index" },
+      items: ["extra/releasing-binaries", "extra/single-changelog", "extra/yanked-packages"],
     },
   ],
 };

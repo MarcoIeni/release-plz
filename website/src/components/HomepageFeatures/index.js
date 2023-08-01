@@ -9,8 +9,7 @@ const FeatureList = [
       <>
         Release-plz updates your changelogs with{" "}
         <a href="https://github.com/orhun/git-cliff">git-cliff</a> using{" "}
-        <a href="https://keepachangelog.com/en/1.0.0/">Keep a changelog</a>{" "}
-        format by default.
+        <a href="https://keepachangelog.com/en/1.0.0/">Keep a changelog</a> format by default.
       </>
     ),
   },
@@ -20,12 +19,9 @@ const FeatureList = [
       <>
         Release-plz bumps the versions of your crates according to{" "}
         <a href="https://semver.org/">Semantic Versioning</a>, based on{" "}
-        <a href="https://www.conventionalcommits.org/">Conventional Commits</a>{" "}
-        and API breaking changes detected by{" "}
-        <a href="https://github.com/obi1kenobi/cargo-semver-checks">
-          cargo-semver-checks
-        </a>
-        .
+        <a href="https://www.conventionalcommits.org/">Conventional Commits</a> and API breaking
+        changes detected by{" "}
+        <a href="https://github.com/obi1kenobi/cargo-semver-checks">cargo-semver-checks</a>.
       </>
     ),
   },
@@ -35,9 +31,8 @@ const FeatureList = [
       <>
         Release-plz opens a PR with the changes to <code>CHANGELOG.md</code>,{" "}
         <code>Cargo.toml</code>
-        and <code>Cargo.lock</code>. When you merge the PR, release-plz creates
-        the tag and the release on GitHub/Gitea and publishes the crate to
-        crates.io.
+        and <code>Cargo.lock</code>. When you merge the PR, release-plz creates the tag and the
+        release on GitHub/Gitea and publishes the crate to crates.io.
       </>
     ),
   },

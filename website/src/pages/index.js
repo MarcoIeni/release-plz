@@ -29,10 +29,7 @@ function HomepageHeader() {
           >
             Get Started️
           </Link>
-          <span
-            className={styles.indexCtasGitHubButtonWrapper}
-            style={{ marginLeft: 10 }}
-          >
+          <span className={styles.indexCtasGitHubButtonWrapper} style={{ marginLeft: 10 }}>
             <iframe
               className={styles.indexCtasGitHubButton}
               src="https://ghbtns.com/github-btn.html?user=MarcoIeni&amp;repo=release-plz&amp;type=star&amp;count=true&amp;size=large"
