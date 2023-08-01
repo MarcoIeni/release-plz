@@ -93,8 +93,10 @@ semver_check = false
   The uncommitted changes will be part of the update.
 - If `false`, release-plz returns an error if the repository contains uncommitted changes. *(Default)*.
 
-Note: This field is different from the `allow-dirty` flag of the `release-plz release` command.
+:::caution
+This field is different from the `allow-dirty` flag of the `release-plz release` command.
 This field only affects the `release-plz update` and `release-plz release-pr` command.
+:::
 
 #### The `changelog_config` field
 
