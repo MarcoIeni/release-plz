@@ -102,7 +102,7 @@ const config = {
             position: "right",
           },
           {
-            href: "https://github.com/MarcoIeni/Release-plz",
+            href: "https://github.com/MarcoIeni/release-plz",
             "aria-label": "GitHub",
             className: "header-github-link",
             position: "right",
