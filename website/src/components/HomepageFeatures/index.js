@@ -4,7 +4,7 @@ import styles from "./styles.module.css";
 
 const FeatureList = [
   {
-    title: "Changelog generation 💡",
+    title: "Changelog generation 📝",
     description: (
       <>
         Release-plz updates your changelogs with{" "}
