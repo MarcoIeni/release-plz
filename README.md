@@ -1,4 +1,4 @@
-![release-plz-logo](docs/src/assets/robot_text.jpeg)
+![release-plz-logo](website/static/img/release-plz-social-card.png)
 
 [![Crates.io](https://img.shields.io/crates/v/release-plz.svg)](https://crates.io/crates/release-plz)
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
@@ -21,7 +21,7 @@ Release-plz updates your packages with a release Pull Request based on:
 Release-plz maintains Release PRs, keeping them up-to-date as you merge additional commits. When you're
 ready to create a release, simply merge the release PR.
 
-![pr](docs/src/assets/pr.png)
+![pr](website/docs/assets/pr.png)
 
 When you merge the Release PR (or when you edit the `Cargo.toml` versions by yourself),
 release-plz:
