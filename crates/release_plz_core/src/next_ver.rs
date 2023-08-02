@@ -11,7 +11,7 @@ use crate::{
     strip_prefix::strip_prefix,
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
-    ChangelogBuilder, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
+    ChangelogBuilder, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME, PackagesToUpdate,
 };
 use anyhow::Context;
 use cargo_metadata::{semver::Version, Dependency, Package};
@@ -554,7 +554,7 @@ impl Updater<'_> {
         &self,
         packages_to_check_for_deps: &[&Package],
         changed_packages: &[(&Package, &Version)],
-    ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
+    ) -> anyhow::Result<PackagesToUpdate> {
         let packages_to_update = packages_to_check_for_deps
             .iter()
             .filter_map(|p| match p.dependencies_to_update(changed_packages) {

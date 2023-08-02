@@ -11,16 +11,18 @@ use tracing::{info, warn};
 
 use tracing::{debug, instrument};
 
+pub type PackagesToUpdate = Vec<(Package, UpdateResult)>;
+
 #[derive(Clone, Default)]
 pub struct PackagesUpdate {
-    updates: Vec<(Package, UpdateResult)>,
+    updates: PackagesToUpdate,
     /// New workspace version. If None, the workspace version is not updated.
     /// See cargo [docs](https://doc.rust-lang.org/cargo/reference/workspaces.html#root-package).
     workspace_version: Option<Version>,
 }
 
 impl PackagesUpdate {
-    pub fn new(updates: Vec<(Package, UpdateResult)>) -> Self {
+    pub fn new(updates: PackagesToUpdate) -> Self {
         Self {
             updates,
             workspace_version: None,
@@ -35,7 +37,7 @@ impl PackagesUpdate {
         &self.updates
     }
 
-    pub fn updates_mut(&mut self) -> &mut Vec<(Package, UpdateResult)> {
+    pub fn updates_mut(&mut self) -> &mut PackagesToUpdate {
         &mut self.updates
     }
 
@@ -154,25 +156,31 @@ fn update_manifests(
     local_manifest_path: &Path,
     all_packages: &[Package],
 ) -> anyhow::Result<()> {
+    // Avoid updating the version of packages that inherit the version from the workspace
+    let (workspace_pkgs, independent_pkgs): (PackagesToUpdate, PackagesToUpdate) =
+        packages_to_update
+            .updates
+            .clone()
+            .into_iter()
+            .partition(|(p, _)| {
+                let local_manifest_path = p.package_path().unwrap().join(CARGO_TOML);
+                let local_manifest = LocalManifest::try_new(&local_manifest_path).unwrap();
+                local_manifest.version_is_inherited()
+            });
+
     if let Some(new_workspace_version) = packages_to_update.workspace_version() {
         let mut local_manifest = LocalManifest::try_new(local_manifest_path)?;
         local_manifest.set_workspace_version(new_workspace_version);
         local_manifest
             .write()
             .context("can't update workspace version")?;
+
+        for (pkg, _) in workspace_pkgs {
+            let package_path = pkg.package_path()?;
+            update_dependencies(all_packages, new_workspace_version, package_path)?;
+        }
     }
 
-    // Avoid updating the version of packages that inherit the version from the workspace
-    let independent_pkgs: Vec<(Package, UpdateResult)> = packages_to_update
-        .updates
-        .clone()
-        .into_iter()
-        .filter(|(p, _)| {
-            let local_manifest_path = p.package_path().unwrap().join(CARGO_TOML);
-            let local_manifest = LocalManifest::try_new(&local_manifest_path).unwrap();
-            !local_manifest.version_is_inherited()
-        })
-        .collect();
     update_versions(all_packages, &PackagesUpdate::new(independent_pkgs))?;
     Ok(())
 }
@@ -225,7 +233,9 @@ fn set_version(
     let mut local_manifest =
         LocalManifest::try_new(&package_path.join("Cargo.toml")).context("cannot read manifest")?;
     local_manifest.set_package_version(version);
-    local_manifest.write().expect("cannot update manifest");
+    local_manifest
+        .write()
+        .with_context(|| format!("cannot update manifest {:?}", &local_manifest.path))?;
 
     let package_path = fs::canonicalize(crate::manifest_dir(&local_manifest.path)?)?;
     update_dependencies(all_packages, version, &package_path)?;
