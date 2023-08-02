@@ -156,7 +156,7 @@ fn update_manifests(
     local_manifest_path: &Path,
     all_packages: &[Package],
 ) -> anyhow::Result<()> {
-    // Avoid updating the version of packages that inherit the version from the workspace
+    // Distinguish packages type to avoid updating the version of packages that inherit the workspace version
     let (workspace_pkgs, independent_pkgs): (PackagesToUpdate, PackagesToUpdate) =
         packages_to_update
             .updates
@@ -243,6 +243,20 @@ fn set_version(
 }
 
 /// Update the package version in the dependencies of the other packages.
+/// E.g. from:
+///
+/// ```toml
+/// [dependencies]
+/// pkg1 = { path = "../pkg1", version = "1.2.3" }
+/// ```
+///
+/// to:
+
+/// ```toml
+/// [dependencies]
+/// pkg1 = { path = "../pkg1", version = "1.2.4" }
+/// ```
+///
 fn update_dependencies(
     all_packages: &[Package],
     version: &Version,
