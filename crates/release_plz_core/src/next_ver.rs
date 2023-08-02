@@ -11,7 +11,7 @@ use crate::{
     strip_prefix::strip_prefix,
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
-    ChangelogBuilder, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME, PackagesToUpdate,
+    ChangelogBuilder, PackagesToUpdate, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::Context;
 use cargo_metadata::{semver::Version, Dependency, Package};
