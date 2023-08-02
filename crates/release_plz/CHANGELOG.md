@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.17](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.16...release-plz-v0.3.17) - 2023-08-02
 
-### Other
-- update links to new website ([#874](https://github.com/MarcoIeni/release-plz/pull/874))
+### Fixed
+- update workspace version in dependencies ([#889](https://github.com/MarcoIeni/release-plz/pull/889))
 
 ## [0.3.16](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.15...release-plz-v0.3.16) - 2023-07-25
 
