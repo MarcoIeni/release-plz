@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - update workspace version in dependencies ([#889](https://github.com/MarcoIeni/release-plz/pull/889))
 
-
 ## [0.12.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.12.2...release_plz_core-v0.12.3) - 2023-07-25
 
 ### Added
