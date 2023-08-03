@@ -3,13 +3,13 @@ members = ["crates/*"]
 
 [workspace.dependencies]
 anyhow = "1.0.72"
-cargo_metadata = "0.15.4"
-cargo = "0.71.0"
+cargo_metadata = "0.17.0"
+cargo = "0.72.1"
 chrono = { version = "0.4.26", default-features = false }
 clap = "4.3.19"
 clap_complete = "4.3.2"
 conventional_commit_parser = "0.9.4"
-crates-index = { version = "0.19.13", features = ["sparse-http"] }
+crates-index = { version = "2.1.0", features = ["git", "sparse"] }
 dirs = "5.0.1"
 dunce = "1.0.4"
 expect-test = "1.4.1"

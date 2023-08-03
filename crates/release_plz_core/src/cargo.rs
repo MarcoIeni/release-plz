@@ -1,6 +1,6 @@
 use anyhow::Context;
 use cargo_metadata::Package;
-use crates_index::{Crate, Index, SparseIndex};
+use crates_index::{Crate, GitIndex, SparseIndex};
 use tracing::{debug, info};
 
 use std::{
@@ -12,7 +12,7 @@ use std::{
 };
 
 pub enum CargoIndex {
-    Git(Index),
+    Git(GitIndex),
     Sparse(SparseIndex),
 }
 
@@ -66,7 +66,7 @@ pub async fn is_published(index: &mut CargoIndex, package: &Package) -> anyhow::
     }
 }
 
-pub fn is_published_git(index: &mut Index, package: &Package) -> anyhow::Result<bool> {
+pub fn is_published_git(index: &mut GitIndex, package: &Package) -> anyhow::Result<bool> {
     // See if we already have the package in cache.
     if is_in_cache_git(index, package) {
         return Ok(true);
@@ -79,7 +79,7 @@ pub fn is_published_git(index: &mut Index, package: &Package) -> anyhow::Result<
     Ok(is_in_cache_git(index, package))
 }
 
-fn is_in_cache_git(index: &Index, package: &Package) -> bool {
+fn is_in_cache_git(index: &GitIndex, package: &Package) -> bool {
     let crate_data = index.crate_(&package.name);
     let version = &package.version.to_string();
     is_in_cache(crate_data.as_ref(), version)
@@ -109,7 +109,7 @@ async fn fetch_sparse_metadata(
     crate_name: &str,
 ) -> anyhow::Result<Option<Crate>> {
     let req = index.make_cache_request(crate_name)?;
-    let (parts, _) = req.into_parts();
+    let (parts, _) = req.body(())?.into_parts();
     let req = http::Request::from_parts(parts, vec![]);
 
     let req: reqwest::Request = req.try_into()?;
