@@ -1,24 +1,23 @@
+use anyhow::Context;
+use reqwest::Response;
+
 #[async_trait::async_trait]
 pub trait ReqwestUtils {
-    type E;
-
-    async fn ok_if_2xx(self) -> Result<Box<Self>, Self::E>;
+    async fn ok_if_2xx(self) -> anyhow::Result<Response>;
 }
 
 #[async_trait::async_trait]
-impl ReqwestUtils for reqwest::Response {
-    type E = anyhow::Error;
-
-    async fn ok_if_2xx(self) -> Result<Box<Self>, Self::E> {
+impl ReqwestUtils for Response {
+    async fn ok_if_2xx(self) -> anyhow::Result<Self> {
         if self.status().is_success() {
-            Ok(Box::new(self))
+            Ok(self)
         } else {
             let response_dbg = format!("{:?}", self);
-            let body = self.text().await?;
+            let body = self.text().await.context("can't convert body to text")?;
             anyhow::bail!(
-                "Unexpected response. Response: {}. Body: {}",
-                response_dbg,
-                body
+                "Unexpected response. \
+                 Response: {response_dbg}. \
+                 Body: {body}",
             );
         }
     }
