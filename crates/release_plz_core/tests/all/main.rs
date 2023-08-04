@@ -1,4 +1,3 @@
-mod gitea_client;
 mod helpers;
 mod release_pr;
 mod update;

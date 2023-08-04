@@ -33,5 +33,10 @@ tracing.workspace = true
 url.workspace = true
 
 [dev-dependencies]
+test_logs = { path = "../test_logs" }
+
 assert_cmd = "2.0.12"
+fake.workspace = true
 expect-test.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true

@@ -69,7 +69,6 @@ async fn release_plz_adds_changelog_on_new_project() {
 
     // TODO: git push
 
-    // TODO: move this file to release-plz folder
     let result = Command::new("release-plz")
         .current_dir(&repo_dir)
         .env("RUST_LOG", "DEBUG,hyper=info")
