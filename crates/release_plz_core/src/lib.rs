@@ -23,7 +23,7 @@ mod version;
 pub use changelog::*;
 pub use command::*;
 pub use download::read_package;
-pub use git::backend::GitBackend;
+pub use git::backend::{GitBackend, GitClient};
 pub use git::gitea_client::Gitea;
 pub use git::github_client::GitHub;
 pub use git::gitlab_client::GitLab;
