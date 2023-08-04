@@ -4,24 +4,14 @@ use git_cmd::Repo;
 use release_plz_core::{GitBackend, GitClient, Gitea, RepoUrl};
 use secrecy::SecretString;
 
-use crate::helpers::gitea_client;
+use crate::helpers::gitea_client::GiteaContext;
 
 #[tokio::test]
 async fn release_plz_adds_changelog_on_new_project() {
-    let user = gitea_client::create_user();
     let repo_name = "myrepo";
-    user.create_repository(repo_name).await;
+    let gitea = GiteaContext::new(repo_name.to_string()).await;
     let temp = tempfile::tempdir().unwrap();
-    let token = user.create_token().await;
-    let repo_url = format!(
-        // if you need ssh instead of http: "ssh://git@localhost:2222/{}/{}.git",
-        "http://{}:{}@localhost:3000/{}/{}.git",
-        user.username(),
-        user.password(),
-        user.username(),
-        repo_name
-    );
-
+    let repo_url = gitea.repo_url();
     println!("temp: {:?}", temp.path());
 
     let result = Command::new("git")
@@ -44,7 +34,8 @@ async fn release_plz_adds_changelog_on_new_project() {
 
     let repo = Repo::new(&repo_dir).unwrap();
     // config local user
-    repo.git(&["config", "user.name", user.username()]).unwrap();
+    repo.git(&["config", "user.name", gitea.user.username()])
+        .unwrap();
     // set email
     repo.git(&["config", "user.email", "a@example.com"])
         .unwrap();
@@ -59,7 +50,7 @@ async fn release_plz_adds_changelog_on_new_project() {
         .env("RUST_LOG", "DEBUG,hyper=info")
         .arg("release-pr")
         .arg("--git-token")
-        .arg(&token)
+        .arg(&gitea.token)
         .arg("--backend")
         .arg("gitea")
         .assert()
@@ -67,7 +58,7 @@ async fn release_plz_adds_changelog_on_new_project() {
     let git_backend = GitBackend::Gitea(
         Gitea::new(
             RepoUrl::new(&repo_url).unwrap(),
-            SecretString::from_str(&token).unwrap(),
+            SecretString::from_str(&gitea.token).unwrap(),
         )
         .unwrap(),
     );

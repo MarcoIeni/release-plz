@@ -36,6 +36,7 @@ url.workspace = true
 test_logs = { path = "../test_logs" }
 
 assert_cmd = "2.0.12"
+async-trait.workspace = true
 fake.workspace = true
 expect-test.workspace = true
 serde_json.workspace = true
