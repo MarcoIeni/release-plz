@@ -20,7 +20,6 @@ mod strip_prefix;
 mod tmp_repo;
 mod version;
 
-pub use backend::*;
 pub use changelog::*;
 pub use command::*;
 pub use download::read_package;
