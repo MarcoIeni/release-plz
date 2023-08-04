@@ -1,132 +1,78 @@
-use std::process::Command;
+use std::{process::Command, str::FromStr};
 
-use fake::{Fake, StringFaker};
-use serde_json::json;
+use git_cmd::Repo;
+use release_plz_core::{GitBackend, GitClient, Gitea, RepoUrl};
+use secrecy::SecretString;
 
-pub struct User {
-    username: String,
-    password: String,
-}
+use crate::helpers::gitea_client;
 
-impl User {
-    pub fn username(&self) -> &str {
-        &self.username
-    }
+#[tokio::test]
+async fn release_plz_adds_changelog_on_new_project() {
+    let user = gitea_client::create_user();
+    let repo_name = "myrepo";
+    user.create_repository(repo_name).await;
+    let temp = tempfile::tempdir().unwrap();
+    let token = user.create_token().await;
+    let repo_url = format!(
+        // if you need ssh instead of http: "ssh://git@localhost:2222/{}/{}.git",
+        "http://{}:{}@localhost:3000/{}/{}.git",
+        user.username(),
+        user.password(),
+        user.username(),
+        repo_name
+    );
 
-    pub fn password(&self) -> &str {
-        &self.password
-    }
+    println!("temp: {:?}", temp.path());
 
-    pub async fn create_repository(&self, repo_name: &str) {
-        let client = reqwest::Client::new();
-        client
-            .post("http://localhost:3000/api/v1/user/repos")
-            .basic_auth(&self.username, Some(&self.password))
-            .json(&json!({
-                "name": repo_name,
-                // Automatically initialize the repository
-                "auto_init": true,
-            }))
-            .send()
-            .await
-            .expect("Failed to create repository");
-    }
+    let result = Command::new("git")
+        .current_dir(temp.path())
+        .arg("clone")
+        .arg(&repo_url)
+        .spawn()
+        .unwrap()
+        .wait()
+        .unwrap();
+    assert!(result.success());
 
-    pub async fn repo_exists(&self, repo_name: &str) -> bool {
-        let repo = self.get_repo(repo_name).await;
-        repo == repo_name
-    }
+    let repo_dir = temp.path().join(repo_name);
+    let result = Command::new("cargo")
+        .current_dir(&repo_dir)
+        .arg("init")
+        .output()
+        .unwrap();
+    assert!(result.status.success());
 
-    /// Get the repository and return its name.
-    async fn get_repo(&self, repo_name: &str) -> String {
-        let repo_url = format!(
-            "http://localhost:3000/api/v1/repos/{}/{}",
-            self.username, repo_name
-        );
-        let client = reqwest::Client::new();
+    let repo = Repo::new(&repo_dir).unwrap();
+    // config local user
+    repo.git(&["config", "user.name", user.username()]).unwrap();
+    // set email
+    repo.git(&["config", "user.email", "a@example.com"])
+        .unwrap();
 
-        let repo: Repository = client
-            .get(repo_url)
-            .basic_auth(&self.username, Some(&self.password))
-            .send()
-            .await
-            .unwrap()
-            .error_for_status()
-            .unwrap()
-            .json()
-            .await
-            .unwrap();
+    repo.add_all_and_commit("Initial commit").unwrap();
 
-        repo.name
-    }
+    // TODO: git push
 
-    pub async fn create_token(&self) -> String {
-        let client = reqwest::Client::new();
-        let token: Token = client
-            .post(format!(
-                "http://localhost:3000/api/v1/users/{}/tokens",
-                self.username
-            ))
-            .basic_auth(&self.username, Some(&self.password))
-            .json(&json!({
-                "name": self.username,
-                // edit repositories
-                "scopes": ["read:repository", "write:repository"]
-            }))
-            .send()
-            .await
-            .unwrap()
-            .error_for_status()
-            .unwrap()
-            .json()
-            .await
-            .unwrap();
-        token.sha1
-    }
-}
-
-#[derive(serde::Deserialize)]
-struct Repository {
-    name: String,
-}
-
-#[derive(serde::Deserialize)]
-struct Token {
-    sha1: String,
-}
-
-fn run_create_user_command(user: &User) {
-    let email = format!("{}@example.com", user.username);
-    Command::new("docker")
-        .arg("exec")
+    assert_cmd::Command::cargo_bin(env!("CARGO_PKG_NAME"))
+        .unwrap()
+        .current_dir(&repo_dir)
+        .env("RUST_LOG", "DEBUG,hyper=info")
+        .arg("release-pr")
+        .arg("--git-token")
+        .arg(&token)
+        .arg("--backend")
         .arg("gitea")
-        .arg("gitea")
-        .arg("admin")
-        .arg("user")
-        .arg("create")
-        .arg("--username")
-        .arg(&user.username)
-        .arg("--password")
-        .arg(&user.password)
-        .arg("--email")
-        .arg(email)
-        .arg("--must-change-password=false")
-        .status()
-        .expect("Failed to create user");
-}
+        .assert()
+        .success();
+    let git_backend = GitBackend::Gitea(
+        Gitea::new(
+            RepoUrl::new(&repo_url).unwrap(),
+            SecretString::from_str(&token).unwrap(),
+        )
+        .unwrap(),
+    );
 
-/// Create a random user and return it's username and passoword.
-pub fn create_user() -> User {
-    let user = User {
-        username: fake_id(),
-        password: "psw".to_string(),
-    };
-    run_create_user_command(&user);
-    user
-}
-
-fn fake_id() -> String {
-    const LETTERS: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let f = StringFaker::with(Vec::from(LETTERS), 8);
-    f.fake()
+    let git_client = GitClient::new(git_backend).unwrap();
+    let opened_prs = git_client.opened_prs("release-plz/").await.unwrap();
+    assert_eq!(opened_prs.len(), 1);
 }
