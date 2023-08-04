@@ -3,6 +3,8 @@ use std::process::Command;
 use fake::{Fake, StringFaker};
 use serde_json::json;
 
+use super::assert_2xx::Assert2xx;
+
 pub struct GiteaUser {
     username: String,
     password: String,
@@ -81,24 +83,6 @@ impl GiteaContext {
     }
 }
 
-#[async_trait::async_trait]
-trait Assert2xx {
-    async fn assert_2xx(self) -> Self;
-}
-
-#[async_trait::async_trait]
-impl Assert2xx for reqwest::Response {
-    async fn assert_2xx(self) -> Self {
-        let status = self.status();
-        if status.is_success() {
-            self.error_for_status().unwrap()
-        } else {
-            let response_dbg = format!("{:?}", self);
-            let body = self.text().await.unwrap();
-            panic!("Wrong response. Response: {}. Body: {}", response_dbg, body);
-        }
-    }
-}
 
 pub async fn create_token(user: &GiteaUser) -> String {
     let client = reqwest::Client::new();
@@ -194,7 +178,6 @@ pub async fn create_repository(user_token: &str, repo_name: &str) {
         .expect("Failed to create repository")
         .assert_2xx()
         .await;
-
 }
 
 #[tokio::test]
