@@ -59,12 +59,14 @@ async fn release_plz_adds_changelog_on_new_project() {
     assert!(result.status.success());
 
     let repo = Repo::new(&repo_dir).unwrap();
-    repo.add_all_and_commit("Initial commit").unwrap();
     // config local user
     repo.git(&["config", "user.name", user.username()]).unwrap();
     // set email
     repo.git(&["config", "user.email", "a@example.com"])
         .unwrap();
+
+    repo.add_all_and_commit("Initial commit").unwrap();
+
     // TODO: git push
 
     // TODO: move this file to release-plz folder
