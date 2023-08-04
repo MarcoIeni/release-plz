@@ -69,7 +69,8 @@ async fn release_plz_adds_changelog_on_new_project() {
 
     // TODO: git push
 
-    let result = Command::new("release-plz")
+    assert_cmd::Command::cargo_bin(env!("CARGO_PKG_NAME"))
+        .unwrap()
         .current_dir(&repo_dir)
         .env("RUST_LOG", "DEBUG,hyper=info")
         .arg("release-pr")
@@ -77,11 +78,8 @@ async fn release_plz_adds_changelog_on_new_project() {
         .arg(&token)
         .arg("--backend")
         .arg("gitea")
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap();
-    assert!(result.success());
+        .assert()
+        .success();
     let git_backend = GitBackend::Gitea(
         Gitea::new(
             RepoUrl::new(&repo_url).unwrap(),
