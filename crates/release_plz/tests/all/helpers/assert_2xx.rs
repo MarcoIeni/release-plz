@@ -6,9 +6,8 @@ pub trait Assert2xx {
 #[async_trait::async_trait]
 impl Assert2xx for reqwest::Response {
     async fn assert_2xx(self) -> Self {
-        let status = self.status();
-        if status.is_success() {
-            self.error_for_status().unwrap()
+        if self.status().is_success() {
+            self
         } else {
             let response_dbg = format!("{:?}", self);
             let body = self.text().await.unwrap();
