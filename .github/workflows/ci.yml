@@ -25,6 +25,9 @@ jobs:
           cache: enable
       - name: Install dependencies
         run: sudo apt update && sudo apt install -y libssl-dev
+      - name: Start containers
+        run: docker-compose up -d
+        working-directory: ./tests
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
