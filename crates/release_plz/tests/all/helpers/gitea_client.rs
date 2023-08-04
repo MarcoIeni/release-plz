@@ -3,7 +3,7 @@ use std::process::Command;
 use fake::{Fake, StringFaker};
 use serde_json::json;
 
-use super::assert_2xx::Assert2xx;
+use super::reqwest_utils::ReqwestUtils;
 
 pub struct GiteaUser {
     username: String,
@@ -73,8 +73,9 @@ impl GiteaContext {
             .send()
             .await
             .unwrap()
-            .assert_2xx()
+            .ok_if_2xx()
             .await
+            .unwrap()
             .json()
             .await
             .unwrap();
@@ -82,7 +83,6 @@ impl GiteaContext {
         repo.name
     }
 }
-
 
 pub async fn create_token(user: &GiteaUser) -> String {
     let client = reqwest::Client::new();
@@ -100,8 +100,9 @@ pub async fn create_token(user: &GiteaUser) -> String {
         .send()
         .await
         .unwrap()
-        .assert_2xx()
+        .ok_if_2xx()
         .await
+        .unwrap()
         .json()
         .await
         .unwrap();
@@ -176,8 +177,9 @@ pub async fn create_repository(user_token: &str, repo_name: &str) {
         .send()
         .await
         .expect("Failed to create repository")
-        .assert_2xx()
-        .await;
+        .ok_if_2xx()
+        .await
+        .unwrap();
 }
 
 #[tokio::test]
