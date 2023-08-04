@@ -5,14 +5,14 @@ use std::{
 
 use anyhow::Context;
 use cargo_metadata::Package;
-use crates_index::Index;
+use crates_index::{GitIndex, SparseIndex};
 use git_cmd::Repo;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument, warn};
 use url::Url;
 
 use crate::{
-    cargo::{is_published, run_cargo, wait_until_published},
+    cargo::{is_published, run_cargo, wait_until_published, CargoIndex},
     changelog_parser,
     git::backend::GitClient,
     release_order::release_order,
@@ -286,7 +286,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
         }
         let registry_indexes = registry_indexes(package, input.registry.clone())?;
         for mut index in registry_indexes {
-            if is_published(&mut index, package)? {
+            if is_published(&mut index, package).await? {
                 info!("{} {}: already published", package.name, package.version);
                 continue;
             }
@@ -299,7 +299,10 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
 /// Get the indexes where the package should be published.
 /// If `registry` is specified, it takes precedence over the `publish` field
 /// of the package manifest.
-fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Result<Vec<Index>> {
+fn registry_indexes(
+    package: &Package,
+    registry: Option<String>,
+) -> anyhow::Result<Vec<CargoIndex>> {
     let registries = registry
         .map(|r| vec![r])
         .unwrap_or_else(|| package.publish.clone().unwrap_or_default());
@@ -310,18 +313,25 @@ fn registry_indexes(package: &Package, registry: Option<String>) -> anyhow::Resu
                 .context("failed to retrieve registry url")
         })
         .collect::<anyhow::Result<Vec<Url>>>()?;
+
     let mut registry_indexes = registry_urls
         .iter()
-        .map(|u| Index::from_url(&format!("registry+{u}")))
-        .collect::<Result<Vec<Index>, crates_index::Error>>()?;
+        .map(|u| {
+            if u.to_string().starts_with("sparse+") {
+                SparseIndex::from_url(u.as_str()).map(CargoIndex::Sparse)
+            } else {
+                GitIndex::from_url(&format!("registry+{u}")).map(CargoIndex::Git)
+            }
+        })
+        .collect::<Result<Vec<CargoIndex>, crates_index::Error>>()?;
     if registry_indexes.is_empty() {
-        registry_indexes.push(Index::new_cargo_default()?)
+        registry_indexes.push(CargoIndex::Git(GitIndex::new_cargo_default()?))
     }
     Ok(registry_indexes)
 }
 
 async fn release_package(
-    index: &mut Index,
+    index: &mut CargoIndex,
     package: &Package,
     input: &ReleaseRequest,
     git_tag: String,
@@ -364,7 +374,7 @@ async fn release_package(
         );
     } else {
         if publish {
-            wait_until_published(index, package)?;
+            wait_until_published(index, package).await?;
         }
 
         repo.tag(&git_tag)?;

@@ -6,6 +6,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.12.3...release_plz_core-v0.12.4) - 2023-08-02
+
+### Fixed
+- update workspace version in dependencies ([#889](https://github.com/MarcoIeni/release-plz/pull/889))
+
+## [0.12.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.12.2...release_plz_core-v0.12.3) - 2023-07-25
+
+### Added
+- *(release)* add support for sparse registry URLs ([#863](https://github.com/MarcoIeni/release-plz/pull/863))
+
+## [0.12.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.12.1...release_plz_core-v0.12.2) - 2023-06-26
+
+### Fixed
+- copy symlinks ([#827](https://github.com/MarcoIeni/release-plz/pull/827))
+
+### Other
+- small package comparison refactor ([#833](https://github.com/MarcoIeni/release-plz/pull/833))
+
+## [0.12.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.12.0...release_plz_core-v0.12.1) - 2023-06-10
+
+### Fixed
+- ignore Cargo.lock dev dependencies changes ([#820](https://github.com/MarcoIeni/release-plz/pull/820))
+
+## [0.12.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.11.3...release_plz_core-v0.12.0) - 2023-06-09
+
+### Fixed
+- update changelog correctly when workspace version specified ([#816](https://github.com/MarcoIeni/release-plz/pull/816))
+
+## [0.11.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.11.2...release_plz_core-v0.11.3) - 2023-06-09
+
+### Other
+- update dependencies ([#814](https://github.com/MarcoIeni/release-plz/pull/814))
+- stop looking at git history if commit tagged ([#813](https://github.com/MarcoIeni/release-plz/pull/813))
+
+## [0.11.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.11.1...release_plz_core-v0.11.2) - 2023-05-31
+
+### Fixed
+- *(workspaces)* report correct version update ([#802](https://github.com/MarcoIeni/release-plz/pull/802))
+
+## [0.11.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.11.0...release_plz_core-v0.11.1) - 2023-05-24
+
+### Added
+- add pr/issue link to changelog entries (#793)
+
+### Other
+- parse cargo lock faster (#795)
+
 ## [0.11.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.10.0...release_plz_core-v0.11.0) - 2023-05-21
 
 ### Added
@@ -61,7 +108,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.8.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.7.1...release_plz_core-v0.8.0) - 2023-04-16
 
 ### Added
-- [**breaking**] changed config file format. See [docs](https://marcoieni.github.io/release-plz/config.html).
+- [**breaking**] changed config file format. See [docs](https://release-plz.ieni.dev/config.html).
 - [**breaking**] removed `--git-release` flag. Now git releases are enabled by default.
   You can disable them with the `git_release_enable` configuration option.
 - make cargo publish flags configurable (#684)
@@ -94,7 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.8...release_plz_core-v0.6.0) - 2023-04-01
 
 ### Added
-- Add config file. See the [docs](https://marcoieni.github.io/release-plz/config.html) (#634)
+- Add config file. See the [docs](https://release-plz.ieni.dev/config.html) (#634)
 
 ## [0.5.8](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.5.7...release_plz_core-v0.5.8) - 2023-03-27
 

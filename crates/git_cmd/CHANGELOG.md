@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.6](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.4.5...git_cmd-v0.4.6) - 2023-07-25
+
+### Other
+- update dependencies
+
+## [0.4.5](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.4.4...git_cmd-v0.4.5) - 2023-06-09
+
+### Feat
+- add `current_commit_hash`, `get_tag_commit` and `is_ancestor` functions ([#813](https://github.com/MarcoIeni/release-plz/pull/813))
+
 ## [0.4.4](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.4.3...git_cmd-v0.4.4) - 2023-05-05
 
 ### Other

@@ -1,5 +1,6 @@
 use crate::{
     changelog_parser::{self, ChangelogRelease},
+    copy_dir::copy_dir,
     diff::Diff,
     lock_compare,
     package_compare::are_packages_equal,
@@ -7,27 +8,27 @@ use crate::{
     registry_packages::{self, PackagesCollection},
     repo_url::RepoUrl,
     semver_check::{self, SemverCheck},
+    strip_prefix::strip_prefix,
     tmp_repo::TempRepo,
     version::NextVersionFromDiff,
-    ChangelogBuilder, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
+    ChangelogBuilder, PackagesToUpdate, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
 };
-use anyhow::{anyhow, Context};
+use anyhow::Context;
 use cargo_metadata::{semver::Version, Dependency, Package};
 use cargo_utils::{upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
-use fs_extra::dir;
 use git_cliff_core::config::Config as GitCliffConfig;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashSet},
     fs, io,
     path::{Path, PathBuf},
 };
 use tempfile::{tempdir, TempDir};
-use tracing::{debug, info, instrument};
+use tracing::{debug, info, instrument, warn};
 
 #[derive(Debug, Clone)]
 pub struct UpdateRequest {
@@ -314,6 +315,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
         &registry_packages,
         &repository.repo,
         &local_project.workspace_packages(),
+        input.local_manifest(),
     )?;
     Ok((packages_to_update, repository))
 }
@@ -376,9 +378,7 @@ impl Project {
         let tmp_project_root = copy_to_temp_dir(&self.root)?;
         let tmp_manifest_dir = {
             let parent_root = self.root.parent().context("cannot determine parent root")?;
-            let relative_manifest_dir = self
-                .manifest_dir
-                .strip_prefix(parent_root)
+            let relative_manifest_dir = strip_prefix(&self.manifest_dir, parent_root)
                 .context("cannot strip prefix for manifest dir")?;
             debug!("relative_manifest_dir: {relative_manifest_dir:?}");
             tmp_project_root.as_ref().join(relative_manifest_dir)
@@ -430,18 +430,48 @@ impl Updater<'_> {
         registry_packages: &PackagesCollection,
         repository: &Repo,
         workspace_packages: &[&Package],
+        local_manifest_path: &Path,
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
         let packages_diffs =
             self.get_packages_diffs(registry_packages, repository, workspace_packages)?;
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
-        let mut packages_to_update = PackagesUpdate { updates: vec![] };
+        let mut packages_to_update = PackagesUpdate::default();
+
+        let workspace_version_pkgs: HashSet<String> = packages_diffs
+            .iter()
+            .filter(|(p, _)| {
+                let local_manifest_path = p.package_path().unwrap().join(CARGO_TOML);
+                let local_manifest = LocalManifest::try_new(&local_manifest_path).unwrap();
+                local_manifest.version_is_inherited()
+            })
+            .map(|(p, _)| p.name.clone())
+            .collect();
+
+        let new_workspace_version = new_workspace_version(
+            local_manifest_path,
+            &packages_diffs,
+            &workspace_version_pkgs,
+        )?;
+        if let Some(new_workspace_version) = &new_workspace_version {
+            packages_to_update.with_workspace_version(new_workspace_version.clone());
+        }
+
         for (p, diff) in packages_diffs {
-            let current_version = p.version.clone();
-            let next_version = p.version.next_from_diff(&diff);
+            // Calculate next version without taking into account workspace version
+            let next_version = if let Some(max_workspace_version) = &new_workspace_version {
+                if workspace_version_pkgs.contains(p.name.as_str()) {
+                    max_workspace_version.clone()
+                } else {
+                    p.version.next_from_diff(&diff)
+                }
+            } else {
+                p.version.next_from_diff(&diff)
+            };
 
             debug!("diff: {:?}, next_version: {}", &diff, next_version);
+            let current_version = p.version.clone();
             if next_version != current_version || !diff.registry_package_exists {
                 info!(
                     "{}: next version is {next_version}{}",
@@ -451,20 +481,22 @@ impl Updater<'_> {
                 let update_result =
                     self.update_result(diff.commits, next_version, p, diff.semver_check)?;
 
-                packages_to_update.updates.push((p.clone(), update_result));
+                packages_to_update
+                    .updates_mut()
+                    .push((p.clone(), update_result));
             } else if diff.is_version_published {
                 packages_to_check_for_deps.push(p);
             }
         }
 
         let changed_packages: Vec<(&Package, &Version)> = packages_to_update
-            .updates
+            .updates()
             .iter()
             .map(|(p, u)| (p, &u.version))
             .collect();
         let dependent_packages =
             self.dependent_packages(&packages_to_check_for_deps, &changed_packages)?;
-        packages_to_update.updates.extend(dependent_packages);
+        packages_to_update.updates_mut().extend(dependent_packages);
         Ok(packages_to_update)
     }
 
@@ -522,7 +554,7 @@ impl Updater<'_> {
         &self,
         packages_to_check_for_deps: &[&Package],
         changed_packages: &[(&Package, &Version)],
-    ) -> anyhow::Result<Vec<(Package, UpdateResult)>> {
+    ) -> anyhow::Result<PackagesToUpdate> {
         let packages_to_update = packages_to_check_for_deps
             .iter()
             .filter_map(|p| match p.dependencies_to_update(changed_packages) {
@@ -621,6 +653,34 @@ impl Updater<'_> {
     }
 }
 
+fn new_workspace_version(
+    local_manifest_path: &Path,
+    packages_diffs: &[(&Package, Diff)],
+    workspace_version_pkgs: &HashSet<String>,
+) -> anyhow::Result<Option<Version>> {
+    let workspace_version = {
+        let local_manifest = LocalManifest::try_new(local_manifest_path)?;
+        local_manifest.get_workspace_version()
+    };
+    let new_workspace_version = workspace_version_pkgs
+        .iter()
+        .filter_map(|workspace_package| {
+            for (p, diff) in packages_diffs {
+                if workspace_package == &p.name {
+                    let next = p.version.next_from_diff(diff);
+                    if let Some(workspace_version) = &workspace_version {
+                        if &next >= workspace_version {
+                            return Some(next);
+                        }
+                    }
+                }
+            }
+            None
+        })
+        .max();
+    Ok(new_workspace_version)
+}
+
 fn get_changelog(
     commits: Vec<String>,
     next_version: &Version,
@@ -662,8 +722,7 @@ fn get_repo_path(
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<PathBuf> {
-    let relative_path = old_path
-        .strip_prefix(project_root)
+    let relative_path = strip_prefix(old_path, project_root)
         .context("error while retrieving package_path: project root not found")?;
     let result_path = repository.directory().join(relative_path);
 
@@ -704,17 +763,25 @@ fn get_diff(
         .map(|p| get_package_path(p, repository, &project.root))
         .collect();
     let ignored_dirs = ignored_dirs?;
+
+    let tag_commit = {
+        let git_tag = project.git_tag(&package.name, &package.version.to_string());
+        repository.get_tag_commit(&git_tag)
+    };
     loop {
         let current_commit_message = repository.current_commit_message()?;
+        let current_commit_hash = repository.current_commit_hash()?;
         if let Some(registry_package) = registry_package {
             debug!("package {} found in cargo registry", registry_package.name);
             let registry_package_path = registry_package.package_path()?;
             let are_packages_equal =
                 are_packages_equal(&package_path, registry_package_path, ignored_dirs.clone())
                     .context("cannot compare packages")?;
-            if are_packages_equal {
+            if are_packages_equal
+                || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
+            {
                 debug!(
-                    "next version calculated starting from commit after `{current_commit_message}`"
+                    "next version calculated starting from commits after `{current_commit_hash}`"
                 );
                 if diff.commits.is_empty() {
                     let are_dependencies_updated = are_toml_dependencies_updated(
@@ -759,6 +826,21 @@ fn get_diff(
     Ok(diff)
 }
 
+/// Check if commit belongs to a previous version of the package.
+fn is_commit_too_old(
+    repository: &Repo,
+    tag_commit: Option<&str>,
+    current_commit_hash: &str,
+) -> bool {
+    if let Some(tag_commit) = tag_commit.as_ref() {
+        if repository.is_ancestor(current_commit_hash, tag_commit) {
+            debug!("stopping looking at git history because the current commit ({}) is an ancestor of the commit ({}) tagged with the previous version.", current_commit_hash, tag_commit);
+            return true;
+        }
+    }
+    false
+}
+
 /// Check if release-plz should check the semver compatibility of the package.
 /// - `run_semver_check` is true if the user wants to run the semver check.
 fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
@@ -781,7 +863,7 @@ fn are_toml_dependencies_updated(
 fn workspace_members(manifest: impl AsRef<Path>) -> anyhow::Result<impl Iterator<Item = Package>> {
     let manifest = manifest.as_ref();
     let packages = cargo_utils::workspace_members(Some(manifest))
-        .map_err(|e| anyhow!("cannot read workspace members in manifest {manifest:?}: {e}"))?
+        .with_context(|| format!("cannot read workspace members in manifest {manifest:?}"))?
         .into_iter();
     Ok(packages)
 }
@@ -822,12 +904,8 @@ fn is_library(package: &Package) -> bool {
 
 pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
     let tmp_dir = tempdir().context("cannot create temporary directory")?;
-    dir::copy(target, tmp_dir.as_ref(), &dir::CopyOptions::default()).map_err(|e| {
-        anyhow!(
-            "cannot copy directory {target:?} to {tmp_dir:?}: {e} Error kind: {:?}",
-            e.kind
-        )
-    })?;
+    copy_dir(target, tmp_dir.as_ref())
+        .with_context(|| format!("cannot copy directory {target:?} to {tmp_dir:?}",))?;
     Ok(tmp_dir)
 }
 

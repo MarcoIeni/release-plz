@@ -3,6 +3,7 @@ mod changelog;
 mod changelog_parser;
 mod clone;
 mod command;
+mod copy_dir;
 mod diff;
 mod download;
 mod git;
@@ -15,6 +16,7 @@ mod registry_packages;
 mod release_order;
 mod repo_url;
 mod semver_check;
+mod strip_prefix;
 mod tmp_repo;
 mod version;
 

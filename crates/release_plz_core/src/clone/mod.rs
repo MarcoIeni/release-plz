@@ -32,6 +32,8 @@ pub use cargo::{
     util::{CargoResult, Config},
 };
 
+use crate::strip_prefix::strip_prefix;
+
 /// Rust crate.
 #[derive(PartialEq, Eq, Debug)]
 pub struct Crate {
@@ -215,7 +217,7 @@ fn clone_directory(from: &Path, to: &Path) -> CargoResult<()> {
         let entry = entry.unwrap();
         let file_type = entry.file_type();
         let mut dest_path = to.to_owned();
-        dest_path.push(entry.path().strip_prefix(from).unwrap());
+        dest_path.push(strip_prefix(entry.path(), from).unwrap());
 
         if entry.file_name() == ".cargo-ok" {
             continue;

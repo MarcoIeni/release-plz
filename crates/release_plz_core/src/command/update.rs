@@ -1,7 +1,7 @@
 use crate::semver_check::SemverCheck;
 use crate::CARGO_TOML;
 use crate::{tmp_repo::TempRepo, PackagePath, UpdateRequest, UpdateResult};
-use anyhow::{anyhow, Context};
+use anyhow::Context;
 use cargo_metadata::{semver::Version, Package};
 use cargo_utils::upgrade_requirement;
 use cargo_utils::LocalManifest;
@@ -11,9 +11,39 @@ use tracing::{info, warn};
 
 use tracing::{debug, instrument};
 
-#[derive(Clone)]
+pub type PackagesToUpdate = Vec<(Package, UpdateResult)>;
+
+#[derive(Clone, Default)]
 pub struct PackagesUpdate {
-    pub updates: Vec<(Package, UpdateResult)>,
+    updates: PackagesToUpdate,
+    /// New workspace version. If None, the workspace version is not updated.
+    /// See cargo [docs](https://doc.rust-lang.org/cargo/reference/workspaces.html#root-package).
+    workspace_version: Option<Version>,
+}
+
+impl PackagesUpdate {
+    pub fn new(updates: PackagesToUpdate) -> Self {
+        Self {
+            updates,
+            workspace_version: None,
+        }
+    }
+
+    pub fn with_workspace_version(&mut self, workspace_version: Version) {
+        self.workspace_version = Some(workspace_version);
+    }
+
+    pub fn updates(&self) -> &[(Package, UpdateResult)] {
+        &self.updates
+    }
+
+    pub fn updates_mut(&mut self) -> &mut PackagesToUpdate {
+        &mut self.updates
+    }
+
+    pub fn workspace_version(&self) -> Option<&Version> {
+        self.workspace_version.as_ref()
+    }
 }
 
 impl PackagesUpdate {
@@ -99,12 +129,13 @@ impl PackagesUpdate {
 pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
     let (packages_to_update, repository) = crate::next_versions(input)?;
     let local_manifest_path = input.local_manifest();
-    let all_packages = cargo_utils::workspace_members(Some(local_manifest_path)).map_err(|e| {
-        anyhow!(
-            "cannot read workspace members in manifest {:?}: {e}",
-            input.local_manifest()
-        )
-    })?;
+    let all_packages =
+        cargo_utils::workspace_members(Some(local_manifest_path)).with_context(|| {
+            format!(
+                "cannot read workspace members in manifest {:?}",
+                input.local_manifest()
+            )
+        })?;
     update_manifests(&packages_to_update, local_manifest_path, &all_packages)?;
     update_changelogs(input, &packages_to_update)?;
     if !packages_to_update.updates.is_empty() {
@@ -125,39 +156,32 @@ fn update_manifests(
     local_manifest_path: &Path,
     all_packages: &[Package],
 ) -> anyhow::Result<()> {
-    let mut local_manifest = LocalManifest::try_new(local_manifest_path)?;
-    let workspace_version = local_manifest.get_workspace_version();
-    let (workspace_version_pkgs, independent_pkgs): (Vec<_>, Vec<_>) = packages_to_update
-        .updates
-        .clone()
-        .into_iter()
-        .partition(|(p, _)| {
-            let local_manifest_path = p.package_path().unwrap().join(CARGO_TOML);
-            let local_manifest = LocalManifest::try_new(&local_manifest_path).unwrap();
-            local_manifest.version_is_inherited()
-        });
-    if let Some(workspace_version) = workspace_version {
-        debug!("current workspace version: {}", workspace_version);
-        let max_workspace_version = workspace_version_pkgs
-            .iter()
-            .map(|(_, u)| u.version.clone())
-            .max();
-        if let Some(new_workspace_version) = max_workspace_version {
-            debug!("new workspace version: {}", new_workspace_version);
-            if new_workspace_version > workspace_version {
-                local_manifest.set_workspace_version(&new_workspace_version);
-                local_manifest
-                    .write()
-                    .context("can't update workspace version")?;
-            }
+    // Distinguish packages type to avoid updating the version of packages that inherit the workspace version
+    let (workspace_pkgs, independent_pkgs): (PackagesToUpdate, PackagesToUpdate) =
+        packages_to_update
+            .updates
+            .clone()
+            .into_iter()
+            .partition(|(p, _)| {
+                let local_manifest_path = p.package_path().unwrap().join(CARGO_TOML);
+                let local_manifest = LocalManifest::try_new(&local_manifest_path).unwrap();
+                local_manifest.version_is_inherited()
+            });
+
+    if let Some(new_workspace_version) = packages_to_update.workspace_version() {
+        let mut local_manifest = LocalManifest::try_new(local_manifest_path)?;
+        local_manifest.set_workspace_version(new_workspace_version);
+        local_manifest
+            .write()
+            .context("can't update workspace version")?;
+
+        for (pkg, _) in workspace_pkgs {
+            let package_path = pkg.package_path()?;
+            update_dependencies(all_packages, new_workspace_version, package_path)?;
         }
     }
-    update_versions(
-        all_packages,
-        &PackagesUpdate {
-            updates: independent_pkgs,
-        },
-    )?;
+
+    update_versions(all_packages, &PackagesUpdate::new(independent_pkgs))?;
     Ok(())
 }
 
@@ -209,7 +233,9 @@ fn set_version(
     let mut local_manifest =
         LocalManifest::try_new(&package_path.join("Cargo.toml")).context("cannot read manifest")?;
     local_manifest.set_package_version(version);
-    local_manifest.write().expect("cannot update manifest");
+    local_manifest
+        .write()
+        .with_context(|| format!("cannot update manifest {:?}", &local_manifest.path))?;
 
     let package_path = fs::canonicalize(crate::manifest_dir(&local_manifest.path)?)?;
     update_dependencies(all_packages, version, &package_path)?;
@@ -217,6 +243,20 @@ fn set_version(
 }
 
 /// Update the package version in the dependencies of the other packages.
+/// E.g. from:
+///
+/// ```toml
+/// [dependencies]
+/// pkg1 = { path = "../pkg1", version = "1.2.3" }
+/// ```
+///
+/// to:
+
+/// ```toml
+/// [dependencies]
+/// pkg1 = { path = "../pkg1", version = "1.2.4" }
+/// ```
+///
 fn update_dependencies(
     all_packages: &[Package],
     version: &Version,
@@ -288,26 +328,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - complex update
         "#
         .to_string();
-        let pkgs = PackagesUpdate {
-            updates: vec![
-                (
-                    fake_package::FakePackage::new("foo").into(),
-                    UpdateResult {
-                        version: Version::parse("0.2.0").unwrap(),
-                        changelog: Some(changelog.clone()),
-                        semver_check: SemverCheck::Compatible,
-                    },
-                ),
-                (
-                    fake_package::FakePackage::new("bar").into(),
-                    UpdateResult {
-                        version: Version::parse("0.2.0").unwrap(),
-                        changelog: Some(changelog),
-                        semver_check: SemverCheck::Compatible,
-                    },
-                ),
-            ],
-        };
+        let pkgs = PackagesUpdate::new(vec![
+            (
+                fake_package::FakePackage::new("foo").into(),
+                UpdateResult {
+                    version: Version::parse("0.2.0").unwrap(),
+                    changelog: Some(changelog.clone()),
+                    semver_check: SemverCheck::Compatible,
+                },
+            ),
+            (
+                fake_package::FakePackage::new("bar").into(),
+                UpdateResult {
+                    version: Version::parse("0.2.0").unwrap(),
+                    changelog: Some(changelog),
+                    semver_check: SemverCheck::Compatible,
+                },
+            ),
+        ]);
         expect_test::expect![[r#"
             ## `foo`
             <blockquote>
@@ -366,16 +404,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - complex update
         "#
         .to_string();
-        let pkgs = PackagesUpdate {
-            updates: vec![(
-                fake_package::FakePackage::new("foo").into(),
-                UpdateResult {
-                    version: Version::parse("0.2.0").unwrap(),
-                    changelog: Some(changelog),
-                    semver_check: SemverCheck::Compatible,
-                },
-            )],
-        };
+        let pkgs = PackagesUpdate::new(vec![(
+            fake_package::FakePackage::new("foo").into(),
+            UpdateResult {
+                version: Version::parse("0.2.0").unwrap(),
+                changelog: Some(changelog),
+                semver_check: SemverCheck::Compatible,
+            },
+        )]);
         expect_test::expect![[r#"
             <blockquote>
 

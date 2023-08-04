@@ -1,0 +1,33 @@
+name: Website CI # Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "website/**"
+  pull_request:
+    paths:
+      - "website/**"
+
+jobs:
+  website:
+    name: Website Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: "website/package-lock.json"
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./website
+      - name: Markdown lint
+        run: npm run mdlint
+        working-directory: ./website
+      - name: Build website
+        run: npm run build
+        working-directory: ./website

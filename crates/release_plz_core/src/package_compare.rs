@@ -1,7 +1,8 @@
-use crate::CARGO_TOML;
+use tracing::debug;
+
+use crate::{strip_prefix::strip_prefix, CARGO_TOML};
 use std::{
     collections::hash_map::DefaultHasher,
-    ffi::OsStr,
     fs::{self, File},
     hash::{Hash, Hasher},
     io::{self, Read},
@@ -24,6 +25,10 @@ pub fn are_packages_equal(
     registry_package: &Path,
     ignored_dirs: Vec<PathBuf>,
 ) -> anyhow::Result<bool> {
+    debug!(
+        "compare local package {:?} with registry package {:?}",
+        local_package, registry_package
+    );
     if !are_cargo_toml_equal(local_package, registry_package) {
         return Ok(false);
     }
@@ -39,24 +44,22 @@ pub fn are_packages_equal(
         .ignore(false)
         .filter_entry(move |e| {
             let ignored_dirs: Vec<&Path> = ignored_dirs.iter().map(|p| p.as_path()).collect();
-            !((is_dir(e)
-                && (e.path().file_name() == Some(OsStr::new(".git"))
-                    || ignored_dirs.contains(&e.path())))
+            let should_ignore_dir =
+                is_dir(e) && (e.file_name() == ".git" || ignored_dirs.contains(&e.path()));
+            !(should_ignore_dir
                 || e.path_is_symlink()
                 // Ignore `Cargo.lock` because the local one is different from the published one in workspaces.
-                || e.path().file_name() == Some(OsStr::new("Cargo.lock")))
+                || e.file_name() == "Cargo.lock")
         })
         .build()
         .filter_map(Result::ok)
         .filter(|e| !(is_dir(e) && e.path() == local_package))
         .filter(|e| !{
-            !is_dir(e)
-                && (e.path().file_name() == Some(OsStr::new(".cargo_vcs_info.json"))
-                    || e.path().file_name() == Some(OsStr::new(CARGO_TOML)))
+            !is_dir(e) && (e.file_name() == ".cargo_vcs_info.json" || e.file_name() == CARGO_TOML)
         });
 
     for entry in walker {
-        let path_without_prefix = entry.path().strip_prefix(local_package)?;
+        let path_without_prefix = strip_prefix(entry.path(), local_package)?;
         let file_in_second_path = registry_package.join(path_without_prefix);
         if is_dir(&entry) {
             let dir1 = fs::read_dir(entry.path())?;
