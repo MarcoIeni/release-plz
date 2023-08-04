@@ -5,7 +5,7 @@ use std::{
 
 use anyhow::Context;
 use cargo_metadata::Package;
-use crates_index::{Index, SparseIndex};
+use crates_index::{GitIndex, SparseIndex};
 use git_cmd::Repo;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument, warn};
@@ -320,12 +320,12 @@ fn registry_indexes(
             if u.to_string().starts_with("sparse+") {
                 SparseIndex::from_url(u.as_str()).map(CargoIndex::Sparse)
             } else {
-                Index::from_url(&format!("registry+{u}")).map(CargoIndex::Git)
+                GitIndex::from_url(&format!("registry+{u}")).map(CargoIndex::Git)
             }
         })
         .collect::<Result<Vec<CargoIndex>, crates_index::Error>>()?;
     if registry_indexes.is_empty() {
-        registry_indexes.push(CargoIndex::Git(Index::new_cargo_default()?))
+        registry_indexes.push(CargoIndex::Git(GitIndex::new_cargo_default()?))
     }
     Ok(registry_indexes)
 }
