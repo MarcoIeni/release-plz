@@ -10,6 +10,11 @@ services:
     ports:
       - "3000:3000"
       - "2222:2222"
+    healthcheck:
+      test: curl http://localhost:3000
+      interval: 5s
+      timeout: 5s
+      retries: 10
   registry:
     image: ghcr.io/d-e-s-o/cargo-http-registry:sha-7556ed9
     container_name: cargo-registry
