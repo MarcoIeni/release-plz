@@ -179,13 +179,23 @@ where
 {
     let dep = Dependency::parse(name, vers, src.source_id())?;
     let mut summaries = vec![];
-
     loop {
-        match src.query(&dep, QueryKind::Exact, &mut |summary| {
+        let query_result = src.query(&dep, QueryKind::Exact, &mut |summary| {
             summaries.push(summary)
-        })? {
-            std::task::Poll::Ready(()) => break,
-            std::task::Poll::Pending => src.block_until_ready()?,
+        });
+        match query_result {
+            std::task::Poll::Ready(res) => match res {
+                Ok(()) => break,
+                Err(err) => {
+                    return package_from_query_err(err);
+                }
+            },
+            std::task::Poll::Pending => match src.block_until_ready() {
+                Ok(()) => {}
+                Err(err) => {
+                    return package_from_query_err(err);
+                }
+            },
         }
     }
 
@@ -205,6 +215,17 @@ where
         }
     };
     Ok(pkg)
+}
+
+fn package_from_query_err(err: anyhow::Error) -> CargoResult<Option<Package>> {
+    if err.to_string().contains("failed to fetch") {
+        // I observed this error happens when the cargo registry contains no crates.
+        // If this isn't the case, open an issue.
+        warn!("Failed to fetch package from registry. I assume the registry is empty.");
+        Ok(None)
+    } else {
+        Err(err)
+    }
 }
 
 // clone_directory copies the contents of one directory into another directory, which must

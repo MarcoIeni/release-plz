@@ -67,3 +67,10 @@ cargo test
   release-plz to publishing the single crate(s).
 - package: For our purposes, crate and package are synonyms.
   In the codebase, we prefer to use the word `package` instead of `crate`.
+
+## Integration tests
+
+We use Gitea as a Git server for our integration tests.
+
+- Start the Gitea server with `cd tests && docker-compose up`.
+- See their OpenAPI documentation at `http://localhost:3000/api/swagger`.
