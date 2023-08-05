@@ -112,7 +112,7 @@ git-fetch-with-cli = true
     "#;
     let config_dir = repo_dir.join(".cargo");
     fs::create_dir(&config_dir).unwrap();
-    let config_file = config_dir.join("config");
+    let config_file = config_dir.join("config.toml");
     fs::write(config_file, cargo_config).unwrap();
 }
 
