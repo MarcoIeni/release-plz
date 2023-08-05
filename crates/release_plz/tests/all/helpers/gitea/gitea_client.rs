@@ -13,9 +13,7 @@ impl GiteaContext {
             self.repo
         )
     }
-}
 
-impl GiteaContext {
     pub async fn repo_exists(&self, repo_name: &str) -> bool {
         let repo = self.get_repo(repo_name).await;
         repo == repo_name
