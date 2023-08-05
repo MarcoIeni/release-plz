@@ -29,7 +29,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Start containers
-        run: docker-compose up -d
+        run: docker-compose up -d --wait
         working-directory: ./tests
       - name: Run tests
         run: cargo test --all-features --workspace
