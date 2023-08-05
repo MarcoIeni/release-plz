@@ -1,4 +1,5 @@
 use std::{
+    fs,
     path::{self, Path, PathBuf},
     process::Command,
     str::FromStr,
@@ -58,6 +59,8 @@ impl TestContext {
             .arg(&self.gitea.token)
             .arg("--backend")
             .arg("gitea")
+            .arg("--registry")
+            .arg("test-registry")
             .assert()
     }
 
@@ -91,9 +94,26 @@ fn commit_cargo_init(repo_dir: &Path, username: &str) -> Repo {
     repo.git(&["config", "user.email", "a@example.com"])
         .unwrap();
 
+    create_cargo_config(repo_dir);
+
     repo.add_all_and_commit("Initial commit").unwrap();
     repo.git(&["push"]).unwrap();
     repo
+}
+
+fn create_cargo_config(repo_dir: &Path) {
+    // matches the docker compose file
+    let cargo_config = r#"
+[registries]
+test-registry = { index = "http://127.0.0.1:35503/git" }
+
+[net]
+git-fetch-with-cli = true
+    "#;
+    let config_dir = repo_dir.join(".cargo");
+    fs::create_dir(&config_dir).unwrap();
+    let config_file = config_dir.join("config");
+    fs::write(config_file, cargo_config).unwrap();
 }
 
 fn git_client(repo_url: &str, token: &str) -> GitClient {

@@ -1,7 +1,7 @@
 version: "3"
 
 services:
-  server:
+  gitea:
     image: gitea/gitea:1.20.2-rootless
     container_name: gitea
     restart: always
@@ -10,3 +10,10 @@ services:
     ports:
       - "3000:3000"
       - "2222:2222"
+  registry:
+    image: ghcr.io/d-e-s-o/cargo-http-registry:sha-1ede428
+    container_name: cargo-registry
+    restart: always
+    # Directory where the registry will store its data.
+    # Cargo-http-registry creates the directory if it does not exist.
+    command: /tmp/test-registry
