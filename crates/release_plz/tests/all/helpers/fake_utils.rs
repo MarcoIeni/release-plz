@@ -1,4 +1,4 @@
-use fake::{StringFaker, Fake};
+use fake::{Fake, StringFaker};
 
 pub fn fake_id() -> String {
     const LETTERS: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
