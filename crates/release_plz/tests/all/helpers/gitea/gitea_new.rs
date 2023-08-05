@@ -32,10 +32,10 @@ pub async fn create_token(user: &GiteaUser, client: &reqwest::Client) -> String 
     }
 
     let token: Token = client
-        .post(format!(
-            "http://localhost:3000/api/v1/users/{}/tokens",
+        .post(super::gitea_endpoint(&format!(
+            "/users/{}/tokens",
             user.username()
-        ))
+        )))
         .basic_auth(user.username(), Some(&user.password()))
         .json(&json!({
             "name": user.username(),
@@ -56,7 +56,7 @@ pub async fn create_token(user: &GiteaUser, client: &reqwest::Client) -> String 
 
 async fn create_repository(user_token: &str, repo_name: &str, client: &reqwest::Client) {
     client
-        .post("http://localhost:3000/api/v1/user/repos")
+        .post(super::gitea_endpoint("/user/repos"))
         .query(&[("token", user_token)])
         .json(&json!({
             "name": repo_name,
