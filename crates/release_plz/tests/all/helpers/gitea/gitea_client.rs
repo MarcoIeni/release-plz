@@ -1,4 +1,4 @@
-use crate::helpers::reqwest_utils::ReqwestUtils;
+use crate::helpers::{gitea::gitea_address, reqwest_utils::ReqwestUtils};
 
 use super::{GiteaContext, GiteaUser};
 
@@ -6,9 +6,10 @@ impl GiteaContext {
     pub fn repo_clone_url(&self) -> String {
         format!(
             // if you need ssh instead of http: "ssh://git@localhost:2222/{}/{}.git",
-            "http://{}:{}@localhost:3000/{}/{}.git",
+            "http://{}:{}@{}/{}/{}.git",
             self.user.username(),
             self.user.password(),
+            gitea_address(),
             self.user.username(),
             self.repo
         )
@@ -17,6 +18,14 @@ impl GiteaContext {
     pub async fn repo_exists(&self, repo_name: &str) -> bool {
         let repo = self.get_repo(repo_name).await;
         repo == repo_name
+    }
+
+    fn pull_url(&self, pr_number: u64) -> String {
+        format!("{}/pulls/{}", self.repo_url(), pr_number)
+    }
+
+    fn repo_url(&self) -> String {
+        self.specific_repo_url(&self.repo)
     }
 
     fn specific_repo_url(&self, repo_name: &str) -> String {
@@ -43,10 +52,7 @@ impl GiteaContext {
     }
 
     pub async fn changed_files_in_pr(&self, pr_number: u64) -> Vec<ChangedFile> {
-        let pr_url = format!(
-            "http://localhost:3000/api/v1/repos/{}/{}/pulls/{}/files",
-            self.user.username, self.repo, pr_number
-        );
+        let pr_url = format!("{}/files", self.pull_url(pr_number));
         self.client
             .get(&pr_url)
             .basic_auth(&self.user.username, Some(&self.user.password))

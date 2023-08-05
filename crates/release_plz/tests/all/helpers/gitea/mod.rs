@@ -18,6 +18,10 @@ pub struct GiteaContext {
 }
 
 fn gitea_endpoint(endpoint: &str) -> String {
-    let api_url = "http://localhost:3000/api/v1";
+    let api_url = format!("http://{}/api/v1", gitea_address());
     format!("{}/{}", api_url, endpoint)
+}
+
+fn gitea_address() -> &'static str {
+    "localhost:3000"
 }
