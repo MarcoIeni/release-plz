@@ -3,7 +3,7 @@ use crate::helpers::reqwest_utils::ReqwestUtils;
 use super::{GiteaContext, GiteaUser};
 
 impl GiteaContext {
-    pub fn repo_url(&self) -> String {
+    pub fn repo_clone_url(&self) -> String {
         format!(
             // if you need ssh instead of http: "ssh://git@localhost:2222/{}/{}.git",
             "http://{}:{}@localhost:3000/{}/{}.git",
@@ -21,15 +21,15 @@ impl GiteaContext {
         repo == repo_name
     }
 
+    fn specific_repo_url(&self, repo_name: &str) -> String {
+        super::gitea_endpoint(&format!("repos/{}/{}", self.user.username, repo_name))
+    }
+
     /// Get the repository and return its name.
     async fn get_repo(&self, repo_name: &str) -> String {
-        let repo_url = format!(
-            "http://localhost:3000/api/v1/repos/{}/{}",
-            self.user.username, repo_name
-        );
-
-        let repo: Repository = self.client
-            .get(repo_url)
+        let repo: Repository = self
+            .client
+            .get(&self.specific_repo_url(repo_name))
             .basic_auth(&self.user.username, Some(&self.user.password))
             .send()
             .await
@@ -44,6 +44,12 @@ impl GiteaContext {
         repo.name
     }
 
+    async fn changed_files_in_pr(&self, pr_number: u64) {
+        let pr_url = format!(
+            "http://localhost:3000/api/v1/repos/{}/{}/pulls/{}",
+            self.user.username, self.repo, pr_number
+        );
+    }
 }
 
 impl GiteaUser {

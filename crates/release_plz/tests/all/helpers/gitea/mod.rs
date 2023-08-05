@@ -16,3 +16,8 @@ pub struct GiteaContext {
     pub repo: String,
     client: reqwest::Client,
 }
+
+fn gitea_endpoint(endpoint: &str) -> String {
+    let api_url = "http://localhost:3000/api/v1";
+    format!("{}/{}", api_url, endpoint)
+}

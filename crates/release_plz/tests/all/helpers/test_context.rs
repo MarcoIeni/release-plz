@@ -29,7 +29,7 @@ impl TestContext {
         let gitea = GiteaContext::new(repo_name).await;
         let test_dir = tempfile::tempdir().unwrap();
         info!("test directory: {:?}", test_dir.path());
-        let repo_url = gitea.repo_url();
+        let repo_url = gitea.repo_clone_url();
         git_clone(test_dir.path(), &repo_url);
 
         let git_client = git_client(&repo_url, &gitea.token);
