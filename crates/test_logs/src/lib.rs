@@ -12,7 +12,7 @@ pub fn init() {
 fn _init() {
     if std::env::var("ENABLE_LOGS").is_ok() {
         let env_filter = tracing_subscriber::EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| EnvFilter::new("debug"));
+            .unwrap_or_else(|_| EnvFilter::new("debug,hyper=info"));
 
         let subscriber = FmtSubscriber::builder()
             .with_env_filter(env_filter)

@@ -46,7 +46,7 @@ impl TestContext {
 
     pub fn run_release_plz(&self) -> Assert {
         let log_level = if std::env::var("ENABLE_LOGS").is_ok() {
-            "DEBUG,hyper=info"
+            "DEBUG,hyper=INFO"
         } else {
             "ERROR"
         };
