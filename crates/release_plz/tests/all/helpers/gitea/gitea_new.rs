@@ -4,7 +4,7 @@ use std::process::Command;
 
 use serde_json::json;
 
-use crate::helpers::{reqwest_utils::ReqwestUtils, fake_utils};
+use crate::helpers::{fake_utils, reqwest_utils::ReqwestUtils};
 
 use super::{GiteaContext, GiteaUser};
 
@@ -31,8 +31,7 @@ pub async fn create_token(user: &GiteaUser, client: &reqwest::Client) -> String 
         sha1: String,
     }
 
-    let token: Token =
-        client
+    let token: Token = client
         .post(format!(
             "http://localhost:3000/api/v1/users/{}/tokens",
             user.username()
