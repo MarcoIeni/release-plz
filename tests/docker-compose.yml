@@ -11,7 +11,7 @@ services:
       - "3000:3000"
       - "2222:2222"
   registry:
-    image: ghcr.io/d-e-s-o/cargo-http-registry:sha-1ede428
+    image: ghcr.io/d-e-s-o/cargo-http-registry:sha-7556ed9
     container_name: cargo-registry
     restart: always
     # Directory where the registry will store its data.
