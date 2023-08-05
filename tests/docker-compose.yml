@@ -19,3 +19,5 @@ services:
     command: /tmp/test-registry -a 127.0.0.1:35504
     ports:
       - "35504:35504"
+    depends_on:
+      - gitea
