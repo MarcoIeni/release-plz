@@ -80,13 +80,6 @@ fn commit_cargo_init(repo_dir: &Path, username: &str) -> Repo {
         .assert()
         .success();
 
-    // To generate Cargo.lock
-    assert_cmd::Command::new("cargo")
-        .current_dir(repo_dir)
-        .arg("check")
-        .assert()
-        .success();
-
     let repo = Repo::new(repo_dir).unwrap();
     // config local user
     repo.git(&["config", "user.name", username]).unwrap();
@@ -95,6 +88,22 @@ fn commit_cargo_init(repo_dir: &Path, username: &str) -> Repo {
         .unwrap();
 
     create_cargo_config(repo_dir);
+
+    // Generate Cargo.lock
+    assert_cmd::Command::new("cargo")
+        .current_dir(repo_dir)
+        .arg("check")
+        .assert()
+        .success();
+
+    assert_cmd::Command::new("cargo")
+        .current_dir(repo_dir)
+        .arg("login")
+        .arg("--registry")
+        .arg("test-registry")
+        .arg("random-token")
+        .assert()
+        .success();
 
     repo.add_all_and_commit("Initial commit").unwrap();
     repo.git(&["push"]).unwrap();
