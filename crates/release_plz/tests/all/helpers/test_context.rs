@@ -4,6 +4,7 @@ use std::{
     str::FromStr,
 };
 
+use assert_cmd::assert::Assert;
 use git_cmd::Repo;
 use release_plz_core::{GitBackend, GitClient, GitPr, Gitea, RepoUrl};
 use secrecy::SecretString;
@@ -40,6 +41,24 @@ impl TestContext {
             test_dir,
             git_client,
         }
+    }
+
+    pub fn run_release_plz(&self) -> Assert {
+        let log_level = if std::env::var("ENABLE_LOGS").is_ok() {
+            "DEBUG,hyper=info"
+        } else {
+            "ERROR"
+        };
+        assert_cmd::Command::cargo_bin(env!("CARGO_PKG_NAME"))
+            .unwrap()
+            .current_dir(&self.repo_dir())
+            .env("RUST_LOG", log_level)
+            .arg("release-pr")
+            .arg("--git-token")
+            .arg(&self.gitea.token)
+            .arg("--backend")
+            .arg("gitea")
+            .assert()
     }
 
     pub fn repo_dir(&self) -> PathBuf {
