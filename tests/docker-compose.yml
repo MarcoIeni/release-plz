@@ -16,4 +16,6 @@ services:
     restart: always
     # Directory where the registry will store its data.
     # Cargo-http-registry creates the directory if it does not exist.
-    command: /tmp/test-registry
+    command: /tmp/test-registry -a 127.0.0.1:35503
+    ports:
+      - "35503:35503"
