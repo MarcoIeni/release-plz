@@ -44,7 +44,7 @@ impl TestContext {
         }
     }
 
-    pub fn run_release_plz(&self) -> Assert {
+    pub fn run_release_pr(&self) -> Assert {
         let log_level = if std::env::var("ENABLE_LOGS").is_ok() {
             "DEBUG,hyper=INFO"
         } else {
@@ -55,6 +55,26 @@ impl TestContext {
             .current_dir(&self.repo_dir())
             .env("RUST_LOG", log_level)
             .arg("release-pr")
+            .arg("--git-token")
+            .arg(&self.gitea.token)
+            .arg("--backend")
+            .arg("gitea")
+            .arg("--registry")
+            .arg("test-registry")
+            .assert()
+    }
+
+    pub fn run_release(&self) -> Assert {
+        let log_level = if std::env::var("ENABLE_LOGS").is_ok() {
+            "DEBUG,hyper=INFO"
+        } else {
+            "ERROR"
+        };
+        assert_cmd::Command::cargo_bin(env!("CARGO_PKG_NAME"))
+            .unwrap()
+            .current_dir(&self.repo_dir())
+            .env("RUST_LOG", log_level)
+            .arg("release")
             .arg("--git-token")
             .arg(&self.gitea.token)
             .arg("--backend")
