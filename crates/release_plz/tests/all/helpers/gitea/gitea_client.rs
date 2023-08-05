@@ -27,9 +27,8 @@ impl GiteaContext {
             "http://localhost:3000/api/v1/repos/{}/{}",
             self.user.username, repo_name
         );
-        let client = reqwest::Client::new();
 
-        let repo: Repository = client
+        let repo: Repository = self.client
             .get(repo_url)
             .basic_auth(&self.user.username, Some(&self.user.password))
             .send()

@@ -2,32 +2,37 @@
 
 use std::process::Command;
 
-use fake::{Fake, StringFaker};
 use serde_json::json;
 
-use crate::helpers::reqwest_utils::ReqwestUtils;
+use crate::helpers::{reqwest_utils::ReqwestUtils, fake_utils};
 
 use super::{GiteaContext, GiteaUser};
 
 impl GiteaContext {
     pub async fn new(repo: String) -> Self {
+        let client = reqwest::Client::new();
         let user = create_user();
-        let token = create_token(&user).await;
+        let token = create_token(&user, &client).await;
 
-        create_repository(&token, &repo).await;
+        create_repository(&token, &repo, &client).await;
 
-        Self { user, token, repo }
+        Self {
+            user,
+            token,
+            repo,
+            client,
+        }
     }
 }
 
-pub async fn create_token(user: &GiteaUser) -> String {
+pub async fn create_token(user: &GiteaUser, client: &reqwest::Client) -> String {
     #[derive(serde::Deserialize)]
     struct Token {
         sha1: String,
     }
 
-    let client = reqwest::Client::new();
-    let token: Token = client
+    let token: Token =
+        client
         .post(format!(
             "http://localhost:3000/api/v1/users/{}/tokens",
             user.username()
@@ -50,8 +55,7 @@ pub async fn create_token(user: &GiteaUser) -> String {
     token.sha1
 }
 
-async fn create_repository(user_token: &str, repo_name: &str) {
-    let client = reqwest::Client::new();
+async fn create_repository(user_token: &str, repo_name: &str, client: &reqwest::Client) {
     client
         .post("http://localhost:3000/api/v1/user/repos")
         .query(&[("token", user_token)])
@@ -98,15 +102,9 @@ fn run_create_user_command(user: &GiteaUser) {
 /// Create a random user and return it's username and passoword.
 pub fn create_user() -> GiteaUser {
     let user = GiteaUser {
-        username: fake_id(),
+        username: fake_utils::fake_id(),
         password: "psw".to_string(),
     };
     run_create_user_command(&user);
     user
-}
-
-fn fake_id() -> String {
-    const LETTERS: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let f = StringFaker::with(Vec::from(LETTERS), 8);
-    f.fake()
 }

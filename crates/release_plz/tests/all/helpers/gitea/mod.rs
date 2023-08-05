@@ -14,4 +14,5 @@ pub struct GiteaContext {
     pub token: String,
     /// Repository name.
     repo: String,
+    client: reqwest::Client,
 }

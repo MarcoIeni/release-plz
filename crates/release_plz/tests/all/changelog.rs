@@ -4,10 +4,11 @@ use git_cmd::Repo;
 use release_plz_core::{GitBackend, GitClient, Gitea, RepoUrl};
 use secrecy::SecretString;
 
-use crate::helpers::gitea::GiteaContext;
+use crate::helpers::{gitea::GiteaContext, test_context::TestContext};
 
 #[tokio::test]
 async fn release_plz_adds_changelog_on_new_project() {
+    let context = TestContext::new().await;
     let repo_name = "myrepo";
     let gitea = GiteaContext::new(repo_name.to_string()).await;
     let temp = tempfile::tempdir().unwrap();
