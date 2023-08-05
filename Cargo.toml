@@ -3,6 +3,7 @@ members = ["crates/*"]
 
 [workspace.dependencies]
 anyhow = "1.0.72"
+assert_cmd = "2.0.12"
 async-trait = "0.1.72"
 cargo_metadata = "0.17.0"
 cargo = "0.72.1"

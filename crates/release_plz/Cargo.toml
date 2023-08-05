@@ -35,7 +35,7 @@ url.workspace = true
 [dev-dependencies]
 test_logs = { path = "../test_logs" }
 
-assert_cmd = "2.0.12"
+assert_cmd.workspace = true
 async-trait.workspace = true
 fake.workspace = true
 expect-test.workspace = true
