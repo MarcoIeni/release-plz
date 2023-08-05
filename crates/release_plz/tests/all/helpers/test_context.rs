@@ -71,12 +71,18 @@ impl TestContext {
 }
 
 fn commit_cargo_init(repo_dir: &Path, username: &str) -> Repo {
-    let result = Command::new("cargo")
+    assert_cmd::Command::new("cargo")
         .current_dir(repo_dir)
         .arg("init")
-        .output()
-        .unwrap();
-    assert!(result.status.success());
+        .assert()
+        .success();
+
+    // To generate Cargo.lock
+    assert_cmd::Command::new("cargo")
+        .current_dir(repo_dir)
+        .arg("check")
+        .assert()
+        .success();
 
     let repo = Repo::new(repo_dir).unwrap();
     // config local user
@@ -86,7 +92,7 @@ fn commit_cargo_init(repo_dir: &Path, username: &str) -> Repo {
         .unwrap();
 
     repo.add_all_and_commit("Initial commit").unwrap();
-    // TODO: git push
+    repo.git(&["push"]).unwrap();
     repo
 }
 

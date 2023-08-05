@@ -44,12 +44,29 @@ impl GiteaContext {
         repo.name
     }
 
-    async fn changed_files_in_pr(&self, pr_number: u64) {
+    pub async fn changed_files_in_pr(&self, pr_number: u64) -> Vec<ChangedFile> {
         let pr_url = format!(
-            "http://localhost:3000/api/v1/repos/{}/{}/pulls/{}",
+            "http://localhost:3000/api/v1/repos/{}/{}/pulls/{}/files",
             self.user.username, self.repo, pr_number
         );
+        self.client
+            .get(&pr_url)
+            .basic_auth(&self.user.username, Some(&self.user.password))
+            .send()
+            .await
+            .unwrap()
+            .ok_if_2xx()
+            .await
+            .unwrap()
+            .json::<Vec<ChangedFile>>()
+            .await
+            .unwrap()
     }
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct ChangedFile {
+    pub filename: String,
 }
 
 impl GiteaUser {
