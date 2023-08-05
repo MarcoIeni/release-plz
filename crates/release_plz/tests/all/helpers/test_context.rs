@@ -114,7 +114,7 @@ fn create_cargo_config(repo_dir: &Path) {
     // matches the docker compose file
     let cargo_config = r#"
 [registries]
-test-registry = { index = "http://127.0.0.1:35503/git" }
+test-registry = { index = "http://127.0.0.1:35504/git" }
 
 [net]
 git-fetch-with-cli = true
