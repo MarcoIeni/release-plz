@@ -71,13 +71,6 @@ async fn create_repository(user_token: &str, repo_name: &str, client: &reqwest::
         .unwrap();
 }
 
-#[tokio::test]
-async fn can_create_gitea_repository() {
-    let repo_name = "myrepo";
-    let gitea = GiteaContext::new(repo_name.to_string()).await;
-    assert!(gitea.repo_exists(repo_name).await);
-}
-
 fn run_create_user_command(user: &GiteaUser) {
     let email = format!("{}@example.com", user.username());
     Command::new("docker")
@@ -106,4 +99,11 @@ pub fn create_user() -> GiteaUser {
     };
     run_create_user_command(&user);
     user
+}
+
+#[tokio::test]
+async fn can_create_gitea_repository() {
+    let repo_name = "myrepo";
+    let gitea = GiteaContext::new(repo_name.to_string()).await;
+    assert!(gitea.repo_exists(repo_name).await);
 }
