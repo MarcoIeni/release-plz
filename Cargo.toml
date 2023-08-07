@@ -26,7 +26,7 @@ parse-changelog = { version = "0.6.1", default-features = false }
 rayon = "1.7.0"
 regex = "1.9.1"
 reqwest = "0.11.18"
-reqwest-middleware = "0.2.2"
+reqwest-middleware = "0.2.3"
 reqwest-retry = "0.2.2"
 secrecy = "0.8.0"
 semver = "1.0.18"
