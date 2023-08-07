@@ -3,7 +3,7 @@
 use std::{env, path::PathBuf};
 
 use anyhow::Context;
-use cargo::{CargoResult, Config};
+use cargo::{core::Shell, util::homedir, CargoResult, Config};
 
 use super::{Cloner, ClonerSource};
 
@@ -13,6 +13,8 @@ pub struct ClonerBuilder {
     config: Option<Config>,
     directory: Option<PathBuf>,
     source: ClonerSource,
+    /// Cargo current working directory. You can use it to point to the right `.cargo/config.toml`.
+    cargo_cwd: Option<PathBuf>,
     use_git: bool,
 }
 
@@ -37,11 +39,19 @@ impl ClonerBuilder {
         Self { source, ..self }
     }
 
+    /// Set cargo working directory.
+    pub fn with_cargo_cwd(self, path: PathBuf) -> Self {
+        Self {
+            cargo_cwd: Some(path),
+            ..self
+        }
+    }
+
     /// Build the [`Cloner`].
     pub fn build(self) -> CargoResult<Cloner> {
         let config = match self.config {
             Some(config) => config,
-            None => Config::default().context("Unable to get cargo config.")?,
+            None => new_cargo_config(self.cargo_cwd).context("Unable to get cargo config.")?,
         };
 
         let directory = match self.directory {
@@ -61,5 +71,19 @@ impl ClonerBuilder {
             srcid,
             use_git: self.use_git,
         })
+    }
+}
+
+fn new_cargo_config(cwd: Option<PathBuf>) -> anyhow::Result<Config> {
+    match cwd {
+        Some(cwd) => {
+            let shell = Shell::new();
+            let homedir = homedir(&cwd).context(
+                "Cargo couldn't find your home directory. \
+                 This probably means that $HOME was not set.",
+            )?;
+            Ok(Config::new(shell, cwd, homedir))
+        }
+        None => Config::default(),
     }
 }

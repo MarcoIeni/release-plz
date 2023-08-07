@@ -1,6 +1,9 @@
 //! Download packages from cargo registry, similar to the `git clone` behavior.
 
-use std::{fmt, path::Path};
+use std::{
+    fmt,
+    path::{Path, PathBuf},
+};
 
 use anyhow::{anyhow, Context};
 use cargo_metadata::Package;
@@ -16,6 +19,7 @@ pub fn download_packages(
     packages: &[&str],
     directory: impl AsRef<str> + fmt::Debug,
     registry: Option<&str>,
+    cargo_cwd: Option<PathBuf>,
 ) -> anyhow::Result<Vec<Package>> {
     let directory = directory.as_ref();
     info!("downloading packages from cargo registry");
@@ -27,9 +31,13 @@ pub fn download_packages(
         .iter()
         .map(|&package_name| Crate::new(package_name.to_string(), None))
         .collect();
-    let downloaded_packages = Cloner::builder()
+    let mut cloner_builder = Cloner::builder()
         .with_directory(directory)
-        .with_source(source)
+        .with_source(source);
+    if let Some(cwd) = cargo_cwd {
+        cloner_builder = cloner_builder.with_cargo_cwd(cwd);
+    }
+    let downloaded_packages = cloner_builder
         .build()
         .context("can't build cloner")?
         .clone(&crates)
@@ -69,7 +77,7 @@ mod tests {
         let package_name = "rand";
         let temp_dir = tempdir().unwrap();
         let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
-        let packages = download_packages(&[package_name], directory, None).unwrap();
+        let packages = download_packages(&[package_name], directory, None, None).unwrap();
         let rand = &packages[0];
         assert_eq!(rand.name, package_name);
     }
@@ -82,7 +90,7 @@ mod tests {
         let temp_dir = tempdir().unwrap();
         let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
         let packages =
-            download_packages(&[first_package, second_package], directory, None).unwrap();
+            download_packages(&[first_package, second_package], directory, None, None).unwrap();
         assert_eq!(&packages[0].name, first_package);
         assert_eq!(&packages[1].name, second_package);
     }
@@ -94,6 +102,6 @@ mod tests {
         let package: String = 15.fake();
         let temp_dir = tempdir().unwrap();
         let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
-        download_packages(&[&package], directory, None).unwrap();
+        download_packages(&[&package], directory, None, None).unwrap();
     }
 }

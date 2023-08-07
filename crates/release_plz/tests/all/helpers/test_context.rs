@@ -18,7 +18,6 @@ use super::{fake_utils, gitea::GiteaContext};
 pub struct TestContext {
     pub gitea: GiteaContext,
     test_dir: TempDir,
-
     /// Release-plz git client. It's here just for code reuse.
     git_client: GitClient,
 }

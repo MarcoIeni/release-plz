@@ -32,7 +32,7 @@ pub fn get_registry_packages(
                 local_packages.iter().map(|c| c.name.as_str()).collect();
             let directory = temp_dir.as_ref().to_str().context("invalid tempdir path")?;
             let registry_packages =
-                download::download_packages(&local_packages_names, directory, registry)?;
+                download::download_packages(&local_packages_names, directory, registry, None)?;
             (Some(temp_dir), registry_packages)
         }
     };

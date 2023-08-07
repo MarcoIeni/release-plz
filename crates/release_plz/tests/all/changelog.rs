@@ -26,8 +26,13 @@ async fn release_plz_releases_a_new_project() {
     let dest_dir_str = dest_dir.path().to_str().unwrap();
 
     let packages = || {
-        release_plz_core::download_packages(&[crate_name], dest_dir_str, Some("test-registry"))
-            .unwrap()
+        release_plz_core::download_packages(
+            &[crate_name],
+            dest_dir_str,
+            Some("test-registry"),
+            Some(context.repo_dir()),
+        )
+        .unwrap()
     };
     // Before running release-plz, no packages should be present.
     assert!(packages().is_empty());
