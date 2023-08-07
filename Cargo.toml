@@ -6,7 +6,8 @@ anyhow = "1.0.72"
 assert_cmd = "2.0.12"
 async-trait = "0.1.72"
 cargo_metadata = "0.17.0"
-cargo = "0.72.1"
+# http-client-reqwest required to work with cargo-http-registry
+cargo = { version = "0.72.1", features = ["htto-client-reqwest"] }
 chrono = { version = "0.4.26", default-features = false }
 clap = "4.3.19"
 clap_complete = "4.3.2"
