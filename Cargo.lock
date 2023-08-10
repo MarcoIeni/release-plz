@@ -310,9 +310,9 @@ dependencies = [
 
 [[package]]
 name = "cargo"
-version = "0.72.1"
+version = "0.72.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2cb394cfa92bba1e9dc828a3ad68a7a943dc76fb7095bdd3710f77e516b13585"
+checksum = "171aca76a3199e771ea0b94ec260984ed9cba62af8e478142974dbaa594d583b"
 dependencies = [
  "anyhow",
  "base64 0.21.2",
@@ -1760,10 +1760,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf69b0f5c701cc3ae22d3204b671907668f6437ca88862d355eaf9bc47a4f897"
 dependencies = [
  "bytes",
+ "bytesize",
  "crc32fast",
  "crossbeam-channel",
  "flate2",
  "gix-hash",
+ "jwalk",
  "libc",
  "once_cell",
  "parking_lot 0.12.1",
@@ -2103,6 +2105,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "smallvec",
  "thiserror",
+ "uluru",
 ]
 
 [[package]]
@@ -2719,6 +2722,12 @@ name = "httpdate"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4a1e36c821dbe04574f602848a19f742f4fb3c98d40449f11bcad18d6b17421"
+
+[[package]]
+name = "human_format"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "86cce260d758a9aa3d7c4b99d55c815a540f8a37514ba6046ab6be402a157cb0"
 
 [[package]]
 name = "humansize"
@@ -3705,6 +3714,8 @@ version = "23.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9516b775656bc3e8985e19cd4b8c0c0de045095074e453d2c0a513b5f978392d"
 dependencies = [
+ "bytesize",
+ "human_format",
  "parking_lot 0.12.1",
 ]
 
@@ -3945,6 +3956,7 @@ dependencies = [
  "git-cliff-core",
  "git-url-parse",
  "git_cmd",
+ "gix 0.44.1",
  "http",
  "ignore",
  "lazy_static",
