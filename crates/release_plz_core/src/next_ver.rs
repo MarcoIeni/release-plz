@@ -530,9 +530,9 @@ impl Updater<'_> {
 
         let mut packages_diffs = packages_diffs_res?;
 
-        let packages_commits: HashMap<&str, &[String]> = packages_diffs
+        let packages_commits: HashMap<String, Vec<String>> = packages_diffs
             .iter()
-            .map(|(p, d)| (p.name.as_str(), d.commits.as_slice()))
+            .map(|(p, d)| (p.name.clone(), d.commits.clone()))
             .collect();
 
         let semver_check_result: anyhow::Result<()> =
@@ -541,7 +541,7 @@ impl Updater<'_> {
                 if let Some(registry_package) = registry_package {
                     let package_path = get_package_path(p, repository, &self.project.root)
                         .context("can't retrieve package path")?;
-                    let package_config =self.req.get_package_config(&p.name);
+                    let package_config = self.req.get_package_config(&p.name);
                     let run_semver_check = package_config.semver_check();
                     for pkg_to_include in package_config.changelog_include {
                         let pkg_to_include = pkg_to_include.as_str();
