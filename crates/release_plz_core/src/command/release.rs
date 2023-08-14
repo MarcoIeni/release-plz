@@ -243,6 +243,7 @@ impl From<ReleaseConfig> for PackageReleaseConfig {
         Self {
             generic: config,
             changelog_path: None,
+            changelog_include: vec![],
         }
     }
 }
@@ -253,6 +254,7 @@ pub struct PackageReleaseConfig {
     pub generic: ReleaseConfig,
     /// The changelog path can only be specified for a single package.
     pub changelog_path: Option<PathBuf>,
+    pub changelog_include: Vec<String>,
 }
 
 #[derive(Debug)]

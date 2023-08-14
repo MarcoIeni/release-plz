@@ -141,6 +141,9 @@ pub struct PackageSpecificConfig {
     /// This changelog_path needs to be propagated to all the commands:
     /// `update`, `release-pr` and `release`.
     changelog_path: Option<PathBuf>,
+    /// List of package names.
+    /// Include the changelogs of these packages in the changelog of the current package.
+    changelog_include: Option<Vec<String>>,
 }
 
 impl PackageSpecificConfig {
@@ -150,6 +153,7 @@ impl PackageSpecificConfig {
             update: self.update.merge(default.update),
             release: self.release.merge(default.release),
             changelog_path: self.changelog_path,
+            changelog_include: self.changelog_include,
         }
     }
 }
@@ -168,6 +172,7 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
         Self {
             generic,
             changelog_path: config.changelog_path,
+            changelog_include: config.changelog_include.unwrap_or_default(),
         }
     }
 }
@@ -481,6 +486,7 @@ mod tests {
                         ..Default::default()
                     },
                     changelog_path: Some("./CHANGELOG.md".into()),
+                    changelog_include: Some(vec!["second".to_string()]),
                 },
             }]
             .into(),
@@ -504,6 +510,7 @@ mod tests {
             git_release_type = "prod"
             git_release_draft = false
             changelog_path = "./CHANGELOG.md"
+            changelog_include = "second"
         "#]]
         .assert_eq(&toml::to_string(&config).unwrap());
     }

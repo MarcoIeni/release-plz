@@ -117,6 +117,8 @@ impl RepoCommand for Release {
 
 #[cfg(test)]
 mod tests {
+    use std::vec;
+
     use super::*;
 
     #[test]
@@ -181,6 +183,7 @@ mod tests {
         let expected = release_plz_core::PackageReleaseConfig {
             generic: release_plz_core::ReleaseConfig::default(),
             changelog_path: None,
+            changelog_include: vec![],
         };
         assert_eq!(pkg_config, expected);
         assert!(pkg_config.generic.git_release().is_enabled());
