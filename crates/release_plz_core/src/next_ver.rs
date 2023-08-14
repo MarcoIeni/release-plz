@@ -184,12 +184,6 @@ impl UpdateRequest {
         })
     }
 
-    pub fn changelog_include(&self, package: &Package) -> Vec<String> {
-        self.get_package_config(&package.name)
-            .changelog_include
-            .clone()
-    }
-
     pub fn changelog_path(&self, package: &Package) -> PathBuf {
         let config = self.get_package_config(&package.name);
         config
@@ -542,14 +536,15 @@ impl Updater<'_> {
                     let package_path = get_package_path(p, repository, &self.project.root)
                         .context("can't retrieve package path")?;
                     let package_config = self.req.get_package_config(&p.name);
-                    let run_semver_check = package_config.semver_check();
-                    for pkg_to_include in package_config.changelog_include {
+                    for pkg_to_include in &package_config.changelog_include {
                         let pkg_to_include = pkg_to_include.as_str();
                         if let Some(commits) = packages_commits.get(pkg_to_include) {
                             diff.add_commits(commits);
                         }
                     }
-                    if should_check_semver(p, run_semver_check) && diff.should_update_version() {
+                    if should_check_semver(p, package_config.semver_check())
+                        && diff.should_update_version()
+                    {
                         let registry_package_path = registry_package
                             .package_path()
                             .context("can't retrieve registry package path")?;
