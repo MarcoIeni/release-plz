@@ -23,7 +23,7 @@ use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
 use std::{
-    collections::{BTreeMap, HashSet},
+    collections::{BTreeMap, HashMap, HashSet},
     fs, io,
     path::{Path, PathBuf},
 };
@@ -71,6 +71,7 @@ impl From<UpdateConfig> for PackageUpdateConfig {
         Self {
             generic: config,
             changelog_path: None,
+            changelog_include: vec![],
         }
     }
 }
@@ -113,6 +114,9 @@ pub struct PackageUpdateConfig {
     /// This path needs to be a relative path to the Cargo.toml of the project.
     /// I.e. if you have a workspace, it needs to be relative to the workspace root.
     pub changelog_path: Option<PathBuf>,
+    /// List of package names.
+    /// Include the changelogs of these packages in the changelog of the current package.
+    pub changelog_include: Vec<String>,
 }
 
 impl PackageUpdateConfig {
@@ -513,26 +517,33 @@ impl Updater<'_> {
             .publishable_packages()
             .iter()
             .map(|&p| {
-                let diff = get_diff(
-                    p,
-                    registry_packages,
-                    repository,
-                    self.project,
-                    workspace_packages,
-                )?;
+                let diff = self.get_diff(p, registry_packages, repository, workspace_packages)?;
                 Ok((p, diff))
             })
             .collect();
 
         let mut packages_diffs = packages_diffs_res?;
+
+        let packages_commits: HashMap<String, Vec<String>> = packages_diffs
+            .iter()
+            .map(|(p, d)| (p.name.clone(), d.commits.clone()))
+            .collect();
+
         let semver_check_result: anyhow::Result<()> =
             packages_diffs.par_iter_mut().try_for_each(|(p, diff)| {
                 let registry_package = registry_packages.get_package(&p.name);
                 if let Some(registry_package) = registry_package {
                     let package_path = get_package_path(p, repository, &self.project.root)
                         .context("can't retrieve package path")?;
-                    let run_semver_check = self.req.get_package_config(&p.name).semver_check();
-                    if should_check_semver(p, run_semver_check) && diff.should_update_version() {
+                    let package_config = self.req.get_package_config(&p.name);
+                    for pkg_to_include in &package_config.changelog_include {
+                        if let Some(commits) = packages_commits.get(pkg_to_include) {
+                            diff.add_commits(commits);
+                        }
+                    }
+                    if should_check_semver(p, package_config.semver_check())
+                        && diff.should_update_version()
+                    {
                         let registry_package_path = registry_package
                             .package_path()
                             .context("can't retrieve registry package path")?;
@@ -651,6 +662,105 @@ impl Updater<'_> {
             semver_check,
         })
     }
+
+    /// This operation is not thread-safe, because we do `git checkout` on the repository.
+    #[instrument(
+    skip_all,
+    fields(package = %package.name)
+)]
+    fn get_diff(
+        &self,
+        package: &Package,
+        registry_packages: &PackagesCollection,
+        repository: &Repo,
+        workspace_packages: &[&Package],
+    ) -> anyhow::Result<Diff> {
+        let package_path = get_package_path(package, repository, &self.project.root)?;
+
+        repository.checkout_head()?;
+        let registry_package = registry_packages.get_package(&package.name);
+        let mut diff = Diff::new(registry_package.is_some());
+        if let Err(err) = repository.checkout_last_commit_at_path(&package_path) {
+            if err
+                .to_string()
+                .contains("Your local changes to the following files would be overwritten")
+            {
+                return Err(err.context("The allow-dirty option can't be used in this case"));
+            } else {
+                info!("{}: there are no commits", package.name);
+                return Ok(diff);
+            }
+        }
+        let ignored_dirs: anyhow::Result<Vec<PathBuf>> = workspace_packages
+            .iter()
+            .filter(|p| p.name != package.name)
+            .map(|p| get_package_path(p, repository, &self.project.root))
+            .collect();
+        let ignored_dirs = ignored_dirs?;
+
+        let tag_commit = {
+            let git_tag = self
+                .project
+                .git_tag(&package.name, &package.version.to_string());
+            repository.get_tag_commit(&git_tag)
+        };
+        loop {
+            let current_commit_message = repository.current_commit_message()?;
+            let current_commit_hash = repository.current_commit_hash()?;
+            if let Some(registry_package) = registry_package {
+                debug!("package {} found in cargo registry", registry_package.name);
+                let registry_package_path = registry_package.package_path()?;
+                let are_packages_equal =
+                    are_packages_equal(&package_path, registry_package_path, ignored_dirs.clone())
+                        .context("cannot compare packages")?;
+                if are_packages_equal
+                    || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
+                {
+                    debug!(
+                    "next version calculated starting from commits after `{current_commit_hash}`"
+                );
+                    if diff.commits.is_empty() {
+                        let are_dependencies_updated = are_toml_dependencies_updated(
+                            &registry_package.dependencies,
+                            &package.dependencies,
+                        )
+                            || lock_compare::are_lock_dependencies_updated(
+                                &self.project.cargo_lock_path(),
+                                registry_package_path,
+                            )
+                            .context("Can't check if Cargo.lock dependencies are up to date")?;
+                        if are_dependencies_updated {
+                            diff.commits.push("chore: update dependencies".to_string());
+                        } else {
+                            info!("{}: already up to date", package.name);
+                        }
+                    }
+                    // The local package is identical to the registry one, which means that
+                    // the package was published at this commit, so we will not count this commit
+                    // as part of the release.
+                    // We can process the next create.
+                    break;
+                } else if registry_package.version != package.version {
+                    info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
+                    diff.set_version_unpublished();
+                    break;
+                } else {
+                    debug!("packages are different");
+                    // At this point of the git history, the two packages are different,
+                    // which means that this commit is not present in the published package.
+                    diff.commits.push(current_commit_message.clone());
+                }
+            } else {
+                diff.commits.push(current_commit_message.clone());
+            }
+            if let Err(_err) = repository.checkout_previous_commit_at_path(&package_path) {
+                debug!("there are no other commits");
+                break;
+            }
+        }
+        repository.checkout_head()?;
+        Ok(diff)
+    }
 }
 
 fn new_workspace_version(
@@ -727,103 +837,6 @@ fn get_repo_path(
     let result_path = repository.directory().join(relative_path);
 
     Ok(result_path)
-}
-
-/// This operation is not thread-safe, because we do `git checkout` on the repository.
-#[instrument(
-    skip_all,
-    fields(package = %package.name)
-)]
-fn get_diff(
-    package: &Package,
-    registry_packages: &PackagesCollection,
-    repository: &Repo,
-    project: &Project,
-    workspace_packages: &[&Package],
-) -> anyhow::Result<Diff> {
-    let package_path = get_package_path(package, repository, &project.root)?;
-
-    repository.checkout_head()?;
-    let registry_package = registry_packages.get_package(&package.name);
-    let mut diff = Diff::new(registry_package.is_some());
-    if let Err(err) = repository.checkout_last_commit_at_path(&package_path) {
-        if err
-            .to_string()
-            .contains("Your local changes to the following files would be overwritten")
-        {
-            return Err(err.context("The allow-dirty option can't be used in this case"));
-        } else {
-            info!("{}: there are no commits", package.name);
-            return Ok(diff);
-        }
-    }
-    let ignored_dirs: anyhow::Result<Vec<PathBuf>> = workspace_packages
-        .iter()
-        .filter(|p| p.name != package.name)
-        .map(|p| get_package_path(p, repository, &project.root))
-        .collect();
-    let ignored_dirs = ignored_dirs?;
-
-    let tag_commit = {
-        let git_tag = project.git_tag(&package.name, &package.version.to_string());
-        repository.get_tag_commit(&git_tag)
-    };
-    loop {
-        let current_commit_message = repository.current_commit_message()?;
-        let current_commit_hash = repository.current_commit_hash()?;
-        if let Some(registry_package) = registry_package {
-            debug!("package {} found in cargo registry", registry_package.name);
-            let registry_package_path = registry_package.package_path()?;
-            let are_packages_equal =
-                are_packages_equal(&package_path, registry_package_path, ignored_dirs.clone())
-                    .context("cannot compare packages")?;
-            if are_packages_equal
-                || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
-            {
-                debug!(
-                    "next version calculated starting from commits after `{current_commit_hash}`"
-                );
-                if diff.commits.is_empty() {
-                    let are_dependencies_updated = are_toml_dependencies_updated(
-                        &registry_package.dependencies,
-                        &package.dependencies,
-                    )
-                        || lock_compare::are_lock_dependencies_updated(
-                            &project.cargo_lock_path(),
-                            registry_package_path,
-                        )
-                        .context("Can't check if Cargo.lock dependencies are up to date")?;
-                    if are_dependencies_updated {
-                        diff.commits.push("chore: update dependencies".to_string());
-                    } else {
-                        info!("{}: already up to date", package.name);
-                    }
-                }
-                // The local package is identical to the registry one, which means that
-                // the package was published at this commit, so we will not count this commit
-                // as part of the release.
-                // We can process the next create.
-                break;
-            } else if registry_package.version != package.version {
-                info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
-                diff.set_version_unpublished();
-                break;
-            } else {
-                debug!("packages are different");
-                // At this point of the git history, the two packages are different,
-                // which means that this commit is not present in the published package.
-                diff.commits.push(current_commit_message.clone());
-            }
-        } else {
-            diff.commits.push(current_commit_message.clone());
-        }
-        if let Err(_err) = repository.checkout_previous_commit_at_path(&package_path) {
-            debug!("there are no other commits");
-            break;
-        }
-    }
-    repository.checkout_head()?;
-    Ok(diff)
 }
 
 /// Check if commit belongs to a previous version of the package.
