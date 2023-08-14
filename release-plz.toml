@@ -1,0 +1,3 @@
+[[package]] # the double square brackets define a TOML table array
+name = "release-plz" # name of the package to configure
+changelog_include = ["release_plz_core"] # include commits from `release_plz_core` in the changelog
