@@ -510,7 +510,7 @@ mod tests {
             git_release_type = "prod"
             git_release_draft = false
             changelog_path = "./CHANGELOG.md"
-            changelog_include = "pkg1"
+            changelog_include = ["pkg1"]
         "#]]
         .assert_eq(&toml::to_string(&config).unwrap());
     }
