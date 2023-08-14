@@ -27,6 +27,7 @@ semver_check = false # disable API breaking changes checks
 
 [[package]] # the double square brackets define a TOML table array
 name = "package_a"
+changelog_include = "package_b" # include commits from `package_b` in the changelog
 changelog_path = "docs/CHANGELOG.md" # use a custom changelog path for `package_a`
 changelog_update = true # enable changelog update for `package_a`
 git_release_enable = true # enable GitHub/Gitea releases for `package_a`
@@ -57,6 +58,7 @@ the following sections:
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
 - [`[[package]]`](#the-package-section) — Package-specific configurations.
   - [`name`](#the-name-field) — Package name. *(Required)*.
+  - [`changelog_include`](#the-changelog_include) — Include commits from other packages.
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
   - [`changelog_update`](#the-changelog_update-field-package-section) — Update changelog.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
@@ -194,6 +196,21 @@ publish_no_verify = true
 
 Name of the package to which the configuration applies.
 *(Required field)*.
+
+#### The `changelog_include` field
+
+By default, release-plz populates the changelog of a package with commits
+containing changes in files of the package directory.
+You can use this field to include commits that belong to other packages.
+For example, the changelog of the `release-plz` package of this repository
+includes commits of the `release_plz_core` package, because they affect the
+`release-plz` package, too.
+
+Example:
+
+```toml
+changelog_include = ["release_plz_core"]
+```
 
 #### The `changelog_path` field (`package` section)
 
