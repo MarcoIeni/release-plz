@@ -35,4 +35,11 @@ impl Diff {
     pub fn set_semver_check(&mut self, semver_check: SemverCheck) {
         self.semver_check = semver_check
     }
+    pub fn add_commits(&mut self, commits: &[String]) {
+        for c in commits {
+            if !self.commits.contains(c) {
+                self.commits.push(c.clone());
+            }
+        }
+    }
 }

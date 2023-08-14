@@ -16,3 +16,6 @@ changelog_update = true
 # set the path of the changelog to the root of the repository
 changelog_path = "./CHANGELOG.md"
 ```
+
+To include commits of other packages in the changelog of
+your main package, use the [changelog_include](../config.md#the-changelog_include-field) field.
