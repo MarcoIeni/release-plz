@@ -71,7 +71,7 @@ impl From<UpdateConfig> for PackageUpdateConfig {
         Self {
             generic: config,
             changelog_path: None,
-            changelog_include: vec![]
+            changelog_include: vec![],
         }
     }
 }
@@ -182,6 +182,12 @@ impl UpdateRequest {
             repo_url: None,
             packages_config: PackagesConfig::default(),
         })
+    }
+
+    pub fn changelog_include(&self, package: &Package) -> Vec<String> {
+        self.get_package_config(&package.name)
+            .changelog_include
+            .clone()
     }
 
     pub fn changelog_path(&self, package: &Package) -> PathBuf {

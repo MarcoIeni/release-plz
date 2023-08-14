@@ -486,7 +486,7 @@ mod tests {
                         ..Default::default()
                     },
                     changelog_path: Some("./CHANGELOG.md".into()),
-                    changelog_include: Some(vec!["second".to_string()]),
+                    changelog_include: Some(vec!["pkg1".to_string()]),
                 },
             }]
             .into(),
@@ -510,7 +510,7 @@ mod tests {
             git_release_type = "prod"
             git_release_draft = false
             changelog_path = "./CHANGELOG.md"
-            changelog_include = "second"
+            changelog_include = "pkg1"
         "#]]
         .assert_eq(&toml::to_string(&config).unwrap());
     }
