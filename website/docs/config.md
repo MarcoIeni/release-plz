@@ -201,7 +201,7 @@ Name of the package to which the configuration applies.
 
 By default, release-plz populates the changelog of a package with commits
 containing changes in files of the package directory.
-You can use this field to include commits that belong to other packages.
+You can use the `changelog_include` field to include commits that belong to other packages.
 For example, the changelog of the `release-plz` package of this repository
 includes commits of the `release_plz_core` package, because they affect the
 `release-plz` package, too.
