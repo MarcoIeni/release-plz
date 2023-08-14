@@ -537,7 +537,6 @@ impl Updater<'_> {
                         .context("can't retrieve package path")?;
                     let package_config = self.req.get_package_config(&p.name);
                     for pkg_to_include in &package_config.changelog_include {
-                        let pkg_to_include = pkg_to_include.as_str();
                         if let Some(commits) = packages_commits.get(pkg_to_include) {
                             diff.add_commits(commits);
                         }
