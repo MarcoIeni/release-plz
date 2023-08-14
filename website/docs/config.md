@@ -27,7 +27,7 @@ semver_check = false # disable API breaking changes checks
 
 [[package]] # the double square brackets define a TOML table array
 name = "package_a"
-changelog_include = "package_b" # include commits from `package_b` in the changelog
+changelog_include = ["package_b"] # include commits from `package_b` in the changelog
 changelog_path = "docs/CHANGELOG.md" # use a custom changelog path for `package_a`
 changelog_update = true # enable changelog update for `package_a`
 git_release_enable = true # enable GitHub/Gitea releases for `package_a`
