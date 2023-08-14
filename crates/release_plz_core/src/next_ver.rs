@@ -23,7 +23,7 @@ use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
 use std::{
-    collections::{BTreeMap, HashSet},
+    collections::{BTreeMap, HashMap, HashSet},
     fs, io,
     path::{Path, PathBuf},
 };
@@ -529,13 +529,26 @@ impl Updater<'_> {
             .collect();
 
         let mut packages_diffs = packages_diffs_res?;
+
+        let packages_commits: HashMap<&str, &[String]> = packages_diffs
+            .iter()
+            .map(|(p, d)| (p.name.as_str(), d.commits.as_slice()))
+            .collect();
+
         let semver_check_result: anyhow::Result<()> =
             packages_diffs.par_iter_mut().try_for_each(|(p, diff)| {
                 let registry_package = registry_packages.get_package(&p.name);
                 if let Some(registry_package) = registry_package {
                     let package_path = get_package_path(p, repository, &self.project.root)
                         .context("can't retrieve package path")?;
-                    let run_semver_check = self.req.get_package_config(&p.name).semver_check();
+                    let package_config =self.req.get_package_config(&p.name);
+                    let run_semver_check = package_config.semver_check();
+                    for pkg_to_include in package_config.changelog_include {
+                        let pkg_to_include = pkg_to_include.as_str();
+                        if let Some(commits) = packages_commits.get(pkg_to_include) {
+                            diff.add_commits(commits);
+                        }
+                    }
                     if should_check_semver(p, run_semver_check) && diff.should_update_version() {
                         let registry_package_path = registry_package
                             .package_path()
