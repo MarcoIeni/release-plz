@@ -1,6 +1,8 @@
 version: "3"
 
 services:
+  # We use Gitea as a git server.
+  # We test that release-plz can open PRs, create releases, etc.
   gitea:
     image: gitea/gitea:1.20.2-rootless
     container_name: gitea
@@ -22,6 +24,8 @@ services:
       retries: 10
     depends_on:
       - db
+  # We use postgres as a database for Gitea.
+  # With SqlLite I had problems related to database locks.
   db:
     image: postgres:14
     restart: always
@@ -34,6 +38,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  # With Cargo-http-registry we mock crates.io.
   registry:
     image: ghcr.io/d-e-s-o/cargo-http-registry:sha-7556ed9
     container_name: cargo-registry
