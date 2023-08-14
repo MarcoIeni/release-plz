@@ -71,6 +71,7 @@ impl From<UpdateConfig> for PackageUpdateConfig {
         Self {
             generic: config,
             changelog_path: None,
+            changelog_include: vec![]
         }
     }
 }
@@ -113,6 +114,9 @@ pub struct PackageUpdateConfig {
     /// This path needs to be a relative path to the Cargo.toml of the project.
     /// I.e. if you have a workspace, it needs to be relative to the workspace root.
     pub changelog_path: Option<PathBuf>,
+    /// List of package names.
+    /// Include the changelogs of these packages in the changelog of the current package.
+    pub changelog_include: Vec<String>,
 }
 
 impl PackageUpdateConfig {

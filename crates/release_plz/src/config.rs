@@ -172,7 +172,6 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
         Self {
             generic,
             changelog_path: config.changelog_path,
-            changelog_include: config.changelog_include.unwrap_or_default(),
         }
     }
 }
@@ -220,6 +219,7 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
         Self {
             generic: config.update.into(),
             changelog_path: config.changelog_path,
+            changelog_include: config.changelog_include.unwrap_or_default(),
         }
     }
 }
