@@ -40,6 +40,7 @@ const sidebars = {
     "semver-check",
     "faq",
     "why",
+    "troubleshooting",
     {
       type: "category",
       label: "Extra",
