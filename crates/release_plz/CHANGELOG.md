@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.18](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.17...release-plz-v0.3.18) - 2023-08-14
+
+### Added
+- add `changelog_include` option ([#904](https://github.com/MarcoIeni/release-plz/pull/904))
+
+### Other
+- add tests for gitea ([#421](https://github.com/MarcoIeni/release-plz/pull/421))
+
 ## [0.3.17](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.16...release-plz-v0.3.17) - 2023-08-02
 
 ### Fixed

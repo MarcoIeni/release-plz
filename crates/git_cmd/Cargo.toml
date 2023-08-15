@@ -1,6 +1,6 @@
 [package]
 name = "git_cmd"
-version = "0.4.6"
+version = "0.4.7"
 edition = "2021"
 description = "Wrapper around git cli"
 repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/git_cmd"
