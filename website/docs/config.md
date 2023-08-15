@@ -58,7 +58,7 @@ the following sections:
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
 - [`[[package]]`](#the-package-section) — Package-specific configurations.
   - [`name`](#the-name-field) — Package name. *(Required)*.
-  - [`changelog_include`](#the-changelog_include) — Include commits from other packages.
+  - [`changelog_include`](#the-changelog_include-field) — Include commits from other packages.
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
   - [`changelog_update`](#the-changelog_update-field-package-section) — Update changelog.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
