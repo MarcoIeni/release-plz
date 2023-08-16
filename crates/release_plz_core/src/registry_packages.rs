@@ -27,12 +27,13 @@ pub fn get_registry_packages(
     let (temp_dir, registry_packages) = match registry_manifest {
         Some(manifest) => (None, next_ver::publishable_packages(manifest)?),
         None => {
-            let temp_dir = tempdir()?;
+            let temp_dir = tempdir().context("failed to get a temporary directory")?;
             let local_packages_names: Vec<&str> =
                 local_packages.iter().map(|c| c.name.as_str()).collect();
             let directory = temp_dir.as_ref().to_str().context("invalid tempdir path")?;
             let registry_packages =
-                download::download_packages(&local_packages_names, directory, registry, None)?;
+                download::download_packages(&local_packages_names, directory, registry, None)
+                    .context("failed to download packages")?;
             (Some(temp_dir), registry_packages)
         }
     };
