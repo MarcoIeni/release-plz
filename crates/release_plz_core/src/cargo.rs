@@ -73,7 +73,7 @@ pub fn is_published_git(index: &mut GitIndex, package: &Package) -> anyhow::Resu
     }
 
     // The package is not in the cache, so we update the cache.
-    index.update()?;
+    index.update().context("failed to update git index")?;
 
     // Try again with updated index.
     Ok(is_in_cache_git(index, package))
