@@ -2,7 +2,7 @@
 members = ["crates/*"]
 
 [workspace.dependencies]
-anyhow = "1.0.72"
+anyhow = "1.0.74"
 assert_cmd = "2.0.12"
 async-trait = "0.1.73"
 cargo_metadata = "0.17.0"
@@ -11,7 +11,7 @@ chrono = { version = "0.4.26", default-features = false }
 clap = "4.3.21"
 clap_complete = "4.3.2"
 conventional_commit_parser = "0.9.4"
-crates-index = { version = "2.1.0", features = ["git", "sparse"] }
+crates-index = { version = "2.1.0", features = ["git", "sparse", "git-https"] }
 dirs = "5.0.1"
 dunce = "1.0.4"
 expect-test = "1.4.1"
@@ -31,7 +31,7 @@ reqwest-retry = "0.2.2"
 secrecy = "0.8.0"
 semver = "1.0.18"
 serde = "1.0.183"
-serde_json = "1.0.104"
+serde_json = "1.0.105"
 strip-ansi-escapes = "0.2.0"
 tempfile = "3.7.1"
 tokio = "1.31.0"
