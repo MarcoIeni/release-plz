@@ -88,7 +88,7 @@ fn run_create_user_command(user: &GiteaUser) {
         .arg(email)
         .arg("--must-change-password=false")
         .status()
-        .expect("Failed to create user");
+        .expect("Failed to create user. Is the docker daemon running?");
 }
 
 /// Create a random user and return it's username and passoword.
