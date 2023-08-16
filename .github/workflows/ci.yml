@@ -21,7 +21,7 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@v1.10.0
         with:
           repo: obi1kenobi/cargo-semver-checks
-          tag: v0.20.0
+          tag: v0.22.1
           cache: enable
       - name: Install dependencies
         run: sudo apt update && sudo apt install -y libssl-dev
@@ -33,6 +33,26 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
         run: cargo test --all-features --workspace
+
+  test-no-docker:
+    name: Test Suite (no Docker)
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Install cargo-semver-checks
+        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        with:
+          repo: obi1kenobi/cargo-semver-checks
+          tag: v0.22.1
+          cache: enable
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install -y libssl-dev
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Run tests
+        run: cargo test --no-default-features --workspace
 
   check:
     name: Check

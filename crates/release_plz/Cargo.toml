@@ -10,7 +10,10 @@ readme = "../../README.md"
 keywords = ["release", "please", "semver", "conventional", "commits"]
 categories = ["command-line-utilities", "development-tools"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = ["docker-tests"]
+# Run tests that need a docker runtime to be executed
+docker-tests = []
 
 [dependencies]
 git_cmd = { path = "../git_cmd", version = "0.4.8" }
