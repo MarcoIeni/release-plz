@@ -49,8 +49,7 @@ impl TestContext {
         } else {
             "ERROR"
         };
-        assert_cmd::Command::cargo_bin(env!("CARGO_PKG_NAME"))
-            .unwrap()
+        super::cmd::release_plz_cmd()
             .current_dir(&self.repo_dir())
             .env("RUST_LOG", log_level)
             .arg("release-pr")
@@ -69,8 +68,7 @@ impl TestContext {
         } else {
             "ERROR"
         };
-        assert_cmd::Command::cargo_bin(env!("CARGO_PKG_NAME"))
-            .unwrap()
+        super::cmd::release_plz_cmd()
             .current_dir(&self.repo_dir())
             .env("RUST_LOG", log_level)
             .arg("release")
