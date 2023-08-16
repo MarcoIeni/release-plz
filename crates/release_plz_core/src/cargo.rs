@@ -86,7 +86,9 @@ fn is_in_cache_git(index: &GitIndex, package: &Package) -> bool {
 }
 
 async fn is_in_cache_sparse(index: &SparseIndex, package: &Package) -> anyhow::Result<bool> {
-    let crate_data = fetch_sparse_metadata(index, &package.name).await?;
+    let crate_data = fetch_sparse_metadata(index, &package.name)
+        .await
+        .context("failed fetching sparse metadata")?;
     let version = &package.version.to_string();
     Ok(is_in_cache(crate_data.as_ref(), version))
 }
