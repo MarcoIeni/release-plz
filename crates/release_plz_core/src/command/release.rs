@@ -291,7 +291,9 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
                 info!("{} {}: already published", package.name, package.version);
                 continue;
             }
-            release_package(&mut index, package, input, git_tag.clone()).await?;
+            release_package(&mut index, package, input, git_tag.clone())
+                .await
+                .context("failed to release package")?;
         }
     }
     Ok(())
