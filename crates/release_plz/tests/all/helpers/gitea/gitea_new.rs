@@ -102,6 +102,7 @@ pub fn create_user() -> GiteaUser {
 }
 
 #[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
 async fn can_create_gitea_repository() {
     let repo_name = "myrepo";
     let gitea = GiteaContext::new(repo_name.to_string()).await;
