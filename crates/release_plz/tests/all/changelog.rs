@@ -1,6 +1,7 @@
 use crate::helpers::test_context::TestContext;
 
 #[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
 async fn release_plz_adds_changelog_on_new_project() {
     let context = TestContext::new().await;
 
