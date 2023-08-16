@@ -287,7 +287,10 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
         let registry_indexes = registry_indexes(package, input.registry.clone())
             .context("can't determine registry indexes")?;
         for mut index in registry_indexes {
-            if is_published(&mut index, package).await? {
+            if is_published(&mut index, package)
+                .await
+                .context("can't determine if package is published")?
+            {
                 info!("{} {}: already published", package.name, package.version);
                 continue;
             }
