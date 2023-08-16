@@ -25,7 +25,7 @@ pub struct CliArgs {
     pub command: Command,
     /// Print source location and additional information in logs.
     /// To change the log level, use the `RUST_FLAG` environment variable.
-    #[arg(short, long)]
+    #[arg(short, long, global = true)]
     pub verbose: bool,
     /// Path to the release-plz config file.
     /// Default: `./release-plz.toml`.
