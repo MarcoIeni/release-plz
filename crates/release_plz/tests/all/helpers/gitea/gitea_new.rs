@@ -75,7 +75,7 @@ async fn create_repository(user_token: &str, repo_name: &str, client: &reqwest::
 
 async fn upload_registry_config(user_token: &str, username: &str, client: &reqwest::Client) {
     use base64::Engine as _;
-    let content = format!("{{\"dl\":\"http://localhost:3000/api/packages/{username}/cargo/api/v1/crates\",\"api\":\"http://localhost:3000/api/packages/aaa/cargo\"}}");
+    let content = format!("{{\"dl\":\"http://localhost:3000/api/packages/{username}/cargo/api/v1/crates\",\"api\":\"http://localhost:3000/api/packages/{username}/cargo\"}}");
 
     client
         .post(super::gitea_endpoint(&format!(
