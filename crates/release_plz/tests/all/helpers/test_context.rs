@@ -39,7 +39,7 @@ impl TestContext {
         let git_client = git_client(&repo_url, &gitea.token);
 
         let repo_dir = test_dir.path().join(&gitea.repo);
-        let _repo = commit_cargo_init(&repo_dir, gitea.user.username());
+        let _repo = commit_cargo_init(&repo_dir, &gitea);
         Self {
             gitea,
             test_dir,
@@ -73,6 +73,7 @@ impl TestContext {
         } else {
             "ERROR"
         };
+
         super::cmd::release_plz_cmd()
             .current_dir(&self.repo_dir())
             .env("RUST_LOG", log_level)
@@ -85,7 +86,7 @@ impl TestContext {
             .arg("--registry")
             .arg("test-registry")
             .arg("--token")
-            .arg("testsecret")
+            .arg(format!("Bearer {}", &self.gitea.token))
             .assert()
     }
 
@@ -98,7 +99,8 @@ impl TestContext {
     }
 }
 
-fn commit_cargo_init(repo_dir: &Path, username: &str) -> Repo {
+fn commit_cargo_init(repo_dir: &Path, gitea: &GiteaContext) -> Repo {
+    let username = gitea.user.username();
     assert_cmd::Command::new("cargo")
         .current_dir(repo_dir)
         .arg("init")
@@ -124,15 +126,6 @@ fn commit_cargo_init(repo_dir: &Path, username: &str) -> Repo {
     assert_cmd::Command::new("cargo")
         .current_dir(repo_dir)
         .arg("check")
-        .assert()
-        .success();
-
-    assert_cmd::Command::new("cargo")
-        .current_dir(repo_dir)
-        .arg("login")
-        .arg("--registry")
-        .arg("test-registry")
-        .arg(format!("Bearer {}", &gitea.token))
         .assert()
         .success();
 
