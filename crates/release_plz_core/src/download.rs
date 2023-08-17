@@ -1,9 +1,6 @@
 //! Download packages from cargo registry, similar to the `git clone` behavior.
 
-use std::{
-    fmt,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context};
 use cargo_metadata::Package;
@@ -14,39 +11,70 @@ use crate::{
     CARGO_TOML,
 };
 
-#[instrument]
-pub fn download_packages(
-    packages: &[&str],
-    directory: impl AsRef<str> + fmt::Debug,
-    registry: Option<&str>,
+#[derive(Debug)]
+pub struct PackageDownloader {
+    packages: Vec<String>,
+    directory: String,
+    registry: Option<String>,
     cargo_cwd: Option<PathBuf>,
-) -> anyhow::Result<Vec<Package>> {
-    let directory = directory.as_ref();
-    info!("downloading packages from cargo registry");
-    let source: ClonerSource = match registry {
-        Some(registry) => ClonerSource::registry(registry),
-        None => ClonerSource::crates_io(),
-    };
-    let crates: Vec<Crate> = packages
-        .iter()
-        .map(|&package_name| Crate::new(package_name.to_string(), None))
-        .collect();
-    let mut cloner_builder = Cloner::builder()
-        .with_directory(directory)
-        .with_source(source);
-    if let Some(cwd) = cargo_cwd {
-        cloner_builder = cloner_builder.with_cargo_cwd(cwd);
-    }
-    let downloaded_packages = cloner_builder
-        .build()
-        .context("can't build cloner")?
-        .clone(&crates)
-        .context("error while downloading packages")?;
+}
 
-    downloaded_packages
-        .iter()
-        .map(|(_package, path)| read_package(path))
-        .collect()
+impl PackageDownloader {
+    pub fn new(
+        packages: impl IntoIterator<Item = impl Into<String>>,
+        directory: impl Into<String>,
+    ) -> Self {
+        Self {
+            packages: packages.into_iter().map(Into::into).collect(),
+            directory: directory.into(),
+            registry: None,
+            cargo_cwd: None,
+        }
+    }
+
+    pub fn with_registry(self, registry: String) -> Self {
+        Self {
+            registry: Some(registry),
+            ..self
+        }
+    }
+
+    pub fn with_cargo_cwd(self, cargo_cwd: PathBuf) -> Self {
+        Self {
+            cargo_cwd: Some(cargo_cwd),
+            ..self
+        }
+    }
+
+    #[instrument]
+    pub fn download(&self) -> anyhow::Result<Vec<Package>> {
+        info!("downloading packages from cargo registry");
+        let source: ClonerSource = match &self.registry {
+            Some(registry) => ClonerSource::registry(registry),
+            None => ClonerSource::crates_io(),
+        };
+        let crates: Vec<Crate> = self
+            .packages
+            .iter()
+            .map(|package_name| Crate::new(package_name.to_string(), None))
+            .collect();
+        let mut cloner_builder = Cloner::builder()
+            .with_directory(&self.directory)
+            .with_source(source);
+        if let Some(cwd) = &self.cargo_cwd {
+            cloner_builder = cloner_builder.with_cargo_cwd(cwd.clone());
+        }
+        let downloaded_packages = cloner_builder
+            .build()
+            .context("can't build cloner")?
+            .clone(&crates)
+            .context("error while downloading packages")?;
+
+        downloaded_packages
+            .iter()
+            .map(|(_package, path)| read_package(path))
+            .collect()
+    }
 }
 
 /// Read a package from file system
@@ -77,7 +105,9 @@ mod tests {
         let package_name = "rand";
         let temp_dir = tempdir().unwrap();
         let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
-        let packages = download_packages(&[package_name], directory, None, None).unwrap();
+        let packages = PackageDownloader::new([package_name], directory)
+            .download()
+            .unwrap();
         let rand = &packages[0];
         assert_eq!(rand.name, package_name);
     }
@@ -89,8 +119,9 @@ mod tests {
         let second_package = "rust-gh-example";
         let temp_dir = tempdir().unwrap();
         let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
-        let packages =
-            download_packages(&[first_package, second_package], directory, None, None).unwrap();
+        let packages = PackageDownloader::new([first_package], directory)
+            .download()
+            .unwrap();
         assert_eq!(&packages[0].name, first_package);
         assert_eq!(&packages[1].name, second_package);
     }
@@ -102,6 +133,8 @@ mod tests {
         let package: String = 15.fake();
         let temp_dir = tempdir().unwrap();
         let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
-        download_packages(&[&package], directory, None, None).unwrap();
+        PackageDownloader::new([&package], directory)
+            .download()
+            .unwrap();
     }
 }

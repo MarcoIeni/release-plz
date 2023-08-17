@@ -31,9 +31,14 @@ pub fn get_registry_packages(
             let local_packages_names: Vec<&str> =
                 local_packages.iter().map(|c| c.name.as_str()).collect();
             let directory = temp_dir.as_ref().to_str().context("invalid tempdir path")?;
-            let registry_packages =
-                download::download_packages(&local_packages_names, directory, registry, None)
-                    .context("failed to download packages")?;
+
+            let mut downloader = download::PackageDownloader::new(local_packages_names, directory);
+            if let Some(registry) = registry {
+                downloader = downloader.with_registry(registry.to_string());
+            }
+            let registry_packages = downloader
+                .download()
+                .context("failed to download packages")?;
             (Some(temp_dir), registry_packages)
         }
     };

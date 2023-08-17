@@ -28,13 +28,11 @@ async fn release_plz_releases_a_new_project() {
     let dest_dir_str = dest_dir.path().to_str().unwrap();
 
     let packages = || {
-        release_plz_core::download_packages(
-            &[crate_name],
-            dest_dir_str,
-            Some(TEST_REGISTRY),
-            Some(context.repo_dir()),
-        )
-        .unwrap()
+        release_plz_core::PackageDownloader::new([crate_name], dest_dir_str)
+            .with_registry(TEST_REGISTRY.to_string())
+            .with_cargo_cwd(context.repo_dir())
+            .download()
+            .unwrap()
     };
     // Before running release-plz, no packages should be present.
     assert!(packages().is_empty());
