@@ -87,7 +87,7 @@ async fn upload_registry_config(user_token: &str, username: &str, client: &reqwe
         )))
         .query(&[("token", user_token)])
         .json(&json!({
-            "message": "Initial commit",
+            "message": "Add config.json",
             "content": base64::engine::general_purpose::STANDARD.encode(content.as_bytes()),
         }))
         .send()
