@@ -63,8 +63,6 @@ impl TestContext {
             .arg("gitea")
             .arg("--registry")
             .arg("test-registry")
-            .arg("--token")
-            .arg("testsecret")
             .assert()
     }
 
