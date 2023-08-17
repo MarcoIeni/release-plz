@@ -127,7 +127,7 @@ fn commit_cargo_init(repo_dir: &Path, username: &str) -> Repo {
         .arg("login")
         .arg("--registry")
         .arg("test-registry")
-        .arg("random-token")
+        .arg("testsecret")
         .assert()
         .success();
 
