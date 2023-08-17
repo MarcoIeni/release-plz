@@ -15,6 +15,8 @@ impl GiteaContext {
         let token = create_token(&user, &client).await;
 
         create_repository(&token, &repo, &client).await;
+        create_repository(&token, "_cargo-index", &client).await;
+        upload_registry_config(&token, &user.username, &client).await;
 
         Self {
             user,
@@ -66,6 +68,28 @@ async fn create_repository(user_token: &str, repo_name: &str, client: &reqwest::
         .send()
         .await
         .expect("Failed to create repository")
+        .ok_if_2xx()
+        .await
+        .unwrap();
+}
+
+async fn upload_registry_config(user_token: &str, username: &str, client: &reqwest::Client) {
+    use base64::Engine as _;
+    let content = format!("{{\"dl\":\"http://localhost:3000/api/packages/{username}/cargo/api/v1/crates\",\"api\":\"http://localhost:3000/api/packages/aaa/cargo\"}}");
+
+    client
+        .put(super::gitea_endpoint(&format!(
+            "/repos/{}/_cargo-index/contents/config.json",
+            username
+        )))
+        .query(&[("token", user_token)])
+        .json(&json!({
+            "message": "Initial commit",
+            "content": base64::engine::general_purpose::STANDARD_NO_PAD.encode(content.as_bytes()),
+        }))
+        .send()
+        .await
+        .expect("Failed to upload content")
         .ok_if_2xx()
         .await
         .unwrap();
