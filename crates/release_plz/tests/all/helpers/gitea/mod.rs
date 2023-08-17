@@ -17,6 +17,9 @@ pub struct GiteaContext {
     client: reqwest::Client,
 }
 
+/// Repository name where gitea stores the registry index.
+pub const CARGO_INDEX_REPO: &str = "_cargo-index";
+
 fn gitea_endpoint(endpoint: &str) -> String {
     let api_url = format!("http://{}/api/v1", gitea_address());
     format!("{}/{}", api_url, endpoint)

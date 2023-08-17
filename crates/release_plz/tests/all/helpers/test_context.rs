@@ -5,6 +5,7 @@ use std::{
     str::FromStr,
 };
 
+use crate::helpers::gitea::CARGO_INDEX_REPO;
 use assert_cmd::assert::Assert;
 use cargo_utils::LocalManifest;
 use git_cmd::Repo;
@@ -144,7 +145,7 @@ fn create_cargo_config(repo_dir: &Path, username: &str) {
         // we use gitea as a cargo registry:
         // https://docs.gitea.com/usage/packages/cargo
         let gitea_index = format!(
-            "\"http://{}/{}/_cargo-index.git\"",
+            "\"http://{}/{}/{CARGO_INDEX_REPO}.git\"",
             gitea_address(),
             username
         );

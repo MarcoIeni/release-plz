@@ -6,7 +6,7 @@ use serde_json::json;
 
 use crate::helpers::{fake_utils, reqwest_utils::ReqwestUtils};
 
-use super::{GiteaContext, GiteaUser};
+use super::{GiteaContext, GiteaUser, CARGO_INDEX_REPO};
 
 impl GiteaContext {
     pub async fn new(repo: String) -> Self {
@@ -15,9 +15,7 @@ impl GiteaContext {
         let token = create_token(&user, &client).await;
 
         create_repository(&token, &repo, &client).await;
-        // Create the _cargo-index repository. It's the repository where gitea stores
-        // the registry index.
-        create_repository(&token, "_cargo-index", &client).await;
+        create_repository(&token, CARGO_INDEX_REPO, &client).await;
         upload_registry_config(&token, &user.username, &client).await;
 
         Self {
@@ -82,8 +80,7 @@ async fn upload_registry_config(user_token: &str, username: &str, client: &reqwe
 
     client
         .post(super::gitea_endpoint(&format!(
-            "repos/{}/_cargo-index/contents/config.json",
-            username
+            "repos/{username}/{CARGO_INDEX_REPO}/contents/config.json"
         )))
         .query(&[("token", user_token)])
         .json(&json!({
