@@ -146,7 +146,6 @@ fn create_cargo_config(repo_dir: &Path, username: &str) {
 default = "test-registry"
 
 [registries.test-registry]
-token = "Bearer testsecret"
 index = "#;
         // we use gitea as a cargo registry:
         // https://docs.gitea.com/usage/packages/cargo
