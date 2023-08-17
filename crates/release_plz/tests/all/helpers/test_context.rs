@@ -16,6 +16,7 @@ use tracing::info;
 use super::{
     fake_utils,
     gitea::{gitea_address, GiteaContext},
+    TEST_REGISTRY,
 };
 
 /// It contains the universe in which release-plz runs.
@@ -63,7 +64,7 @@ impl TestContext {
             .arg("--backend")
             .arg("gitea")
             .arg("--registry")
-            .arg("test-registry")
+            .arg(TEST_REGISTRY)
             .assert()
     }
 
@@ -84,7 +85,7 @@ impl TestContext {
             .arg("--backend")
             .arg("gitea")
             .arg("--registry")
-            .arg("test-registry")
+            .arg(TEST_REGISTRY)
             .arg("--token")
             .arg(format!("Bearer {}", &self.gitea.token))
             .assert()
@@ -109,7 +110,7 @@ fn commit_cargo_init(repo_dir: &Path, gitea: &GiteaContext) -> Repo {
     let cargo_toml_path = repo_dir.join("Cargo.toml");
     let mut cargo_toml = LocalManifest::try_new(&cargo_toml_path).unwrap();
     let mut registry_array = toml_edit::Array::new();
-    registry_array.push("test-registry");
+    registry_array.push(TEST_REGISTRY);
     cargo_toml.data["package"]["publish"] =
         toml_edit::Item::Value(toml_edit::Value::Array(registry_array));
     cargo_toml.write().unwrap();
@@ -137,12 +138,9 @@ fn commit_cargo_init(repo_dir: &Path, gitea: &GiteaContext) -> Repo {
 fn create_cargo_config(repo_dir: &Path, username: &str) {
     let cargo_config = {
         // matches the docker compose file
-        let cargo_registries = r#"
-[registry]
-default = "test-registry"
-
-[registries.test-registry]
-index = "#;
+        let cargo_registries = format!(
+            "[registry]\ndefault = \"{TEST_REGISTRY}\"\n\n[registries.{TEST_REGISTRY}]\nindex = "
+        );
         // we use gitea as a cargo registry:
         // https://docs.gitea.com/usage/packages/cargo
         let gitea_index = format!(

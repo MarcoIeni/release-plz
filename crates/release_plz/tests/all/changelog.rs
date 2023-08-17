@@ -1,4 +1,4 @@
-use crate::helpers::test_context::TestContext;
+use crate::helpers::{test_context::TestContext, TEST_REGISTRY};
 
 #[tokio::test]
 #[cfg_attr(not(feature = "docker-tests"), ignore)]
@@ -31,7 +31,7 @@ async fn release_plz_releases_a_new_project() {
         release_plz_core::download_packages(
             &[crate_name],
             dest_dir_str,
-            Some("test-registry"),
+            Some(TEST_REGISTRY),
             Some(context.repo_dir()),
         )
         .unwrap()
