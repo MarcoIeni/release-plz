@@ -22,6 +22,6 @@ fn gitea_endpoint(endpoint: &str) -> String {
     format!("{}/{}", api_url, endpoint)
 }
 
-fn gitea_address() -> &'static str {
+pub fn gitea_address() -> &'static str {
     "localhost:3000"
 }

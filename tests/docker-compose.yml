@@ -38,13 +38,3 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-  # With Cargo-http-registry we mock crates.io.
-  registry:
-    image: ghcr.io/d-e-s-o/cargo-http-registry:sha-7556ed9
-    container_name: cargo-registry
-    restart: always
-    # Directory where the registry will store its data.
-    # Cargo-http-registry creates the directory if it does not exist.
-    command: /tmp/test-registry -a 0.0.0.0:35504
-    ports:
-      - "35504:35504"

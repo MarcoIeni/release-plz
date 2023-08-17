@@ -12,7 +12,10 @@ use secrecy::SecretString;
 use tempfile::TempDir;
 use tracing::info;
 
-use super::{fake_utils, gitea::GiteaContext};
+use super::{
+    fake_utils,
+    gitea::{gitea_address, GiteaContext},
+};
 
 /// It contains the universe in which release-plz runs.
 pub struct TestContext {
@@ -60,6 +63,8 @@ impl TestContext {
             .arg("gitea")
             .arg("--registry")
             .arg("test-registry")
+            .arg("--token")
+            .arg("testsecret")
             .assert()
     }
 
@@ -80,6 +85,8 @@ impl TestContext {
             .arg("gitea")
             .arg("--registry")
             .arg("test-registry")
+            .arg("--token")
+            .arg("testsecret")
             .assert()
     }
 
@@ -106,7 +113,7 @@ fn commit_cargo_init(repo_dir: &Path, username: &str) -> Repo {
     repo.git(&["config", "user.email", "a@example.com"])
         .unwrap();
 
-    create_cargo_config(repo_dir);
+    create_cargo_config(repo_dir, username);
 
     // Generate Cargo.lock
     assert_cmd::Command::new("cargo")
@@ -129,15 +136,30 @@ fn commit_cargo_init(repo_dir: &Path, username: &str) -> Repo {
     repo
 }
 
-fn create_cargo_config(repo_dir: &Path) {
-    // matches the docker compose file
-    let cargo_config = r#"
-[registries]
-test-registry = { index = "http://127.0.0.1:35504/git" }
+fn create_cargo_config(repo_dir: &Path, username: &str) {
+    let cargo_config = {
+        // matches the docker compose file
+        let cargo_registries = r#"
+[registry]
+default = "test-registry"
 
+[registries.test-registry]
+token = "Bearer testsecret"
+index = "#;
+        // we use gitea as a cargo registry:
+        // https://docs.gitea.com/usage/packages/cargo
+        let gitea_index = format!(
+            "\"http://{}/{}/_cargo-index.git\"",
+            gitea_address(),
+            username
+        );
+
+        let config_end = r#"
 [net]
 git-fetch-with-cli = true
     "#;
+        format!("{}{}{}", cargo_registries, gitea_index, config_end)
+    };
     let config_dir = repo_dir.join(".cargo");
     fs::create_dir(&config_dir).unwrap();
     let config_file = config_dir.join("config.toml");
