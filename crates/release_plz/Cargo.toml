@@ -37,6 +37,7 @@ tracing.workspace = true
 url.workspace = true
 
 [dev-dependencies]
+cargo_utils = { path = "../cargo_utils" }
 test_logs = { path = "../test_logs" }
 
 assert_cmd.workspace = true
@@ -45,3 +46,4 @@ fake.workspace = true
 expect-test.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
+toml_edit.workspace = true

@@ -6,6 +6,7 @@ use std::{
 };
 
 use assert_cmd::assert::Assert;
+use cargo_utils::LocalManifest;
 use git_cmd::Repo;
 use release_plz_core::{GitBackend, GitClient, GitPr, Gitea, RepoUrl};
 use secrecy::SecretString;
@@ -103,7 +104,10 @@ fn commit_cargo_init(repo_dir: &Path, username: &str) -> Repo {
         .arg("init")
         .assert()
         .success();
-
+    let cargo_toml_path = repo_dir.join("Cargo.toml");
+    let mut cargo_toml = LocalManifest::try_new(&cargo_toml_path).unwrap();
+    cargo_toml.data["package"]["publish"] =
+        toml_edit::Item::Value(toml_edit::Value::Array(toml_edit::Array::new()));
     let repo = Repo::new(repo_dir).unwrap();
     // config local user
     repo.git(&["config", "user.name", username]).unwrap();
