@@ -141,29 +141,31 @@ fn edit_cargo_toml(repo_dir: &Path) {
 }
 
 fn create_cargo_config(repo_dir: &Path, username: &str) {
-    let cargo_config = {
-        // matches the docker compose file
-        let cargo_registries = format!(
-            "[registry]\ndefault = \"{TEST_REGISTRY}\"\n\n[registries.{TEST_REGISTRY}]\nindex = "
-        );
-        // we use gitea as a cargo registry:
-        // https://docs.gitea.com/usage/packages/cargo
-        let gitea_index = format!(
-            "\"http://{}/{}/{CARGO_INDEX_REPO}.git\"",
-            gitea_address(),
-            username
-        );
-
-        let config_end = r#"
-[net]
-git-fetch-with-cli = true
-    "#;
-        format!("{}{}{}", cargo_registries, gitea_index, config_end)
-    };
     let config_dir = repo_dir.join(".cargo");
     fs::create_dir(&config_dir).unwrap();
     let config_file = config_dir.join("config.toml");
+    let cargo_config = cargo_config(username);
     fs::write(config_file, cargo_config).unwrap();
+}
+
+fn cargo_config(username: &str) -> String {
+    // matches the docker compose file
+    let cargo_registries = format!(
+        "[registry]\ndefault = \"{TEST_REGISTRY}\"\n\n[registries.{TEST_REGISTRY}]\nindex = "
+    );
+    // we use gitea as a cargo registry:
+    // https://docs.gitea.com/usage/packages/cargo
+    let gitea_index = format!(
+        "\"http://{}/{}/{CARGO_INDEX_REPO}.git\"",
+        gitea_address(),
+        username
+    );
+
+    let config_end = r#"
+[net]
+git-fetch-with-cli = true
+    "#;
+    format!("{}{}{}", cargo_registries, gitea_index, config_end)
 }
 
 fn git_client(repo_url: &str, token: &str) -> GitClient {
