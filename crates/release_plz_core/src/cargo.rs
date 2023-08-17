@@ -141,7 +141,7 @@ async fn fetch_sparse_metadata(
 pub async fn wait_until_published(index: &mut CargoIndex, package: &Package) -> anyhow::Result<()> {
     let now = Instant::now();
     let sleep_time = Duration::from_secs(2);
-    let timeout = Duration::from_secs(300);
+    let timeout = Duration::from_secs(60);
     let mut logged = false;
 
     loop {
