@@ -106,8 +106,11 @@ fn commit_cargo_init(repo_dir: &Path, username: &str) -> Repo {
         .success();
     let cargo_toml_path = repo_dir.join("Cargo.toml");
     let mut cargo_toml = LocalManifest::try_new(&cargo_toml_path).unwrap();
+    let mut registry_array = toml_edit::Array::new();
+    registry_array.push("test-registry");
     cargo_toml.data["package"]["publish"] =
-        toml_edit::Item::Value(toml_edit::Value::Array(toml_edit::Array::new()));
+        toml_edit::Item::Value(toml_edit::Value::Array(registry_array));
+    cargo_toml.write().unwrap();
     let repo = Repo::new(repo_dir).unwrap();
     // config local user
     repo.git(&["config", "user.name", username]).unwrap();
