@@ -6,7 +6,7 @@ use serde_json::json;
 
 use crate::helpers::{fake_utils, reqwest_utils::ReqwestUtils};
 
-use super::{GiteaContext, GiteaUser};
+use super::{GiteaContext, GiteaUser, CARGO_INDEX_REPO};
 
 impl GiteaContext {
     pub async fn new(repo: String) -> Self {
@@ -15,6 +15,8 @@ impl GiteaContext {
         let token = create_token(&user, &client).await;
 
         create_repository(&token, &repo, &client).await;
+        create_repository(&token, CARGO_INDEX_REPO, &client).await;
+        upload_registry_config(&token, &user.username, &client).await;
 
         Self {
             user,
@@ -33,14 +35,15 @@ pub async fn create_token(user: &GiteaUser, client: &reqwest::Client) -> String 
 
     let token: Token = client
         .post(super::gitea_endpoint(&format!(
-            "/users/{}/tokens",
+            "users/{}/tokens",
             user.username()
         )))
         .basic_auth(user.username(), Some(&user.password()))
         .json(&json!({
             "name": user.username(),
-            // edit repositories
-            "scopes": ["read:repository", "write:repository", "write:user"]
+            // write:repository, write:user - edit repositories
+            // write:package - publish packages (for cargo publish)
+            "scopes": ["read:repository", "write:repository", "write:user", "write:package"]
         }))
         .send()
         .await
@@ -56,7 +59,7 @@ pub async fn create_token(user: &GiteaUser, client: &reqwest::Client) -> String 
 
 async fn create_repository(user_token: &str, repo_name: &str, client: &reqwest::Client) {
     client
-        .post(super::gitea_endpoint("/user/repos"))
+        .post(super::gitea_endpoint("user/repos"))
         .query(&[("token", user_token)])
         .json(&json!({
             "name": repo_name,
@@ -66,6 +69,30 @@ async fn create_repository(user_token: &str, repo_name: &str, client: &reqwest::
         .send()
         .await
         .expect("Failed to create repository")
+        .ok_if_2xx()
+        .await
+        .unwrap();
+}
+
+async fn upload_registry_config(user_token: &str, username: &str, client: &reqwest::Client) {
+    use base64::Engine as _;
+    let content = {
+        let cargo_url = format!("http://localhost:3000/api/packages/{username}/cargo");
+        format!("{{\"dl\":\"{cargo_url}/api/v1/crates\",\"api\":\"{cargo_url}\"}}")
+    };
+
+    client
+        .post(super::gitea_endpoint(&format!(
+            "repos/{username}/{CARGO_INDEX_REPO}/contents/config.json"
+        )))
+        .query(&[("token", user_token)])
+        .json(&json!({
+            "message": "Add config.json",
+            "content": base64::engine::general_purpose::STANDARD.encode(content.as_bytes()),
+        }))
+        .send()
+        .await
+        .expect("Failed to upload content")
         .ok_if_2xx()
         .await
         .unwrap();

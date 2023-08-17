@@ -44,6 +44,7 @@ pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<
 
 /// `to` must exist.
 #[tracing::instrument]
+#[allow(clippy::filetype_is_file)] // we want to distinguish between files and symlinks
 fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Error> {
     for entry in WalkDir::new(from) {
         let entry = entry.context("invalid entry")?;
