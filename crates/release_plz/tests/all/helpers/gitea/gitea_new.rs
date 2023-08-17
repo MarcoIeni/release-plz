@@ -35,7 +35,7 @@ pub async fn create_token(user: &GiteaUser, client: &reqwest::Client) -> String 
 
     let token: Token = client
         .post(super::gitea_endpoint(&format!(
-            "/users/{}/tokens",
+            "users/{}/tokens",
             user.username()
         )))
         .basic_auth(user.username(), Some(&user.password()))
@@ -58,7 +58,7 @@ pub async fn create_token(user: &GiteaUser, client: &reqwest::Client) -> String 
 
 async fn create_repository(user_token: &str, repo_name: &str, client: &reqwest::Client) {
     client
-        .post(super::gitea_endpoint("/user/repos"))
+        .post(super::gitea_endpoint("user/repos"))
         .query(&[("token", user_token)])
         .json(&json!({
             "name": repo_name,
@@ -78,8 +78,8 @@ async fn upload_registry_config(user_token: &str, username: &str, client: &reqwe
     let content = format!("{{\"dl\":\"http://localhost:3000/api/packages/{username}/cargo/api/v1/crates\",\"api\":\"http://localhost:3000/api/packages/aaa/cargo\"}}");
 
     client
-        .put(super::gitea_endpoint(&format!(
-            "/repos/{}/_cargo-index/contents/config.json",
+        .post(super::gitea_endpoint(&format!(
+            "repos/{}/_cargo-index/contents/config.json",
             username
         )))
         .query(&[("token", user_token)])
