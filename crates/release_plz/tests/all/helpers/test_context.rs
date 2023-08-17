@@ -108,13 +108,7 @@ fn commit_cargo_init(repo_dir: &Path, gitea: &GiteaContext) -> Repo {
         .arg("init")
         .assert()
         .success();
-    let cargo_toml_path = repo_dir.join("Cargo.toml");
-    let mut cargo_toml = LocalManifest::try_new(&cargo_toml_path).unwrap();
-    let mut registry_array = toml_edit::Array::new();
-    registry_array.push(TEST_REGISTRY);
-    cargo_toml.data["package"]["publish"] =
-        toml_edit::Item::Value(toml_edit::Value::Array(registry_array));
-    cargo_toml.write().unwrap();
+    edit_cargo_toml(repo_dir);
     let repo = Repo::new(repo_dir).unwrap();
     // config local user
     repo.git(&["config", "user.name", username]).unwrap();
@@ -134,6 +128,16 @@ fn commit_cargo_init(repo_dir: &Path, gitea: &GiteaContext) -> Repo {
     repo.add_all_and_commit("Initial commit").unwrap();
     repo.git(&["push"]).unwrap();
     repo
+}
+
+fn edit_cargo_toml(repo_dir: &Path) {
+    let cargo_toml_path = repo_dir.join("Cargo.toml");
+    let mut cargo_toml = LocalManifest::try_new(&cargo_toml_path).unwrap();
+    let mut registry_array = toml_edit::Array::new();
+    registry_array.push(TEST_REGISTRY);
+    cargo_toml.data["package"]["publish"] =
+        toml_edit::Item::Value(toml_edit::Value::Array(registry_array));
+    cargo_toml.write().unwrap();
 }
 
 fn create_cargo_config(repo_dir: &Path, username: &str) {
