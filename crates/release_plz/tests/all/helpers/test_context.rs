@@ -132,7 +132,7 @@ fn commit_cargo_init(repo_dir: &Path, username: &str) -> Repo {
         .arg("login")
         .arg("--registry")
         .arg("test-registry")
-        .arg("testsecret")
+        .arg(format!("Bearer {}", &gitea.token))
         .assert()
         .success();
 
