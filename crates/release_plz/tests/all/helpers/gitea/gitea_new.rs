@@ -41,8 +41,8 @@ pub async fn create_token(user: &GiteaUser, client: &reqwest::Client) -> String 
         .basic_auth(user.username(), Some(&user.password()))
         .json(&json!({
             "name": user.username(),
-            // edit repositories
-            "scopes": ["read:repository", "write:repository", "write:user"]
+            // edit repositories, publish packages (for cargo publish)
+            "scopes": ["read:repository", "write:repository", "write:user", "read:package", "write:package"]
         }))
         .send()
         .await
