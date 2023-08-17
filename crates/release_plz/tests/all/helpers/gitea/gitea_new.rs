@@ -15,6 +15,8 @@ impl GiteaContext {
         let token = create_token(&user, &client).await;
 
         create_repository(&token, &repo, &client).await;
+        // Create the _cargo-index repository. It's the repository where gitea stores
+        // the registry index.
         create_repository(&token, "_cargo-index", &client).await;
         upload_registry_config(&token, &user.username, &client).await;
 
