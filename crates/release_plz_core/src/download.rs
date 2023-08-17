@@ -119,7 +119,7 @@ mod tests {
         let second_package = "rust-gh-example";
         let temp_dir = tempdir().unwrap();
         let directory = temp_dir.as_ref().to_str().expect("invalid tempdir path");
-        let packages = PackageDownloader::new([first_package], directory)
+        let packages = PackageDownloader::new([first_package, second_package], directory)
             .download()
             .unwrap();
         assert_eq!(&packages[0].name, first_package);
