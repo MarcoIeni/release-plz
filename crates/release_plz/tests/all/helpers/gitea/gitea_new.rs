@@ -12,6 +12,8 @@ impl GiteaContext {
     pub async fn new(repo: String) -> Self {
         let client = reqwest::Client::new();
         let user = create_user();
+        // TODO: this should run only once
+        save_cargo_credentials();
         let token = create_token(&user, &client).await;
 
         create_repository(&token, &repo, &client).await;
@@ -113,6 +115,18 @@ fn run_create_user_command(user: &GiteaUser) {
         .arg("--must-change-password=false")
         .status()
         .expect("Failed to create user. Is the docker daemon running?");
+}
+
+fn save_cargo_credentials() {
+    Command::new("docker")
+        .arg("exec")
+        .arg("gitea")
+        .arg("echo")
+        .arg("[registries.gitea]\ntoken = \"Bearer testsecret\"")
+        .arg(">")
+        .arg("~/.cargo/credentials.toml")
+        .status()
+        .expect("Failed to save cargo credentials");
 }
 
 /// Create a random user and return it's username and passoword.
