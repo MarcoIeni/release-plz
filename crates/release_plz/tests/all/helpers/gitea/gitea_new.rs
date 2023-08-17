@@ -122,7 +122,7 @@ fn save_cargo_credentials() {
         .arg("exec")
         .arg("gitea")
         .arg("echo")
-        .arg("[registries.gitea]\ntoken = \"Bearer testsecret\"")
+        .arg("[registries.test-registry]\ntoken = \"Bearer testsecret\"")
         .arg(">")
         .arg("~/.cargo/credentials.toml")
         .status()
