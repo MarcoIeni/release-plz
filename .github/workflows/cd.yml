@@ -54,9 +54,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Install OpenSSL
-        if: startsWith(matrix.os, 'ubuntu')
-        run: sudo apt update && sudo apt install -y libssl-dev
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/setup-cross-toolchain-action@v1
