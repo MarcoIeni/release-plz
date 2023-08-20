@@ -242,6 +242,7 @@ fn default_changelog_config(header: Option<String>, release_link: Option<&str>) 
         header: Some(header.unwrap_or(String::from(CHANGELOG_HEADER))),
         body: Some(default_changelog_body_config(release_link)),
         footer: None,
+        postprocessors: None,
         trim: Some(true),
     }
 }
