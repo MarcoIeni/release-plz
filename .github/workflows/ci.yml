@@ -23,8 +23,6 @@ jobs:
           repo: obi1kenobi/cargo-semver-checks
           tag: v0.22.1
           cache: enable
-      - name: Install dependencies
-        run: sudo apt update && sudo apt install -y libssl-dev
       - name: Start containers
         run: docker compose up -d --wait
         working-directory: ./tests
