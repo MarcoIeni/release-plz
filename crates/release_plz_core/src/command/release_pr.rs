@@ -142,7 +142,7 @@ async fn open_or_update_release_pr(
 
 async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Result<()> {
     create_release_branch(repo, &pr.branch)?;
-    git_client.open_pr(pr).await?;
+    git_client.open_pr(pr).await.context("Failed to open PR")?;
     Ok(())
 }
 

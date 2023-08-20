@@ -434,6 +434,9 @@ async fn publish_git_release(
         GitBackend::Gitlab(gitlab) => GitBackend::Gitlab(gitlab.clone()),
     };
     let git_client = GitClient::new(backend)?;
-    git_client.create_release(&git_tag, release_body).await?;
+    git_client
+        .create_release(&git_tag, release_body)
+        .await
+        .context("Failed to create release")?;
     Ok(())
 }
