@@ -49,6 +49,15 @@ pub struct Release {
     /// Kind of git backend
     #[arg(long, value_enum, default_value_t = ReleaseGitBackendKind::Github)]
     backend: ReleaseGitBackendKind,
+    /// Path to the release-plz config file.
+    /// Default: `./release-plz.toml`.
+    /// If no config file is found, the default configuration is used.
+    #[arg(
+        long,
+        value_name = "PATH",
+        value_parser = PathBufValueParser::new()
+    )]
+    config: Option<PathBuf>,
 }
 
 #[derive(ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]

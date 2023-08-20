@@ -79,6 +79,15 @@ pub struct Update {
     /// It defaults to the url of the default remote.
     #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     repo_url: Option<String>,
+    /// Path to the release-plz config file.
+    /// Default: `./release-plz.toml`.
+    /// If no config file is found, the default configuration is used.
+    #[arg(
+        long,
+        value_name = "PATH",
+        value_parser = PathBufValueParser::new()
+    )]
+    config: Option<PathBuf>,
 }
 
 impl RepoCommand for Update {
