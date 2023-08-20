@@ -188,8 +188,7 @@ impl GitClient {
             .post(format!("{}/releases", self.repo_url()))
             .json(&create_release_options)
             .send()
-            .await
-            .context("Failed to create release")?
+            .await?
             .error_for_status()?;
         Ok(())
     }
@@ -211,8 +210,7 @@ impl GitClient {
             ))
             .json(&gitlab_release_options)
             .send()
-            .await
-            .context("Failed to create a release")?
+            .await?
             .error_for_status()?;
         Ok(())
     }
@@ -243,18 +241,9 @@ impl GitClient {
                 self.remote.owner, self.remote.repo
             );
             let prs: Vec<GitPr> = self
-                .client
-                .get(self.pulls_url())
-                .query(&[("state", "open")])
-                .query(&[("page", page)])
-                .query(&[(self.per_page(), page_size)])
-                .send()
+                .opened_prs_page(page, page_size)
                 .await
-                .context("Failed to retrieve branches")?
-                .error_for_status()?
-                .json()
-                .await
-                .context("failed to parse pr")?;
+                .context("Failed to retrieve open PRs")?;
             let prs_len = prs.len();
             let current_release_prs: Vec<GitPr> = prs
                 .into_iter()
@@ -267,6 +256,20 @@ impl GitClient {
             page += 1;
         }
         Ok(release_prs)
+    }
+
+    async fn opened_prs_page(&self, page: i32, page_size: usize) -> anyhow::Result<Vec<GitPr>> {
+        self.client
+            .get(self.pulls_url())
+            .query(&[("state", "open")])
+            .query(&[("page", page)])
+            .query(&[(self.per_page(), page_size)])
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await
+            .context("failed to parse pr")
     }
 
     #[instrument(skip(self))]
@@ -304,15 +307,16 @@ impl GitClient {
                 "head": pr.branch
             }))
             .send()
-            .await
-            .context("Failed to open PR")?
+            .await?
             .error_for_status()?
             .json()
             .await
             .context("Failed to parse PR")?;
 
         info!("opened pr: {}", git_pr.html_url);
-        self.add_labels(pr, git_pr.number).await?;
+        self.add_labels(pr, git_pr.number)
+            .await
+            .context("Failed to add labels")?;
         Ok(())
     }
 
@@ -331,8 +335,7 @@ impl GitClient {
                 "labels": pr.labels
             }))
             .send()
-            .await
-            .context("Failed to add labels")?
+            .await?
             .error_for_status()?;
         Ok(())
     }
