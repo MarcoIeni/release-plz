@@ -27,7 +27,7 @@ RUN set -eux; \
         ca-certificates \
         wget \
         gcc \
-        # release-plz doesn't need libssl-dev, but the user might need it
+        # release-plz doesn't need installing openssl, but the user might need it
         pkg-config \
         libssl-dev \
         libc6-dev \
