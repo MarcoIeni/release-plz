@@ -17,7 +17,7 @@ next_version = { path = "../next_version", version = "0.2.5" }
 
 anyhow.workspace = true
 cargo_metadata.workspace = true
-cargo.workspace = true
+cargo = { workspace = true, features = ["vendored-openssl", "vendored-libgit2", "all-static"]}
 chrono = { workspace = true, features = ["clock"] }
 crates-index.workspace = true
 dunce.workspace = true

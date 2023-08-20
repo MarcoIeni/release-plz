@@ -7,7 +7,7 @@ assert_cmd = "2.0.12"
 async-trait = "0.1.73"
 base64 = "0.21.2"
 cargo_metadata = "0.17.0"
-cargo = "0.72.2"
+cargo = { version = "0.72.2", default-features = false }
 chrono = { version = "0.4.26", default-features = false }
 clap = "4.3.21"
 clap_complete = "4.3.2"
