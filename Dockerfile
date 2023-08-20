@@ -6,9 +6,6 @@ COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef as builder
-RUN apt-get update && \
-    apt-get install -y pkg-config libssl-dev && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
 COPY --from=planner /app/recipe.json recipe.json
 # Build dependencies
 RUN cargo chef cook --release --recipe-path recipe.json
@@ -31,9 +28,7 @@ RUN set -eux; \
         wget \
         gcc \
         pkg-config \
-        libssl-dev \
         libc6-dev \
-        libssl1.1 \
         ssh-client \
         libcurl4 \
         git \

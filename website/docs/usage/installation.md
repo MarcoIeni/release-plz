@@ -1,6 +1,6 @@
 # Installation
 
-Make sure you have `git` and `openssl` installed when running `release-plz`.
+Make sure you have `git` installed when running `release-plz`.
 
 `release-plz` is a rust binary that can be installed in different ways.
 
