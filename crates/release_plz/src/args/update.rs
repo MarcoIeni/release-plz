@@ -213,6 +213,7 @@ mod tests {
             changelog_config: None,
             allow_dirty: false,
             repo_url: None,
+            config: None,
         };
         let config: Config = toml::from_str("").unwrap();
         let req = update_args.update_request(config).unwrap();
