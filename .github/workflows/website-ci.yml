@@ -4,11 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "website/**"
   pull_request:
-    paths:
-      - "website/**"
 
 jobs:
   website:
