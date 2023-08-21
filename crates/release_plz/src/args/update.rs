@@ -79,6 +79,15 @@ pub struct Update {
     /// It defaults to the url of the default remote.
     #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     repo_url: Option<String>,
+    /// Path to the release-plz config file.
+    /// Default: `./release-plz.toml`.
+    /// If no config file is found, the default configuration is used.
+    #[arg(
+        long,
+        value_name = "PATH",
+        value_parser = PathBufValueParser::new()
+    )]
+    config: Option<PathBuf>,
 }
 
 impl RepoCommand for Update {
@@ -92,6 +101,10 @@ impl RepoCommand for Update {
 }
 
 impl Update {
+    pub fn config(&self) -> anyhow::Result<Config> {
+        super::parse_config(self.config.as_deref())
+    }
+
     fn dependencies_update(&self, config: &Config) -> bool {
         self.update_deps || config.workspace.update.dependencies_update == Some(true)
     }
@@ -200,6 +213,7 @@ mod tests {
             changelog_config: None,
             allow_dirty: false,
             repo_url: None,
+            config: None,
         };
         let config: Config = toml::from_str("").unwrap();
         let req = update_args.update_request(config).unwrap();

@@ -49,6 +49,15 @@ pub struct Release {
     /// Kind of git backend
     #[arg(long, value_enum, default_value_t = ReleaseGitBackendKind::Github)]
     backend: ReleaseGitBackendKind,
+    /// Path to the release-plz config file.
+    /// Default: `./release-plz.toml`.
+    /// If no config file is found, the default configuration is used.
+    #[arg(
+        long,
+        value_name = "PATH",
+        value_parser = PathBufValueParser::new()
+    )]
+    config: Option<PathBuf>,
 }
 
 #[derive(ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]
@@ -62,6 +71,10 @@ pub enum ReleaseGitBackendKind {
 }
 
 impl Release {
+    pub fn config(&self) -> anyhow::Result<Config> {
+        super::parse_config(self.config.as_deref())
+    }
+
     pub fn release_request(self, config: Config) -> anyhow::Result<ReleaseRequest> {
         let git_release = if let Some(git_token) = &self.git_token {
             let git_token = SecretString::from(git_token.clone());
@@ -169,6 +182,7 @@ mod tests {
             repo_url: None,
             git_token: None,
             backend: ReleaseGitBackendKind::Github,
+            config: None,
         }
     }
 
