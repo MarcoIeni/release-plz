@@ -23,14 +23,15 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn run(args: CliArgs) -> anyhow::Result<()> {
-    let config = args.config()?;
     match args.command {
         args::Command::Update(cmd_args) => {
+            let config = cmd_args.config()?;
             let update_request = cmd_args.update_request(config)?;
             let updates = release_plz_core::update(&update_request)?;
             println!("{}", updates.0.summary());
         }
         args::Command::ReleasePr(cmd_args) => {
+            let config = cmd_args.update.config()?;
             let pr_labels = config.workspace.release_pr.pr_labels.clone();
             let update_request = cmd_args.update.update_request(config)?;
             let repo_url = update_request
@@ -43,6 +44,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             release_plz_core::release_pr(&request).await?;
         }
         args::Command::Release(cmd_args) => {
+            let config = cmd_args.config()?;
             let request: ReleaseRequest = cmd_args.release_request(config)?;
             release_plz_core::release(&request).await?;
         }
