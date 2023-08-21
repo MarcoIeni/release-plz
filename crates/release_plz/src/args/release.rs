@@ -71,6 +71,10 @@ pub enum ReleaseGitBackendKind {
 }
 
 impl Release {
+    pub fn config(&self) -> anyhow::Result<Config> {
+        super::parse_config(self.config.as_deref())
+    }
+
     pub fn release_request(self, config: Config) -> anyhow::Result<ReleaseRequest> {
         let git_release = if let Some(git_token) = &self.git_token {
             let git_token = SecretString::from(git_token.clone());
@@ -178,6 +182,7 @@ mod tests {
             repo_url: None,
             git_token: None,
             backend: ReleaseGitBackendKind::Github,
+            config: None,
         }
     }
 

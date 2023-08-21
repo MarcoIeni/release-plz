@@ -101,6 +101,10 @@ impl RepoCommand for Update {
 }
 
 impl Update {
+    pub fn config(&self) -> anyhow::Result<Config> {
+        super::parse_config(self.config.as_deref())
+    }
+
     fn dependencies_update(&self, config: &Config) -> bool {
         self.update_deps || config.workspace.update.dependencies_update == Some(true)
     }

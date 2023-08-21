@@ -7,7 +7,6 @@ mod update;
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use clap::builder::PathBufValueParser;
 use release_plz_core::CARGO_TOML;
 use tracing::info;
 
@@ -57,23 +56,21 @@ fn local_manifest(project_manifest: Option<&Path>) -> PathBuf {
     }
 }
 
-impl CliArgs {
-    pub fn config(&self) -> anyhow::Result<Config> {
-        let config_path = self.config.clone().unwrap_or("release-plz.toml".into());
-
-        match std::fs::read_to_string(&config_path) {
-            Ok(config) => {
-                info!("using release-plz config file {}", config_path.display());
-                toml::from_str(&config)
-                    .with_context(|| format!("invalid config file {config_path:?}"))
-            }
-            Err(e) => match e.kind() {
-                std::io::ErrorKind::NotFound => {
-                    info!("release-plz config file not found, using default configuration");
-                    Ok(Config::default())
-                }
-                _ => anyhow::bail!("can't read {config_path:?}: {e:?}"),
-            },
+fn parse_config(config_path: Option<&Path>) -> anyhow::Result<Config> {
+    let config_path: PathBuf = config_path
+        .map(|p| p.to_path_buf())
+        .unwrap_or("release-plz.toml".into());
+    match std::fs::read_to_string(&config_path) {
+        Ok(config) => {
+            info!("using release-plz config file {}", config_path.display());
+            toml::from_str(&config).with_context(|| format!("invalid config file {config_path:?}"))
         }
+        Err(e) => match e.kind() {
+            std::io::ErrorKind::NotFound => {
+                info!("release-plz config file not found, using default configuration");
+                Ok(Config::default())
+            }
+            _ => anyhow::bail!("can't read {config_path:?}: {e:?}"),
+        },
     }
 }
