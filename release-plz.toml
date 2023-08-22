@@ -1,6 +1,10 @@
+[workspace]
+git_release_enable = false
+
 [[package]] # the double square brackets define a TOML table array
 name = "release-plz" # name of the package to configure
 changelog_include = ["release_plz_core"] # include commits from `release_plz_core` in the changelog
 # set the path of the changelog to the root of the repository
 changelog_path = "./CHANGELOG.md"
-dependencies_update = true
+dependencies_update = true # run `cargo update` in the release PR
+git_release_enable = true # create GitHub release
