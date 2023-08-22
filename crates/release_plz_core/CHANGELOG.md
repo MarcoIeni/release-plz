@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.13.1...release_plz_core-v0.13.2) - 2023-08-22
+
+### Other
+- static openssl ([#920](https://github.com/MarcoIeni/release-plz/pull/920))
+- improve http error messages ([#921](https://github.com/MarcoIeni/release-plz/pull/921))
+- update git-cliff ([#919](https://github.com/MarcoIeni/release-plz/pull/919))
+- test release-plz release ([#892](https://github.com/MarcoIeni/release-plz/pull/892))
+
 ## [0.13.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.13.0...release_plz_core-v0.13.1) - 2023-08-16
 
 ### Fixed
