@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.20](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.19...release-plz-v0.3.20) - 2023-08-22
+
+### Fixed
+- allow specifying config file path ([#924](https://github.com/MarcoIeni/release-plz/pull/924))
+
+### Other
+- test release-plz release ([#892](https://github.com/MarcoIeni/release-plz/pull/892))
+- move release-plz changelog ([#917](https://github.com/MarcoIeni/release-plz/pull/917))
+- add feature flag to ignore docker tests ([#914](https://github.com/MarcoIeni/release-plz/pull/914))
+- static openssl ([#920](https://github.com/MarcoIeni/release-plz/pull/920))
+- improve http error messages ([#921](https://github.com/MarcoIeni/release-plz/pull/921))
+- update git-cliff ([#919](https://github.com/MarcoIeni/release-plz/pull/919))
+
 ## [0.3.19](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.18...release-plz-v0.3.19) - 2023-08-16
 
 ### Fixed
