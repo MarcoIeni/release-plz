@@ -10,9 +10,9 @@ use regex::Regex;
 ///   (in the ..anything.. case, `## ..anything..` is not included in the header)
 pub fn parse_header(changelog: &str) -> Option<String> {
     lazy_static::lazy_static! {
-        static ref FIRST_RE: Regex = Regex::new(r#"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*)(## Unreleased|## \[Unreleased\])"#).unwrap();
+        static ref FIRST_RE: Regex = Regex::new(r"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*)(## Unreleased|## \[Unreleased\])").unwrap();
 
-        static ref SECOND_RE: Regex = Regex::new(r#"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*)(\n## )"#).unwrap();
+        static ref SECOND_RE: Regex = Regex::new(r"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*)(\n## )").unwrap();
     }
     if let Some(captures) = FIRST_RE.captures(changelog) {
         return Some(format!("{}\n", &captures[0]));
