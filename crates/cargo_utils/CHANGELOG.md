@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.28](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.27...cargo_utils-v0.1.28) - 2023-08-22
 
 ### Other
-- test release-plz release ([#892](https://github.com/MarcoIeni/release-plz/pull/892))
+- improve error message ([#892](https://github.com/MarcoIeni/release-plz/pull/892))
 
 ## [0.1.27](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.26...cargo_utils-v0.1.27) - 2023-08-16
 
