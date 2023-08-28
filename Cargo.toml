@@ -11,7 +11,7 @@ cargo_metadata = "0.17.0"
 cargo = { version = "0.72.2", default-features = false }
 chrono = { version = "0.4.26", default-features = false }
 clap = "4.3.23"
-clap_complete = "4.3.2"
+clap_complete = "4.4.0"
 conventional_commit_parser = "0.9.4"
 crates-index = { version = "2.1.1", features = ["git", "sparse", "git-https"] }
 dirs = "5.0.1"
