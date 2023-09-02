@@ -38,8 +38,8 @@ Learn how to use release-plz in the mdbook [docs](https://release-plz.ieni.dev/)
 
 There are two ways to run release-plz:
 
-- [GitHub Action](https://release-plz.ieni.dev/github/index.html): Run Release-plz from CI. The action both updates and releases your packages.
-- [CLI](https://release-plz.ieni.dev/usage/index.html): Run release-plz from your terminal or other CI systems (Gitea supported).
+- [GitHub Action](https://release-plz.ieni.dev/docs/github): Run Release-plz from CI. The action both updates and releases your packages.
+- [CLI](https://release-plz.ieni.dev/docs/usage): Run release-plz from your terminal or other CI systems (Gitea supported).
 
 ## 👯 Users
 
@@ -54,7 +54,7 @@ page show the public GitHub repositories using release-plz in CI.
   but instead of determining the next versions based on git tags, release-plz compares local packages with
   the ones published in the cargo registry.
   Plus, release-plz doesn't need any configuration and is optimized for Rust projects.
-- [cargo smart-release](https://github.com/Byron/gitoxide/tree/main/cargo-smart-release):
+- [cargo-smart-release](https://github.com/Byron/cargo-smart-release):
   Fearlessly release workspace crates and with beautiful semi-handcrafted changelogs.
 
 ## 🙏 Credits

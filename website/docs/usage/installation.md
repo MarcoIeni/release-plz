@@ -21,7 +21,7 @@ Run `docker pull marcoieni/release-plz`.
 ## Arch Linux
 
 `release-plz` can be installed from the
-[community repository](https://archlinux.org/packages/community/x86_64/release-plz/)
+[community repository](https://archlinux.org/packages/extra/x86_64/release-plz/)
 using [pacman](https://wiki.archlinux.org/title/Pacman).
 
 * `pacman -S release-plz`
