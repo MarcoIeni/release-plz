@@ -38,7 +38,7 @@ Learn how to use release-plz in the mdbook [docs](https://release-plz.ieni.dev/)
 
 There are two ways to run release-plz:
 
-- [GitHub Action](https://release-plz.ieni.dev/github/index.html): Run Release-plz from CI. The action both updates and releases your packages.
+- [GitHub Action](https://release-plz.ieni.dev/docs/github/): Run Release-plz from CI. The action both updates and releases your packages.
 - [CLI](https://release-plz.ieni.dev/usage/index.html): Run release-plz from your terminal or other CI systems (Gitea supported).
 
 ## 👯 Users
