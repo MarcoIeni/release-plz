@@ -54,7 +54,7 @@ page show the public GitHub repositories using release-plz in CI.
   but instead of determining the next versions based on git tags, release-plz compares local packages with
   the ones published in the cargo registry.
   Plus, release-plz doesn't need any configuration and is optimized for Rust projects.
-- [cargo smart-release](https://github.com/Byron/gitoxide/tree/main/cargo-smart-release):
+- [cargo-smart-release](https://github.com/Byron/cargo-smart-release):
   Fearlessly release workspace crates and with beautiful semi-handcrafted changelogs.
 
 ## 🙏 Credits
