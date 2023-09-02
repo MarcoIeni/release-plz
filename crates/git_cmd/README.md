@@ -1,6 +1,6 @@
 # git_cmd
 
-[![Crates.io](https://img.shields.io/crates/git_cmd.svg)](https://crates.io/crates/git_cmd)
+[![Crates.io](https://img.shields.io/crates/v/git_cmd.svg)](https://crates.io/crates/git_cmd)
 [![Docs.rs](https://docs.rs/git_cmd/badge.svg)](https://docs.rs/git_cmd)
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
 
