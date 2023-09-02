@@ -74,7 +74,7 @@ const config = {
       image: "img/release-plz-social-card.png",
       announcementBar: {
         id: "announcementBar-1", // Increment on change
-        content: `⭐️ If you like Release-plz, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/MarcoIeni/release-plz">GitHub</a> and follow the author on <a target="_blank" rel="noopener noreferrer" href="https://x.com/MarcoIeni">Twitter ${TwitterSvg}</a>`,
+        content: `⭐️ If you like Release-plz, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/MarcoIeni/release-plz">GitHub</a> and follow the author on <a target="_blank" rel="noopener noreferrer" href="https://twitter.com/MarcoIeni">Twitter ${TwitterSvg}</a>`,
       },
       navbar: {
         title: "Release-plz",
@@ -126,7 +126,7 @@ const config = {
             items: [
               {
                 label: "Twitter",
-                href: "https://x.com/MarcoIeni",
+                href: "https://twitter.com/MarcoIeni",
               },
               {
                 label: "LinkedIn",
