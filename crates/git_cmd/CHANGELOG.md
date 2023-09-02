@@ -175,7 +175,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - improve git error (#53)
 - add context to some errors (#50)
 
-## [0.1.2](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.1.1...git_cmd-v0.1.2) - 2022-03-27
+## 0.1.2 - 2022-03-27
 
 ### Fixed
 - fix repository link
