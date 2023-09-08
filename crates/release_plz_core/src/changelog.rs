@@ -1,5 +1,5 @@
 use anyhow::Context;
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{NaiveDate, TimeZone, Utc};
 use git_cliff_core::{
     changelog::Changelog as GitCliffChangelog,
     commit::Commit,
@@ -150,7 +150,7 @@ impl ChangelogBuilder {
     fn release_timestamp(&self) -> i64 {
         self.release_date
             .and_then(|date| date.and_hms_opt(0, 0, 0))
-            .map(|d| DateTime::<Utc>::from_utc(d, Utc))
+            .map(|d| Utc.from_utc_datetime(&d))
             .unwrap_or_else(Utc::now)
             .timestamp()
     }
