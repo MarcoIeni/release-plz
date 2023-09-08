@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Other
 - update dependencies
-- update dependencies ([#949](https://github.com/MarcoIeni/release-plz/pull/949))
 - *(ci)* check links ([#941](https://github.com/MarcoIeni/release-plz/pull/941))
 - fix clippy lint ([#931](https://github.com/MarcoIeni/release-plz/pull/931))
 
