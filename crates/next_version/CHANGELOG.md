@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.6](https://github.com/MarcoIeni/release-plz/compare/next_version-v0.2.5...next_version-v0.2.6) - 2023-09-08
+
+### Other
+- *(ci)* check links ([#941](https://github.com/MarcoIeni/release-plz/pull/941))
+
 ## [0.2.5](https://github.com/MarcoIeni/release-plz/compare/next_version-v0.2.4...next_version-v0.2.5) - 2023-07-25
 
 ### Other
