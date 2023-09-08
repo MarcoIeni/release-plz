@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.21](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.20...release-plz-v0.3.21) - 2023-09-08
+
+### Other
+- update dependencies
+- update dependencies ([#949](https://github.com/MarcoIeni/release-plz/pull/949))
+- *(ci)* check links ([#941](https://github.com/MarcoIeni/release-plz/pull/941))
+- fix clippy lint ([#931](https://github.com/MarcoIeni/release-plz/pull/931))
+
 ## [0.3.20](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.19...release-plz-v0.3.20) - 2023-08-22
 
 ### Fixed
