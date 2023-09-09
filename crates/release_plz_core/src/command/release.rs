@@ -348,26 +348,8 @@ async fn release_package(
 
     let publish = input.is_publish_enabled(&package.name);
     if publish {
-        let mut args = vec!["publish"];
-        args.push("--color");
-        args.push("always");
-        args.push("--manifest-path");
-        args.push(package.manifest_path.as_ref());
-        if let Some(token) = &input.token {
-            args.push("--token");
-            args.push(token.expose_secret());
-        }
-        if input.dry_run {
-            args.push("--dry-run");
-        }
-        if input.allow_dirty(&package.name) {
-            args.push("--allow-dirty");
-        }
-        if input.no_verify(&package.name) {
-            args.push("--no-verify");
-        }
-        let (_, stderr) = run_cargo(workspace_root, &args)?;
-
+        let (_, stderr) = run_cargo_publish(package, input, workspace_root)
+            .context("failed to run cargo publish")?;
         if !stderr.contains("Uploading") || stderr.contains("error:") {
             anyhow::bail!("failed to publish {}: {}", package.name, stderr);
         }
@@ -399,6 +381,32 @@ async fn release_package(
     }
 
     Ok(())
+}
+
+fn run_cargo_publish(
+    package: &Package,
+    input: &ReleaseRequest,
+    workspace_root: &Path,
+) -> anyhow::Result<(String, String)> {
+    let mut args = vec!["publish"];
+    args.push("--color");
+    args.push("always");
+    args.push("--manifest-path");
+    args.push(package.manifest_path.as_ref());
+    if let Some(token) = &input.token {
+        args.push("--token");
+        args.push(token.expose_secret());
+    }
+    if input.dry_run {
+        args.push("--dry-run");
+    }
+    if input.allow_dirty(&package.name) {
+        args.push("--allow-dirty");
+    }
+    if input.no_verify(&package.name) {
+        args.push("--no-verify");
+    }
+    run_cargo(workspace_root, &args)
 }
 
 /// Return an empty string if the changelog cannot be parsed.
