@@ -124,6 +124,11 @@ impl Repo {
         Ok(())
     }
 
+    pub fn commit_signed(&self, message: &str) -> anyhow::Result<()> {
+        self.git(&["commit", "-s", "-m", message])?;
+        Ok(())
+    }
+
     pub fn push(&self, obj: &str) -> anyhow::Result<()> {
         self.git(&["push", &self.original_remote, obj])?;
         Ok(())
