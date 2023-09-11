@@ -1381,7 +1381,7 @@ dependencies = [
 
 [[package]]
 name = "git_cmd"
-version = "0.4.10"
+version = "0.4.11"
 dependencies = [
  "anyhow",
  "git_cmd",
@@ -3971,7 +3971,7 @@ checksum = "dbb5fb1acd8a1a18b3dd5be62d25485eb770e05afb408a9627d14d451bae12da"
 
 [[package]]
 name = "release-plz"
-version = "0.3.21"
+version = "0.3.22"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -4004,7 +4004,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.13.3"
+version = "0.13.4"
 dependencies = [
  "anyhow",
  "cargo",
