@@ -11,9 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - *(release-pr)* sign release-plz commit ([#956](https://github.com/MarcoIeni/release-plz/pull/956))
 
-### Other
-- extract run_cargo_publish function ([#952](https://github.com/MarcoIeni/release-plz/pull/952))
-
 ## [0.13.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.13.2...release_plz_core-v0.13.3) - 2023-09-08
 
 ### Other
