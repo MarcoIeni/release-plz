@@ -222,6 +222,6 @@ fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Res
 fn add_changes_and_commit(repository: &Repo) -> anyhow::Result<()> {
     let changes_expect_typechanges = repository.changes_except_typechanges()?;
     repository.add(&changes_expect_typechanges)?;
-    repository.signed_commit("chore: release")?;
+    repository.commit_signed("chore: release")?;
     Ok(())
 }

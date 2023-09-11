@@ -124,7 +124,7 @@ impl Repo {
         Ok(())
     }
 
-    pub fn signed_commit(&self, message: &str) -> anyhow::Result<()> {
+    pub fn commit_signed(&self, message: &str) -> anyhow::Result<()> {
         self.git(&["commit", "-s", "-m", message])?;
         Ok(())
     }
