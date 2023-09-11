@@ -207,18 +207,21 @@ fn reset_branch(pr: &GitPr, commits_number: usize, repository: &Repo) -> anyhow:
 }
 
 fn force_push(pr: &GitPr, repository: &Repo) -> anyhow::Result<()> {
-    let changes_expect_typechanges = repository.changes_except_typechanges()?;
-    repository.add(&changes_expect_typechanges)?;
-    repository.commit("chore: release")?;
+    add_changes_and_commit(repository)?;
     repository.force_push(pr.branch())?;
     Ok(())
 }
 
 fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {
     repository.checkout_new_branch(release_branch)?;
+    add_changes_and_commit(repository)?;
+    repository.push(release_branch)?;
+    Ok(())
+}
+
+fn add_changes_and_commit(repository: &Repo) -> anyhow::Result<()> {
     let changes_expect_typechanges = repository.changes_except_typechanges()?;
     repository.add(&changes_expect_typechanges)?;
     repository.commit("chore: release")?;
-    repository.push(release_branch)?;
     Ok(())
 }

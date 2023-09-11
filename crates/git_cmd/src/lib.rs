@@ -120,7 +120,7 @@ impl Repo {
     }
 
     pub fn commit(&self, message: &str) -> anyhow::Result<()> {
-        self.git(&["commit", "-m", message])?;
+        self.git(&["commit", "-m", "-s", message])?;
         Ok(())
     }
 
