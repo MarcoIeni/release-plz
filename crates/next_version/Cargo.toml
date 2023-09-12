@@ -8,7 +8,8 @@ repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/next_ver
 keywords = ["semver", "semantic", "versioning", "conventional", "commits"]
 categories = ["development-tools", "parsing"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lints]
+workspace = true
 
 [dependencies]
 semver.workspace = true
