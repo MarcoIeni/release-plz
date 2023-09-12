@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLZ_TOKEN }} # <-- PAT secret name
@@ -111,13 +111,13 @@ Here's how to use a GitHub app to generate a GitHub token:
      # Generating a GitHub token, so that PRs and tags created by
      # the release-plz-action can trigger actions workflows.
      - name: Generate GitHub token
-       uses: tibdex/github-app-token@v1
+       uses: tibdex/github-app-token@v2
        id: generate-token
        with:
          app_id: ${{ secrets.APP_ID }} # <-- GitHub App ID secret name
          private_key: ${{ secrets.APP_PRIVATE_KEY }} # <-- GitHub App private key secret name
      - name: Checkout repository
-       uses: actions/checkout@v3
+       uses: actions/checkout@v4
        with:
          fetch-depth: 0
          token: ${{ steps.generate-token.outputs.token }}
