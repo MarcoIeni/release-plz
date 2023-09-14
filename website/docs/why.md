@@ -8,7 +8,7 @@ similar tools.
 
 ## Differences with release-please
 
-Like release-plz, release-please is an open-source project that manages releases
+Like release-plz, [release-please](https://github.com/googleapis/release-please) is an open-source project that manages releases
 via pull requests.
 However, there are some differences.
 
