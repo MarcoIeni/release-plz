@@ -1,10 +1,12 @@
+use git_cliff_core::commit::Commit;
+
 use crate::semver_check::SemverCheck;
 
 /// Difference between local and registry package (i.e. the last released version)
 #[derive(Debug)]
-pub(crate) struct Diff {
+pub(crate) struct Diff<'a> {
     /// List of commits from last released version to last local changes.
-    pub commits: Vec<String>,
+    pub commits: Vec<Commit<'a>>,
     /// Whether the package name exists in the registry or not.
     pub registry_package_exists: bool,
     /// Whether the current local version is published to the registry.
@@ -14,7 +16,7 @@ pub(crate) struct Diff {
     pub semver_check: SemverCheck,
 }
 
-impl Diff {
+impl<'a> Diff<'a> {
     pub fn new(registry_package_exists: bool) -> Self {
         Self {
             commits: vec![],
@@ -35,7 +37,8 @@ impl Diff {
     pub fn set_semver_check(&mut self, semver_check: SemverCheck) {
         self.semver_check = semver_check
     }
-    pub fn add_commits(&mut self, commits: &[String]) {
+
+    pub fn add_commits(&mut self, commits: &[Commit<'a>]) {
         for c in commits {
             if !self.commits.contains(c) {
                 self.commits.push(c.clone());

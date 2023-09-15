@@ -17,7 +17,7 @@ use anyhow::Context;
 use cargo_metadata::{semver::Version, Dependency, Package};
 use cargo_utils::{upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
-use git_cliff_core::config::Config as GitCliffConfig;
+use git_cliff_core::{commit::Commit, config::Config as GitCliffConfig};
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
@@ -29,6 +29,9 @@ use std::{
 };
 use tempfile::{tempdir, TempDir};
 use tracing::{debug, info, instrument, warn};
+
+// Used to indicate that this is a dummy commit with no corresponding ID available
+pub(crate) const NO_COMMIT_ID: &str = "N/A";
 
 #[derive(Debug, Clone)]
 pub struct UpdateRequest {
@@ -524,7 +527,7 @@ impl Updater<'_> {
 
         let mut packages_diffs = packages_diffs_res?;
 
-        let packages_commits: HashMap<String, Vec<String>> = packages_diffs
+        let packages_commits: HashMap<String, Vec<Commit>> = packages_diffs
             .iter()
             .map(|(p, d)| (p.name.clone(), d.commits.clone()))
             .collect();
@@ -591,7 +594,12 @@ impl Updater<'_> {
                 );
                 Ok((
                     p.clone(),
-                    self.update_result(vec![change], next_version, p, SemverCheck::Skipped)?,
+                    self.update_result(
+                        vec![Commit::new(NO_COMMIT_ID.to_string(), change)],
+                        next_version,
+                        p,
+                        SemverCheck::Skipped,
+                    )?,
                 ))
             })
             .collect::<anyhow::Result<Vec<_>>>()?;
@@ -600,7 +608,7 @@ impl Updater<'_> {
 
     fn update_result(
         &self,
-        commits: Vec<String>,
+        commits: Vec<Commit>,
         version: Version,
         package: &Package,
         semver_check: SemverCheck,
@@ -628,31 +636,28 @@ impl Updater<'_> {
                 .should_update_changelog()
                 .then_some(self.req.changelog_req.clone());
             let old_changelog = fs::read_to_string(self.req.changelog_path(package)).ok();
-            let commits_titles: Vec<String> = commits
+            let commits: Vec<Commit> = commits
                 .iter()
                 // only take commit title
-                .filter_map(|c| c.lines().next())
+                .filter_map(|c| {
+                    c.message
+                        .lines()
+                        .next()
+                        .map(|line| Commit::new(c.id.clone(), line.to_string()))
+                })
                 // replace #123 with [#123](https://link_to_pr).
                 // If the number refers to an issue, GitHub redirects the PR link to the issue link.
                 .map(|c| {
                     if let Some(pr_link) = &pr_link {
-                        let result = PR_RE.replace_all(c, format!("[#$1]({pr_link}/$1)"));
-                        result.to_string()
+                        let result = PR_RE.replace_all(&c.message, format!("[#$1]({pr_link}/$1)"));
+                        Commit::new(c.id, result.to_string())
                     } else {
-                        c.to_string()
+                        c
                     }
                 })
                 .collect();
             changelog_req
-                .map(|r| {
-                    get_changelog(
-                        commits_titles,
-                        &version,
-                        Some(r),
-                        old_changelog,
-                        release_link,
-                    )
-                })
+                .map(|r| get_changelog(commits, &version, Some(r), old_changelog, release_link))
                 .transpose()
         }?;
 
@@ -730,7 +735,10 @@ impl Updater<'_> {
                             )
                             .context("Can't check if Cargo.lock dependencies are up to date")?;
                         if are_dependencies_updated {
-                            diff.commits.push("chore: update dependencies".to_string());
+                            diff.commits.push(Commit::new(
+                                NO_COMMIT_ID.to_string(),
+                                "chore: update dependencies".to_string(),
+                            ));
                         } else {
                             info!("{}: already up to date", package.name);
                         }
@@ -748,10 +756,16 @@ impl Updater<'_> {
                     debug!("packages are different");
                     // At this point of the git history, the two packages are different,
                     // which means that this commit is not present in the published package.
-                    diff.commits.push(current_commit_message.clone());
+                    diff.commits.push(Commit::new(
+                        current_commit_hash,
+                        current_commit_message.clone(),
+                    ));
                 }
             } else {
-                diff.commits.push(current_commit_message.clone());
+                diff.commits.push(Commit::new(
+                    current_commit_hash,
+                    current_commit_message.clone(),
+                ));
             }
             if let Err(_err) = repository.checkout_previous_commit_at_path(&package_path) {
                 debug!("there are no other commits");
@@ -792,7 +806,7 @@ fn new_workspace_version(
 }
 
 fn get_changelog(
-    commits: Vec<String>,
+    commits: Vec<Commit>,
     next_version: &Version,
     changelog_req: Option<ChangelogRequest>,
     old_changelog: Option<String>,
