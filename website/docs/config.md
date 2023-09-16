@@ -134,7 +134,8 @@ The supported git releases are:
 #### The `git_tag_enable` field
 
 - If `true`, release-plz will create a git tag for the new package version. *(Default)*.
-- If `false`, release-plz will not create a git tag. Note that you can't create a git release without a git tag.
+- If `false`, release-plz will not create a git tag.
+  Note: you can't create a git release without a git tag.
 
 #### The `pr_labels` field
 
