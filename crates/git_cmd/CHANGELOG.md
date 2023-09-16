@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.12](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.4.11...git_cmd-v0.4.12) - 2023-09-16
+
+### Other
+- add additional clippy lints ([#965](https://github.com/MarcoIeni/release-plz/pull/965))
+
 ## [0.4.11](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.4.10...git_cmd-v0.4.11) - 2023-09-11
 
 ### Added

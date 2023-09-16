@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.13.4...release_plz_core-v0.13.5) - 2023-09-16
+
+### Added
+- allow disabling git tag ([#968](https://github.com/MarcoIeni/release-plz/pull/968))
+- pass commit ids to git-cliff ([#967](https://github.com/MarcoIeni/release-plz/pull/967))
+
+### Other
+- add additional clippy lints ([#965](https://github.com/MarcoIeni/release-plz/pull/965))
+
 ## [0.13.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.13.3...release_plz_core-v0.13.4) - 2023-09-11
 
 ### Added
