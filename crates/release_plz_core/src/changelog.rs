@@ -77,18 +77,18 @@ fn default_git_cliff_config(header: Option<String>, release_link: Option<&str>) 
     }
 }
 
-pub struct ChangelogBuilder {
-    commits: Vec<String>,
+pub struct ChangelogBuilder<'a> {
+    commits: Vec<Commit<'a>>,
     version: String,
     config: Option<Config>,
     release_date: Option<NaiveDate>,
     release_link: Option<String>,
 }
 
-impl ChangelogBuilder {
-    pub fn new(commits: Vec<impl Into<String>>, version: impl Into<String>) -> Self {
+impl<'a> ChangelogBuilder<'a> {
+    pub fn new(commits: Vec<Commit<'a>>, version: impl Into<String>) -> Self {
         Self {
-            commits: commits.into_iter().map(|s| s.into()).collect(),
+            commits,
             version: version.into(),
             config: None,
             release_date: None,
@@ -117,7 +117,7 @@ impl ChangelogBuilder {
         }
     }
 
-    pub fn build(self) -> Changelog<'static> {
+    pub fn build(self) -> Changelog<'a> {
         let git_config = self
             .config
             .clone()
@@ -126,9 +126,7 @@ impl ChangelogBuilder {
         let release_date = self.release_timestamp();
         let commits = self
             .commits
-            .clone()
             .into_iter()
-            .map(|c| Commit::new("id".to_string(), c))
             .filter_map(|c| c.process(&git_config).ok())
             .collect();
 
@@ -270,11 +268,16 @@ fn default_changelog_body_config(release_link: Option<&str>) -> String {
 
 #[cfg(test)]
 mod tests {
+    use crate::NO_COMMIT_ID;
+
     use super::*;
 
     #[test]
     fn changelog_entries_are_generated() {
-        let commits = vec!["fix: myfix", "simple update"];
+        let commits = vec![
+            Commit::new(NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
+            Commit::new(NO_COMMIT_ID.to_string(), "simple update".to_string()),
+        ];
         let changelog = ChangelogBuilder::new(commits, "1.1.1")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
@@ -301,7 +304,10 @@ mod tests {
 
     #[test]
     fn changelog_entry_with_link_is_generated() {
-        let commits = vec!["fix: myfix"];
+        let commits = vec![Commit::new(
+            NO_COMMIT_ID.to_string(),
+            "fix: myfix".to_string(),
+        )];
         let changelog = ChangelogBuilder::new(commits, "1.1.1")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .with_release_link("https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.24...release-plz-v0.2.25")
@@ -326,14 +332,20 @@ mod tests {
 
     #[test]
     fn generated_changelog_is_updated_correctly() {
-        let commits = vec!["fix: myfix", "simple update"];
+        let commits = vec![
+            Commit::new(NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
+            Commit::new(NO_COMMIT_ID.to_string(), "simple update".to_string()),
+        ];
         let changelog = ChangelogBuilder::new(commits, "1.1.1")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
 
         let generated_changelog = changelog.generate();
 
-        let commits = vec!["fix: myfix2", "complex update"];
+        let commits = vec![
+            Commit::new(NO_COMMIT_ID.to_string(), "fix: myfix2".to_string()),
+            Commit::new(NO_COMMIT_ID.to_string(), "complex update".to_string()),
+        ];
         let changelog = ChangelogBuilder::new(commits, "1.1.2")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
@@ -368,7 +380,10 @@ mod tests {
 
     #[test]
     fn changelog_is_updated() {
-        let commits = vec!["fix: myfix", "simple update"];
+        let commits = vec![
+            Commit::new(NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
+            Commit::new(NO_COMMIT_ID.to_string(), "simple update".to_string()),
+        ];
         let changelog = ChangelogBuilder::new(commits, "1.1.1")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
@@ -412,7 +427,10 @@ mod tests {
 
     #[test]
     fn changelog_without_header_is_updated() {
-        let commits = vec!["fix: myfix", "simple update"];
+        let commits = vec![
+            Commit::new(NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
+            Commit::new(NO_COMMIT_ID.to_string(), "simple update".to_string()),
+        ];
         let changelog = ChangelogBuilder::new(commits, "1.1.1")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
@@ -451,11 +469,48 @@ mod tests {
         "####]]
         .assert_eq(&new.unwrap());
     }
+
+    #[test]
+    fn changelog_has_commit_id() {
+        let commits = vec![
+            Commit::new("0000000".to_string(), "fix: myfix".to_string()),
+            Commit::new(
+                NO_COMMIT_ID.to_string(),
+                "chore: something else".to_string(),
+            ),
+        ];
+        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+            .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
+            .with_config(Config {
+                changelog: ChangelogConfig {
+                    body: Some(
+                        r"{%- for commit in commits %}
+                            {{ commit.message }} - {{ commit.id }}
+                        {% endfor -%}"
+                            .to_string(),
+                    ),
+                    ..Default::default()
+                },
+                git: GitConfig::default(),
+            })
+            .build();
+
+        expect_test::expect![[r####"
+
+            myfix - 0000000
+
+            something else - N/A
+        "####]]
+        .assert_eq(&changelog.generate());
+    }
 }
 
 #[test]
 fn empty_changelog_is_updated() {
-    let commits = vec!["fix: myfix", "simple update"];
+    let commits = vec![
+        Commit::new(crate::NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
+        Commit::new(crate::NO_COMMIT_ID.to_string(), "simple update".to_string()),
+    ];
     let changelog = ChangelogBuilder::new(commits, "1.1.1")
         .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
         .build();
@@ -482,7 +537,10 @@ fn empty_changelog_is_updated() {
 
 #[test]
 fn same_version_is_not_added() {
-    let commits = vec!["fix: myfix", "simple update"];
+    let commits = vec![
+        Commit::new(crate::NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
+        Commit::new(crate::NO_COMMIT_ID.to_string(), "simple update".to_string()),
+    ];
 
     // this version is already in the changelog
     let changelog = ChangelogBuilder::new(commits, "1.1.0")

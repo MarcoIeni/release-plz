@@ -17,14 +17,16 @@ impl NextVersionFromDiff for Version {
             let increment = VersionIncrement::breaking(self);
             increment.bump(self)
         } else {
-            self.next(&diff.commits)
+            self.next(diff.commits.iter().map(|c| &c.message))
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::semver_check::SemverCheck;
+    use git_cliff_core::commit::Commit;
+
+    use crate::{semver_check::SemverCheck, NO_COMMIT_ID};
 
     use super::*;
 
@@ -40,7 +42,10 @@ mod tests {
     fn next_version_of_existing_package_is_updated() {
         let diff = Diff {
             registry_package_exists: true,
-            commits: vec!["my change".to_string()],
+            commits: vec![Commit::new(
+                NO_COMMIT_ID.to_string(),
+                "my change".to_string(),
+            )],
             is_version_published: true,
             semver_check: SemverCheck::Skipped,
         };
