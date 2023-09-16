@@ -402,8 +402,6 @@ async fn release_package(
             repo.push(&git_tag)?;
         }
 
-        info!("published {} {}", package.name, package.version);
-
         if input.is_git_release_enabled(&package.name) {
             let git_release = input
                 .git_release
@@ -412,6 +410,8 @@ async fn release_package(
             let release_body = release_body(input, package);
             publish_git_release(git_tag, &release_body, &git_release.backend).await?;
         }
+
+        info!("published {} {}", package.name, package.version);
     }
 
     Ok(())
