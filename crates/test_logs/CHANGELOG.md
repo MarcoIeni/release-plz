@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.21](https://github.com/MarcoIeni/release-plz/compare/test_logs-v0.1.20...test_logs-v0.1.21) - 2023-09-16
+
+### Other
+- add additional clippy lints ([#965](https://github.com/MarcoIeni/release-plz/pull/965))
+
 ## [0.1.20](https://github.com/MarcoIeni/release-plz/compare/test_logs-v0.1.19...test_logs-v0.1.20) - 2023-09-08
 
 ### Other
