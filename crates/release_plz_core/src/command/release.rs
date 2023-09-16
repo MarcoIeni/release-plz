@@ -113,6 +113,11 @@ impl ReleaseRequest {
         config.generic.git_release.enabled
     }
 
+    fn is_git_tag_enabled(&self, package: &str) -> bool {
+        let config = self.get_package_config(package);
+        config.generic.git_tag.enabled
+    }
+
     pub fn get_package_config(&self, package: &str) -> PackageReleaseConfig {
         self.packages_config.get(package)
     }
@@ -158,6 +163,7 @@ impl PackagesConfig {
 pub struct ReleaseConfig {
     publish: PublishConfig,
     git_release: GitReleaseConfig,
+    git_tag: GitTagConfig,
     /// Don't verify the contents by building them.
     /// If true, `release-plz` adds the `--no-verify` flag to `cargo publish`.
     no_verify: bool,
@@ -174,6 +180,11 @@ impl ReleaseConfig {
 
     pub fn with_git_release(mut self, git_release: GitReleaseConfig) -> Self {
         self.git_release = git_release;
+        self
+    }
+
+    pub fn with_git_tag(mut self, git_tag: GitTagConfig) -> Self {
+        self.git_tag = git_tag;
         self
     }
 
@@ -229,6 +240,27 @@ impl Default for GitReleaseConfig {
 }
 
 impl GitReleaseConfig {
+    pub fn enabled(enabled: bool) -> Self {
+        Self { enabled }
+    }
+
+    pub fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GitTagConfig {
+    enabled: bool,
+}
+
+impl Default for GitTagConfig {
+    fn default() -> Self {
+        Self::enabled(true)
+    }
+}
+
+impl GitTagConfig {
     pub fn enabled(enabled: bool) -> Self {
         Self { enabled }
     }
@@ -365,10 +397,10 @@ async fn release_package(
             wait_until_published(index, package).await?;
         }
 
-        repo.tag(&git_tag)?;
-        repo.push(&git_tag)?;
-
-        info!("published {} {}", package.name, package.version);
+        if input.is_git_tag_enabled(&package.name) {
+            repo.tag(&git_tag)?;
+            repo.push(&git_tag)?;
+        }
 
         if input.is_git_release_enabled(&package.name) {
             let git_release = input
@@ -378,6 +410,8 @@ async fn release_package(
             let release_body = release_body(input, package);
             publish_git_release(git_tag, &release_body, &git_release.backend).await?;
         }
+
+        info!("published {} {}", package.name, package.version);
     }
 
     Ok(())
