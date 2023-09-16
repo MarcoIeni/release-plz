@@ -180,11 +180,14 @@ impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
     fn from(value: PackageReleaseConfig) -> Self {
         let is_publish_enabled = value.release.publish != Some(false);
         let is_git_release_enabled = value.git_release.enable != Some(false);
+        let is_git_tag_enabled = value.git_tag.enable != Some(false);
         let mut cfg = Self::default()
             .with_publish(release_plz_core::PublishConfig::enabled(is_publish_enabled))
             .with_git_release(release_plz_core::GitReleaseConfig::enabled(
                 is_git_release_enabled,
-            ));
+            ))
+            .with_git_tag(release_plz_core::GitTagConfig::enabled(is_git_tag_enabled));
+
         if let Some(no_verify) = value.release.no_verify {
             cfg = cfg.with_no_verify(no_verify);
         }
@@ -252,15 +255,18 @@ pub struct PackageReleaseConfig {
     #[serde(flatten, default)]
     pub git_release: GitReleaseConfig,
     #[serde(flatten, default)]
+    pub git_tag: GitTagConfig,
+    #[serde(flatten, default)]
     pub release: ReleaseConfig,
 }
 
 impl PackageReleaseConfig {
     /// Merge the package-specific configuration with the global configuration.
-    pub fn merge(self, default: PackageReleaseConfig) -> PackageReleaseConfig {
-        PackageReleaseConfig {
+    pub fn merge(self, default: Self) -> Self {
+        Self {
             git_release: self.git_release.merge(default.git_release),
             release: self.release.merge(default.release),
+            git_tag: self.git_tag.merge(default.git_tag),
         }
     }
 }
@@ -279,8 +285,8 @@ pub struct ReleaseConfig {
 
 impl ReleaseConfig {
     /// Merge the package-specific configuration with the global configuration.
-    pub fn merge(self, default: ReleaseConfig) -> ReleaseConfig {
-        ReleaseConfig {
+    pub fn merge(self, default: Self) -> Self {
+        Self {
             publish: self.publish.or(default.publish),
             allow_dirty: self.allow_dirty.or(default.allow_dirty),
             no_verify: self.no_verify.or(default.no_verify),
@@ -301,6 +307,22 @@ pub enum SemverCheck {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
+pub struct GitTagConfig {
+    /// Publish the git tag for the new package version.
+    /// Enabled by default.
+    #[serde(rename = "git_tag_enable")]
+    enable: Option<bool>,
+}
+
+impl GitTagConfig {
+    pub fn merge(self, default: GitTagConfig) -> Self {
+        Self {
+            enable: self.enable.or(default.enable),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
 pub struct GitReleaseConfig {
     /// Publish the GitHub/Gitea release for the created git tag.
     /// Enabled by default.
@@ -316,8 +338,8 @@ pub struct GitReleaseConfig {
 
 impl GitReleaseConfig {
     /// Merge the package-specific configuration with the global configuration.
-    pub fn merge(self, default: GitReleaseConfig) -> GitReleaseConfig {
-        GitReleaseConfig {
+    pub fn merge(self, default: Self) -> Self {
+        Self {
             enable: self.enable.or(default.enable),
             release_type: self.release_type.or(default.release_type),
             draft: self.draft.or(default.draft),
@@ -425,6 +447,7 @@ mod tests {
                             release_type: Some(ReleaseType::Prod),
                             draft: Some(false),
                         },
+                        git_tag: GitTagConfig { enable: None },
                         release: ReleaseConfig {
                             publish: None,
                             allow_dirty: None,
