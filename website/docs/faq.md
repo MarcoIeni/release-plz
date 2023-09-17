@@ -7,7 +7,7 @@ Release-plz publishes all packages, except:
 - packages with `publish = false` in the `Cargo.toml`.
 - [examples](https://doc.rust-lang.org/cargo/reference/cargo-targets.html#examples) that don't
   specify the [`publish`](https://doc.rust-lang.org/cargo/reference/manifest.html#the-publish-field)
-  field in the `Cargo.toml` file. To publish them, set the field.
+  field in their `Cargo.toml` file. To publish them, set the field.
 
 Even, if a package is not published, Release-plz will update its `Cargo.toml` to bump the version of
 a local dependency if needed.
