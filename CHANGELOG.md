@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.24](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.23...release-plz-v0.3.24) - 2023-09-17
+
+### Fixed
+- don't discard error context ([#971](https://github.com/MarcoIeni/release-plz/pull/971))
+- don't publish examples ([#974](https://github.com/MarcoIeni/release-plz/pull/974))
+
 ## [0.3.23](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.22...release-plz-v0.3.23) - 2023-09-16
 
 ### Added
