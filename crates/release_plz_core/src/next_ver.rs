@@ -908,18 +908,23 @@ pub trait Publishable {
 }
 
 impl Publishable for Package {
-    /// Return true if the field `publish` in Cargo.toml:
-    /// - is not `[]`
-    /// - is not `false`
+    /// Return true if the package can be published to at least one register (e.g. crates.io).
     fn is_publishable(&self) -> bool {
         if let Some(publish) = &self.publish {
-            // The package can be published only to certain registries
+            // `publish.is_empty()` is:
+            // - true: when `publish` in Cargo.toml is `[]` or `false`.
+            // - false: when the package can be published only to certain registries.
+            //          E.g. when `publish` in Cargo.toml is `["my-reg"]` or `true`.
             !publish.is_empty()
         } else {
-            // The package can be published anywhere
-            true
+            // If it's not an example, the package can be published anywhere
+            !is_example_package(self)
         }
     }
+}
+
+fn is_example_package(package: &Package) -> bool {
+    package.targets.iter().all(|t| t.kind == ["example"])
 }
 
 fn is_library(package: &Package) -> bool {

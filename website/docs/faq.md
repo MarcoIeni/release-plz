@@ -1,10 +1,19 @@
 # FAQ
 
-## Are packages with `publish = false` in the `Cargo.toml` updated?
+## What packages does release-plz publish?
 
-Release-plz ignores packages with `publish = false` in the `Cargo.toml`.
-Release-plz only updates their `Cargo.toml` to bump the version of
-a local dependency when needed.
+Release-plz publishes all packages, except:
+
+- packages with `publish = false` in the `Cargo.toml`.
+- [examples](https://doc.rust-lang.org/cargo/reference/cargo-targets.html#examples) that don't
+  specify the [`publish`](https://doc.rust-lang.org/cargo/reference/manifest.html#the-publish-field)
+  field in their `Cargo.toml` file. To publish them, set this field.
+
+Even, if a package is not published, release-plz will update its `Cargo.toml` to bump the version of
+a local dependency if needed.
+
+If you want to check which packages release-plz will publish, run
+`release-plz release --dry-run`.
 
 ## Can I edit the release PR before merging it?
 
