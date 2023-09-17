@@ -149,9 +149,15 @@ Publish to cargo registry.
 - If `true`, `release-plz` runs `cargo publish`. *(Default)*.
 - If `false`, `release-plz` doesn't run `cargo publish`.
 
-With this option disabled, release-plz will continue creating git tags.
-However, note that release-plz will still use the cargo registry to check what's the latest release,
-so you still need to run `cargo publish` by yourself.
+Note:
+- With this option disabled, release-plz will continue creating git tags.
+  However, note that release-plz will still use the cargo registry to check what's the latest
+  release, so you still need to run `cargo publish` by yourself.
+- release-plz doesn't publish
+  [examples](https://doc.rust-lang.org/cargo/reference/cargo-targets.html#examples)
+  by default. To publish them, set the
+  [`publish`](https://doc.rust-lang.org/cargo/reference/manifest.html#the-publish-field) field in
+  the `Cargo.toml` file of the examples.
 
 #### The `publish_allow_dirty` field
 

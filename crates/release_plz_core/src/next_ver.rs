@@ -915,11 +915,19 @@ impl Publishable for Package {
         if let Some(publish) = &self.publish {
             // The package can be published only to certain registries
             !publish.is_empty()
+                && self
+                    .targets
+                    .iter()
+                    .any(|t| t.kind.contains(&"lib".to_string()))
         } else {
-            // The package can be published anywhere
-            true
+            // If it's not an example, the package can be published anywhere
+            !is_example_package(self)
         }
     }
+}
+
+fn is_example_package(package: &Package) -> bool {
+    package.targets.iter().all(|t| t.kind == ["example"])
 }
 
 fn is_library(package: &Package) -> bool {
