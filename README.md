@@ -41,7 +41,7 @@ There are two ways to run release-plz:
 - [GitHub Action](https://release-plz.ieni.dev/docs/github): Run Release-plz from CI. The action both updates and releases your packages.
 - [CLI](https://release-plz.ieni.dev/docs/usage): Run release-plz from your terminal or other CI systems (Gitea supported).
 
-## 👯 Users
+## 💖 Users
 
 [This](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action)
 search
