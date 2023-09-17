@@ -915,10 +915,6 @@ impl Publishable for Package {
         if let Some(publish) = &self.publish {
             // The package can be published only to certain registries
             !publish.is_empty()
-                && self
-                    .targets
-                    .iter()
-                    .any(|t| t.kind.contains(&"lib".to_string()))
         } else {
             // If it's not an example, the package can be published anywhere
             !is_example_package(self)
