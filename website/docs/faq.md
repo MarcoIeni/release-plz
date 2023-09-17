@@ -3,6 +3,7 @@
 ## Which packages does release-plz publishes?
 
 Release-plz publishes all packages, except:
+
 - packages with `publish = false` in the `Cargo.toml`.
 - [examples](https://doc.rust-lang.org/cargo/reference/cargo-targets.html#examples) that don't
   specify the [`publish`](https://doc.rust-lang.org/cargo/reference/manifest.html#the-publish-field)
