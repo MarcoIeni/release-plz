@@ -125,7 +125,7 @@ impl Update {
             Ok(repo_url) => {
                 update = update.with_repo_url(repo_url);
             }
-            Err(e) => tracing::warn!("Cannot determine repo url. The changelog won't contain the release link. Error: {}", e),
+            Err(e) => tracing::warn!("Cannot determine repo url. The changelog won't contain the release link. Error: {:?}", e),
         }
 
         if let Some(registry_project_manifest) = &self.registry_project_manifest {

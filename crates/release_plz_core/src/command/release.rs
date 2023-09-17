@@ -457,7 +457,7 @@ fn release_body(req: &ReleaseRequest, package: &Package) -> String {
         }
         Err(e) => {
             warn!(
-                "{}: failed to parse changelog at path {:?}: {}. The git release body will be empty.",
+                "{}: failed to parse changelog at path {:?}: {:?}. The git release body will be empty.",
                 package.name, &changelog_path, e
             );
             String::new()
