@@ -99,7 +99,7 @@ impl PackagesUpdate {
                 }
                 Err(e) => {
                     warn!(
-                        "can't determine changes in changelog of package {}: {e}",
+                        "can't determine changes in changelog of package {}: {e:?}",
                         package.name
                     );
                     "".to_string()
