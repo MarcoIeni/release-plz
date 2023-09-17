@@ -150,6 +150,7 @@ Publish to cargo registry.
 - If `false`, `release-plz` doesn't run `cargo publish`.
 
 Note:
+
 - With this option disabled, release-plz will continue creating git tags.
   However, note that release-plz will still use the cargo registry to check what's the latest
   release, so you still need to run `cargo publish` by yourself.
