@@ -1,6 +1,6 @@
 # FAQ
 
-## Which packages does release-plz publishes?
+## What packages does release-plz publish?
 
 Release-plz publishes all packages, except:
 
