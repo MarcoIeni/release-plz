@@ -9,7 +9,7 @@ async-trait = "0.1.73"
 base64 = "0.21.4"
 cargo_metadata = "0.17.0"
 cargo = { version = "0.73.1", default-features = false }
-chrono = { version = "0.4.30", default-features = false }
+chrono = { version = "0.4.31", default-features = false }
 clap = "4.4.3"
 clap_complete = "4.4.1"
 conventional_commit_parser = "0.9.4"
