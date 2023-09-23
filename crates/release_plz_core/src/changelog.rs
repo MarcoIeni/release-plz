@@ -7,6 +7,7 @@ use git_cliff_core::{
     release::Release,
 };
 use regex::Regex;
+use tracing::warn;
 
 use crate::changelog_parser;
 
@@ -124,11 +125,23 @@ impl<'a> ChangelogBuilder<'a> {
             .map(|c| c.git)
             .unwrap_or_else(default_git_config);
         let release_date = self.release_timestamp();
-        let commits = self
+        let mut commits: Vec<_> = self
             .commits
             .into_iter()
             .filter_map(|c| c.process(&git_config).ok())
             .collect();
+
+        match git_config.sort_commits.map(|s| s.to_lowercase()).as_deref() {
+            Some("oldest") => {
+                commits.reverse();
+            }
+            Some("newest") | None => {
+                // commits are already sorted from newest to oldest, we don't need to do anything
+            }
+            Some(other) => {
+                warn!("Invalid setting for sort_commits: '{other}'. Valid values are 'newest' and 'oldest'.")
+            }
+        }
 
         Changelog {
             release: Release {
@@ -501,6 +514,41 @@ mod tests {
 
             something else - N/A
         "####]]
+        .assert_eq(&changelog.generate());
+    }
+
+    #[test]
+    fn changelog_sort_newest() {
+        let commits = vec![
+            Commit::new("1111111".to_string(), "fix: myfix".to_string()),
+            Commit::new("0000000".to_string(), "fix: another fix".to_string()),
+        ];
+        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+            .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
+            .with_config(Config {
+                changelog: default_changelog_config(None, None),
+                git: GitConfig {
+                    sort_commits: Some("oldest".to_string()),
+                    ..Default::default()
+                },
+            })
+            .build();
+
+        expect_test::expect![[r#"
+            # Changelog
+            All notable changes to this project will be documented in this file.
+
+            The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+            and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+            ## [Unreleased]
+
+            ## [1.1.1] - 2015-05-15
+
+            ### Fix
+            - another fix
+            - myfix
+        "#]]
         .assert_eq(&changelog.generate());
     }
 }
