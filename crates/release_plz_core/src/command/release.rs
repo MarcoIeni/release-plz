@@ -231,6 +231,7 @@ impl PublishConfig {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GitReleaseConfig {
     enabled: bool,
+    draft: bool,
 }
 
 impl Default for GitReleaseConfig {
@@ -241,11 +242,19 @@ impl Default for GitReleaseConfig {
 
 impl GitReleaseConfig {
     pub fn enabled(enabled: bool) -> Self {
-        Self { enabled }
+        Self {
+            enabled,
+            draft: false,
+        }
     }
 
     pub fn is_enabled(&self) -> bool {
         self.enabled
+    }
+
+    pub fn set_draft(mut self, draft: bool) -> Self {
+        self.draft = draft;
+        self
     }
 }
 
@@ -408,13 +417,29 @@ async fn release_package(
                 .as_ref()
                 .context("git release not configured. Did you specify git-token and backend?")?;
             let release_body = release_body(input, package);
-            publish_git_release(git_tag, &release_body, &git_release.backend).await?;
+            let is_release_draft = input
+                .get_package_config(&package.name)
+                .generic
+                .git_release
+                .draft;
+            let release_info = GitReleaseInfo {
+                git_tag,
+                release_body,
+                draft: is_release_draft,
+            };
+            publish_git_release(&release_info, &git_release.backend).await?;
         }
 
         info!("published {} {}", package.name, package.version);
     }
 
     Ok(())
+}
+
+pub struct GitReleaseInfo {
+    pub git_tag: String,
+    pub release_body: String,
+    pub draft: bool,
 }
 
 fn run_cargo_publish(
@@ -466,8 +491,7 @@ fn release_body(req: &ReleaseRequest, package: &Package) -> String {
 }
 
 async fn publish_git_release(
-    git_tag: String,
-    release_body: &str,
+    release_info: &GitReleaseInfo,
     backend: &GitBackend,
 ) -> anyhow::Result<()> {
     let backend = match backend {
@@ -477,7 +501,7 @@ async fn publish_git_release(
     };
     let git_client = GitClient::new(backend)?;
     git_client
-        .create_release(&git_tag, release_body)
+        .create_release(release_info)
         .await
         .context("Failed to create release")?;
     Ok(())
