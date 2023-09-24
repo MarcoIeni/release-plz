@@ -50,6 +50,7 @@ the following sections:
   - [`changelog_update`](#the-changelog_update-field) — Update changelog.
   - [`dependencies_update`](#the-dependencies_update-field) — Update all dependencies.
   - [`git_release_enable`](#the-git_release_enable-field) — Enable git release.
+  - [`git_release_draft`](#the-git_release_draft-field) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field) — Enable git tag.
   - [`pr_labels`](#the-pr_labels-field) — Add labels to the release Pull Request.
   - [`publish`](#the-publish-field) — Publish to cargo registry.
@@ -63,6 +64,7 @@ the following sections:
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
   - [`changelog_update`](#the-changelog_update-field-package-section) — Update changelog.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
+  - [`git_release_draft`](#the-git_release_draft-field-package-section) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field-package-section) — Enable git tag.
   - [`publish`](#the-publish-field-package-section) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field-package-section) — Package dirty directories.
@@ -122,8 +124,8 @@ This field can be overridden in the [`[package]`](#the-package-section) section.
 
 #### The `git_release_enable` field
 
-- If `true`, release-plz will create a git release for the created tag. *(Default)*.
-- If `false`, release-plz will not create a git release.
+- If `true`, release-plz creates a git release for the created tag. *(Default)*.
+- If `false`, release-plz doesn't create a git release.
 
 The supported git releases are:
 
@@ -131,10 +133,15 @@ The supported git releases are:
 - [Gitea](https://docs.gitea.io/en-us/)
 - [GitLab](https://docs.gitlab.com/ee/user/project/releases/#releases)
 
+#### The `git_release_draft` field
+
+- If `true`, release-plz creates the git release as draft (unpublished).
+- If `false`, release-plz publishes the created git release. *(Default)*.
+
 #### The `git_tag_enable` field
 
-- If `true`, release-plz will create a git tag for the new package version. *(Default)*.
-- If `false`, release-plz will not create a git tag.
+- If `true`, release-plz creates a git tag for the new package version. *(Default)*.
+- If `false`, release-plz doesn't create a git tag.
   Note: you can't create a git release without a git tag.
 
 #### The `pr_labels` field
@@ -247,6 +254,10 @@ This field cannot be set in the `[workspace]` section.
 #### The `git_release_enable` field (`package` section)
 
 Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) field.
+
+#### The `git_release_draft` field (`package` section)
+
+Overrides the [`workspace.git_release_draft`](#the-git_release_draft-field) field.
 
 #### The `git_tag_enable` field (`package` section)
 
