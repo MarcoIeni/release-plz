@@ -34,6 +34,7 @@ To learn more, run `release-plz release --help`.
 The default token in CI does not have permissions to create tags, so you will need to
 a custom [access token](https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html).
 The permissions you need are:
+
 - `api` (to create a release)
 - `write_repository` (to create tag)
 
