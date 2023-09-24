@@ -26,3 +26,17 @@ or you merge a pull request opened with `release-plz release-pr`.
 If all packages are already published, the `release-plz release` command does nothing.
 
 To learn more, run `release-plz release --help`.
+
+## Gitlab
+
+`releases-plz` also supports creating releases on Gitlab with the `--backend gitlab` option.
+
+The default token in CI does not have permissions to create tags, so you will need to
+a custom [access token](https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html).
+The permissions you need are:
+- `api` (to create a release)
+- `write_repository` (to create tag)
+
+Then you can run `release-plz release` in Gitlab CI with the following arguments:
+
+`release-plz release --backend gitlab --git-token <gitlab application token> --repo-url <repository URL>`
