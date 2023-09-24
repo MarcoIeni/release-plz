@@ -135,8 +135,8 @@ The supported git releases are:
 
 #### The `git_release_draft` field
 
-- If `true`, release-plz creates a git release for the created tag.
-- If `false`, release-plz doesn't create a git release. *(Default)*.
+- If `true`, release-plz creates the git release as draft (unpublished).
+- If `false`, release-plz publishes the created git release. *(Default)*.
 
 #### The `git_tag_enable` field
 
