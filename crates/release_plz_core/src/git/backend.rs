@@ -1,5 +1,5 @@
 use crate::git::{gitea_client::Gitea, gitlab_client::GitLab};
-use crate::GitHub;
+use crate::{GitHub, GitReleaseInfo};
 
 use crate::pr::Pr;
 use anyhow::Context;
@@ -71,6 +71,7 @@ pub struct CreateReleaseOption<'a> {
     tag_name: &'a str,
     body: &'a str,
     name: &'a str,
+    draft: &'a bool,
 }
 
 #[derive(Deserialize)]
@@ -170,19 +171,22 @@ impl GitClient {
     }
 
     /// Creates a GitHub/Gitea release.
-    pub async fn create_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
+    pub async fn create_release(&self, release_info: &GitReleaseInfo) -> anyhow::Result<()> {
         match self.backend {
-            BackendType::Github | BackendType::Gitea => self.create_github_release(tag, body).await,
-            BackendType::Gitlab => self.create_gitlab_release(tag, body).await,
+            BackendType::Github | BackendType::Gitea => {
+                self.create_github_release(release_info).await
+            }
+            BackendType::Gitlab => self.create_gitlab_release(release_info).await,
         }
     }
 
     /// Same as Gitea.
-    pub async fn create_github_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
+    pub async fn create_github_release(&self, release_info: &GitReleaseInfo) -> anyhow::Result<()> {
         let create_release_options = CreateReleaseOption {
-            tag_name: tag,
-            body,
-            name: tag,
+            tag_name: &release_info.git_tag,
+            body: &release_info.release_body,
+            name: &release_info.git_tag,
+            draft: &release_info.draft,
         };
         self.client
             .post(format!("{}/releases", self.repo_url()))
@@ -193,15 +197,15 @@ impl GitClient {
         Ok(())
     }
 
-    pub async fn create_gitlab_release(&self, tag: &str, body: &str) -> anyhow::Result<()> {
+    pub async fn create_gitlab_release(&self, release_info: &GitReleaseInfo) -> anyhow::Result<()> {
         #[derive(Serialize)]
         pub struct GitlabReleaseOption<'a> {
             tag_name: &'a str,
             description: &'a str,
         }
         let gitlab_release_options = GitlabReleaseOption {
-            tag_name: tag,
-            description: body,
+            tag_name: &release_info.git_tag,
+            description: &release_info.release_body,
         };
         self.client
             .post(format!(
