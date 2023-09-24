@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.13.6...release_plz_core-v0.14.0) - 2023-09-24
+
+### Added
+- add ability to create draft git release ([#986](https://github.com/MarcoIeni/release-plz/pull/986))
+
+### Fixed
+- respect git-cliff sort order ([#985](https://github.com/MarcoIeni/release-plz/pull/985))
+
 ## [0.13.6](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.13.5...release_plz_core-v0.13.6) - 2023-09-17
 
 ### Fixed
