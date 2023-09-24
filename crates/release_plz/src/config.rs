@@ -180,7 +180,7 @@ impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
     fn from(value: PackageReleaseConfig) -> Self {
         let is_publish_enabled = value.release.publish != Some(false);
         let is_git_release_enabled = value.git_release.enable != Some(false);
-        let is_git_release_draft = value.git_release.draft != Some(false);
+        let is_git_release_draft = value.git_release.draft == Some(true);
         let is_git_tag_enabled = value.git_tag.enable != Some(false);
         let mut cfg = Self::default()
             .with_publish(release_plz_core::PublishConfig::enabled(is_publish_enabled))
