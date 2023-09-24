@@ -40,4 +40,4 @@ The permissions you need are:
 
 Then you can run `release-plz release` in Gitlab CI with the following arguments:
 
-`release-plz release --backend gitlab --git-token <gitlab application token> --repo-url <repository URL>`
+`release-plz release --backend gitlab --git-token <gitlab application token>`
