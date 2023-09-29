@@ -8,7 +8,7 @@ const FeatureList = [
     description: (
       <>
         Release-plz updates your changelogs with{" "}
-        <a href="https://github.com/orhun/git-cliff">git-cliff</a> using{" "}
+        <a href="https://git-cliff.org">git-cliff</a> using{" "}
         <a href="https://keepachangelog.com/en/1.0.0/">Keep a changelog</a> format by default.
       </>
     ),
