@@ -1,5 +1,6 @@
 [workspace]
 git_release_enable = false
+git_release_draft = true
 
 [[package]] # the double square brackets define a TOML table array
 name = "release-plz" # name of the package to configure

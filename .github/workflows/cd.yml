@@ -70,3 +70,5 @@ jobs:
           tar: all
           zip: windows
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish release
+        run: gh release edit ${{ github.event.release.name }} --draft=false
