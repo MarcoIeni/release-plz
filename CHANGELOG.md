@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.26](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.25...release-plz-v0.3.26) - 2023-09-30
+
+### Added
+- avoid copying gitignored files ([#1000](https://github.com/MarcoIeni/release-plz/pull/1000)) ([#1001](https://github.com/MarcoIeni/release-plz/pull/1001))
+
+### Fixed
+- parse changelog header correctly ([#1007](https://github.com/MarcoIeni/release-plz/pull/1007))
+
+### Other
+- update dependencies
+
 ## [0.3.25](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.24...release-plz-v0.3.25) - 2023-09-24
 
 ### Added

@@ -429,7 +429,7 @@ dependencies = [
 
 [[package]]
 name = "cargo_utils"
-version = "0.1.30"
+version = "0.1.31"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -3392,7 +3392,7 @@ dependencies = [
 
 [[package]]
 name = "next_version"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "conventional_commit_parser",
  "semver",
@@ -4076,7 +4076,7 @@ checksum = "dbb5fb1acd8a1a18b3dd5be62d25485eb770e05afb408a9627d14d451bae12da"
 
 [[package]]
 name = "release-plz"
-version = "0.3.25"
+version = "0.3.26"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -4109,7 +4109,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.14.0"
+version = "0.14.1"
 dependencies = [
  "anyhow",
  "cargo",
