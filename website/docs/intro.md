@@ -32,7 +32,7 @@ Here's an example of a release Pull Request created on the release-plz repositor
 ## Release-plz features
 
 - Version update based on [conventional commits](https://www.conventionalcommits.org/).
-- Changelog update with [git-cliff](https://github.com/orhun/git-cliff),
+- Changelog update with [git-cliff](https://git-cliff.org),
   using the [keep a changelog](https://keepachangelog.com/en/1.1.0/) format by default.
 - API breaking changes detection with [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks).
 - Cargo workspaces support.
