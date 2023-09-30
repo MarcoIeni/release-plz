@@ -284,4 +284,4 @@ Overrides the [`workspace.publish_no_verify`](#the-publish_no_verify-field) fiel
 By default, release-plz runs [cargo-semver-checks] if the package is a library.
 
 [cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
-[git-cliff]: https://github.com/orhun/git-cliff
+[git-cliff]: https://git-cliff.org
