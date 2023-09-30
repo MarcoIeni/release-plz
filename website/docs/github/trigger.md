@@ -75,14 +75,15 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
-### Use a GitHub Action
+### Use a GitHub App
 
 Generate a GitHub token with a GitHub App.
 This is the approach used by the
 [release-plz](https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/release-plz.yml)
-repo itself. With this approach, the GitHub App will be the author of the release pull request.
+repo itself. With this approach, the GitHub App will be the author of the release pull request,
+e.g. `release-plz[bot]`.
 
-Here's how to use a GitHub app to generate a GitHub token:
+Here's how to use a GitHub App to generate a GitHub token:
 
 1. Create a minimal [GitHub App](https://docs.github.com/en/developers/apps/creating-a-github-app),
    setting the following fields:
@@ -91,6 +92,9 @@ Here's how to use a GitHub app to generate a GitHub token:
    - Uncheck `Active` under `Webhook`. You do not need to enter a `Webhook URL`.
    - Under `Repository permissions: Contents` select `Access: Read & write`.
    - Under `Repository permissions: Pull requests` select `Access: Read & write`.
+   - If you use [protected tags](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/configuring-tag-protection-rules):
+     Under `Repository permissions: Administration` select `Access: Read & write`.
+   - (Optional) Under `Where can this GitHub App be installed?` select `Only on this account`
    - (Optional) Set the release-plz [logo](/img/robot_head.jpeg).
 
 2. Create a Private key from the App settings page and store it securely.
@@ -103,7 +107,7 @@ Here's how to use a GitHub app to generate a GitHub token:
    E.g. `APP_ID`, `APP_PRIVATE_KEY`.
 
 5. Use
-   [tibdex/github-app-token](https://github.com/tibdex/github-app-token)
+   [actions/create-github-app-token](https://github.com/actions/create-github-app-token)
    to generate a token from the GitHub Action:
 
    ```yaml
@@ -111,7 +115,7 @@ Here's how to use a GitHub app to generate a GitHub token:
      # Generating a GitHub token, so that PRs and tags created by
      # the release-plz-action can trigger actions workflows.
      - name: Generate GitHub token
-       uses: tibdex/github-app-token@v2
+       uses: actions/create-github-app-token@v1
        id: generate-token
        with:
          app_id: ${{ secrets.APP_ID }} # <-- GitHub App ID secret name
