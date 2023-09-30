@@ -21,12 +21,12 @@ Yes, you can edit the release PR as you would do with any other PR.
 
 Here are some reasons why you might want to edit the release PR:
 
-- edit the changelog: the changelog file, e.g. `CHANGELOG.md` produced by release-plz is
-  a good starting point, but you might want to add more details to it.  
-  release-plz will only use the relevant version part of the merged changelog file
-  (i.e. not the generated changelog in the merge request description) to populate
-  the corresponding git release.
-- edit the version: if you forgot to mark a commit as a
+- Edit the changelog: the `CHANGELOG.md` file produced by release-plz is
+  a good starting point, but you might want to add more details to it.
+  Release-plz populates the corresponding git release description with the new
+  changes of the changelog file.
+  Note: you don't need to edit the collabsible changelog in the PR description.
+- Edit the version: if you forgot to mark a commit as a
   [breaking change](https://www.conventionalcommits.org/en/v1.0.0/#commit-message-with-description-and-breaking-change-footer),
   or if cargo-semver-checks
   [failed](https://github.com/obi1kenobi/cargo-semver-checks#will-cargo-semver-checks-catch-every-semver-violation)
