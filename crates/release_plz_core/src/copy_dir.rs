@@ -49,9 +49,7 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
     for entry in WalkBuilder::new(from).hidden(false).ignore(true).build() {
         let entry = entry.context("invalid entry")?;
         let destination = destination_path(&to, &entry, from)?;
-        let file_type = entry
-            .file_type()
-            .ok_or_else(|| anyhow::anyhow!("unknown file type"))?;
+        let file_type = entry.file_type().context("unknown file type")?;
         if file_type.is_dir() {
             if destination == to {
                 continue;
