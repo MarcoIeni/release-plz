@@ -10,9 +10,9 @@ use regex::Regex;
 ///   (in the ..anything.. case, `## ..anything..` is not included in the header)
 pub fn parse_header(changelog: &str) -> Option<String> {
     lazy_static::lazy_static! {
-        static ref FIRST_RE: Regex = Regex::new(r"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*)(## Unreleased|## \[Unreleased\])").unwrap();
+        static ref FIRST_RE: Regex = Regex::new(r"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*)(## Unreleased|## \[Unreleased\]|## unreleased|## \[unreleased\])").unwrap();
 
-        static ref SECOND_RE: Regex = Regex::new(r"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*)(\n## )").unwrap();
+        static ref SECOND_RE: Regex = Regex::new(r"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*?)(\n## )").unwrap();
     }
     if let Some(captures) = FIRST_RE.captures(changelog) {
         return Some(format!("{}\n", &captures[0]));
@@ -135,6 +135,32 @@ My custom changelog header
 My custom changelog header
 
 ## [0.2.5] - 2022-12-16
+";
+        let header = parse_header(changelog).unwrap();
+        let expected_header = "\
+# Changelog
+
+My custom changelog header
+";
+        assert_eq!(header, expected_header);
+    }
+
+    #[test]
+    fn changelog_header_without_unreleased_and_two_previous_versions_is_parsed() {
+        let changelog = "\
+# Changelog
+
+My custom changelog header
+
+## [0.2.5] - 2022-12-16
+
+### Added
+- Incredible feature
+
+## [0.2.5] - 2022-12-16
+
+### Fixed
+- Incredible bug
 ";
         let header = parse_header(changelog).unwrap();
         let expected_header = "\
