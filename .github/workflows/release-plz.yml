@@ -18,7 +18,7 @@ jobs:
       # Generating a GitHub token, so that PRs and tags created by
       # the release-plz-action can trigger actions workflows.
       - name: Generate GitHub token
-        uses: tibdex/github-app-token@v2
+        uses: actions/create-github-app-token@v1
         id: generate-token
         with:
           app_id: ${{ secrets.APP_ID }}
