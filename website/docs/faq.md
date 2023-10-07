@@ -42,3 +42,20 @@ files of the crate or one of its dependencies.
 By default, it will be listed under the section `### Other`.
 Remember you can customize the changelog format by providing a
 [git-cliff](https://git-cliff.org) config file.
+
+## How do I know the branch of the release PR?
+
+If you want to commit something to the release-plz pr branch
+after releaze-plz workflow, you need to know the name of the branch
+of the release PR.
+To do so, you can:
+- Query the `/pulls` GitHub
+  [endpoint](https://docs.github.com/en/free-pro-team@latest/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests).
+  For example, release-plz does it
+  [here](https://github.com/MarcoIeni/release-plz/blob/a92629ed10b8bb42dde426c0f0001aebbb6fa70e/crates/release_plz_core/src/git/backend.rs#L238).
+- Use `git tag | grep release-plz`.
+
+If none of these options work for you or you want release-plz to output
+the branch in the jobs
+[output](https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs),
+please open an issue.
