@@ -13,7 +13,7 @@ pub struct ReleasePr {
     #[command(flatten)]
     pub update: Update,
     /// Git token used to create the pull request.
-    #[arg(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github-token")]
+    #[arg(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github-token", env)]
     git_token: String,
     /// Kind of git host where your project is hosted.
     #[arg(long, value_enum, default_value_t = GitBackendKind::Github)]

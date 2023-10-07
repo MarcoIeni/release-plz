@@ -44,7 +44,7 @@ pub struct Release {
     #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     pub repo_url: Option<String>,
     /// Git token used to publish the GitHub release.
-    #[arg(long, value_parser = NonEmptyStringValueParser::new())]
+    #[arg(long, value_parser = NonEmptyStringValueParser::new(), env)]
     pub git_token: Option<String>,
     /// Kind of git backend
     #[arg(long, value_enum, default_value_t = ReleaseGitBackendKind::Github)]
