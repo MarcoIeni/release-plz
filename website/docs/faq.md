@@ -49,6 +49,7 @@ If you want to commit something to the release-plz pr branch
 after releaze-plz workflow, you need to know the name of the branch
 of the release PR.
 To do so, you can:
+
 - Query the `/pulls` GitHub
   [endpoint](https://docs.github.com/en/free-pro-team@latest/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests).
   For example, release-plz does it
