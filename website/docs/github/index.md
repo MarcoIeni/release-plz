@@ -168,7 +168,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
-### Example: release-pr and relase on schedule
+### Example: release-pr and release on schedule
 
 In the above examples, release-plz runs every time you merge a commit to the `main` branch.
 
