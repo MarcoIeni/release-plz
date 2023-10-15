@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.28](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.27...release-plz-v0.3.28) - 2023-10-15
+
+### Added
+- *(args)* support `GIT_TOKEN` variable ([#1008](https://github.com/MarcoIeni/release-plz/pull/1008)) ([#1026](https://github.com/MarcoIeni/release-plz/pull/1026))
+
+### Fixed
+- ignore `.ignore` files ([#1036](https://github.com/MarcoIeni/release-plz/pull/1036))
+
 ## [0.3.27](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.26...release-plz-v0.3.27) - 2023-09-30
 
 ### Other
