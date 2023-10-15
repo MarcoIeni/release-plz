@@ -47,7 +47,10 @@ yanked = "warn"
 notice = "warn"
 # A list of advisory IDs to ignore. Note that ignored advisories will still
 # output a note when they are encountered.
-ignore = []
+ignore = [
+    # TODO: remove this when cargo updates gix-transport
+    "RUSTSEC-2023-0064",
+]
 # Threshold for security vulnerabilities, any vulnerability with a CVSS score
 # lower than the range specified will be ignored. Note that ignored advisories
 # will still output a note when they are encountered.
@@ -69,6 +72,7 @@ unlicensed = "deny"
 # [possible values: any SPDX 3.11 short identifier (+ optional exception)].
 allow = [
     "MIT",
+    "ISC",
     "Apache-2.0",
     "BSD-3-Clause",
     "CC0-1.0",
