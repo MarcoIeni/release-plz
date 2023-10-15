@@ -1,7 +1,6 @@
 use std::{fs, io, path::Path};
 
 use anyhow::Context;
-use ignore::{DirEntry, WalkBuilder};
 use tracing::debug;
 
 use crate::strip_prefix::strip_prefix;
@@ -46,7 +45,13 @@ pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<
 #[tracing::instrument]
 #[allow(clippy::filetype_is_file)] // we want to distinguish between files and symlinks
 fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Error> {
-    for entry in WalkBuilder::new(from).hidden(false).ignore(true).build() {
+    let walker = ignore::WalkBuilder::new(from)
+        // Read hidden files
+        .hidden(false)
+        // Don't consider `.ignore` files.
+        .ignore(false)
+        .build();
+    for entry in walker {
         let entry = entry.context("invalid entry")?;
         let destination = destination_path(&to, &entry, from)?;
         let file_type = entry.file_type().context("unknown file type")?;
@@ -85,7 +90,7 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
 
 fn destination_path(
     to: &Path,
-    entry: &DirEntry,
+    entry: &ignore::DirEntry,
     from: &Path,
 ) -> anyhow::Result<std::path::PathBuf> {
     let mut dest_path = to.to_path_buf();
