@@ -1,7 +1,6 @@
 use std::{fs, io, path::Path};
 
 use anyhow::Context;
-use ignore::{DirEntry, WalkBuilder};
 use tracing::debug;
 
 use crate::strip_prefix::strip_prefix;
@@ -91,7 +90,7 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
 
 fn destination_path(
     to: &Path,
-    entry: &DirEntry,
+    entry: &ignore::DirEntry,
     from: &Path,
 ) -> anyhow::Result<std::path::PathBuf> {
     let mut dest_path = to.to_path_buf();
