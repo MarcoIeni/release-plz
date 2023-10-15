@@ -46,7 +46,13 @@ pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<
 #[tracing::instrument]
 #[allow(clippy::filetype_is_file)] // we want to distinguish between files and symlinks
 fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Error> {
-    for entry in WalkBuilder::new(from).hidden(false).ignore(true).build() {
+    let walker = ignore::WalkBuilder::new(from)
+        // Read hidden files
+        .hidden(false)
+        // Don't consider `.ignore` files.
+        .ignore(false)
+        .build();
+    for entry in walker {
         let entry = entry.context("invalid entry")?;
         let destination = destination_path(&to, &entry, from)?;
         let file_type = entry.file_type().context("unknown file type")?;
