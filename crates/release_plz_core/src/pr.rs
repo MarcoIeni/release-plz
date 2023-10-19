@@ -2,7 +2,7 @@ use chrono::SecondsFormat;
 
 use crate::PackagesUpdate;
 
-pub const BRANCH_PREFIX: &str = "release-plz/";
+pub const BRANCH_PREFIX: &str = "release-plz_";
 
 #[derive(Debug)]
 pub struct Pr {
