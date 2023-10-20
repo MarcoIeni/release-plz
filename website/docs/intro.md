@@ -53,3 +53,6 @@ Release-plz makes releasing Rust packages child's play:
 
 In short, release-plz makes releasing Rust packages as easy as clicking the pull
 request "merge" button.
+
+Additionally, publishing creates with release-plz from CI adds visibility and
+transparency to the release process.
