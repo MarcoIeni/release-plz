@@ -6,7 +6,7 @@ use anyhow::{anyhow, Context};
 use tracing::{info, instrument};
 
 use crate::git::backend::{contributors_from_commits, GitClient, GitPr, PrEdit};
-use crate::pr::{Pr, BRANCH_PREFIX};
+use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};
 use crate::{
     copy_to_temp_dir, publishable_packages, update, GitBackend, PackagesUpdate, UpdateRequest,
     CARGO_TOML,
@@ -79,10 +79,21 @@ async fn open_or_update_release_pr(
     repo: &Repo,
     pr_labels: Vec<String>,
 ) -> anyhow::Result<()> {
-    let opened_release_prs = git_client
+    let mut opened_release_prs = git_client
         .opened_prs(BRANCH_PREFIX)
         .await
         .context("cannot get opened release-plz prs")?;
+
+    // Check if there are opened release-plz prs with the old prefix.
+    // This ensures retro-compatibility with the release-plz versions.
+    // TODO: Remove this check on release-plz v0.4.0.
+    if opened_release_prs.is_empty() {
+        opened_release_prs = git_client
+            .opened_prs(OLD_BRANCH_PREFIX)
+            .await
+            .context("cannot get opened release-plz prs")?;
+    }
+
     // Close all release-plz prs, except one.
     let old_release_prs = opened_release_prs.iter().skip(1);
     for pr in old_release_prs {
@@ -184,7 +195,10 @@ async fn update_pr(
 
 fn reset_branch(pr: &GitPr, commits_number: usize, repository: &Repo) -> anyhow::Result<()> {
     // sanity check to avoid doing bad things on non-release-plz branches
-    anyhow::ensure!(pr.branch().starts_with(BRANCH_PREFIX), "wrong branch name");
+    anyhow::ensure!(
+        pr.branch().starts_with(BRANCH_PREFIX) || pr.branch().starts_with(OLD_BRANCH_PREFIX),
+        "wrong branch name"
+    );
 
     if repository.checkout(pr.branch()).is_err() {
         repository.git(&["pull"])?;
