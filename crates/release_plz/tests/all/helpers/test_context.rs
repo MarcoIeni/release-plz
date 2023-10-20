@@ -9,7 +9,7 @@ use crate::helpers::gitea::CARGO_INDEX_REPO;
 use assert_cmd::assert::Assert;
 use cargo_utils::LocalManifest;
 use git_cmd::Repo;
-use release_plz_core::{GitBackend, GitClient, GitPr, Gitea, RepoUrl};
+use release_plz_core::{GitBackend, GitClient, GitPr, Gitea, RepoUrl, BRANCH_PREFIX};
 use secrecy::SecretString;
 use tempfile::TempDir;
 use tracing::info;
@@ -97,7 +97,7 @@ impl TestContext {
     }
 
     pub async fn opened_release_prs(&self) -> Vec<GitPr> {
-        self.git_client.opened_prs("release-plz/").await.unwrap()
+        self.git_client.opened_prs(BRANCH_PREFIX).await.unwrap()
     }
 }
 
