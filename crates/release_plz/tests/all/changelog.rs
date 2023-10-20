@@ -9,9 +9,6 @@ async fn release_plz_adds_changelog_on_new_project() {
 
     context.run_release_pr().success();
 
-    // Wait for Gitea to update its internal state.
-    tokio::time::sleep(Duration::from_secs(1)).await;
-
     let opened_prs = context.opened_release_prs().await;
     assert_eq!(opened_prs.len(), 1);
 
