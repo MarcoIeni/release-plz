@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use crate::helpers::{test_context::TestContext, TEST_REGISTRY};
 
 #[tokio::test]
