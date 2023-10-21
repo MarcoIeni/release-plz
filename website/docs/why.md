@@ -15,7 +15,7 @@ to detect API breaking changes and avoid breaking users builds:
 - if the change was not intentional, maintainers can revert the breaking change
   before releasing the new version.
 - if the change was intentional, maintainers can safely merge the release PR
-  because it correctly bumbed the major version.
+  because it bumps the major version.
 
 ## Differences with release-please
 
