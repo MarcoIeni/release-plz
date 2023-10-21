@@ -6,13 +6,24 @@ Choosing which tools to add to your developer toolbox is becoming harder and har
 I feel obliged to explain why I created this project and how it compares with
 similar tools.
 
+## API breaking change detection
+
+Release-plz is the only release tool that integrates
+[cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks)
+to detect API breaking changes and avoid breaking users builds:
+
+- if the change was not intentional, maintainers can revert the breaking change
+  before releasing the new version.
+- if the change was intentional, maintainers can safely merge the release PR
+  because it bumps the major version.
+
 ## Differences with release-please
 
 Like release-plz, [release-please](https://github.com/googleapis/release-please)
 is an open-source project that manages releases via pull requests.
 However, there are some differences.
 
-### No configuration needed
+### No configuration needed 👍
 
 Release-please requires two configuration files in cargo workspaces: `.release-please-manifest.json`
 and `release-please-config.json`.
@@ -23,7 +34,7 @@ Release-plz obtains all the information it needs from the `Cargo.toml` files
 and the cargo registry,
 so no configuration files are required.
 
-### Versions retrieved from the cargo registry
+### Versions retrieved from the cargo registry 👍
 
 Release-please considers a package "published" only when the relative git tag exists.
 Release-please doesn't interact at all with cargo registries.
@@ -33,12 +44,7 @@ Instead, they just publish the package to crates.io.
 Release-plz looks at the cargo registry if the relative git tag doesn't exist,
 making it compatible with both workflows and with the majority of the Rust projects.
 
-### No multiple programming languages support
-
-Release-please supports multiple programming languages, while release-plz only
-supports Rust projects.
-
-### Conventional commits aren't required
+### Conventional commits aren't required 👍
 
 Release-please requires conventional commits to work.
 For example, it only generates a release PR if your commit messages
@@ -48,6 +54,11 @@ Release-plz, instead, generates a release PR for every commit affecting one of y
 regardless of the commit message.
 Release-plz also generates a release PR if you change the dependencies of your packages
 (either in the `Cargo.toml` or in the `Cargo.lock` files).
+
+### No multiple programming languages support 👎
+
+Release-please supports multiple programming languages, while release-plz only
+supports Rust projects.
 
 ## Differences with other Rust release tools
 
