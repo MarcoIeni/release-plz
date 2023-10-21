@@ -165,7 +165,7 @@ release, so you still need to run `cargo publish` by yourself.
 Allow dirty working directories to be packaged.
 
 - If `true`, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
-- If `false`, `cargo publish` fails when your repository contains uncommitted changes. *(Default)*.
+- If `false`, `cargo publish` fails if your repository contains uncommitted changes. *(Default)*.
 
 #### The `publish_no_verify` field
 
