@@ -11,6 +11,7 @@ similar tools.
 Release-plz is the only release tool that integrates
 [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks)
 to detect API breaking changes and avoid breaking users builds:
+
 - if the change was not intentional, maintainers can revert the breaking change
   before releasing the new version.
 - if the change was intentional, maintainers can safely merge the release PR
