@@ -87,7 +87,7 @@ pub fn read_package(directory: impl AsRef<Path>) -> anyhow::Result<Package> {
         .context("failed to execute cargo_metadata")?;
     let package = metadata
         .packages
-        .get(0)
+        .first()
         .ok_or_else(|| anyhow!("cannot retrieve package at {:?}", directory.as_ref()))?;
     Ok(package.clone())
 }
