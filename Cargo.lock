@@ -1427,7 +1427,7 @@ dependencies = [
 
 [[package]]
 name = "git_cmd"
-version = "0.4.13"
+version = "0.4.14"
 dependencies = [
  "anyhow",
  "git_cmd",
@@ -4131,7 +4131,7 @@ checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 
 [[package]]
 name = "release-plz"
-version = "0.3.28"
+version = "0.3.29"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -4164,7 +4164,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.14.3"
+version = "0.14.4"
 dependencies = [
  "anyhow",
  "cargo",
@@ -4894,7 +4894,7 @@ checksum = "3369f5ac52d5eb6ab48c6b4ffdc8efbcad6b89c765749064ba298f2c68a16a76"
 
 [[package]]
 name = "test_logs"
-version = "0.1.22"
+version = "0.1.23"
 dependencies = [
  "once_cell",
  "tracing",
