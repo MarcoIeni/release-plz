@@ -1,9 +1,6 @@
 mod gitea_client;
 mod gitea_new;
 
-pub use gitea_client::*;
-pub use gitea_new::*;
-
 pub struct GiteaUser {
     username: String,
     password: String,
