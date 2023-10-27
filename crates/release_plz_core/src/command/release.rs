@@ -452,6 +452,10 @@ fn run_cargo_publish(
     args.push("always");
     args.push("--manifest-path");
     args.push(package.manifest_path.as_ref());
+    if let Some(registry) = &input.registry {
+        args.push("--registry");
+        args.push(registry);
+    }
     if let Some(token) = &input.token {
         args.push("--token");
         args.push(token.expose_secret());
