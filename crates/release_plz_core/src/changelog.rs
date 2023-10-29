@@ -186,65 +186,29 @@ fn default_git_config() -> GitConfig {
     }
 }
 
+fn commit_parser(regex: &str, group: &str) -> CommitParser {
+    CommitParser {
+        message: Regex::new(regex).ok(),
+        body: None,
+        group: Some(group.to_string()),
+        default_scope: None,
+        scope: None,
+        skip: None,
+        field: None,
+        pattern: None,
+    }
+}
+
 /// Commit parsers based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 fn commit_parsers() -> Vec<CommitParser> {
     vec![
-        CommitParser {
-            message: Regex::new("^feat").ok(),
-            body: None,
-            group: Some(String::from("added")),
-            default_scope: None,
-            skip: None,
-            scope: None,
-        },
-        CommitParser {
-            message: Regex::new("^changed").ok(),
-            body: None,
-            group: Some(String::from("changed")),
-            default_scope: None,
-            skip: None,
-            scope: None,
-        },
-        CommitParser {
-            message: Regex::new("^deprecated").ok(),
-            body: None,
-            group: Some(String::from("deprecated")),
-            default_scope: None,
-            skip: None,
-            scope: None,
-        },
-        CommitParser {
-            message: Regex::new("^removed").ok(),
-            body: None,
-            group: Some(String::from("removed")),
-            default_scope: None,
-            skip: None,
-            scope: None,
-        },
-        CommitParser {
-            message: Regex::new("^fix").ok(),
-            body: None,
-            group: Some(String::from("fixed")),
-            default_scope: None,
-            skip: None,
-            scope: None,
-        },
-        CommitParser {
-            message: Regex::new("^security").ok(),
-            body: None,
-            group: Some(String::from("security")),
-            default_scope: None,
-            skip: None,
-            scope: None,
-        },
-        CommitParser {
-            message: Regex::new(".*").ok(),
-            body: None,
-            group: Some(String::from("other")),
-            default_scope: None,
-            skip: None,
-            scope: None,
-        },
+        commit_parser("^feat", "added"),
+        commit_parser("^changed", "changed"),
+        commit_parser("^deprecated", "deprecated"),
+        commit_parser("^removed", "removed"),
+        commit_parser("^fix", "fixed"),
+        commit_parser("^security", "security"),
+        commit_parser(".*", "other"),
     ]
 }
 
