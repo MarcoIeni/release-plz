@@ -12,10 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - use `release-plz-` rather than `release-plz/` branch prefix ([#1041](https://github.com/MarcoIeni/release-plz/pull/1041))
 - use registry argument on publish ([#1050](https://github.com/MarcoIeni/release-plz/pull/1050))
 
-### Other
-- remove unused `pub use` ([#1051](https://github.com/MarcoIeni/release-plz/pull/1051))
-- use `first()` instead of `get(0)` ([#1049](https://github.com/MarcoIeni/release-plz/pull/1049))
-
 ## [0.3.28](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.27...release-plz-v0.3.28) - 2023-10-15
 
 ### Added
