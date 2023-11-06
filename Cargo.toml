@@ -13,7 +13,7 @@ chrono = { version = "0.4.31", default-features = false }
 clap = "4.4.6"
 clap_complete = "4.4.3"
 conventional_commit_parser = "0.9.4"
-crates-index = { version = "2.2.0", features = ["git", "sparse", "git-https"] }
+crates-index = { version = "2.3.0", features = ["git", "sparse", "git-https"] }
 dirs = "5.0.1"
 dunce = "1.0.4"
 expect-test = "1.4.1"
