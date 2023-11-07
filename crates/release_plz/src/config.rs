@@ -122,6 +122,9 @@ pub struct UpdateConfig {
 /// Generical for the whole workspace. Cannot be customized on a per-package basic.
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
 pub struct ReleasePrConfig {
+    /// If `true`, the created release PR will be marked as a draft.
+    #[serde(default)]
+    pub pr_draft: bool,
     /// Labels to add to the release PR.
     #[serde(default)]
     pub pr_labels: Vec<String>,
@@ -404,7 +407,10 @@ mod tests {
                         ..Default::default()
                     },
                 },
-                release_pr: ReleasePrConfig { pr_labels: vec![] },
+                release_pr: ReleasePrConfig {
+                    pr_draft: false,
+                    pr_labels: vec![],
+                },
             },
             package: [].into(),
         };
@@ -437,7 +443,10 @@ mod tests {
                 common: CommonCmdConfig {
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
-                release_pr: ReleasePrConfig { pr_labels: vec![] },
+                release_pr: ReleasePrConfig {
+                    pr_draft: false,
+                    pr_labels: vec![],
+                },
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
                         semver_check: None,
@@ -478,6 +487,7 @@ mod tests {
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
                 release_pr: ReleasePrConfig {
+                    pr_draft: false,
                     pr_labels: vec!["label1".to_string()],
                 },
                 packages_defaults: PackageConfig {
@@ -520,6 +530,7 @@ mod tests {
         expect_test::expect![[r#"
             [workspace]
             changelog_config = "../git-cliff.toml"
+            pr_draft = false
             pr_labels = ["label1"]
             repo_url = "https://github.com/MarcoIeni/release-plz"
             changelog_update = true

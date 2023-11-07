@@ -33,6 +33,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         args::Command::ReleasePr(cmd_args) => {
             let config = cmd_args.update.config()?;
             let pr_labels = config.workspace.release_pr.pr_labels.clone();
+            let pr_draft = config.workspace.release_pr.pr_draft;
             let update_request = cmd_args.update.update_request(config)?;
             let repo_url = update_request
                 .repo_url()
@@ -40,7 +41,9 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let git = cmd_args
                 .git_backend(repo_url.clone())
                 .context("invalid git backend settings")?;
-            let request = ReleasePrRequest::new(git, update_request).with_labels(pr_labels);
+            let request = ReleasePrRequest::new(git, update_request)
+                .mark_as_draft(pr_draft)
+                .with_labels(pr_labels);
             release_plz_core::release_pr(&request).await?;
         }
         args::Command::Release(cmd_args) => {
