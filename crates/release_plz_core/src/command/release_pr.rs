@@ -15,6 +15,8 @@ use crate::{
 #[derive(Debug)]
 pub struct ReleasePrRequest {
     pub git: GitBackend,
+    /// If `true`, the created release PR will be marked as a draft.
+    draft: bool,
     /// Labels to add to the release PR.
     labels: Vec<String>,
     pub update_request: UpdateRequest,
@@ -24,6 +26,7 @@ impl ReleasePrRequest {
     pub fn new(git: GitBackend, update_request: UpdateRequest) -> Self {
         Self {
             git,
+            draft: false,
             labels: vec![],
             update_request,
         }
@@ -31,6 +34,11 @@ impl ReleasePrRequest {
 
     pub fn with_labels(mut self, labels: Vec<String>) -> Self {
         self.labels = labels;
+        self
+    }
+
+    pub fn mark_as_draft(mut self, draft: bool) -> Self {
+        self.draft = draft;
         self
     }
 }
@@ -63,6 +71,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
                 &packages_to_update,
                 &git_client,
                 &repo,
+                input.draft,
                 input.labels.clone(),
             )
             .await?;
@@ -77,6 +86,7 @@ async fn open_or_update_release_pr(
     packages_to_update: &PackagesUpdate,
     git_client: &GitClient,
     repo: &Repo,
+    draft: bool,
     pr_labels: Vec<String>,
 ) -> anyhow::Result<()> {
     let mut opened_release_prs = git_client
@@ -111,6 +121,7 @@ async fn open_or_update_release_pr(
             packages_to_update,
             project_contains_multiple_pub_packages,
         )
+        .mark_as_draft(draft)
         .with_labels(pr_labels)
     };
     match opened_release_prs.first() {

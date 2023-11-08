@@ -308,7 +308,8 @@ impl GitClient {
                 "title": pr.title,
                 "body": pr.body,
                 "base": pr.base_branch,
-                "head": pr.branch
+                "head": pr.branch,
+                "draft": pr.draft,
             }))
             .send()
             .await?
