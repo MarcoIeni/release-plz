@@ -52,6 +52,7 @@ the following sections:
   - [`git_release_enable`](#the-git_release_enable-field) — Enable git release.
   - [`git_release_draft`](#the-git_release_draft-field) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field) — Enable git tag.
+  - [`pr_draft`](#the-pr_draft-field) — Open the release Pull Request as a draft.
   - [`pr_labels`](#the-pr_labels-field) — Add labels to the release Pull Request.
   - [`publish`](#the-publish-field) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
@@ -144,10 +145,24 @@ The supported git releases are:
 - If `false`, release-plz doesn't create a git tag.
   Note: you can't create a git release without a git tag.
 
+#### The `pr_draft` field
+
+- If `true`, release-plz creates the release PR as a draft.
+- If `false`, release-plz creates the release PR as ready for review. *(Default)*.
+
 #### The `pr_labels` field
 
 Add labels to the Pull Request opened by release-plz.
 *(GitHub only)*.
+
+Example:
+
+```toml
+[workspace]
+pr_labels = ["release"] # add the `release` label to the release Pull Request
+```
+
+By default, release-plz doesn't add any label (the `pr_labels` array is empty).
 
 #### The `publish` field
 
