@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.30](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.29...release-plz-v0.3.30) - 2023-11-08
+
+### Added
+- add `pr_draft` config option ([#1061](https://github.com/MarcoIeni/release-plz/pull/1061))
+- support .release-plz.toml as a config file ([#1057](https://github.com/MarcoIeni/release-plz/pull/1057))
+
 ## [0.3.29](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.28...release-plz-v0.3.29) - 2023-10-27
 
 ### Fixed
