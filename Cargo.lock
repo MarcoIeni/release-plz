@@ -1357,7 +1357,7 @@ dependencies = [
  "git-conventional",
  "lazy-regex",
  "log",
- "next_version 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "next_version 0.2.9",
  "regex",
  "rust-embed",
  "semver",
@@ -3429,6 +3429,8 @@ dependencies = [
 [[package]]
 name = "next_version"
 version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fcf878065a89e8b84421b6ee95f06ad017418ca489fd5bf6c6441adfede73cd5"
 dependencies = [
  "conventional_commit_parser",
  "semver",
@@ -3436,9 +3438,7 @@ dependencies = [
 
 [[package]]
 name = "next_version"
-version = "0.2.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcf878065a89e8b84421b6ee95f06ad017418ca489fd5bf6c6441adfede73cd5"
+version = "0.2.10"
 dependencies = [
  "conventional_commit_parser",
  "semver",
@@ -4147,7 +4147,7 @@ checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 
 [[package]]
 name = "release-plz"
-version = "0.3.29"
+version = "0.3.30"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -4180,7 +4180,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.14.4"
+version = "0.14.5"
 dependencies = [
  "anyhow",
  "cargo",
@@ -4198,7 +4198,7 @@ dependencies = [
  "http",
  "ignore",
  "lazy_static",
- "next_version 0.2.9",
+ "next_version 0.2.10",
  "parse-changelog",
  "rayon",
  "regex",
