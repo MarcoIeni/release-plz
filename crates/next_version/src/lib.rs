@@ -1,4 +1,4 @@
-//!  Library to calculate next semantic version based on
+//! Library to calculate next semantic version based on
 //! [conventional commits](https://www.conventionalcommits.org/).
 //!
 //! It does not analyze git history, the list of commits must be provided by the user.
@@ -15,8 +15,21 @@
 //! assert_eq!(Version::new(1, 2, 3).next(commits), Version::new(1, 2, 4));
 //! ```
 //!
-//! If a feature comment, is present and the major number is not 1,
-//! than the minor is incremented
+//! In 0.0.x versions the patch is always incremented:
+//!
+//! ```rust
+//! use semver::Version;
+//! use next_version::NextVersion;
+//!
+//! let commits = vec!["my change"];
+//! assert_eq!(Version::new(0, 0, 4).next(&commits), Version::new(0, 0, 5));
+//!
+//! let commits = vec!["feat!: break user"];
+//! assert_eq!(Version::new(0, 0, 1).next(&commits), Version::new(0, 0, 2));
+//! ```
+//!
+//! If a feature comment is present and the major number is not 1,
+//! than the minor is incremented.
 //!
 //! ```rust
 //! use semver::Version;
@@ -58,19 +71,6 @@
 //!
 //! let commits = vec![breaking_commit];
 //! assert_eq!(Version::new(1, 2, 4).next(&commits), Version::new(2, 0, 0));
-//! ```
-//!
-//! In 0.0.x versions the patch is always incremented:
-//!
-//! ```rust
-//! use semver::Version;
-//! use next_version::NextVersion;
-//!
-//! let commits = vec!["my change"];
-//! assert_eq!(Version::new(0, 0, 4).next(&commits), Version::new(0, 0, 5));
-//!
-//! let commits = vec!["feat!: break user"];
-//! assert_eq!(Version::new(0, 0, 1).next(&commits), Version::new(0, 0, 2));
 //! ```
 //!
 //! Pre-release versions are incremented in the same way, independently
