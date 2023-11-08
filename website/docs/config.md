@@ -162,7 +162,8 @@ Example:
 pr_labels = ["release"] # add the `release` label to the release Pull Request
 ```
 
-By default, release-plz doesn't add any label (the `pr_labels` array is empty).
+By default, release-plz doesn't add any label.
+I.e. the `pr_labels` array is empty.
 
 #### The `publish` field
 
