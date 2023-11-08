@@ -6,7 +6,7 @@ with the `release-plz.toml` file.
 This configuration file is optional — release-plz is designed to work out of the box,
 with decent defaults.
 
-Put the `release-plz.toml` file in the same directory of your root `Cargo.toml`.
+Put your `release-plz.toml` (or `.release-plz.toml`) file in the same directory of your root `Cargo.toml`.
 
 ## Example
 
