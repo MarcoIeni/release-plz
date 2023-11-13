@@ -31,12 +31,6 @@
         "@docusaurus/module-type-aliases": "3.0.0",
         "markdownlint-cli": "^0.37.0"
     },
-    "overrides": {
-        "@easyops-cn/docusaurus-search-local": {
-            "@docusaurus/core": "3.0.0",
-            "@docusaurus/theme-common": "3.0.0"
-        }
-    },
     "browserslist": {
         "production": [
             ">0.5%",
