@@ -937,7 +937,7 @@ fn is_library(package: &Package) -> bool {
 pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
     let tmp_dir = tempdir().context("cannot create temporary directory")?;
     copy_dir(target, tmp_dir.as_ref())
-        .with_context(|| format!("cannot copy directory {target:?} to {tmp_dir:?}",))?;
+        .with_context(|| format!("cannot copy directory {target:?} to {tmp_dir:?}"))?;
     Ok(tmp_dir)
 }
 

@@ -1,7 +1,7 @@
-# Update
+# update
 
 The `release-plz update` command updates the version and the changelog of the
-packages of a local workspace.
+packages containing unreleased changes.
 
 The command:
 

@@ -12,7 +12,7 @@ For every release, release-plz:
 
 - Creates a git tag named `<package_name>-v<version>` (e.g. `tokio-v1.8.1`).
 - Publishes the package to the cargo registry by running `cargo publish`.
-- Publishes a GitHub/Gitea release based on the git tag.
+- Publishes a GitHub/Gitea/GitLab release based on the git tag.
 
 In the tag name, `<package_name>-` is omitted if there's only one
 package to publish (i.e. with `publish != false` in the `Cargo.toml` file).
@@ -41,3 +41,9 @@ The permissions you need are:
 Then you can run `release-plz release` in Gitlab CI with the following arguments:
 
 `release-plz release --backend gitlab --git-token <gitlab application token>`
+
+## Gitea
+
+`releases-plz` also supports creating releases on Gitea with the `--backend gitea` option.
+
+TODO: document how to create a token on Gitea.
