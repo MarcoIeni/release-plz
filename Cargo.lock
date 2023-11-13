@@ -484,7 +484,7 @@ dependencies = [
  "semver",
  "serde",
  "toml 0.8.8",
- "toml_edit 0.20.7",
+ "toml_edit 0.21.0",
  "url",
 ]
 
@@ -4173,7 +4173,7 @@ dependencies = [
  "test_logs",
  "tokio",
  "toml 0.8.8",
- "toml_edit 0.20.7",
+ "toml_edit 0.21.0",
  "tracing",
  "tracing-log",
  "tracing-subscriber",
@@ -4215,7 +4215,7 @@ dependencies = [
  "test_logs",
  "tokio",
  "toml 0.8.8",
- "toml_edit 0.20.7",
+ "toml_edit 0.21.0",
  "tracing",
  "url",
  "walkdir",
@@ -5100,17 +5100,6 @@ dependencies = [
  "indexmap 2.1.0",
  "serde",
  "serde_spanned",
- "toml_datetime",
- "winnow",
-]
-
-[[package]]
-name = "toml_edit"
-version = "0.20.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70f427fce4d84c72b5b732388bf4a9f4531b53f74e2887e3ecb2481f68f66d81"
-dependencies = [
- "indexmap 2.1.0",
  "toml_datetime",
  "winnow",
 ]
