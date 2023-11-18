@@ -69,7 +69,7 @@ the following sections:
   - [`git_tag_enable`](#the-git_tag_enable-field-package-section) — Enable git tag.
   - [`publish`](#the-publish-field-package-section) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field-package-section) — Package dirty directories.
-  - [`publish_no_verify`](#the-publish_no_verify-field-package-section) —
+  - [`publish_no_verify`](#the-publish_no_verify-field-package-section) — Don't verify package build.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
     Don't verify package build.
 
