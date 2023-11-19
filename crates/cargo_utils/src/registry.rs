@@ -9,7 +9,6 @@ const CRATES_IO_REGISTRY: &str = "crates-io";
 
 /// Find the URL of a registry
 pub fn registry_url(manifest_path: &Path, registry: Option<&str>) -> anyhow::Result<Url> {
-    // TODO support local registry sources, directory sources, git sources: https://doc.rust-lang.org/cargo/reference/source-replacement.html?highlight=replace-with#source-replacement
     fn read_config(
         registries: &mut HashMap<String, Source>,
         path: impl AsRef<Path>,
