@@ -56,7 +56,10 @@ fn local_manifest(project_manifest: Option<&Path>) -> PathBuf {
     }
 }
 
-fn parse_config(config_path: Option<&Path>) -> anyhow::Result<Config> {
+fn parse_config(
+    config_path: Option<&Path>,
+    project_manifest: Option<&Path>,
+) -> anyhow::Result<Config> {
     let (config, path) = if let Some(config_path) = config_path {
         match std::fs::read_to_string(config_path) {
             Ok(config) => (config, config_path),
@@ -74,14 +77,56 @@ fn parse_config(config_path: Option<&Path>) -> anyhow::Result<Config> {
         ])? {
             Some((config, path)) => (config, path),
             None => {
-                info!("release-plz config file not found, using default configuration");
-                return Ok(Config::default());
+                if let Some(project_manifest) = project_manifest.filter(|v| v.exists()) {
+                    return match parse_config_from_metadata(project_manifest)? {
+                        Some(config) => {
+                            info!(
+                                "using configuration from metadata in {:?}",
+                                project_manifest
+                            );
+                            Ok(config)
+                        }
+                        None => Ok(Config::default()),
+                    };
+                } else {
+                    info!("release-plz config file not found, using default configuration");
+                    return Ok(Config::default());
+                }
             }
         }
     };
 
     info!("using release-plz config file {}", path.display());
     toml::from_str(&config).with_context(|| format!("invalid config file {config_path:?}"))
+}
+
+fn parse_config_from_metadata(project_manifest: &Path) -> anyhow::Result<Option<Config>> {
+    let metadata = cargo_metadata::MetadataCommand::new()
+        .no_deps()
+        .manifest_path(project_manifest)
+        .exec()
+        .context("failed to execute cargo_metadata")?;
+    // check both workspace and package metadata
+    for metadata in [
+        Some(metadata.clone().workspace_metadata),
+        metadata.packages.first().map(|v| v.metadata.clone()),
+    ]
+    .into_iter()
+    .filter(|v| v.clone().is_some_and(|v| !v.is_null()))
+    {
+        if let Some(metadata) = metadata
+            // safe to unwrap() since it is checked above
+            .unwrap()
+            .as_object()
+            .ok_or_else(|| anyhow::anyhow!("failed to convert metadata to object"))?
+            .get("release-plz")
+        {
+            let config: Config = serde_json::from_value(metadata.clone())
+                .context("failed to parse config from metadata")?;
+            return Ok(Some(config));
+        }
+    }
+    return Ok(None);
 }
 
 /// Returns the contents of the first file that exists.

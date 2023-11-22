@@ -72,7 +72,7 @@ pub enum ReleaseGitBackendKind {
 
 impl Release {
     pub fn config(&self) -> anyhow::Result<Config> {
-        super::parse_config(self.config.as_deref())
+        super::parse_config(self.config.as_deref(), self.optional_project_manifest())
     }
 
     pub fn release_request(self, config: Config) -> anyhow::Result<ReleaseRequest> {
