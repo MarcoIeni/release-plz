@@ -311,7 +311,8 @@ impl ReleaseRequest {
 /// Release the project as it is.
 #[instrument]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
-    let project = Project::new(&input.local_manifest, None)?;
+    let overrides = input.packages_config.overrides.keys().cloned().collect();
+    let project = Project::new(&input.local_manifest, None, overrides)?;
     let pkgs = project.publishable_packages();
     let release_order = release_order(&pkgs).context("cant' determine release order")?;
     for package in release_order {

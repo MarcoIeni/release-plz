@@ -303,7 +303,12 @@ impl UpdateRequest {
 /// Determine next version of packages
 #[instrument]
 pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
-    let local_project = Project::new(&input.local_manifest, input.single_package.as_deref())?;
+    let overrides = input.packages_config.overrides.keys().cloned().collect();
+    let local_project = Project::new(
+        &input.local_manifest,
+        input.single_package.as_deref(),
+        overrides,
+    )?;
     let updater = Updater {
         project: &local_project,
         req: input,
@@ -327,6 +332,27 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     Ok((packages_to_update, repository))
 }
 
+/// Check for typos in the package names based on the overrides
+fn check_for_typos(packages: &HashSet<String>, overrides: &HashSet<String>) -> anyhow::Result<()> {
+    let diff: Vec<_> = overrides.difference(packages).collect();
+
+    if diff.is_empty() {
+        Ok(())
+    } else {
+        let mut missing: Vec<_> = diff.into_iter().collect();
+        missing.sort();
+        let missing = missing
+            .iter()
+            .map(|s| format!("`{}`", s))
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        Err(anyhow::anyhow!(
+            "The following overrides are not present in the workspace: {missing}. Check for typos"
+        ))
+    }
+}
+
 #[derive(Debug)]
 pub struct Project {
     /// Publishable packages.
@@ -341,7 +367,11 @@ pub struct Project {
 }
 
 impl Project {
-    pub fn new(local_manifest: &Path, single_package: Option<&str>) -> anyhow::Result<Self> {
+    pub fn new(
+        local_manifest: &Path,
+        single_package: Option<&str>,
+        overrides: HashSet<String>,
+    ) -> anyhow::Result<Self> {
         let manifest = &local_manifest;
         let manifest_dir = manifest_dir(manifest)?.to_path_buf();
         debug!("manifest_dir: {manifest_dir:?}");
@@ -356,6 +386,8 @@ impl Project {
         if let Some(pac) = single_package {
             packages.retain(|p| p.name == pac);
         }
+        let package_names: HashSet<_> = packages.iter().map(|p| p.name.clone()).collect();
+        check_for_typos(&package_names, &overrides)?;
 
         anyhow::ensure!(!packages.is_empty(), "no public packages found");
 
@@ -988,5 +1020,50 @@ impl PackageDependencies for Package {
         }
 
         Ok(deps_to_update)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{check_for_typos, Project};
+    use std::{collections::HashSet, path::Path};
+
+    #[test]
+    fn test_for_typos() {
+        let packages: HashSet<String> = vec!["foo".to_string()].into_iter().collect();
+        let overrides: HashSet<String> = vec!["bar".to_string()].into_iter().collect();
+        let result = check_for_typos(&packages, &overrides);
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "The following overrides are not present in the workspace: `bar`. Check for typos"
+        );
+    }
+
+    #[test]
+    fn test_empty_override() {
+        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let result = Project::new(local_manifest, None, HashSet::default());
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_successful_override() {
+        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let overrides = (["typo_test".to_string()]).into();
+        let result = Project::new(local_manifest, None, overrides);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_typo_in_crate_names() {
+        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let single_package = None;
+        let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
+        let result = Project::new(local_manifest, single_package, overrides);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "The following overrides are not present in the workspace: `typo_tesst`. Check for typos"
+        );
     }
 }
