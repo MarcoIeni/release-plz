@@ -1033,13 +1033,24 @@ mod tests {
         let packages: HashSet<String> = vec!["foo".to_string()].into_iter().collect();
         let overrides: HashSet<String> = vec!["bar".to_string()].into_iter().collect();
         let result = check_for_typos(&packages, &overrides);
-        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "The following overrides are not present in the workspace: `bar`. Check for typos"
+        );
+    }
+
+    #[test]
+    fn test_empty_override() {
+        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let result = Project::new(local_manifest, None, HashSet::default());
+        assert!(result.is_ok());
     }
 
     #[test]
     fn test_successful_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
-        let result = Project::new(local_manifest, None, HashSet::default());
+        let overrides = (["typo_test".to_string()]).into();
+        let result = Project::new(local_manifest, None, overrides);
         assert!(result.is_ok());
     }
 
@@ -1047,27 +1058,12 @@ mod tests {
     fn test_typo_in_crate_names() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let single_package = None;
-        let overrides = vec!["sedre".to_string()].into_iter().collect();
+        let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
         let result = Project::new(local_manifest, single_package, overrides);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
-            "The following overrides are not present in the workspace: `sedre`. Check for typos"
-        );
-    }
-
-    #[test]
-    fn test_typo_in_multiple_crate_names() {
-        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
-        let single_package = None;
-        let overrides = vec!["sedre".to_string(), "foo".to_string()]
-            .into_iter()
-            .collect();
-        let result = Project::new(local_manifest, single_package, overrides);
-        assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            "The following overrides are not present in the workspace: `foo`, `sedre`. Check for typos"
+            "The following overrides are not present in the workspace: `typo_tesst`. Check for typos"
         );
     }
 }
