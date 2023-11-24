@@ -10,12 +10,12 @@ use regex::Regex;
 ///   (in the ..anything.. case, `## ..anything..` is not included in the header)
 pub fn parse_header(changelog: &str) -> Option<String> {
     lazy_static::lazy_static! {
-        static ref FIRST_RE: Regex = Regex::new(r"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*)(## Unreleased|## \[Unreleased\]|## unreleased|## \[unreleased\])").unwrap();
-
+        static ref FIRST_RE: Regex = Regex::new(r"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*)(## Unreleased|## \[Unreleased\]|## unreleased|## \[unreleased\])(.*?)(\n)").unwrap();
         static ref SECOND_RE: Regex = Regex::new(r"(?s)^(# Changelog|# CHANGELOG|# changelog)(.*?)(\n## )").unwrap();
     }
+
     if let Some(captures) = FIRST_RE.captures(changelog) {
-        return Some(format!("{}\n", &captures[0]));
+        return Some(format!("{}", &captures[0]));
     }
 
     if let Some(captures) = SECOND_RE.captures(changelog) {
@@ -125,6 +125,13 @@ My custom changelog header
 ## [Unreleased]
 ";
         assert_eq!(header, expected_header);
+    }
+
+    #[test]
+    fn changelog_header_with_crlf_parsed_will_contain_crlf() {
+        let changelog = "# Changelog\r\n\r\nMy custom changelog header\r\n\r\n## [Unreleased]\r\n";
+        let header = parse_header(changelog).unwrap_or("".to_string());
+        assert_eq!(header, changelog);
     }
 
     #[test]
