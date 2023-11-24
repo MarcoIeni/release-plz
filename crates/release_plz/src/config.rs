@@ -139,6 +139,9 @@ pub struct PackageSpecificConfig {
     /// Options for the `release-plz release` command.
     #[serde(flatten)]
     release: PackageReleaseConfig,
+    /// Common Options to both Update and Release processes
+    #[serde(flatten)]
+    common: PackageCommonConfig,
     /// Normally the changelog is placed in the same directory of the Cargo.toml file.
     /// The user can provide a custom path here.
     /// This changelog_path needs to be propagated to all the commands:
@@ -155,6 +158,7 @@ impl PackageSpecificConfig {
         PackageSpecificConfig {
             update: self.update.merge(default.update),
             release: self.release.merge(default.release),
+            common: self.common.merge(default.common),
             changelog_path: self.changelog_path,
             changelog_include: self.changelog_include,
         }
@@ -204,6 +208,21 @@ impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+pub struct PackageCommonConfig {
+    /// Used to toggle off the update/release process for a workspace
+    pub release: Option<bool>,
+}
+
+impl PackageCommonConfig {
+    /// Merge the package-specific configuration with the global configuration.
+    pub fn merge(self, default: Self) -> Self {
+        Self {
+            release: self.release.or(default.release),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct PackageConfig {
     /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
     #[serde(flatten)]
@@ -211,6 +230,8 @@ pub struct PackageConfig {
     /// Options for the `release-plz release` command.
     #[serde(flatten)]
     release: PackageReleaseConfig,
+    #[serde(flatten)]
+    common: PackageCommonConfig,
 }
 
 impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
@@ -382,7 +403,12 @@ mod tests {
         git_release_draft = false
     "#;
 
-    fn create_base_config() -> Config {
+    const BASE_PACKAGE_CONFIG: &str = r#"
+        [[package]]
+        name = "crate1"
+    "#;
+
+    fn create_base_workspace_config() -> Config {
         Config {
             workspace: Workspace {
                 update: UpdateConfig {
@@ -406,6 +432,7 @@ mod tests {
                         },
                         ..Default::default()
                     },
+                    common: Default::default(),
                 },
                 release_pr: ReleasePrConfig {
                     pr_draft: false,
@@ -416,9 +443,32 @@ mod tests {
         }
     }
 
+    fn create_base_package_config() -> PackageSpecificConfigWithName {
+        PackageSpecificConfigWithName {
+            name: "crate1".to_string(),
+            config: PackageSpecificConfig {
+                update: PackageUpdateConfig {
+                    semver_check: None,
+                    changelog_update: None,
+                },
+                release: PackageReleaseConfig {
+                    git_release: GitReleaseConfig {
+                        enable: None,
+                        release_type: None,
+                        draft: None,
+                    },
+                    ..Default::default()
+                },
+                common: Default::default(),
+                changelog_path: None,
+                changelog_include: None,
+            },
+        }
+    }
+
     #[test]
     fn config_without_update_config_is_deserialized() {
-        let expected_config = create_base_config();
+        let expected_config = create_base_workspace_config();
 
         let config: Config = toml::from_str(BASE_WORKSPACE_CONFIG).unwrap();
         assert_eq!(config, expected_config)
@@ -429,11 +479,55 @@ mod tests {
         let config = &format!("{}\
             changelog_update = true", BASE_WORKSPACE_CONFIG);
 
-        let mut expected_config = create_base_config();
+        let mut expected_config = create_base_workspace_config();
         expected_config.workspace.packages_defaults.update.changelog_update = true.into();
 
         let config: Config = toml::from_str(config).unwrap();
         assert_eq!(config, expected_config)
+    }
+
+    fn config_package_release_is_deserialized(config_flag: &str, expected_value: bool) {
+        let config = &format!("{}\n{}\
+            release = {}", BASE_WORKSPACE_CONFIG, BASE_PACKAGE_CONFIG, config_flag);
+
+        let mut expected_config = create_base_workspace_config();
+        let mut package_config = create_base_package_config();
+        package_config.config.common.release = expected_value.into();
+        expected_config.package = [package_config].into();
+
+        let config: Config = toml::from_str(config).unwrap();
+        assert_eq!(config, expected_config)
+    }
+
+    #[test]
+    fn config_package_release_is_deserialized_true() {
+        config_package_release_is_deserialized("true", true);
+    }
+
+    #[test]
+    fn config_package_release_is_deserialized_false() {
+        config_package_release_is_deserialized("false", false);
+    }
+
+    fn config_workspace_release_is_deserialized(config_flag: &str, expected_value: bool) {
+        let config = &format!("{}\
+            release = {}", BASE_WORKSPACE_CONFIG, config_flag);
+
+        let mut expected_config = create_base_workspace_config();
+        expected_config.workspace.packages_defaults.common.release = expected_value.into();
+
+        let config: Config = toml::from_str(config).unwrap();
+        assert_eq!(config, expected_config)
+    }
+
+    #[test]
+    fn config_workspace_release_is_deserialized_true() {
+        config_workspace_release_is_deserialized("true", true);
+    }
+
+    #[test]
+    fn config_workspace_release_is_deserialized_false() {
+        config_workspace_release_is_deserialized("false", false);
     }
 
     #[test]
@@ -465,6 +559,9 @@ mod tests {
                         },
                         ..Default::default()
                     },
+                    common: PackageCommonConfig {
+                        release: Some(true),
+                    },
                 },
             },
             package: [PackageSpecificConfigWithName {
@@ -481,6 +578,9 @@ mod tests {
                             draft: Some(false),
                         },
                         ..Default::default()
+                    },
+                    common: PackageCommonConfig {
+                        release: Some(false),
                     },
                     changelog_path: Some("./CHANGELOG.md".into()),
                     changelog_include: Some(vec!["pkg1".to_string()]),
@@ -499,6 +599,7 @@ mod tests {
             git_release_enable = true
             git_release_type = "prod"
             git_release_draft = false
+            release = true
 
             [[package]]
             name = "crate1"
@@ -507,6 +608,7 @@ mod tests {
             git_release_enable = true
             git_release_type = "prod"
             git_release_draft = false
+            release = false
             changelog_path = "./CHANGELOG.md"
             changelog_include = ["pkg1"]
         "#]]
