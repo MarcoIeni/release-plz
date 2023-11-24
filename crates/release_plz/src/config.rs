@@ -371,24 +371,24 @@ pub enum ReleaseType {
 mod tests {
     use super::*;
 
-    #[test]
-    fn config_without_update_config_is_deserialized() {
-        let config = r#"
-            [workspace]
-            dependencies_update = false
-            changelog_config = "../git-cliff.toml"
-            repo_url = "https://github.com/MarcoIeni/release-plz"
-            git_release_enable = true
-            git_release_type = "prod"
-            git_release_draft = false
-        "#;
+    const BASE_WORKSPACE_CONFIG: &str = r#"
+        [workspace]
+        dependencies_update = false
+        allow_dirty = false
+        changelog_config = "../git-cliff.toml"
+        repo_url = "https://github.com/MarcoIeni/release-plz"
+        git_release_enable = true
+        git_release_type = "prod"
+        git_release_draft = false
+    "#;
 
-        let expected_config = Config {
+    fn create_base_config() -> Config {
+        Config {
             workspace: Workspace {
                 update: UpdateConfig {
                     dependencies_update: Some(false),
                     changelog_config: Some("../git-cliff.toml".into()),
-                    allow_dirty: None,
+                    allow_dirty: Some(false),
                 },
                 common: CommonCmdConfig {
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
@@ -413,62 +413,24 @@ mod tests {
                 },
             },
             package: [].into(),
-        };
+        }
+    }
 
-        let config: Config = toml::from_str(config).unwrap();
+    #[test]
+    fn config_without_update_config_is_deserialized() {
+        let expected_config = create_base_config();
+
+        let config: Config = toml::from_str(BASE_WORKSPACE_CONFIG).unwrap();
         assert_eq!(config, expected_config)
     }
 
     #[test]
     fn config_is_deserialized() {
-        let config = r#"
-            [workspace]
-            changelog_config = "../git-cliff.toml"
-            allow_dirty = false
-            repo_url = "https://github.com/MarcoIeni/release-plz"
-            changelog_update = true
+        let config = &format!("{}\
+            changelog_update = true", BASE_WORKSPACE_CONFIG);
 
-            git_release_enable = true
-            git_release_type = "prod"
-            git_release_draft = false
-        "#;
-
-        let expected_config = Config {
-            workspace: Workspace {
-                update: UpdateConfig {
-                    dependencies_update: None,
-                    changelog_config: Some("../git-cliff.toml".into()),
-                    allow_dirty: Some(false),
-                },
-                common: CommonCmdConfig {
-                    repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
-                },
-                release_pr: ReleasePrConfig {
-                    pr_draft: false,
-                    pr_labels: vec![],
-                },
-                packages_defaults: PackageConfig {
-                    update: PackageUpdateConfig {
-                        semver_check: None,
-                        changelog_update: true.into(),
-                    },
-                    release: PackageReleaseConfig {
-                        git_release: GitReleaseConfig {
-                            enable: true.into(),
-                            release_type: Some(ReleaseType::Prod),
-                            draft: Some(false),
-                        },
-                        git_tag: GitTagConfig { enable: None },
-                        release: ReleaseConfig {
-                            publish: None,
-                            allow_dirty: None,
-                            no_verify: None,
-                        },
-                    },
-                },
-            },
-            package: [].into(),
-        };
+        let mut expected_config = create_base_config();
+        expected_config.workspace.packages_defaults.update.changelog_update = true.into();
 
         let config: Config = toml::from_str(config).unwrap();
         assert_eq!(config, expected_config)
