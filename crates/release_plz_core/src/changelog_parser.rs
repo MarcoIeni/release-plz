@@ -15,7 +15,7 @@ pub fn parse_header(changelog: &str) -> Option<String> {
     }
 
     if let Some(captures) = FIRST_RE.captures(changelog) {
-        return Some(&captures[0].to_string());
+        return Some(captures[0].to_string());
     }
 
     if let Some(captures) = SECOND_RE.captures(changelog) {
