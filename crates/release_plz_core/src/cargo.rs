@@ -59,11 +59,19 @@ pub fn run_cargo(root: &Path, args: &[&str]) -> anyhow::Result<(String, String)>
     ))
 }
 
-pub async fn is_published(index: &mut CargoIndex, package: &Package) -> anyhow::Result<bool> {
-    match index {
-        CargoIndex::Git(index) => is_published_git(index, package),
-        CargoIndex::Sparse(index) => is_in_cache_sparse(index, package).await,
-    }
+pub async fn is_published(
+    index: &mut CargoIndex,
+    package: &Package,
+    timeout: Duration,
+) -> anyhow::Result<bool> {
+    tokio::time::timeout(timeout, async {
+        match index {
+            CargoIndex::Git(index) => is_published_git(index, package),
+            CargoIndex::Sparse(index) => is_in_cache_sparse(index, package).await,
+        }
+    })
+    .await?
+    .with_context(|| format!("timeout while publishing {}", package.name))
 }
 
 pub fn is_published_git(index: &mut GitIndex, package: &Package) -> anyhow::Result<bool> {
@@ -138,25 +146,25 @@ async fn fetch_sparse_metadata(
     Ok(crate_data)
 }
 
-pub async fn wait_until_published(index: &mut CargoIndex, package: &Package) -> anyhow::Result<()> {
-    let now = Instant::now();
+pub async fn wait_until_published(
+    index: &mut CargoIndex,
+    package: &Package,
+    timeout: Duration,
+) -> anyhow::Result<()> {
+    let now: Instant = Instant::now();
     let sleep_time = Duration::from_secs(2);
-    let timeout = Duration::from_secs(60);
-    let mut logged = false;
+
+    info!(
+        "waiting for the package {} to be published...",
+        package.name
+    );
 
     loop {
-        if is_published(index, package).await? {
+        let is_published = is_published(index, package, timeout).await?;
+        if is_published {
             break;
         } else if timeout < now.elapsed() {
             anyhow::bail!("timeout while publishing {}", package.name)
-        }
-
-        if !logged {
-            info!(
-                "waiting for the package {} to be published...",
-                package.name
-            );
-            logged = true;
         }
 
         tokio::time::sleep(sleep_time).await;

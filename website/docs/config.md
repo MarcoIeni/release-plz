@@ -24,6 +24,7 @@ git_release_enable = false # disable GitHub/Gitea releases
 pr_labels = ["release"] # add the `release` label to the release Pull Request
 publish_allow_dirty = true # add `--allow-dirty` to `cargo publish`
 semver_check = false # disable API breaking changes checks
+publish_timeout = 10m # set a timeout for publish operations
 
 [[package]] # the double square brackets define a TOML table array
 name = "package_a"

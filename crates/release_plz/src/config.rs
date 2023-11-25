@@ -1,6 +1,8 @@
+use duration_str::deserialize_duration;
 use release_plz_core::{ReleaseRequest, UpdateRequest};
+use serde::Serializer;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, path::PathBuf, time::Duration};
 use url::Url;
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
@@ -93,6 +95,41 @@ pub struct Workspace {
     /// Configuration applied to all packages by default.
     #[serde(flatten)]
     pub packages_defaults: PackageConfig,
+    #[serde(
+        default = "timeout_default",
+        deserialize_with = "deserialize_duration",
+        serialize_with = "serialize_duration"
+    )]
+    pub publish_timeout: Duration,
+}
+
+fn timeout_default() -> Duration {
+    Duration::from_secs(10 * 60) // 10 minutes
+}
+
+fn serialize_duration<S>(duration: &Duration, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let ds = duration.as_secs();
+    let s = ds % 60;
+    let m = (ds / 60) % 60;
+    let h = (ds / 60 / 60) % 24;
+    let d: u64 = ds / 60 / 60 / 24;
+    let mut res = String::new();
+    if d > 0 {
+        res.push_str(&format!("{}d", d));
+    }
+    if h > 0 {
+        res.push_str(&format!("{}h", h));
+    }
+    if m > 0 {
+        res.push_str(&format!("{}m", m));
+    }
+    if s > 0 {
+        res.push_str(&format!("{}s", s));
+    }
+    serializer.serialize_str(res.as_str())
 }
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
@@ -411,6 +448,7 @@ mod tests {
                     pr_draft: false,
                     pr_labels: vec![],
                 },
+                publish_timeout: Duration::from_secs(10 * 60),
             },
             package: [].into(),
         };
@@ -431,6 +469,7 @@ mod tests {
             git_release_enable = true
             git_release_type = "prod"
             git_release_draft = false
+            publish_timeout = "5s"
         "#;
 
         let expected_config = Config {
@@ -466,6 +505,7 @@ mod tests {
                         },
                     },
                 },
+                publish_timeout: Duration::from_secs(5),
             },
             package: [].into(),
         };
@@ -504,6 +544,7 @@ mod tests {
                         ..Default::default()
                     },
                 },
+                publish_timeout: Duration::from_secs(10 * 60),
             },
             package: [PackageSpecificConfigWithName {
                 name: "crate1".to_string(),
@@ -537,6 +578,7 @@ mod tests {
             git_release_enable = true
             git_release_type = "prod"
             git_release_draft = false
+            publish_timeout = "10m"
 
             [[package]]
             name = "crate1"
