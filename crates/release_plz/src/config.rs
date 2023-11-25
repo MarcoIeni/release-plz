@@ -40,7 +40,7 @@ impl Config {
             let mut update_config = config.clone();
             update_config = update_config.merge(self.workspace.packages_defaults.clone());
             if is_changelog_update_disabled {
-                update_config.update.changelog_update = false.into();
+                update_config.package_config.update.changelog_update = false.into();
             }
             update_request = update_request.with_package_config(package, update_config.into());
         }
@@ -68,10 +68,10 @@ impl Config {
             release_config = release_config.merge(self.workspace.packages_defaults.clone());
 
             if no_verify {
-                release_config.release.release.no_verify = Some(true);
+                release_config.package_config.release.release.no_verify = Some(true);
             }
             if allow_dirty {
-                release_config.release.release.allow_dirty = Some(true);
+                release_config.package_config.release.release.allow_dirty = Some(true);
             }
             release_request = release_request.with_package_config(package, release_config.into());
         }
@@ -133,15 +133,8 @@ pub struct ReleasePrConfig {
 /// Config at the `[[package]]` level.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct PackageSpecificConfig {
-    /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
     #[serde(flatten)]
-    update: PackageUpdateConfig,
-    /// Options for the `release-plz release` command.
-    #[serde(flatten)]
-    release: PackageReleaseConfig,
-    /// Common Options to both Update and Release processes
-    #[serde(flatten)]
-    common: PackageCommonConfig,
+    package_config: PackageConfig,
     /// Normally the changelog is placed in the same directory of the Cargo.toml file.
     /// The user can provide a custom path here.
     /// This changelog_path needs to be propagated to all the commands:
@@ -156,9 +149,7 @@ impl PackageSpecificConfig {
     /// Merge the package-specific configuration with the global configuration.
     pub fn merge(self, default: PackageConfig) -> PackageSpecificConfig {
         PackageSpecificConfig {
-            update: self.update.merge(default.update),
-            release: self.release.merge(default.release),
-            common: self.common.merge(default.common),
+            package_config: self.package_config.merge(default),
             changelog_path: self.changelog_path,
             changelog_include: self.changelog_include,
         }
@@ -174,7 +165,7 @@ pub struct PackageSpecificConfigWithName {
 
 impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
     fn from(config: PackageSpecificConfig) -> Self {
-        let generic = config.release.into();
+        let generic = config.package_config.release.into();
 
         Self {
             generic,
@@ -234,6 +225,16 @@ pub struct PackageConfig {
     common: PackageCommonConfig,
 }
 
+impl PackageConfig {
+    pub fn merge(self, default: Self) -> Self {
+        PackageConfig {
+            update: self.update.merge(default.update),
+            release: self.release.merge(default.release),
+            common: self.common.merge(default.common),
+        }
+    }
+}
+
 impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
     fn from(config: PackageUpdateConfig) -> Self {
         Self {
@@ -246,7 +247,7 @@ impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
 impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
     fn from(config: PackageSpecificConfig) -> Self {
         Self {
-            generic: config.update.into(),
+            generic: config.package_config.update.into(),
             changelog_path: config.changelog_path,
             changelog_include: config.changelog_include.unwrap_or_default(),
         }
@@ -447,19 +448,21 @@ mod tests {
         PackageSpecificConfigWithName {
             name: "crate1".to_string(),
             config: PackageSpecificConfig {
-                update: PackageUpdateConfig {
-                    semver_check: None,
-                    changelog_update: None,
-                },
-                release: PackageReleaseConfig {
-                    git_release: GitReleaseConfig {
-                        enable: None,
-                        release_type: None,
-                        draft: None,
+                package_config: PackageConfig {
+                    update: PackageUpdateConfig {
+                        semver_check: None,
+                        changelog_update: None,
                     },
-                    ..Default::default()
+                    release: PackageReleaseConfig {
+                        git_release: GitReleaseConfig {
+                            enable: None,
+                            release_type: None,
+                            draft: None,
+                        },
+                        ..Default::default()
+                    },
+                    common: Default::default()
                 },
-                common: Default::default(),
                 changelog_path: None,
                 changelog_include: None,
             },
@@ -492,7 +495,7 @@ mod tests {
 
         let mut expected_config = create_base_workspace_config();
         let mut package_config = create_base_package_config();
-        package_config.config.common.release = expected_value.into();
+        package_config.config.package_config.common.release = expected_value.into();
         expected_config.package = [package_config].into();
 
         let config: Config = toml::from_str(config).unwrap();
@@ -567,20 +570,22 @@ mod tests {
             package: [PackageSpecificConfigWithName {
                 name: "crate1".to_string(),
                 config: PackageSpecificConfig {
-                    update: PackageUpdateConfig {
-                        semver_check: Some(false),
-                        changelog_update: true.into(),
-                    },
-                    release: PackageReleaseConfig {
-                        git_release: GitReleaseConfig {
-                            enable: true.into(),
-                            release_type: Some(ReleaseType::Prod),
-                            draft: Some(false),
+                    package_config: PackageConfig {
+                        update: PackageUpdateConfig {
+                            semver_check: Some(false),
+                            changelog_update: true.into(),
                         },
-                        ..Default::default()
-                    },
-                    common: PackageCommonConfig {
-                        release: Some(false),
+                        release: PackageReleaseConfig {
+                            git_release: GitReleaseConfig {
+                                enable: true.into(),
+                                release_type: Some(ReleaseType::Prod),
+                                draft: Some(false),
+                            },
+                            ..Default::default()
+                        },
+                        common: PackageCommonConfig {
+                            release: Some(false),
+                        }
                     },
                     changelog_path: Some("./CHANGELOG.md".into()),
                     changelog_include: Some(vec!["pkg1".to_string()]),
