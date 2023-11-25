@@ -4,11 +4,7 @@ mod cmd;
 #[cfg(feature = "test_fixture")]
 pub mod test_fixture;
 
-use std::{
-    fmt,
-    path::{Path, PathBuf},
-    process::Command,
-};
+use std::{env, fmt, path::{Path, PathBuf}, process::Command};
 
 use anyhow::{anyhow, Context};
 use tracing::{debug, instrument, trace, warn, Span};
@@ -41,6 +37,23 @@ impl Repo {
 
     pub fn directory(&self) -> &Path {
         &self.directory
+    }
+
+    pub fn get_toplevel(&self) -> anyhow::Result<PathBuf> {
+        let toplevel_dir = git_in_dir(
+            self.directory.as_ref(),
+            &[
+                "rev-parse",
+                "--show-toplevel",
+            ],
+        )?;
+
+        Ok(PathBuf::from(toplevel_dir))
+        // {
+        //     Ok(output) => Path::new(output.as_ref()),
+        //
+        //     Err(e) => Err(e)
+        // }
     }
 
     fn get_current_remote_and_branch(

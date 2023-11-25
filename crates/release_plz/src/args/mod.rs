@@ -3,12 +3,14 @@ mod release;
 mod release_pr;
 mod repo_command;
 mod update;
+mod amend_changelog;
 
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 use release_plz_core::CARGO_TOML;
 use tracing::info;
+use crate::args::amend_changelog::AmendChangelog;
 
 use crate::config::Config;
 
@@ -45,6 +47,8 @@ pub enum Command {
     GenerateCompletions(GenerateCompletions),
     /// Check if a newer version of release-plz is available.
     CheckUpdates,
+    /// Manually update the changelog.
+    AmendChangelog(AmendChangelog),
 }
 
 fn local_manifest(project_manifest: Option<&Path>) -> PathBuf {
