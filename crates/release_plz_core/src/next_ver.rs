@@ -382,14 +382,19 @@ impl Project {
         };
         debug!("project_root: {root:?}");
         let mut packages = workspace_packages(manifest)?;
+        anyhow::ensure!(!packages.is_empty(), "no public packages found");
+
+        check_overrides_typos(&packages, &overrides)?;
         let contains_multiple_pub_packages = packages.len() > 1;
+
         if let Some(pac) = single_package {
             packages.retain(|p| p.name == pac);
+            anyhow::ensure!(
+                !packages.is_empty(),
+                "package `{}` not found. If it exists, is it public?",
+                pac
+            );
         }
-        let package_names: HashSet<_> = packages.iter().map(|p| p.name.clone()).collect();
-        check_for_typos(&package_names, &overrides)?;
-
-        anyhow::ensure!(!packages.is_empty(), "no public packages found");
 
         Ok(Self {
             packages,
@@ -439,6 +444,15 @@ impl Project {
     pub fn cargo_lock_path(&self) -> PathBuf {
         self.root.join("Cargo.lock")
     }
+}
+
+fn check_overrides_typos(
+    packages: &[Package],
+    overrides: &HashSet<String>,
+) -> Result<(), anyhow::Error> {
+    let package_names: HashSet<_> = packages.iter().map(|p| p.name.clone()).collect();
+    check_for_typos(&package_names, overrides)?;
+    Ok(())
 }
 
 #[derive(Debug, Clone)]
