@@ -11,7 +11,13 @@ use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument, warn};
 use url::Url;
 
-use crate::{cargo::{is_published, run_cargo, wait_until_published, CargoIndex}, changelog_parser, git::backend::GitClient, release_order::release_order, GitBackend, PackagePath, Project, CHANGELOG_FILENAME, RequestReleaseValidator};
+use crate::{
+    cargo::{is_published, run_cargo, wait_until_published, CargoIndex},
+    changelog_parser,
+    git::backend::GitClient,
+    release_order::release_order,
+    GitBackend, PackagePath, Project, RequestReleaseValidator, CHANGELOG_FILENAME,
+};
 
 #[derive(Debug, Default)]
 pub struct ReleaseRequest {
@@ -218,9 +224,9 @@ impl ReleaseConfig {
 impl Default for ReleaseConfig {
     fn default() -> Self {
         Self {
-            publish: Default::default(),
-            git_release: Default::default(),
-            git_tag: Default::default(),
+            publish: PublishConfig::default(),
+            git_release: GitReleaseConfig::default(),
+            git_tag: GitTagConfig::default(),
             no_verify: false,
             allow_dirty: false,
             release: true,

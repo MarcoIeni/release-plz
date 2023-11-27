@@ -437,7 +437,7 @@ mod tests {
                         },
                         ..Default::default()
                     },
-                    common: Default::default(),
+                    common: PackageCommonConfig::default(),
                 },
                 release_pr: ReleasePrConfig {
                     pr_draft: false,
@@ -465,7 +465,7 @@ mod tests {
                         },
                         ..Default::default()
                     },
-                    common: Default::default()
+                    common: PackageCommonConfig::default(),
                 },
                 changelog_path: None,
                 changelog_include: None,
@@ -483,19 +483,29 @@ mod tests {
 
     #[test]
     fn config_is_deserialized() {
-        let config = &format!("{}\
-            changelog_update = true", BASE_WORKSPACE_CONFIG);
+        let config = &format!(
+            "{}\
+            changelog_update = true",
+            BASE_WORKSPACE_CONFIG
+        );
 
         let mut expected_config = create_base_workspace_config();
-        expected_config.workspace.packages_defaults.update.changelog_update = true.into();
+        expected_config
+            .workspace
+            .packages_defaults
+            .update
+            .changelog_update = true.into();
 
         let config: Config = toml::from_str(config).unwrap();
         assert_eq!(config, expected_config)
     }
 
     fn config_package_release_is_deserialized(config_flag: &str, expected_value: bool) {
-        let config = &format!("{}\n{}\
-            release = {}", BASE_WORKSPACE_CONFIG, BASE_PACKAGE_CONFIG, config_flag);
+        let config = &format!(
+            "{}\n{}\
+            release = {}",
+            BASE_WORKSPACE_CONFIG, BASE_PACKAGE_CONFIG, config_flag
+        );
 
         let mut expected_config = create_base_workspace_config();
         let mut package_config = create_base_package_config();
@@ -517,8 +527,11 @@ mod tests {
     }
 
     fn config_workspace_release_is_deserialized(config_flag: &str, expected_value: bool) {
-        let config = &format!("{}\
-            release = {}", BASE_WORKSPACE_CONFIG, config_flag);
+        let config = &format!(
+            "{}\
+            release = {}",
+            BASE_WORKSPACE_CONFIG, config_flag
+        );
 
         let mut expected_config = create_base_workspace_config();
         expected_config.workspace.packages_defaults.common.release = expected_value.into();
@@ -589,7 +602,7 @@ mod tests {
                         },
                         common: PackageCommonConfig {
                             release: Some(false),
-                        }
+                        },
                     },
                     changelog_path: Some("./CHANGELOG.md".into()),
                     changelog_include: Some(vec!["pkg1".to_string()]),

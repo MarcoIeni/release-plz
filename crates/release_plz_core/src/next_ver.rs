@@ -323,7 +323,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
         &input.local_manifest,
         input.single_package.as_deref(),
         overrides,
-        input
+        input,
     )?;
     let updater = Updater {
         project: &local_project,
@@ -414,9 +414,7 @@ impl Project {
         if let Some(pac) = single_package {
             packages.retain(|p| p.name == pac);
         }
-        let package_names: HashSet<_> = packages.iter()
-            .map(|p| p.name.clone())
-            .collect();
+        let package_names: HashSet<_> = packages.iter().map(|p| p.name.clone()).collect();
         check_for_typos(&package_names, &overrides)?;
         packages.retain(|p| request_release_validator.is_release_enabled(&p.name));
 
@@ -1056,9 +1054,9 @@ impl PackageDependencies for Package {
 
 #[cfg(test)]
 mod tests {
-    use super::{check_for_typos, ERR_NO_PUBLIC_PACKAGE, Project};
-    use std::{collections::HashSet, path::Path};
+    use super::{check_for_typos, Project, ERR_NO_PUBLIC_PACKAGE};
     use crate::RequestReleaseValidator;
+    use std::{collections::HashSet, path::Path};
 
     struct RequestReleaseValidatorStub {
         release: bool,
@@ -1066,7 +1064,7 @@ mod tests {
 
     impl RequestReleaseValidatorStub {
         pub fn new(release: bool) -> Self {
-            Self{ release }
+            Self { release }
         }
     }
 
@@ -1091,7 +1089,12 @@ mod tests {
     fn test_empty_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let request_release_validator = RequestReleaseValidatorStub::new(true);
-        let result = Project::new(local_manifest, None, HashSet::default(), &request_release_validator);
+        let result = Project::new(
+            local_manifest,
+            None,
+            HashSet::default(),
+            &request_release_validator,
+        );
         assert!(result.is_ok());
     }
 
@@ -1110,7 +1113,12 @@ mod tests {
         let single_package = None;
         let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
         let request_release_validator = RequestReleaseValidatorStub::new(true);
-        let result = Project::new(local_manifest, single_package, overrides, &request_release_validator);
+        let result = Project::new(
+            local_manifest,
+            single_package,
+            overrides,
+            &request_release_validator,
+        );
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
@@ -1125,9 +1133,6 @@ mod tests {
         let request_release_validator = RequestReleaseValidatorStub::new(false);
         let result = Project::new(local_manifest, None, overrides, &request_release_validator);
         assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            ERR_NO_PUBLIC_PACKAGE
-        );
+        assert_eq!(result.unwrap_err().to_string(), ERR_NO_PUBLIC_PACKAGE);
     }
 }
