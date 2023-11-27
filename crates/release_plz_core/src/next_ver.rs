@@ -32,6 +32,11 @@ use tracing::{debug, info, instrument, warn};
 
 // Used to indicate that this is a dummy commit with no corresponding ID available
 pub(crate) const NO_COMMIT_ID: &str = "N/A";
+const ERR_NO_PUBLIC_PACKAGE: &str = "no public packages found";
+
+pub trait RequestReleaseValidator {
+    fn is_release_enabled(&self, package_name: &str) -> bool;
+}
 
 #[derive(Debug, Clone)]
 pub struct UpdateRequest {
@@ -105,6 +110,8 @@ pub struct UpdateConfig {
     /// Whether to create/update changelog or not.
     /// Default: `true`.
     pub changelog_update: bool,
+    /// High-level toggle to process this package or ignore it
+    pub release: bool,
 }
 
 /// Package-specific config
@@ -137,6 +144,7 @@ impl Default for UpdateConfig {
         Self {
             semver_check: true,
             changelog_update: true,
+            release: true,
         }
     }
 }
@@ -300,6 +308,13 @@ impl UpdateRequest {
     }
 }
 
+impl RequestReleaseValidator for UpdateRequest {
+    fn is_release_enabled(&self, package_name: &str) -> bool {
+        let config = self.get_package_config(package_name);
+        config.generic.release
+    }
+}
+
 /// Determine next version of packages
 #[instrument]
 pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
@@ -308,6 +323,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
         &input.local_manifest,
         input.single_package.as_deref(),
         overrides,
+        input
     )?;
     let updater = Updater {
         project: &local_project,
@@ -323,11 +339,22 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
+
+    // let packages_to_analyze: Vec<&Package> = local_project.workspace_packages()
+    //     .iter()
+    //     .filter(|p| {
+    //         input.is_release_enabled(&p.name)
+    //     })
+    //     .map(|p| {
+    //         *p
+    //     })
+    //     .collect();
+
     let packages_to_update = updater.packages_to_update(
         &registry_packages,
         &repository.repo,
         &local_project.workspace_packages(),
-        input.local_manifest(),
+        input,
     )?;
     Ok((packages_to_update, repository))
 }
@@ -371,8 +398,9 @@ impl Project {
         local_manifest: &Path,
         single_package: Option<&str>,
         overrides: HashSet<String>,
+        request_release_validator: &dyn RequestReleaseValidator,
     ) -> anyhow::Result<Self> {
-        let manifest = &local_manifest;
+        let manifest = local_manifest;
         let manifest_dir = manifest_dir(manifest)?.to_path_buf();
         debug!("manifest_dir: {manifest_dir:?}");
         let root = {
@@ -386,10 +414,13 @@ impl Project {
         if let Some(pac) = single_package {
             packages.retain(|p| p.name == pac);
         }
-        let package_names: HashSet<_> = packages.iter().map(|p| p.name.clone()).collect();
+        let package_names: HashSet<_> = packages.iter()
+            .map(|p| p.name.clone())
+            .collect();
         check_for_typos(&package_names, &overrides)?;
+        packages.retain(|p| request_release_validator.is_release_enabled(&p.name));
 
-        anyhow::ensure!(!packages.is_empty(), "no public packages found");
+        anyhow::ensure!(!packages.is_empty(), ERR_NO_PUBLIC_PACKAGE);
 
         Ok(Self {
             packages,
@@ -469,7 +500,7 @@ impl Updater<'_> {
         registry_packages: &PackagesCollection,
         repository: &Repo,
         workspace_packages: &[&Package],
-        local_manifest_path: &Path,
+        input: &UpdateRequest,
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
@@ -489,7 +520,7 @@ impl Updater<'_> {
             .collect();
 
         let new_workspace_version = new_workspace_version(
-            local_manifest_path,
+            input.local_manifest(),
             &packages_diffs,
             &workspace_version_pkgs,
         )?;
@@ -1025,8 +1056,25 @@ impl PackageDependencies for Package {
 
 #[cfg(test)]
 mod tests {
-    use super::{check_for_typos, Project};
+    use super::{check_for_typos, ERR_NO_PUBLIC_PACKAGE, Project};
     use std::{collections::HashSet, path::Path};
+    use crate::RequestReleaseValidator;
+
+    struct RequestReleaseValidatorStub {
+        release: bool,
+    }
+
+    impl RequestReleaseValidatorStub {
+        pub fn new(release: bool) -> Self {
+            Self{ release }
+        }
+    }
+
+    impl RequestReleaseValidator for RequestReleaseValidatorStub {
+        fn is_release_enabled(&self, _: &str) -> bool {
+            self.release
+        }
+    }
 
     #[test]
     fn test_for_typos() {
@@ -1042,7 +1090,8 @@ mod tests {
     #[test]
     fn test_empty_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
-        let result = Project::new(local_manifest, None, HashSet::default());
+        let request_release_validator = RequestReleaseValidatorStub::new(true);
+        let result = Project::new(local_manifest, None, HashSet::default(), &request_release_validator);
         assert!(result.is_ok());
     }
 
@@ -1050,7 +1099,8 @@ mod tests {
     fn test_successful_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let overrides = (["typo_test".to_string()]).into();
-        let result = Project::new(local_manifest, None, overrides);
+        let request_release_validator = RequestReleaseValidatorStub::new(true);
+        let result = Project::new(local_manifest, None, overrides, &request_release_validator);
         assert!(result.is_ok());
     }
 
@@ -1059,11 +1109,25 @@ mod tests {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let single_package = None;
         let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
-        let result = Project::new(local_manifest, single_package, overrides);
+        let request_release_validator = RequestReleaseValidatorStub::new(true);
+        let result = Project::new(local_manifest, single_package, overrides, &request_release_validator);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
             "The following overrides are not present in the workspace: `typo_tesst`. Check for typos"
+        );
+    }
+
+    #[test]
+    fn project_new_no_release_will_error() {
+        let local_manifest = Path::new("../fake_package/Cargo.toml");
+        let overrides = ([]).into();
+        let request_release_validator = RequestReleaseValidatorStub::new(false);
+        let result = Project::new(local_manifest, None, overrides, &request_release_validator);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            ERR_NO_PUBLIC_PACKAGE
         );
     }
 }

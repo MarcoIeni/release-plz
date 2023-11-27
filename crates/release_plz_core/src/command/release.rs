@@ -11,13 +11,7 @@ use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument, warn};
 use url::Url;
 
-use crate::{
-    cargo::{is_published, run_cargo, wait_until_published, CargoIndex},
-    changelog_parser,
-    git::backend::GitClient,
-    release_order::release_order,
-    GitBackend, PackagePath, Project, CHANGELOG_FILENAME,
-};
+use crate::{cargo::{is_published, run_cargo, wait_until_published, CargoIndex}, changelog_parser, git::backend::GitClient, release_order::release_order, GitBackend, PackagePath, Project, CHANGELOG_FILENAME, RequestReleaseValidator};
 
 #[derive(Debug, Default)]
 pub struct ReleaseRequest {
@@ -133,6 +127,13 @@ impl ReleaseRequest {
     }
 }
 
+impl RequestReleaseValidator for ReleaseRequest {
+    fn is_release_enabled(&self, package: &str) -> bool {
+        let config = self.get_package_config(package);
+        config.generic.release
+    }
+}
+
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 struct PackagesConfig {
     /// Config for packages that don't have a specific configuration.
@@ -159,7 +160,7 @@ impl PackagesConfig {
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ReleaseConfig {
     publish: PublishConfig,
     git_release: GitReleaseConfig,
@@ -170,6 +171,8 @@ pub struct ReleaseConfig {
     /// Allow dirty working directories to be packaged.
     /// If true, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
     allow_dirty: bool,
+    /// High-level toggle to process this package or ignore it
+    release: bool,
 }
 
 impl ReleaseConfig {
@@ -198,12 +201,30 @@ impl ReleaseConfig {
         self
     }
 
+    pub fn with_release(mut self, release: bool) -> Self {
+        self.release = release;
+        self
+    }
+
     pub fn publish(&self) -> &PublishConfig {
         &self.publish
     }
 
     pub fn git_release(&self) -> &GitReleaseConfig {
         &self.git_release
+    }
+}
+
+impl Default for ReleaseConfig {
+    fn default() -> Self {
+        Self {
+            publish: Default::default(),
+            git_release: Default::default(),
+            git_tag: Default::default(),
+            no_verify: false,
+            allow_dirty: false,
+            release: true,
+        }
     }
 }
 
@@ -312,7 +333,7 @@ impl ReleaseRequest {
 #[instrument]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     let overrides = input.packages_config.overrides.keys().cloned().collect();
-    let project = Project::new(&input.local_manifest, None, overrides)?;
+    let project = Project::new(&input.local_manifest, None, overrides, input)?;
     let pkgs = project.publishable_packages();
     let release_order = release_order(&pkgs).context("cant' determine release order")?;
     for package in release_order {

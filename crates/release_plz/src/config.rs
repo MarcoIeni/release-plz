@@ -30,9 +30,9 @@ impl Config {
         is_changelog_update_disabled: bool,
         update_request: UpdateRequest,
     ) -> UpdateRequest {
-        let mut default_update_config = self.workspace.packages_defaults.update.clone();
+        let mut default_update_config = self.workspace.packages_defaults.clone();
         if is_changelog_update_disabled {
-            default_update_config.changelog_update = false.into();
+            default_update_config.update.changelog_update = false.into();
         }
         let mut update_request =
             update_request.with_default_package_config(default_update_config.into());
@@ -53,12 +53,12 @@ impl Config {
         no_verify: bool,
         release_request: ReleaseRequest,
     ) -> ReleaseRequest {
-        let mut default_config = self.workspace.packages_defaults.release.clone();
+        let mut default_config = self.workspace.packages_defaults.clone();
         if no_verify {
-            default_config.release.no_verify = Some(true);
+            default_config.release.release.no_verify = Some(true);
         }
         if allow_dirty {
-            default_config.release.allow_dirty = Some(true);
+            default_config.release.release.allow_dirty = Some(true);
         }
         let mut release_request =
             release_request.with_default_package_config(default_config.into());
@@ -165,7 +165,7 @@ pub struct PackageSpecificConfigWithName {
 
 impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
     fn from(config: PackageSpecificConfig) -> Self {
-        let generic = config.package_config.release.into();
+        let generic = config.package_config.into();
 
         Self {
             generic,
@@ -174,24 +174,27 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
     }
 }
 
-impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
-    fn from(value: PackageReleaseConfig) -> Self {
-        let is_publish_enabled = value.release.publish != Some(false);
-        let is_git_release_enabled = value.git_release.enable != Some(false);
-        let is_git_release_draft = value.git_release.draft == Some(true);
-        let is_git_tag_enabled = value.git_tag.enable != Some(false);
+impl From<PackageConfig> for release_plz_core::ReleaseConfig {
+    fn from(value: PackageConfig) -> Self {
+        let is_publish_enabled = value.release.release.publish != Some(false);
+        let is_git_release_enabled = value.release.git_release.enable != Some(false);
+        let is_git_release_draft = value.release.git_release.draft == Some(true);
+        let is_git_tag_enabled = value.release.git_tag.enable != Some(false);
+        let release = value.common.release != Some(false);
+
         let mut cfg = Self::default()
             .with_publish(release_plz_core::PublishConfig::enabled(is_publish_enabled))
             .with_git_release(
                 release_plz_core::GitReleaseConfig::enabled(is_git_release_enabled)
                     .set_draft(is_git_release_draft),
             )
-            .with_git_tag(release_plz_core::GitTagConfig::enabled(is_git_tag_enabled));
+            .with_git_tag(release_plz_core::GitTagConfig::enabled(is_git_tag_enabled))
+            .with_release(release);
 
-        if let Some(no_verify) = value.release.no_verify {
+        if let Some(no_verify) = value.release.release.no_verify {
             cfg = cfg.with_no_verify(no_verify);
         }
-        if let Some(allow_dirty) = value.release.allow_dirty {
+        if let Some(allow_dirty) = value.release.release.allow_dirty {
             cfg = cfg.with_allow_dirty(allow_dirty);
         }
         cfg
@@ -235,11 +238,12 @@ impl PackageConfig {
     }
 }
 
-impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
-    fn from(config: PackageUpdateConfig) -> Self {
+impl From<PackageConfig> for release_plz_core::UpdateConfig {
+    fn from(config: PackageConfig) -> Self {
         Self {
-            semver_check: config.semver_check != Some(false),
-            changelog_update: config.changelog_update != Some(false),
+            semver_check: config.update.semver_check != Some(false),
+            changelog_update: config.update.changelog_update != Some(false),
+            release: config.common.release != Some(false),
         }
     }
 }
@@ -247,7 +251,7 @@ impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
 impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
     fn from(config: PackageSpecificConfig) -> Self {
         Self {
-            generic: config.package_config.update.into(),
+            generic: config.package_config.into(),
             changelog_path: config.changelog_path,
             changelog_include: config.changelog_include.unwrap_or_default(),
         }
