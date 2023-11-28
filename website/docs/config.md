@@ -195,6 +195,7 @@ Don't verify the contents by building them.
 #### The `publish_timeout` field
 
 The timeout used when:
+
 - publishing a crate, i.e. `cargo publish`.
 - checking if a crate is published.
 
@@ -213,7 +214,8 @@ publish_timeout = "10m"
 
 By default, this timeout is set to `30m`.
 
-This timeout is useful when there are some problems regarding the cargo registry or local configuration, allowing to:
+This timeout is useful when there are some problems regarding the cargo
+registry or local configuration, allowing to:
 
 - avoid CI job to run forever.
 - have a more precise error message.
