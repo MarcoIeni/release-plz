@@ -24,7 +24,7 @@ git_release_enable = false # disable GitHub/Gitea releases
 pr_labels = ["release"] # add the `release` label to the release Pull Request
 publish_allow_dirty = true # add `--allow-dirty` to `cargo publish`
 semver_check = false # disable API breaking changes checks
-publish_timeout = 10m # set a timeout for publish operations
+publish_timeout = "10m" # set a timeout for `cargo publish`
 
 [[package]] # the double square brackets define a TOML table array
 name = "package_a"
@@ -58,6 +58,7 @@ the following sections:
   - [`publish`](#the-publish-field) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
+  - [`publish_timeout`](#the-publish_timeout-field) — `cargo publish` timeout.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
 - [`[[package]]`](#the-package-section) — Package-specific configurations.
@@ -190,6 +191,32 @@ Don't verify the contents by building them.
 
 - If `true`, `release-plz` adds the `--no-verify` flag to `cargo publish`.
 - If `false`, `cargo publish` fails if your repository doesn't build. *(Default)*.
+
+#### The `publish_timeout` field
+
+The timeout used when:
+- publishing a crate, i.e. `cargo publish`.
+- checking if a crate is published.
+
+It's a string in the format `<duration><unit>`. E.g.:
+
+- `30s` — 30 seconds
+- `10m` — 10 minutes
+- `1h` — 1 hour
+
+Example:
+
+```toml
+[workspace]
+publish_timeout = "10m"
+```
+
+By default, this timeout is set to `30m`.
+
+This timeout is useful when there are some problems regarding the cargo registry or local configuration, allowing to:
+
+- avoid CI job to run forever.
+- have a more precise error message.
 
 #### The `repo_url` field
 

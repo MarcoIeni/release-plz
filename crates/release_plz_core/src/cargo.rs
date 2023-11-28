@@ -153,18 +153,22 @@ pub async fn wait_until_published(
 ) -> anyhow::Result<()> {
     let now: Instant = Instant::now();
     let sleep_time = Duration::from_secs(2);
-
-    info!(
-        "waiting for the package {} to be published...",
-        package.name
-    );
+    let mut logged = false;
 
     loop {
         let is_published = is_published(index, package, timeout).await?;
         if is_published {
             break;
         } else if timeout < now.elapsed() {
-            anyhow::bail!("timeout while publishing {}", package.name)
+            anyhow::bail!("timeout of {:?} elapsed while publishing the package {}. You can increase this timeout by editing the `publish_timeout` field in the `release-plz.toml` file", timeout, package.name)
+        }
+
+        if !logged {
+            info!(
+                "waiting for the package {} to be published...",
+                package.name
+            );
+            logged = true;
         }
 
         tokio::time::sleep(sleep_time).await;

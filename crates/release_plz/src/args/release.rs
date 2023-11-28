@@ -112,7 +112,7 @@ impl Release {
             req = req.with_git_release(git_release);
         }
 
-        req = req.with_publish_timeout(config.workspace.publish_timeout);
+        req = req.with_publish_timeout(config.workspace.publish_timeout()?);
 
         req = config.fill_release_config(self.allow_dirty, self.no_verify, req);
 
