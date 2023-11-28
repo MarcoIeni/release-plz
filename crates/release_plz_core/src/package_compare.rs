@@ -29,8 +29,8 @@ pub fn are_packages_equal(
     }
 
     rename(
-        &registry_package.join("Cargo.toml.orig"),
-        &registry_package.join("Cargo.toml.orig.orig"),
+        registry_package.join("Cargo.toml.orig"),
+        registry_package.join("Cargo.toml.orig.orig"),
     )?;
 
     let (local_stdout, local_stderr) = run_cargo(local_package, &["package", "--list", "-q"])
@@ -40,8 +40,8 @@ pub fn are_packages_equal(
             .context("cannot run cargo package on registry package")?;
 
     rename(
-        &registry_package.join("Cargo.toml.orig.orig"),
-        &registry_package.join("Cargo.toml.orig"),
+        registry_package.join("Cargo.toml.orig.orig"),
+        registry_package.join("Cargo.toml.orig"),
     )
     .context("cannot rename Cargo.toml.orig.orig")?;
 
@@ -55,11 +55,11 @@ pub fn are_packages_equal(
 
     let local_files = local_stdout
         .lines()
-        .filter(|file| file.to_string() != ".cargo_vcs_info.json");
+        .filter(|file| *file != ".cargo_vcs_info.json");
 
     let registry_files = registry_stdout
         .lines()
-        .filter(|file| file.to_string() != "Cargo.toml.orig.orig");
+        .filter(|file| *file != "Cargo.toml.orig.orig");
 
     if !local_files.clone().eq(registry_files) {
         debug!("cargo package list is different");
