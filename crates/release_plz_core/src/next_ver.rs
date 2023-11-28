@@ -339,17 +339,6 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
-
-    // let packages_to_analyze: Vec<&Package> = local_project.workspace_packages()
-    //     .iter()
-    //     .filter(|p| {
-    //         input.is_release_enabled(&p.name)
-    //     })
-    //     .map(|p| {
-    //         *p
-    //     })
-    //     .collect();
-
     let packages_to_update = updater.packages_to_update(
         &registry_packages,
         &repository.repo,
