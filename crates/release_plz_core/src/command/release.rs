@@ -1,6 +1,7 @@
 use std::{
     collections::BTreeMap,
     path::{Path, PathBuf},
+    time::Duration,
 };
 
 use anyhow::Context;
@@ -40,6 +41,8 @@ pub struct ReleaseRequest {
     repo_url: Option<String>,
     /// Package-specific configurations.
     packages_config: PackagesConfig,
+    // publish timeout
+    publish_timeout: Duration,
 }
 
 impl ReleaseRequest {
@@ -77,6 +80,11 @@ impl ReleaseRequest {
 
     pub fn with_default_package_config(mut self, config: ReleaseConfig) -> Self {
         self.packages_config.set_default(config);
+        self
+    }
+
+    pub fn with_publish_timeout(mut self, timeout: Duration) -> Self {
+        self.publish_timeout = timeout;
         self
     }
 
@@ -329,7 +337,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
         let registry_indexes = registry_indexes(package, input.registry.clone())
             .context("can't determine registry indexes")?;
         for mut index in registry_indexes {
-            if is_published(&mut index, package)
+            if is_published(&mut index, package, input.publish_timeout)
                 .await
                 .context("can't determine if package is published")?
             {
@@ -404,7 +412,7 @@ async fn release_package(
         );
     } else {
         if publish {
-            wait_until_published(index, package).await?;
+            wait_until_published(index, package, input.publish_timeout).await?;
         }
 
         if input.is_git_tag_enabled(&package.name) {
