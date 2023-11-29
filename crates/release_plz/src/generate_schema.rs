@@ -2,7 +2,7 @@ use crate::config;
 use schemars::schema_for;
 use std::fs;
 
-/// Generate the Schema for the configuration file, meant to be used on SchemaStore for IDE
+/// Generate the Schema for the configuration file, meant to be used on `SchemaStore` for IDE
 /// completion
 pub fn generate_schema() {
     const SCHEMA_TOKEN: &str = r##"schema#","##;
@@ -19,5 +19,5 @@ pub fn generate_schema() {
         &format!("{}\n  {}{}{}\",", SCHEMA_TOKEN, ID, FOLDER, FILE),
     );
     fs::create_dir_all(FOLDER).unwrap();
-    fs::write(&format!("{}{}", FOLDER, FILE), json).unwrap();
+    fs::write(format!("{}{}", FOLDER, FILE), json).unwrap();
 }

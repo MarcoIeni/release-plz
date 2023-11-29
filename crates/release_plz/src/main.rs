@@ -1,8 +1,8 @@
 mod args;
 mod config;
+mod generate_schema;
 mod log;
 mod update_checker;
-mod generate_schema;
 
 use anyhow::Context;
 use clap::Parser;
@@ -54,7 +54,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         }
         Command::GenerateCompletions(cmd_args) => cmd_args.print(),
         Command::CheckUpdates => update_checker::check_update().await?,
-        Command::GenerateSchema => {generate_schema::generate_schema()}
+        Command::GenerateSchema => generate_schema::generate_schema(),
     }
     Ok(())
 }
