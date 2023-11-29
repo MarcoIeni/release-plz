@@ -30,6 +30,7 @@
         "publish": null,
         "publish_allow_dirty": null,
         "publish_no_verify": null,
+        "publish_timeout": null,
         "repo_url": null,
         "semver_check": null
       },
@@ -285,6 +286,12 @@
           "description": "If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.",
           "type": [
             "boolean",
+            "null"
+          ]
+        },
+        "publish_timeout": {
+          "type": [
+            "string",
             "null"
           ]
         },

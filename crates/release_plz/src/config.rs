@@ -97,6 +97,8 @@ pub struct Workspace {
     /// Configuration applied to all packages by default.
     #[serde(flatten)]
     pub packages_defaults: PackageConfig,
+    /// # Publish Timeout
+    /// Timeout for the publishing process
     pub publish_timeout: Option<String>,
 }
 
