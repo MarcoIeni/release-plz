@@ -6,7 +6,7 @@ use std::fs;
 /// completion
 pub fn generate_schema() {
     const SCHEMA_TOKEN: &str = r##"schema#","##;
-    const ID: &str = r##""$id": "https://github.com/MarcoIeni/release-plz/""##;
+    const ID: &str = r##""$id": "https://github.com/MarcoIeni/release-plz/"##;
     const FOLDER: &str = ".schema/";
     const FILE: &str = "latest.json";
 
@@ -16,7 +16,7 @@ pub fn generate_schema() {
     // See here for update on resolution: https://github.com/GREsau/schemars/issues/229
     json = json.replace(
         SCHEMA_TOKEN,
-        &format!("{}\n  {}{}{}", SCHEMA_TOKEN, ID, FOLDER, FILE),
+        &format!("{}\n  {}{}{}\",", SCHEMA_TOKEN, ID, FOLDER, FILE),
     );
     fs::create_dir_all(FOLDER).unwrap();
     fs::write(&format!("{}{}", FOLDER, FILE), json).unwrap();

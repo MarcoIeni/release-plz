@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/MarcoIeni/release-plz/".schema/latest.json
+  "$id": "https://github.com/MarcoIeni/release-plz/.schema/latest.json",
   "title": "Config",
   "type": "object",
   "properties": {
