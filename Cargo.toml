@@ -16,6 +16,7 @@ conventional_commit_parser = "0.9.4"
 crates-index = { version = "2.3.0", features = ["git", "sparse", "git-https"] }
 dirs = "5.0.1"
 dunce = "1.0.4"
+duration-str = { version = "0.7.0", default-features = false }
 expect-test = "1.4.1"
 fake = "2.8.0"
 git-cliff-core = { version = "1.3.1", default-features = false }
