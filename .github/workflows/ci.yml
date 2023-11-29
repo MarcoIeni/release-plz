@@ -114,6 +114,7 @@ jobs:
       - name: Check schema
         run: |
           gitdiff=$(git status .schema/latest.json | grep "modified:")
+          echo $gitdiff
           test -z "$gitdiff" && (exit 0) || (exit 1)
 
   docs:
