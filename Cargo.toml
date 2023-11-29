@@ -30,6 +30,7 @@ regex = "1.10.2"
 reqwest = "0.11.22"
 reqwest-middleware = "0.2.3"
 reqwest-retry = "0.3.0"
+schemars = { version = "0.8.16", features = ["url"] }
 secrecy = "0.8.0"
 semver = "1.0.20"
 serde = "1.0.193"

@@ -45,6 +45,8 @@ pub enum Command {
     GenerateCompletions(GenerateCompletions),
     /// Check if a newer version of release-plz is available.
     CheckUpdates,
+    /// Generate a JSON schema of the configuration (.toml)
+    GenerateSchema,
 }
 
 fn local_manifest(project_manifest: Option<&Path>) -> PathBuf {
