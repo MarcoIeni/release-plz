@@ -100,6 +100,22 @@ jobs:
       - name: Clippy check
         run: cargo clippy --all-targets --all-features --workspace -- -D warnings
 
+  schema:
+    name: Schema
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Run release-plz generate-schema
+        run: cargo run --package release-plz --bin release-plz generate-schema
+      - name: Check schema
+        run: |
+          gitdiff=$(git status .schema/latest.json | grep "modified:")
+          test -z "$gitdiff" && (exit 0) || (exit 1)
+
   docs:
     name: Docs
     runs-on: ubuntu-22.04
