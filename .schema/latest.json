@@ -1,0 +1,311 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/MarcoIeni/release-plz/".schema/latest.json
+  "title": "Config",
+  "type": "object",
+  "properties": {
+    "package": {
+      "title": "Package",
+      "description": "Package-specific configuration. This overrides `workspace`. Not all settings of `workspace` can be overridden.",
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/PackageSpecificConfigWithName"
+      }
+    },
+    "workspace": {
+      "title": "Workspace",
+      "description": "Global configuration. Applied to all packages by default.",
+      "default": {
+        "allow_dirty": null,
+        "changelog_config": null,
+        "changelog_update": null,
+        "dependencies_update": null,
+        "git_release_draft": null,
+        "git_release_enable": null,
+        "git_release_type": null,
+        "git_tag_enable": null,
+        "pr_draft": false,
+        "pr_labels": [],
+        "publish": null,
+        "publish_allow_dirty": null,
+        "publish_no_verify": null,
+        "repo_url": null,
+        "semver_check": null
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/Workspace"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "PackageSpecificConfigWithName": {
+      "description": "Config at the `[[package]]` level.",
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "changelog_include": {
+          "title": "Changelog Include",
+          "description": "List of package names. Include the changelogs of these packages in the changelog of the current package.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "changelog_path": {
+          "title": "Changelog Path",
+          "description": "Normally the changelog is placed in the same directory of the Cargo.toml file. The user can provide a custom path here. This changelog_path needs to be propagated to all the commands: `update`, `release-pr` and `release`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "changelog_update": {
+          "title": "Changelog Update",
+          "description": "Whether to create/update changelog or not. If unspecified, the changelog is updated.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "git_release_draft": {
+          "title": "Git Release Draft",
+          "description": "If true, will not auto-publish the release.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "git_release_enable": {
+          "title": "Git Release Enable",
+          "description": "Publish the GitHub/Gitea release for the created git tag. Enabled by default.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "git_release_type": {
+          "title": "Git Release Type",
+          "description": "Whether to mark the created release as not ready for production.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ReleaseType"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "git_tag_enable": {
+          "title": "Git Tag Enable",
+          "description": "Publish the git tag for the new package version. Enabled by default.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "publish": {
+          "title": "Publish",
+          "description": "If `Some(false)`, don't run `cargo publish`.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "publish_allow_dirty": {
+          "title": "Publish Allow Dirty",
+          "description": "If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "publish_no_verify": {
+          "title": "Publish No Verify",
+          "description": "If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "semver_check": {
+          "title": "Semver Check",
+          "description": "Controls when to run cargo-semver-checks. If unspecified, run cargo-semver-checks if the package is a library.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "ReleaseType": {
+      "oneOf": [
+        {
+          "title": "Prod",
+          "description": "Will mark the release as ready for production.",
+          "type": "string",
+          "enum": [
+            "prod"
+          ]
+        },
+        {
+          "title": "Pre",
+          "description": "Will mark the release as not ready for production. I.e. as pre-release.",
+          "type": "string",
+          "enum": [
+            "pre"
+          ]
+        },
+        {
+          "title": "Auto",
+          "description": "Will mark the release as not ready for production in case there is a semver pre-release in the tag e.g. v1.0.0-rc1. Otherwise, will mark the release as ready for production.",
+          "type": "string",
+          "enum": [
+            "auto"
+          ]
+        }
+      ]
+    },
+    "Workspace": {
+      "description": "Global configuration.",
+      "type": "object",
+      "properties": {
+        "allow_dirty": {
+          "title": "Allow Dirty",
+          "description": "- If `true`, allow dirty working directories to be updated. The uncommitted changes will be part of the update. - If `false` or [`Option::None`], the command will fail if the working directory is dirty.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "changelog_config": {
+          "title": "Changelog Config",
+          "description": "Path to the git cliff configuration file. Defaults to the `keep a changelog` configuration.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "changelog_update": {
+          "title": "Changelog Update",
+          "description": "Whether to create/update changelog or not. If unspecified, the changelog is updated.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "dependencies_update": {
+          "title": "Dependencies Update",
+          "description": "- If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`. - If `false` or [`Option::None`], only update the workspace packages by running `cargo update --workspace`.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "git_release_draft": {
+          "title": "Git Release Draft",
+          "description": "If true, will not auto-publish the release.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "git_release_enable": {
+          "title": "Git Release Enable",
+          "description": "Publish the GitHub/Gitea release for the created git tag. Enabled by default.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "git_release_type": {
+          "title": "Git Release Type",
+          "description": "Whether to mark the created release as not ready for production.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ReleaseType"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "git_tag_enable": {
+          "title": "Git Tag Enable",
+          "description": "Publish the git tag for the new package version. Enabled by default.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "pr_draft": {
+          "title": "PR Draft",
+          "description": "If `true`, the created release PR will be marked as a draft.",
+          "default": false,
+          "type": "boolean"
+        },
+        "pr_labels": {
+          "title": "PR Labels",
+          "description": "Labels to add to the release PR.",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "publish": {
+          "title": "Publish",
+          "description": "If `Some(false)`, don't run `cargo publish`.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "publish_allow_dirty": {
+          "title": "Publish Allow Dirty",
+          "description": "If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "publish_no_verify": {
+          "title": "Publish No Verify",
+          "description": "If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "repo_url": {
+          "title": "Repo URL",
+          "description": "GitHub/Gitea repository url where your project is hosted. It is used to generate the changelog release link. It defaults to the url of the default remote.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri"
+        },
+        "semver_check": {
+          "title": "Semver Check",
+          "description": "Controls when to run cargo-semver-checks. If unspecified, run cargo-semver-checks if the package is a library.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}
