@@ -11,7 +11,7 @@ Put your `release-plz.toml` (or `.release-plz.toml`) file in the same directory 
 ## Example
 
 Here's an example configuration file for a cargo workspace.
-`package_a` and `package_b` override some fields from the default configuration `[workspace]`,
+`package_a`, `package_b` and `package_c` override some fields from the default configuration `[workspace]`,
 while the other packages inherit the default configuration.
 
 ```toml
@@ -38,6 +38,10 @@ publish = false # disable `cargo publish` for `package_a`
 name = "package_b"
 semver_check = true # enable semver_check for `package_b`
 publish_no_verify = true # add `--no-verify` to `cargo publish` for `package_b`
+
+[[package]]
+name = "package_c"
+release = false # disables the processing of this package
 ```
 
 ## Reference
@@ -59,6 +63,7 @@ the following sections:
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
   - [`publish_timeout`](#the-publish_timeout-field) — `cargo publish` timeout.
+  - [`release`](#the-release-field) - Enable the processing of the packages.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
 - [`[[package]]`](#the-package-section) — Package-specific configurations.
@@ -72,6 +77,7 @@ the following sections:
   - [`publish`](#the-publish-field-package-section) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field-package-section) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field-package-section) — Don't verify package build.
+  - [`release`](#the-release-field-package-section) - Enable the processing of this package.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
     Don't verify package build.
 
@@ -220,6 +226,23 @@ registry or local configuration, allowing to:
 - avoid CI job to run forever.
 - have a more precise error message.
 
+#### The `release` field
+
+Process the packages for the update, or release-pr commands.
+This configuration can be overridden at the [`[[package]]`](#the-package-section) level.
+
+- If `true`, all packages will be processed. *(Default)*.
+- If `false`, no packages will be processed.
+
+Example:
+
+```toml
+[workspace]
+release = false
+```
+
+By default, this is set to `true`.
+
 #### The `repo_url` field
 
 GitHub/Gitea repository URL where your project is hosted.
@@ -325,6 +348,10 @@ Overrides the
 #### The `publish_no_verify` field (`package` section)
 
 Overrides the [`workspace.publish_no_verify`](#the-publish_no_verify-field) field.
+
+#### The `release` field (`package` section)
+
+Overrides the [`workspace.release`](#the-release-field) field.
 
 #### The `semver_check` field (`package` section)
 
