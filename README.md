@@ -43,10 +43,10 @@ There are two ways to run release-plz:
 
 ## 💖 Users
 
-[This](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action)
-search
-and [this](https://github.com/MarcoIeni/release-plz-action/network/dependents)
-page show the public GitHub repositories using release-plz in CI.
+Here you can find the public repositories using the release-plz GitHub action in CI:
+
+- [GitHub search](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action+-is%3Afork)
+- [Dependency graph](https://github.com/MarcoIeni/release-plz-action/network/dependents)
 
 ## 🌓 Similar projects
 
