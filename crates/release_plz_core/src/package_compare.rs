@@ -39,7 +39,7 @@ pub fn are_packages_equal(
         format!("cannot determine packaged files of local package {local_package:?}")
     })?;
     let registry_package_stdout = run_cargo_package(registry_package).with_context(|| {
-        format!("cannot determine packaged files of local package {local_package:?}")
+        format!("cannot determine packaged files of registry package {registry_package:?}")
     })?;
 
     // Rename the file to the original name.
