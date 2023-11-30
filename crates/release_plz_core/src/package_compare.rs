@@ -5,7 +5,7 @@ use crate::{cargo::run_cargo, CARGO_TOML};
 use std::{
     collections::hash_map::DefaultHasher,
     ffi::OsStr,
-    fs::{rename, File},
+    fs::File,
     hash::{Hash, Hasher},
     io::{self, Read},
     path::{Path, PathBuf},
@@ -46,8 +46,7 @@ pub fn are_packages_equal(
     rename(
         registry_package.join("Cargo.toml.orig.orig"),
         registry_package.join("Cargo.toml.orig"),
-    )
-    .context("cannot rename Cargo.toml.orig.orig")?;
+    )?;
 
     let local_files = local_package_stdout
         .lines()
@@ -91,6 +90,12 @@ pub fn are_packages_equal(
     }
 
     Ok(true)
+}
+
+fn rename(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<()> {
+    let from = from.as_ref();
+    let to = to.as_ref();
+    std::fs::rename(from, to).with_context(|| format!("cannot rename {from:?} to {to:?}"))
 }
 
 fn run_cargo_package(package: &Path) -> anyhow::Result<String> {
