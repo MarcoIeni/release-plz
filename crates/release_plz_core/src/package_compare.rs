@@ -80,11 +80,9 @@ pub fn are_packages_equal(
         });
 
     for file in files {
-        let file_path = file.as_path();
+        let file_in_second_path = registry_package.join(&file);
 
-        let file_in_second_path = registry_package.join(file_path);
-
-        if !are_files_equal(file_path, &file_in_second_path).context("files are not equal")? {
+        if !are_files_equal(&file, &file_in_second_path).context("files are not equal")? {
             return Ok(false);
         }
     }
