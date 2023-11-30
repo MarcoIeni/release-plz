@@ -8,18 +8,14 @@ use std::{
     fs::File,
     hash::{Hash, Hasher},
     io::{self, Read},
-    path::{Path, PathBuf},
+    path::Path,
 };
 
 /// Check if two packages are equal.
 ///
 /// ## Args
 /// - `ignored_dirs`: Directories of the `local_package` to ignore when comparing packages.
-pub fn are_packages_equal(
-    local_package: &Path,
-    registry_package: &Path,
-    ignored_dirs: Vec<PathBuf>,
-) -> anyhow::Result<bool> {
+pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyhow::Result<bool> {
     debug!(
         "compare local package {:?} with registry package {:?}",
         local_package, registry_package
@@ -64,15 +60,10 @@ pub fn are_packages_equal(
         return Ok(false);
     }
 
-    let ignored_dirs: Vec<&Path> = ignored_dirs.iter().map(|p| p.as_path()).collect();
     let local_files = local_files
         .map(|file| local_package.join(file))
         .filter(|file| {
-            let should_ignore_file = ignored_dirs
-                .iter()
-                .any(|directory| file.starts_with(directory));
-            !(should_ignore_file
-            || file.is_symlink()
+            !(file.is_symlink()
             // Ignore `Cargo.lock` because the local one is different from the published one in workspaces.
             || file.file_name() == Some(OsStr::new("Cargo.lock"))
             // Ignore `Cargo.toml` because we already checked it before.
