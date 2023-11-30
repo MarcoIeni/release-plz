@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.31](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.30...release-plz-v0.3.31) - 2023-11-30
+
+### Added
+- add publish_timeout to avoid release blocking issue, fix [#1015](https://github.com/MarcoIeni/release-plz/pull/1015) ([#1088](https://github.com/MarcoIeni/release-plz/pull/1088))
+- prevent typos in overrides ([#1080](https://github.com/MarcoIeni/release-plz/pull/1080))
+
+### Fixed
+- exclude ignored files using cargo package list ([#1089](https://github.com/MarcoIeni/release-plz/pull/1089))
+- package overrides mechanism bug ([#1097](https://github.com/MarcoIeni/release-plz/pull/1097))
+- resolve issue on Windows machines that use CRLF that would duplicate the header on each update ([#1083](https://github.com/MarcoIeni/release-plz/pull/1083))
+
+### Other
+- document Gitea releases ([#1076](https://github.com/MarcoIeni/release-plz/pull/1076))
+
 ## [0.3.30](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.29...release-plz-v0.3.30) - 2023-11-08
 
 ### Added
