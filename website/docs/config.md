@@ -228,11 +228,19 @@ registry or local configuration, allowing to:
 
 #### The `release` field
 
-Process the packages for the update, or release-pr commands.
-This configuration can be overridden at the [`[[package]]`](#the-package-section) level.
+Process the packages for the `update`, `release-pr`, and `release` commands.
 
 - If `true`, all packages will be processed. *(Default)*.
 - If `false`, no packages will be processed.
+  Release-plz doesn't update the package, and doesn't release it (i.e. cargo publish, git tag
+  and github/gitea/gitlab release).
+  Release-plz ignores all packages.
+
+Setting `release` as `false` at the workspace level,
+is useful in big workspaces, where you don't want release-plz to manage all crates.
+You can set `release` as `true` only in the packages you want release-plz to handle, by overriding
+this configuration at the [`[[package]]`](#the-package-section) level.
+
 
 Example:
 
@@ -240,8 +248,6 @@ Example:
 [workspace]
 release = false
 ```
-
-By default, this is set to `true`.
 
 #### The `repo_url` field
 
