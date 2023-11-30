@@ -97,8 +97,9 @@ fn rename(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<()> {
 }
 
 fn run_cargo_package(package: &Path) -> anyhow::Result<String> {
-    let (stdout, stderr) = run_cargo(package, &["package", "--list", "--quiet"])
-        .context("cannot run `cargo package`")?;
+    // we use `--allow-dirty` because we have `Cargo.toml.orig.orig`, which is an uncommitted change.
+    let args = ["package", "--list", "--quiet", "--allow-dirty"];
+    let (stdout, stderr) = run_cargo(package, &args).context("cannot run `cargo package`")?;
 
     if !stderr.is_empty() {
         anyhow::bail!("error while running `cargo package`: {stderr}");
