@@ -74,4 +74,4 @@ cargo package --list
 To exclude a file from the list (and therefore from the release PR and `release-plz update` changes),
 edit the `exclude` and `include`
 [fields](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields)
-of the Cargo.toml file.
+of the `Cargo.toml`.
