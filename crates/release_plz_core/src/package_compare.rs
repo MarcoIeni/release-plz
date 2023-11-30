@@ -28,40 +28,37 @@ pub fn are_packages_equal(
         return Ok(false);
     }
 
+    // When a package is published to a cargo registry, the original `Cargo.toml` file is stored as `Cargo.toml.orig`.
+    // We need to rename it to `Cargo.toml.orig.orig`, because this name is reserved, and `cargo package` will fail if it exists.
     rename(
         registry_package.join("Cargo.toml.orig"),
         registry_package.join("Cargo.toml.orig.orig"),
     )?;
 
-    let (local_stdout, local_stderr) = run_cargo(local_package, &["package", "--list", "-q"])
-        .context("cannot run cargo package on local package")?;
-    let (registry_stdout, registry_stderr) =
-        run_cargo(registry_package, &["package", "--list", "-q"])
-            .context("cannot run cargo package on registry package")?;
+    let local_package_stdout = run_cargo_package(local_package).with_context(|| {
+        format!("cannot determine packaged files of local package {local_package:?}")
+    })?;
+    let registry_package_stdout = run_cargo_package(registry_package).with_context(|| {
+        format!("cannot determine packaged files of local package {local_package:?}")
+    })?;
 
+    // Rename the file to the original name.
     rename(
         registry_package.join("Cargo.toml.orig.orig"),
         registry_package.join("Cargo.toml.orig"),
     )
     .context("cannot rename Cargo.toml.orig.orig")?;
 
-    if !local_stderr.is_empty() {
-        anyhow::bail!("stderr of cargo package not empty - local: {local_stderr}");
-    }
-
-    if !registry_stderr.is_empty() {
-        anyhow::bail!("stderr of cargo package not empty - registry: {registry_stderr}");
-    }
-
-    let local_files = local_stdout
+    let local_files = local_package_stdout
         .lines()
         .filter(|file| *file != ".cargo_vcs_info.json");
 
-    let registry_files = registry_stdout
+    let registry_files = registry_package_stdout
         .lines()
-        .filter(|file| *file != "Cargo.toml.orig.orig");
+        .filter(|file| *file != "Cargo.toml.orig.orig" || *file != ".cargo_vcs_info.json");
 
     if !local_files.clone().eq(registry_files) {
+        // New files were added or removed.
         debug!("cargo package list is different");
         return Ok(false);
     }
@@ -77,6 +74,9 @@ pub fn are_packages_equal(
             || file.is_symlink()
             // Ignore `Cargo.lock` because the local one is different from the published one in workspaces.
             || file.file_name() == Some(OsStr::new("Cargo.lock"))
+            // Ignore `Cargo.toml` because we already checked it before.
+            || file.file_name() == Some(OsStr::new(CARGO_TOML))
+            // Ignore `Cargo.toml.orig` because it's auto generated.
             || file.file_name() == Some(OsStr::new("Cargo.toml.orig")))
         });
 
@@ -91,6 +91,17 @@ pub fn are_packages_equal(
     }
 
     Ok(true)
+}
+
+fn run_cargo_package(package: &Path) -> anyhow::Result<String> {
+    let (stdout, stderr) = run_cargo(package, &["package", "--list", "--quiet"])
+        .context("cannot run `cargo package`")?;
+
+    if !stderr.is_empty() {
+        anyhow::bail!("error while running `cargo package`: {stderr}");
+    }
+
+    Ok(stdout)
 }
 
 fn are_cargo_toml_equal(local_package: &Path, registry_package: &Path) -> bool {
