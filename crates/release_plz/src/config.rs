@@ -214,7 +214,7 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct PackageCommonConfig {
-    /// Used to toggle off the update/release process for a workspace
+    /// Used to toggle off the update/release process for a workspace or package.
     pub release: Option<bool>,
 }
 
@@ -235,6 +235,7 @@ pub struct PackageConfig {
     /// Options for the `release-plz release` command.
     #[serde(flatten)]
     release: PackageReleaseConfig,
+    /// Options shared among `update` `release-pr` and `release` commands.
     #[serde(flatten)]
     common: PackageCommonConfig,
 }
