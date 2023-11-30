@@ -50,11 +50,13 @@ pub fn are_packages_equal(
 
     let local_files = local_package_stdout
         .lines()
-        .filter(|file| *file != ".cargo_vcs_info.json");
+        .filter(|file| *file != "Cargo.toml.orig" && *file != ".cargo_vcs_info.json");
 
-    let registry_files = registry_package_stdout
-        .lines()
-        .filter(|file| *file != "Cargo.toml.orig.orig" || *file != ".cargo_vcs_info.json");
+    let registry_files = registry_package_stdout.lines().filter(|file| {
+        *file != "Cargo.toml.orig"
+            && *file != "Cargo.toml.orig.orig"
+            && *file != ".cargo_vcs_info.json"
+    });
 
     if !local_files.clone().eq(registry_files) {
         // New files were added or removed.
@@ -63,7 +65,7 @@ pub fn are_packages_equal(
     }
 
     let ignored_dirs: Vec<&Path> = ignored_dirs.iter().map(|p| p.as_path()).collect();
-    let files = local_files
+    let local_files = local_files
         .map(|file| local_package.join(file))
         .filter(|file| {
             let should_ignore_file = ignored_dirs
@@ -79,10 +81,13 @@ pub fn are_packages_equal(
             || file.file_name() == Some(OsStr::new("Cargo.toml.orig")))
         });
 
-    for file in files {
-        let file_in_second_path = registry_package.join(&file);
+    for local_path in local_files {
+        let relative_path = local_path
+            .strip_prefix(local_package)
+            .with_context(|| format!("can't find {local_package:?} prefix in {local_path:?}"))?;
 
-        if !are_files_equal(&file, &file_in_second_path).context("files are not equal")? {
+        let registry_path = registry_package.join(relative_path);
+        if !are_files_equal(&local_path, &registry_path).context("files are not equal")? {
             return Ok(false);
         }
     }
