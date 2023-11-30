@@ -290,6 +290,8 @@
           ]
         },
         "publish_timeout": {
+          "title": "Publish Timeout",
+          "description": "Timeout for the publishing process",
           "type": [
             "string",
             "null"
