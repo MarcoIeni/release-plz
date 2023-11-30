@@ -323,11 +323,8 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
-    let packages_to_update = updater.packages_to_update(
-        &registry_packages,
-        &repository.repo,
-        input.local_manifest(),
-    )?;
+    let packages_to_update =
+        updater.packages_to_update(&registry_packages, &repository.repo, input.local_manifest())?;
     Ok((packages_to_update, repository))
 }
 
@@ -485,8 +482,7 @@ impl Updater<'_> {
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
-        let packages_diffs =
-            self.get_packages_diffs(registry_packages, repository)?;
+        let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate::default();
 
