@@ -110,11 +110,11 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Run release-plz generate-schema
-        run: cargo run --package release-plz --bin release-plz generate-schema
+        run: cargo run --package release-plz --bin release-plz --release generate-schema
       - name: Check schema
         run: |
+          git status .schema/latest.json
           gitdiff=$(git status .schema/latest.json | grep "modified:")
-          echo $gitdiff
           test -z "$gitdiff" && (exit 0) || (exit 1)
 
   docs:
