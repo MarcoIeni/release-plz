@@ -500,13 +500,11 @@ impl Updater<'_> {
         &self,
         registry_packages: &PackagesCollection,
         repository: &Repo,
-        workspace_packages: &[&Package],
         input: &UpdateRequest,
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
-        let packages_diffs =
-            self.get_packages_diffs(registry_packages, repository, workspace_packages)?;
+        let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate::default();
 
@@ -575,7 +573,6 @@ impl Updater<'_> {
         &self,
         registry_packages: &PackagesCollection,
         repository: &Repo,
-        workspace_packages: &[&Package],
     ) -> anyhow::Result<Vec<(&Package, Diff)>> {
         // Store diff for each package. This operation is not thread safe, so we do it in one
         // package at a time.
@@ -584,7 +581,7 @@ impl Updater<'_> {
             .publishable_packages()
             .iter()
             .map(|&p| {
-                let diff = self.get_diff(p, registry_packages, repository, workspace_packages)?;
+                let diff = self.get_diff(p, registry_packages, repository)?;
                 Ok((p, diff))
             })
             .collect();
@@ -742,7 +739,6 @@ impl Updater<'_> {
         package: &Package,
         registry_packages: &PackagesCollection,
         repository: &Repo,
-        workspace_packages: &[&Package],
     ) -> anyhow::Result<Diff> {
         let package_path = get_package_path(package, repository, &self.project.root)?;
 
@@ -760,12 +756,6 @@ impl Updater<'_> {
                 return Ok(diff);
             }
         }
-        let ignored_dirs: anyhow::Result<Vec<PathBuf>> = workspace_packages
-            .iter()
-            .filter(|p| p.name != package.name)
-            .map(|p| get_package_path(p, repository, &self.project.root))
-            .collect();
-        let ignored_dirs = ignored_dirs?;
 
         let tag_commit = {
             let git_tag = self
@@ -779,9 +769,8 @@ impl Updater<'_> {
             if let Some(registry_package) = registry_package {
                 debug!("package {} found in cargo registry", registry_package.name);
                 let registry_package_path = registry_package.package_path()?;
-                let are_packages_equal =
-                    are_packages_equal(&package_path, registry_package_path, ignored_dirs.clone())
-                        .context("cannot compare packages")?;
+                let are_packages_equal = are_packages_equal(&package_path, registry_package_path)
+                    .context("cannot compare packages")?;
                 if are_packages_equal
                     || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
                 {

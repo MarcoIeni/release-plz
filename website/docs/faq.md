@@ -60,3 +60,18 @@ If none of these options work for you or you want release-plz to output
 the branch in the jobs
 [output](https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs),
 please open an issue.
+
+## Release-plz opens a PR too often
+
+Release-plz opens a PR when any of the files packaged in the crate changes.
+
+To list the files that cargo published to the registry, run:
+
+```sh
+cargo package --list
+```
+
+To exclude a file from the list (and therefore from the release PR and `release-plz update` changes),
+edit the `exclude` and `include`
+[fields](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields)
+of the `Cargo.toml`.
