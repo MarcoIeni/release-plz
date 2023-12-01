@@ -1,30 +1,21 @@
+use anyhow::Context;
 use tracing::debug;
 
-use crate::{strip_prefix::strip_prefix, CARGO_TOML};
+use crate::{cargo::run_cargo, CARGO_TOML};
 use std::{
     collections::hash_map::DefaultHasher,
-    fs::{self, File},
+    ffi::OsStr,
+    fs::File,
     hash::{Hash, Hasher},
     io::{self, Read},
-    path::{Path, PathBuf},
+    path::Path,
 };
-
-fn is_dir(entry: &ignore::DirEntry) -> bool {
-    match entry.file_type() {
-        Some(ft) => ft.is_dir(),
-        None => false,
-    }
-}
 
 /// Check if two packages are equal.
 ///
 /// ## Args
 /// - `ignored_dirs`: Directories of the `local_package` to ignore when comparing packages.
-pub fn are_packages_equal(
-    local_package: &Path,
-    registry_package: &Path,
-    ignored_dirs: Vec<PathBuf>,
-) -> anyhow::Result<bool> {
+pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyhow::Result<bool> {
     debug!(
         "compare local package {:?} with registry package {:?}",
         local_package, registry_package
@@ -33,51 +24,84 @@ pub fn are_packages_equal(
         return Ok(false);
     }
 
-    // Recursively traverse directories ignoring files present in `.gitignore`.
-    // We ignore ignored files because we don't want to compare local files that are
-    // not present in the package (such as `.DS_Store` or `Cargo.lock`, that might be generated
-    // for libraries)
-    let walker = ignore::WalkBuilder::new(local_package)
-        // Read hidden files
-        .hidden(false)
-        // Don't consider `.ignore` files.
-        .ignore(false)
-        .filter_entry(move |e| {
-            let ignored_dirs: Vec<&Path> = ignored_dirs.iter().map(|p| p.as_path()).collect();
-            let should_ignore_dir =
-                is_dir(e) && (e.file_name() == ".git" || ignored_dirs.contains(&e.path()));
-            !(should_ignore_dir
-                || e.path_is_symlink()
-                // Ignore `Cargo.lock` because the local one is different from the published one in workspaces.
-                || e.file_name() == "Cargo.lock")
-        })
-        .build()
-        .filter_map(Result::ok)
-        .filter(|e| !(is_dir(e) && e.path() == local_package))
-        .filter(|e| !{
-            !is_dir(e) && (e.file_name() == ".cargo_vcs_info.json" || e.file_name() == CARGO_TOML)
+    // When a package is published to a cargo registry, the original `Cargo.toml` file is stored as `Cargo.toml.orig`.
+    // We need to rename it to `Cargo.toml.orig.orig`, because this name is reserved, and `cargo package` will fail if it exists.
+    rename(
+        registry_package.join("Cargo.toml.orig"),
+        registry_package.join("Cargo.toml.orig.orig"),
+    )?;
+
+    let local_package_stdout = run_cargo_package(local_package).with_context(|| {
+        format!("cannot determine packaged files of local package {local_package:?}")
+    })?;
+    let registry_package_stdout = run_cargo_package(registry_package).with_context(|| {
+        format!("cannot determine packaged files of registry package {registry_package:?}")
+    })?;
+
+    // Rename the file to the original name.
+    rename(
+        registry_package.join("Cargo.toml.orig.orig"),
+        registry_package.join("Cargo.toml.orig"),
+    )?;
+
+    let local_files = local_package_stdout
+        .lines()
+        .filter(|file| *file != "Cargo.toml.orig" && *file != ".cargo_vcs_info.json");
+
+    let registry_files = registry_package_stdout.lines().filter(|file| {
+        *file != "Cargo.toml.orig"
+            && *file != "Cargo.toml.orig.orig"
+            && *file != ".cargo_vcs_info.json"
+    });
+
+    if !local_files.clone().eq(registry_files) {
+        // New files were added or removed.
+        debug!("cargo package list is different");
+        return Ok(false);
+    }
+
+    let local_files = local_files
+        .map(|file| local_package.join(file))
+        .filter(|file| {
+            !(file.is_symlink()
+            // Ignore `Cargo.lock` because the local one is different from the published one in workspaces.
+            || file.file_name() == Some(OsStr::new("Cargo.lock"))
+            // Ignore `Cargo.toml` because we already checked it before.
+            || file.file_name() == Some(OsStr::new(CARGO_TOML))
+            // Ignore `Cargo.toml.orig` because it's auto generated.
+            || file.file_name() == Some(OsStr::new("Cargo.toml.orig")))
         });
 
-    for entry in walker {
-        let path_without_prefix = strip_prefix(entry.path(), local_package)?;
-        let file_in_second_path = registry_package.join(path_without_prefix);
-        if is_dir(&entry) {
-            let dir1 = fs::read_dir(entry.path())?;
-            let dir2 = fs::read_dir(entry.path())?;
-            if dir1.count() != dir2.count() {
-                return Ok(false);
-            }
-        } else {
-            if !file_in_second_path.is_file() {
-                return Ok(false);
-            }
-            if !are_files_equal(entry.path(), &file_in_second_path)? {
-                return Ok(false);
-            }
+    for local_path in local_files {
+        let relative_path = local_path
+            .strip_prefix(local_package)
+            .with_context(|| format!("can't find {local_package:?} prefix in {local_path:?}"))?;
+
+        let registry_path = registry_package.join(relative_path);
+        if !are_files_equal(&local_path, &registry_path).context("files are not equal")? {
+            return Ok(false);
         }
     }
 
     Ok(true)
+}
+
+fn rename(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<()> {
+    let from = from.as_ref();
+    let to = to.as_ref();
+    std::fs::rename(from, to).with_context(|| format!("cannot rename {from:?} to {to:?}"))
+}
+
+fn run_cargo_package(package: &Path) -> anyhow::Result<String> {
+    // we use `--allow-dirty` because we have `Cargo.toml.orig.orig`, which is an uncommitted change.
+    let args = ["package", "--list", "--quiet", "--allow-dirty"];
+    let (stdout, stderr) = run_cargo(package, &args).context("cannot run `cargo package`")?;
+
+    if !stderr.is_empty() {
+        anyhow::bail!("error while running `cargo package`: {stderr}");
+    }
+
+    Ok(stdout)
 }
 
 fn are_cargo_toml_equal(local_package: &Path, registry_package: &Path) -> bool {
@@ -91,9 +115,10 @@ fn are_cargo_toml_equal(local_package: &Path, registry_package: &Path) -> bool {
     .unwrap_or(false)
 }
 
-fn are_files_equal(first: &Path, second: &Path) -> io::Result<bool> {
-    let hash1 = file_hash(first)?;
-    let hash2 = file_hash(second)?;
+fn are_files_equal(first: &Path, second: &Path) -> anyhow::Result<bool> {
+    let hash1 = file_hash(first).with_context(|| format!("cannot determine hash of {first:?}"))?;
+    let hash2 =
+        file_hash(second).with_context(|| format!("cannot determine hash of {second:?}"))?;
     Ok(hash1 == hash2)
 }
 
