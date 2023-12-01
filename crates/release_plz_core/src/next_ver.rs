@@ -339,12 +339,8 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
-    let packages_to_update = updater.packages_to_update(
-        &registry_packages,
-        &repository.repo,
-        &local_project.workspace_packages(),
-        input,
-    )?;
+    let packages_to_update =
+        updater.packages_to_update(&registry_packages, &repository.repo, input)?;
     Ok((packages_to_update, repository))
 }
 
