@@ -241,7 +241,6 @@ is useful in big workspaces, where you don't want release-plz to manage all crat
 You can set `release` as `true` only in the packages you want release-plz to handle, by overriding
 this configuration at the [`[[package]]`](#the-package-section) level.
 
-
 Example:
 
 ```toml
