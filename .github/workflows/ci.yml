@@ -109,13 +109,17 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      - name: Rename committed schema
+        run: mv .schema/latest.json .schema/latest_orig.json
       - name: Run release-plz generate-schema
         run: cargo run --package release-plz --bin release-plz --release generate-schema
       - name: Check schema
-        run: |
-          git status .schema/latest.json
-          gitdiff=$(git status .schema/latest.json | grep "modified:")
-          test -z "$gitdiff" && (exit 0) || (exit 1)
+        uses: LouisBrunner/diff-action@v0.2.0
+        with:
+          old: .schema/latest_orig.json
+          new: .schema/latest.json
+          mode: addition
+          tolerance: same
 
   docs:
     name: Docs
