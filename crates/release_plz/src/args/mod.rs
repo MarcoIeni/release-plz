@@ -126,7 +126,7 @@ fn parse_config_from_metadata(project_manifest: &Path) -> anyhow::Result<Option<
             return Ok(Some(config));
         }
     }
-    return Ok(None);
+    Ok(None)
 }
 
 /// Returns the contents of the first file that exists.
