@@ -303,7 +303,12 @@ impl UpdateRequest {
 /// Determine next version of packages
 #[instrument]
 pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
-    let local_project = Project::new(&input.local_manifest, input.single_package.as_deref())?;
+    let overrides = input.packages_config.overrides.keys().cloned().collect();
+    let local_project = Project::new(
+        &input.local_manifest,
+        input.single_package.as_deref(),
+        overrides,
+    )?;
     let updater = Updater {
         project: &local_project,
         req: input,
@@ -318,13 +323,30 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
-    let packages_to_update = updater.packages_to_update(
-        &registry_packages,
-        &repository.repo,
-        &local_project.workspace_packages(),
-        input.local_manifest(),
-    )?;
+    let packages_to_update =
+        updater.packages_to_update(&registry_packages, &repository.repo, input.local_manifest())?;
     Ok((packages_to_update, repository))
+}
+
+/// Check for typos in the package names based on the overrides
+fn check_for_typos(packages: &HashSet<String>, overrides: &HashSet<String>) -> anyhow::Result<()> {
+    let diff: Vec<_> = overrides.difference(packages).collect();
+
+    if diff.is_empty() {
+        Ok(())
+    } else {
+        let mut missing: Vec<_> = diff.into_iter().collect();
+        missing.sort();
+        let missing = missing
+            .iter()
+            .map(|s| format!("`{}`", s))
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        Err(anyhow::anyhow!(
+            "The following overrides are not present in the workspace: {missing}. Check for typos"
+        ))
+    }
 }
 
 #[derive(Debug)]
@@ -341,7 +363,11 @@ pub struct Project {
 }
 
 impl Project {
-    pub fn new(local_manifest: &Path, single_package: Option<&str>) -> anyhow::Result<Self> {
+    pub fn new(
+        local_manifest: &Path,
+        single_package: Option<&str>,
+        overrides: HashSet<String>,
+    ) -> anyhow::Result<Self> {
         let manifest = &local_manifest;
         let manifest_dir = manifest_dir(manifest)?.to_path_buf();
         debug!("manifest_dir: {manifest_dir:?}");
@@ -352,12 +378,19 @@ impl Project {
         };
         debug!("project_root: {root:?}");
         let mut packages = workspace_packages(manifest)?;
+        anyhow::ensure!(!packages.is_empty(), "no public packages found");
+
+        check_overrides_typos(&packages, &overrides)?;
         let contains_multiple_pub_packages = packages.len() > 1;
+
         if let Some(pac) = single_package {
             packages.retain(|p| p.name == pac);
+            anyhow::ensure!(
+                !packages.is_empty(),
+                "package `{}` not found. If it exists, is it public?",
+                pac
+            );
         }
-
-        anyhow::ensure!(!packages.is_empty(), "no public packages found");
 
         Ok(Self {
             packages,
@@ -409,6 +442,15 @@ impl Project {
     }
 }
 
+fn check_overrides_typos(
+    packages: &[Package],
+    overrides: &HashSet<String>,
+) -> Result<(), anyhow::Error> {
+    let package_names: HashSet<_> = packages.iter().map(|p| p.name.clone()).collect();
+    check_for_typos(&package_names, overrides)?;
+    Ok(())
+}
+
 #[derive(Debug, Clone)]
 pub struct UpdateResult {
     pub version: Version,
@@ -436,13 +478,11 @@ impl Updater<'_> {
         &self,
         registry_packages: &PackagesCollection,
         repository: &Repo,
-        workspace_packages: &[&Package],
         local_manifest_path: &Path,
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
-        let packages_diffs =
-            self.get_packages_diffs(registry_packages, repository, workspace_packages)?;
+        let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate::default();
 
@@ -511,7 +551,6 @@ impl Updater<'_> {
         &self,
         registry_packages: &PackagesCollection,
         repository: &Repo,
-        workspace_packages: &[&Package],
     ) -> anyhow::Result<Vec<(&Package, Diff)>> {
         // Store diff for each package. This operation is not thread safe, so we do it in one
         // package at a time.
@@ -520,7 +559,7 @@ impl Updater<'_> {
             .publishable_packages()
             .iter()
             .map(|&p| {
-                let diff = self.get_diff(p, registry_packages, repository, workspace_packages)?;
+                let diff = self.get_diff(p, registry_packages, repository)?;
                 Ok((p, diff))
             })
             .collect();
@@ -678,7 +717,6 @@ impl Updater<'_> {
         package: &Package,
         registry_packages: &PackagesCollection,
         repository: &Repo,
-        workspace_packages: &[&Package],
     ) -> anyhow::Result<Diff> {
         let package_path = get_package_path(package, repository, &self.project.root)?;
 
@@ -696,12 +734,6 @@ impl Updater<'_> {
                 return Ok(diff);
             }
         }
-        let ignored_dirs: anyhow::Result<Vec<PathBuf>> = workspace_packages
-            .iter()
-            .filter(|p| p.name != package.name)
-            .map(|p| get_package_path(p, repository, &self.project.root))
-            .collect();
-        let ignored_dirs = ignored_dirs?;
 
         let tag_commit = {
             let git_tag = self
@@ -715,9 +747,8 @@ impl Updater<'_> {
             if let Some(registry_package) = registry_package {
                 debug!("package {} found in cargo registry", registry_package.name);
                 let registry_package_path = registry_package.package_path()?;
-                let are_packages_equal =
-                    are_packages_equal(&package_path, registry_package_path, ignored_dirs.clone())
-                        .context("cannot compare packages")?;
+                let are_packages_equal = are_packages_equal(&package_path, registry_package_path)
+                    .context("cannot compare packages")?;
                 if are_packages_equal
                     || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
                 {
@@ -988,5 +1019,50 @@ impl PackageDependencies for Package {
         }
 
         Ok(deps_to_update)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{check_for_typos, Project};
+    use std::{collections::HashSet, path::Path};
+
+    #[test]
+    fn test_for_typos() {
+        let packages: HashSet<String> = vec!["foo".to_string()].into_iter().collect();
+        let overrides: HashSet<String> = vec!["bar".to_string()].into_iter().collect();
+        let result = check_for_typos(&packages, &overrides);
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "The following overrides are not present in the workspace: `bar`. Check for typos"
+        );
+    }
+
+    #[test]
+    fn test_empty_override() {
+        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let result = Project::new(local_manifest, None, HashSet::default());
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_successful_override() {
+        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let overrides = (["typo_test".to_string()]).into();
+        let result = Project::new(local_manifest, None, overrides);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_typo_in_crate_names() {
+        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let single_package = None;
+        let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
+        let result = Project::new(local_manifest, single_package, overrides);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "The following overrides are not present in the workspace: `typo_tesst`. Check for typos"
+        );
     }
 }
