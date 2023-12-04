@@ -676,15 +676,26 @@ impl Updater<'_> {
                 .then_some(self.req.changelog_req.clone());
             let old_changelog = fs::read_to_string(self.req.changelog_path(package)).ok();
             let commits: Vec<Commit> = commits
-                .iter()
+                .into_iter()
+                // If not conventional commit, only consider the first line of the commit message.
+                .filter_map(|c| {
+                    if c.clone().into_conventional().is_ok() {
+                        Some(c)
+                    } else {
+                        c.message
+                            .lines()
+                            .next()
+                            .map(|line| Commit::new(c.id.clone(), line.to_string()))
+                    }
+                })
                 // replace #123 with [#123](https://link_to_pr).
                 // If the number refers to an issue, GitHub redirects the PR link to the issue link.
                 .map(|c| {
                     if let Some(pr_link) = &pr_link {
                         let result = PR_RE.replace_all(&c.message, format!("[#$1]({pr_link}/$1)"));
-                        Commit::new(c.id.clone(), result.to_string())
+                        Commit::new(c.id, result.to_string())
                     } else {
-                        c.clone()
+                        c
                     }
                 })
                 .collect();
