@@ -28,7 +28,7 @@
         "react-dom": "^18.2.0"
     },
     "devDependencies": {
-        "@docusaurus/module-type-aliases": "3.0.0",
+        "@docusaurus/module-type-aliases": "3.0.1",
         "markdownlint-cli": "^0.37.0"
     },
     "browserslist": {
