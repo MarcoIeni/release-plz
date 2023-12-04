@@ -64,6 +64,9 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyh
         .map(|file| local_package.join(file))
         .filter(|file| {
             !(file.is_symlink()
+            // `cargo package --list` can return files that don't exist locally,
+            // such as the `README.md` file if the `Cargo.toml` specified a different path.
+            || !file.exists()
             // Ignore `Cargo.lock` because the local one is different from the published one in workspaces.
             || file.file_name() == Some(OsStr::new("Cargo.lock"))
             // Ignore `Cargo.toml` because we already checked it before.
