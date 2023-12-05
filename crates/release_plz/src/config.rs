@@ -122,7 +122,7 @@ pub struct UpdateConfig {
     /// - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
     /// - If `false` or [`Option::None`], only update the workspace packages by running `cargo update --workspace`.
     pub dependencies_update: Option<bool>,
-    /// Path to the git cliff configuration file. Defaults to the `keep a changelog` configuration.
+    /// Path to the git-cliff configuration file. Defaults to the `keep a changelog` configuration.
     pub changelog_config: Option<PathBuf>,
     /// - If `true`, allow dirty working directories to be updated. The uncommitted changes will be part of the update.
     /// - If `false` or [`Option::None`], the command will fail if the working directory is dirty.
