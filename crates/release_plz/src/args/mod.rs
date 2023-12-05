@@ -71,28 +71,35 @@ fn parse_config(
             },
         }
     } else {
-        match first_file_contents([
+        let file_contents = first_file_contents([
             Path::new("release-plz.toml"),
             Path::new(".release-plz.toml"),
-        ])? {
-            Some((config, path)) => (config, path),
-            None => {
-                if let Some(project_manifest) = project_manifest.filter(|v| v.exists()) {
-                    return match parse_config_from_metadata(project_manifest)? {
-                        Some(config) => {
-                            info!(
-                                "using configuration from metadata in {:?}",
-                                project_manifest
-                            );
-                            Ok(config)
-                        }
-                        None => Ok(Config::default()),
-                    };
-                } else {
-                    info!("release-plz config file not found, using default configuration");
-                    return Ok(Config::default());
+        ])?;
+        if let Some(project_manifest) = project_manifest
+            .or(Some(Path::new(CARGO_TOML)))
+            .filter(|v| v.exists())
+        {
+            return match parse_config_from_metadata(project_manifest)? {
+                Some(config) => {
+                    if file_contents.is_some() {
+                        return Err(anyhow::anyhow!(
+                            "configuration is both specified as file and metadata"
+                        ));
+                    }
+                    info!(
+                        "using configuration from metadata in {:?}",
+                        project_manifest
+                    );
+                    Ok(config)
                 }
-            }
+                None => Ok(Config::default()),
+            };
+        }
+        if let Some((config, path)) = file_contents {
+            (config, path)
+        } else {
+            info!("release-plz config file not found, using default configuration");
+            return Ok(Config::default());
         }
     };
 
