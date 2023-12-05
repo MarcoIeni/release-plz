@@ -60,7 +60,7 @@ pub struct Update {
     /// If this flag is not specified, only update the workspace packages by running `cargo update --workspace`.
     #[arg(short, long)]
     update_deps: bool,
-    /// Path to the git cliff configuration file.
+    /// Path to the git-cliff configuration file.
     /// If not provided, `dirs::config_dir()/git-cliff/cliff.toml` is used if present.
     #[arg(
         long,
@@ -180,7 +180,7 @@ impl Update {
 
         // Parse the configuration file.
         let config = if path.exists() {
-            Some(GitCliffConfig::parse(path).context("failed to parse git cliff config file")?)
+            Some(GitCliffConfig::parse(path).context("failed to parse git-cliff config file")?)
         } else {
             None
         };
