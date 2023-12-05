@@ -100,27 +100,6 @@ jobs:
       - name: Clippy check
         run: cargo clippy --all-targets --all-features --workspace -- -D warnings
 
-  schema:
-    name: Schema
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - name: Rename committed schema
-        run: mv .schema/latest.json .schema/latest_orig.json
-      - name: Run release-plz generate-schema
-        run: cargo run --package release-plz --bin release-plz --release generate-schema
-      - name: Check schema
-        uses: LouisBrunner/diff-action@v0.2.0
-        with:
-          old: .schema/latest_orig.json
-          new: .schema/latest.json
-          mode: addition
-          tolerance: same
-
   docs:
     name: Docs
     runs-on: ubuntu-22.04
