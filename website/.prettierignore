@@ -6,3 +6,4 @@ package-lock.json
 package.json
 *.md
 *.yaml
+posthog.js
