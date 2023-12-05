@@ -37,6 +37,7 @@ const config = {
     defaultLocale: "en",
     locales: ["en"],
   },
+  scripts: [{ src: "/js/posthog.js" }],
   themes: [
     [
       require.resolve("@easyops-cn/docusaurus-search-local"),
