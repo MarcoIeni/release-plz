@@ -1,4 +1,4 @@
-# Triggering further workflows
+# GitHub token
 
 GitHub Actions using the default
 [`GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication)
@@ -134,7 +134,7 @@ Here's how to use a GitHub App to generate a GitHub token:
          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
    ```
 
-## How to trigger further workflows
+## Events that trigger workflows
 
 You can trigger workflows on different
 [events](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows).
