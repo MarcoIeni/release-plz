@@ -31,7 +31,7 @@ RUN set -eux; \
         pkg-config \
         libssl-dev \
         libc6-dev \
-        libssl1.1 \
+        libssl3 \
         ssh-client \
         libcurl4 \
         git \
