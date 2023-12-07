@@ -112,5 +112,5 @@ Some projects to consider for this task:
 
 :::caution
 To release a binary after release, the release-plz GitHub Action needs to
-[trigger further workflow runs](../github/trigger.md).
+[trigger further workflow runs](../github/token.md).
 :::
