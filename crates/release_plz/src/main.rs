@@ -53,6 +53,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         }
         args::Command::GenerateCompletions(cmd_args) => cmd_args.print(),
         args::Command::CheckUpdates => update_checker::check_update().await?,
+        args::Command::AmendChangelog(cmd_args) => cmd_args.edit_changelog()?,
     }
     Ok(())
 }
