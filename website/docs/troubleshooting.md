@@ -9,3 +9,12 @@ E.g. go from `MarcoIeni/release-plz-action@v0.5` to `MarcoIeni/release-plz-actio
 Determine the right version to pin by looking at the previous [releases](https://github.com/MarcoIeni/release-plz-action/releases)
 
 Please open an [issue](https://github.com/MarcoIeni/release-plz/issues), too.
+
+## `release-plz release` hangs
+
+Something similar happened in [#1015](https://github.com/MarcoIeni/release-plz/issues/1015).
+Try to set a low `publish-timeout` in your `release-plz.toml` file to check if release-plz
+is having issues to:
+
+- check if a package was published.
+- publish a package.
