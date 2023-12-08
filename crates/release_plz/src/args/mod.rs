@@ -45,7 +45,8 @@ pub enum Command {
     GenerateCompletions(GenerateCompletions),
     /// Check if a newer version of release-plz is available.
     CheckUpdates,
-    /// Generate a JSON schema of the configuration (.toml)
+    /// Write the JSON schema of the release-plz.toml configuration
+    /// to .schema/latest.json
     GenerateSchema,
 }
 
