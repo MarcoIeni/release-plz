@@ -31,8 +31,10 @@ dirs.workspace = true
 duration-str.workspace = true
 git-cliff-core.workspace = true
 reqwest.workspace = true
+schemars.workspace = true
 secrecy.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 toml.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tracing-log.workspace = true

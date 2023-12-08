@@ -1,15 +1,18 @@
 use anyhow::Context;
 use release_plz_core::{ReleaseRequest, UpdateRequest};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf, time::Duration};
 use url::Url;
 
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
+    /// # Workspace
     /// Global configuration. Applied to all packages by default.
     #[serde(default)]
     pub workspace: Workspace,
+    /// # Package
     /// Package-specific configuration. This overrides `workspace`.
     /// Not all settings of `workspace` can be overridden.
     #[serde(default)]
@@ -81,7 +84,7 @@ impl Config {
 }
 
 /// Global configuration.
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
 pub struct Workspace {
     /// Configuration for the `release-plz update` command.
     /// These options also affect the `release-plz release-pr` command.
@@ -94,6 +97,8 @@ pub struct Workspace {
     /// Configuration applied to all packages by default.
     #[serde(flatten)]
     pub packages_defaults: PackageConfig,
+    /// # Publish Timeout
+    /// Timeout for the publishing process
     pub publish_timeout: Option<String>,
 }
 
@@ -106,9 +111,10 @@ impl Workspace {
     }
 }
 
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
 /// Configuration shared among various commands.
 pub struct CommonCmdConfig {
+    /// # Repo URL
     /// GitHub/Gitea repository url where your project is hosted.
     /// It is used to generate the changelog release link.
     /// It defaults to the url of the default remote.
@@ -117,13 +123,16 @@ pub struct CommonCmdConfig {
 
 /// Configuration for the `update` command.
 /// Generical for the whole workspace. Cannot be customized on a per-package basic.
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
 pub struct UpdateConfig {
+    /// # Dependencies Update
     /// - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
     /// - If `false` or [`Option::None`], only update the workspace packages by running `cargo update --workspace`.
     pub dependencies_update: Option<bool>,
-    /// Path to the git-cliff configuration file. Defaults to the `keep a changelog` configuration.
+    /// # Changelog Config
+    /// Path to the git cliff configuration file. Defaults to the `keep a changelog` configuration.
     pub changelog_config: Option<PathBuf>,
+    /// # Allow Dirty
     /// - If `true`, allow dirty working directories to be updated. The uncommitted changes will be part of the update.
     /// - If `false` or [`Option::None`], the command will fail if the working directory is dirty.
     pub allow_dirty: Option<bool>,
@@ -131,26 +140,30 @@ pub struct UpdateConfig {
 
 /// Configuration for the `release-pr` command.
 /// Generical for the whole workspace. Cannot be customized on a per-package basic.
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
 pub struct ReleasePrConfig {
+    /// # PR Draft
     /// If `true`, the created release PR will be marked as a draft.
     #[serde(default)]
     pub pr_draft: bool,
+    /// # PR Labels
     /// Labels to add to the release PR.
     #[serde(default)]
     pub pr_labels: Vec<String>,
 }
 
 /// Config at the `[[package]]` level.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, JsonSchema)]
 pub struct PackageSpecificConfig {
     #[serde(flatten)]
     package_config: PackageConfig,
+    /// # Changelog Path
     /// Normally the changelog is placed in the same directory of the Cargo.toml file.
     /// The user can provide a custom path here.
     /// This changelog_path needs to be propagated to all the commands:
     /// `update`, `release-pr` and `release`.
     changelog_path: Option<PathBuf>,
+    /// # Changelog Include
     /// List of package names.
     /// Include the changelogs of these packages in the changelog of the current package.
     changelog_include: Option<Vec<String>>,
@@ -167,7 +180,7 @@ impl PackageSpecificConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, JsonSchema)]
 pub struct PackageSpecificConfigWithName {
     pub name: String,
     #[serde(flatten)]
@@ -212,7 +225,7 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone, JsonSchema)]
 pub struct PackageCommonConfig {
     /// Used to toggle off the update/release process for a workspace or package.
     pub release: Option<bool>,
@@ -272,11 +285,13 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
 
 /// Customization for the `release-plz update` command.
 /// These can be overridden on a per-package basic.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone, JsonSchema)]
 pub struct PackageUpdateConfig {
+    /// # Semver Check
     /// Controls when to run cargo-semver-checks.
     /// If unspecified, run cargo-semver-checks if the package is a library.
     pub semver_check: Option<bool>,
+    /// # Changelog Update
     /// Whether to create/update changelog or not.
     /// If unspecified, the changelog is updated.
     pub changelog_update: Option<bool>,
@@ -292,7 +307,7 @@ impl PackageUpdateConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone, JsonSchema)]
 pub struct PackageReleaseConfig {
     /// Configuration for the GitHub/Gitea/GitLab release.
     #[serde(flatten, default)]
@@ -314,13 +329,16 @@ impl PackageReleaseConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone, JsonSchema)]
 pub struct ReleaseConfig {
+    /// # Publish
     /// If `Some(false)`, don't run `cargo publish`.
     pub publish: Option<bool>,
+    /// # Publish Allow Dirty
     /// If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.
     #[serde(rename = "publish_allow_dirty")]
     pub allow_dirty: Option<bool>,
+    /// # Publish No Verify
     /// If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.
     #[serde(rename = "publish_no_verify")]
     pub no_verify: Option<bool>,
@@ -349,8 +367,9 @@ pub enum SemverCheck {
     No,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default, JsonSchema)]
 pub struct GitTagConfig {
+    /// # Git Tag Enable
     /// Publish the git tag for the new package version.
     /// Enabled by default.
     #[serde(rename = "git_tag_enable")]
@@ -365,15 +384,18 @@ impl GitTagConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default, JsonSchema)]
 pub struct GitReleaseConfig {
+    /// # Git Release Enable
     /// Publish the GitHub/Gitea release for the created git tag.
     /// Enabled by default.
     #[serde(rename = "git_release_enable")]
     enable: Option<bool>,
+    /// # Git Release Type
     /// Whether to mark the created release as not ready for production.
     #[serde(rename = "git_release_type")]
     pub release_type: Option<ReleaseType>,
+    /// # Git Release Draft
     /// If true, will not auto-publish the release.
     #[serde(rename = "git_release_draft")]
     pub draft: Option<bool>,
@@ -390,15 +412,18 @@ impl GitReleaseConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, Copy, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ReleaseType {
+    /// # Prod
     /// Will mark the release as ready for production.
     #[default]
     Prod,
+    /// # Pre
     /// Will mark the release as not ready for production.
     /// I.e. as pre-release.
     Pre,
+    /// # Auto
     /// Will mark the release as not ready for production
     /// in case there is a semver pre-release in the tag e.g. v1.0.0-rc1.
     /// Otherwise, will mark the release as ready for production.

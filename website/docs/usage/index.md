@@ -8,5 +8,6 @@ There are three main commands:
   committing any change.
 - [`release-plz release-pr`](release-pr.md) opens a GitHub Pull Request.
 - [`release-plz release`](release.md) publishes the new versions of the packages.
+- [`release-plz generate-schema`](generate-schema.md) generates the configuration schema.
 
 To learn more about how to use release-plz, run `release-plz --help`.

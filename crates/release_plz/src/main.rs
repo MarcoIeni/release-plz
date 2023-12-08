@@ -1,5 +1,6 @@
 mod args;
 mod config;
+mod generate_schema;
 mod log;
 mod update_checker;
 
@@ -8,7 +9,7 @@ use clap::Parser;
 use release_plz_core::{ReleasePrRequest, ReleaseRequest};
 use tracing::error;
 
-use crate::args::CliArgs;
+use crate::args::{CliArgs, Command};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -24,13 +25,13 @@ async fn main() -> anyhow::Result<()> {
 
 async fn run(args: CliArgs) -> anyhow::Result<()> {
     match args.command {
-        args::Command::Update(cmd_args) => {
+        Command::Update(cmd_args) => {
             let config = cmd_args.config()?;
             let update_request = cmd_args.update_request(config)?;
             let updates = release_plz_core::update(&update_request)?;
             println!("{}", updates.0.summary());
         }
-        args::Command::ReleasePr(cmd_args) => {
+        Command::ReleasePr(cmd_args) => {
             let config = cmd_args.update.config()?;
             let pr_labels = config.workspace.release_pr.pr_labels.clone();
             let pr_draft = config.workspace.release_pr.pr_draft;
@@ -46,13 +47,14 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
                 .with_labels(pr_labels);
             release_plz_core::release_pr(&request).await?;
         }
-        args::Command::Release(cmd_args) => {
+        Command::Release(cmd_args) => {
             let config = cmd_args.config()?;
             let request: ReleaseRequest = cmd_args.release_request(config)?;
             release_plz_core::release(&request).await?;
         }
-        args::Command::GenerateCompletions(cmd_args) => cmd_args.print(),
-        args::Command::CheckUpdates => update_checker::check_update().await?,
+        Command::GenerateCompletions(cmd_args) => cmd_args.print(),
+        Command::CheckUpdates => update_checker::check_update().await?,
+        Command::GenerateSchema => generate_schema::generate_schema_to_disk()?,
     }
     Ok(())
 }
