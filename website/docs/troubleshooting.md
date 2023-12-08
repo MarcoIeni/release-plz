@@ -19,3 +19,9 @@ is having issues to:
 
 - check if a package was published.
 - publish a package.
+
+## See `DEBUG` logs
+
+Release-plz uses the `RUST_LOG` environment variable to filter the level of the printed logs.
+To see debug logs, use `RUST_LOG=debug release-plz`.
+If you want something even more details, use `RUST_LOG=trace release-plz`
