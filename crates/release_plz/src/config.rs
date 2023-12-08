@@ -227,6 +227,7 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone, JsonSchema)]
 pub struct PackageCommonConfig {
+    /// # Release
     /// Used to toggle off the update/release process for a workspace or package.
     pub release: Option<bool>,
 }
@@ -240,7 +241,7 @@ impl PackageCommonConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone, JsonSchema)]
 pub struct PackageConfig {
     /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
     #[serde(flatten)]
