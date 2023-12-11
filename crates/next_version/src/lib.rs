@@ -91,6 +91,8 @@
 //! assert_eq!(Version::new(1, 2, 4).next(&commits), Version::new(2, 0, 0));
 //! ```
 //!
+//! ## Pre-release
+//!
 //! Pre-release versions are incremented in the same way, independently
 //! by the type of commits:
 //!
@@ -109,6 +111,8 @@
 //! assert_eq!(version.next(commits), expected);
 //!
 //! ```
+//!
+//! ## Build metadata
 //!
 //! Build metadata isn't modified.
 //!
