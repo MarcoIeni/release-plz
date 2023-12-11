@@ -78,5 +78,7 @@ of the `Cargo.toml`.
 
 ## Release-plz bumped the version in a way I didn't expect
 
-Release-plz uses the [next_version](https://crates.io/crates/next_version) crate to determine the next version.
-Please read the [documentation](https://docs.rs/next_version/latest/next_version/), and open an issue if it's not clear enough.
+Release-plz uses the [next_version](https://crates.io/crates/next_version)
+crate to determine the next version.
+Please read the [documentation](https://docs.rs/next_version/latest/next_version/),
+and open an issue if it's not clear enough.
