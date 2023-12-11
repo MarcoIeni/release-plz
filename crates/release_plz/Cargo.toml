@@ -1,6 +1,6 @@
 [package]
 name = "release-plz"
-version = "0.3.32"
+version = "0.3.33"
 edition = "2021"
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz"
@@ -31,8 +31,10 @@ dirs.workspace = true
 duration-str.workspace = true
 git-cliff-core.workspace = true
 reqwest.workspace = true
+schemars.workspace = true
 secrecy.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 toml.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tracing-log.workspace = true
