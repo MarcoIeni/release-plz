@@ -5,6 +5,8 @@
 //!
 //! # Version changes
 //!
+//! ## Non conventional commits
+//!
 //! If conventional commits are not used, the patch is incremented.
 //!
 //! ```rust
@@ -15,7 +17,9 @@
 //! assert_eq!(Version::new(1, 2, 3).next(commits), Version::new(1, 2, 4));
 //! ```
 //!
-//! In 0.0.x versions the patch is always incremented:
+//! ## `0.0.x` versions
+//!
+//! In `0.0.x` versions the patch is always incremented:
 //!
 //! ```rust
 //! use semver::Version;
@@ -28,8 +32,16 @@
 //! assert_eq!(Version::new(0, 0, 1).next(&commits), Version::new(0, 0, 2));
 //! ```
 //!
-//! If a feature comment is present and the major number is not 1,
-//! than the minor is incremented.
+//! <div class="warning">We don't increase the minor version because the bump
+//! from <code>0.0.x</code> to <code>0.1.x</code>
+//! should be intentional (not automated) because the author communicates an higher level of
+//! API stability to the user.</div>
+//!
+//! ## Features
+//!
+//! If a feature comment is present:
+//! - If the major number is `0`: the patch is incremented.
+//! - Otherwise: the minor is incremented.
 //!
 //! ```rust
 //! use semver::Version;
@@ -41,9 +53,15 @@
 //! assert_eq!(Version::new(0, 2, 4).next(&commits), Version::new(0, 2, 5));
 //! ```
 //!
+//! <div class="warning">When the major number is <code>0</code>,
+//! we don't increase the minor version because the bump from <code>0.x.y</code> to <code>0.(x+1).0</code>
+//! indicates a breaking change.</div>
+//!
+//! ## Breaking changes
+//!
 //! Breaking changes will increment:
-//! - major if major is not 0.
-//! - minor if major is 0.
+//! - major if major is not `0`.
+//! - minor if major is `0`.
 //!
 //! ```rust
 //! use semver::Version;

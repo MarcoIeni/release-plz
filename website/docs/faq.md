@@ -75,3 +75,8 @@ To exclude a file from the list (and therefore from the release PR and `release-
 edit the `exclude` and `include`
 [fields](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields)
 of the `Cargo.toml`.
+
+## Release-plz bumped the version in a way I didn't expect
+
+Release-plz uses the [next_version](https://crates.io/crates/next_version) crate to determine the next version.
+Please read the [documentation](https://docs.rs/next_version/latest/next_version/), and open an issue if it's not clear enough.
