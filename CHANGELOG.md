@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.33](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.32...release-plz-v0.3.33) - 2023-12-08
+
+### Added
+- new generate-schema command to generate a JSON schema for the configuration ([#1101](https://github.com/MarcoIeni/release-plz/pull/1101))
+
+### Other
+- *(args)* hide the environment value of git token ([#1124](https://github.com/MarcoIeni/release-plz/pull/1124))
+- update git-cliff references ([#1115](https://github.com/MarcoIeni/release-plz/pull/1115))
+
 ## [0.3.32](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.31...release-plz-v0.3.32) - 2023-12-04
 
 ### Fixed
