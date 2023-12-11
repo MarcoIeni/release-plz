@@ -21,7 +21,7 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@v1.10.0
         with:
           repo: obi1kenobi/cargo-semver-checks
-          tag: v0.22.1
+          tag: v0.26.0
           cache: enable
       - name: Start containers
         run: docker compose up -d --wait
@@ -42,7 +42,7 @@ jobs:
         uses: jaxxstorm/action-install-gh-release@v1.10.0
         with:
           repo: obi1kenobi/cargo-semver-checks
-          tag: v0.22.1
+          tag: v0.26.0
           cache: enable
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
