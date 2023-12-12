@@ -46,7 +46,7 @@ impl Changelog<'_> {
     /// Update an existing changelog.
     pub fn prepend(self, old_changelog: impl Into<String>) -> anyhow::Result<String> {
         let old_changelog: String = old_changelog.into();
-        if let Some(previous_version) = self.release.previous.map(|r| r.version).flatten() {
+        if let Some(previous_version) = self.release.previous.as_ref().map(|r| r.version.as_deref()).flatten() {
             let next_version = self
                 .release
                 .version
@@ -166,7 +166,7 @@ impl<'a> ChangelogBuilder<'a> {
                 commits,
                 commit_id: None,
                 timestamp: release_date,
-                previous,
+                previous: previous.map(Box::new),
             },
             release_link: self.release_link,
             config: self.config,
