@@ -858,6 +858,12 @@ fn get_changelog(
         if let Some(link) = release_link {
             changelog_builder = changelog_builder.with_release_link(link)
         }
+        if let Some(old_changelog) = old_changelog {
+            if let Ok(Some(last_version)) = changelog_parser::last_version_from_str(&old_changelog)
+            {
+                changelog_builder = changelog_builder.with_previous_version(last_version)
+            }
+        }
     }
     let new_changelog = changelog_builder.build();
     let changelog = match old_changelog {

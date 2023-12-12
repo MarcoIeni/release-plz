@@ -46,13 +46,13 @@ impl Changelog<'_> {
     /// Update an existing changelog.
     pub fn prepend(self, old_changelog: impl Into<String>) -> anyhow::Result<String> {
         let old_changelog: String = old_changelog.into();
-        if let Ok(Some(last_version)) = changelog_parser::last_version_from_str(&old_changelog) {
+        if let Some(previous_version) = self.release.previous.map(|r| r.version).flatten() {
             let next_version = self
                 .release
                 .version
                 .as_ref()
                 .context("current release contains no version")?;
-            if next_version == &last_version {
+            if next_version == &previous_version {
                 // The changelog already contains this version, so we don't update the changelog.
                 return Ok(old_changelog);
             }
@@ -81,6 +81,7 @@ fn default_git_cliff_config(header: Option<String>, release_link: Option<&str>) 
 pub struct ChangelogBuilder<'a> {
     commits: Vec<Commit<'a>>,
     version: String,
+    previous_version: Option<String>,
     config: Option<Config>,
     release_date: Option<NaiveDate>,
     release_link: Option<String>,
@@ -91,9 +92,17 @@ impl<'a> ChangelogBuilder<'a> {
         Self {
             commits,
             version: version.into(),
+            previous_version: None,
             config: None,
             release_date: None,
             release_link: None,
+        }
+    }
+
+    pub fn with_previous_version(self, previous_version: impl Into<String>) -> Self {
+        Self {
+            previous_version: Some(previous_version.into()),
+            ..self
         }
     }
 
@@ -143,13 +152,21 @@ impl<'a> ChangelogBuilder<'a> {
             }
         }
 
+        let previous = self.previous_version.map(|ver| Release {
+            version: Some(ver),
+            commits: vec![],
+            commit_id: None,
+            timestamp: 0,
+            previous: None,
+        });
+
         Changelog {
             release: Release {
                 version: Some(self.version),
                 commits,
                 commit_id: None,
                 timestamp: release_date,
-                previous: None,
+                previous,
             },
             release_link: self.release_link,
             config: self.config,
