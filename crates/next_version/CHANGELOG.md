@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.11](https://github.com/MarcoIeni/release-plz/compare/next_version-v0.2.10...next_version-v0.2.11) - 2023-12-13
+
+### Other
+- better document bump strategy ([#1132](https://github.com/MarcoIeni/release-plz/pull/1132))
+
 ## [0.2.10](https://github.com/MarcoIeni/release-plz/compare/next_version-v0.2.9...next_version-v0.2.10) - 2023-11-08
 
 ### Other
