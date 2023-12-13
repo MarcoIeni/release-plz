@@ -14,7 +14,7 @@ workspace = true
 [dependencies]
 cargo_utils = { path = "../cargo_utils", version = "0.1.33" }
 git_cmd = { path = "../git_cmd", version = "0.4.14" }
-next_version = { path = "../next_version", version = "0.2.11" }
+next_version = { path = "../next_version", version = "0.2" }
 
 anyhow.workspace = true
 cargo_metadata.workspace = true
