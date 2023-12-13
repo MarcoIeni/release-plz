@@ -1033,7 +1033,7 @@ impl PackageDependencies for Package {
 
 #[cfg(test)]
 mod tests {
-    use super::{check_for_typos, Project};
+    use super::*;
     use std::{collections::HashSet, path::Path};
 
     #[test]
@@ -1073,5 +1073,34 @@ mod tests {
             result.unwrap_err().to_string(),
             "The following overrides are not present in the workspace: `typo_tesst`. Check for typos"
         );
+    }
+
+    #[test]
+    fn same_version_is_not_added_to_changelog() {
+        let commits = vec![
+            Commit::new(crate::NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
+            Commit::new(crate::NO_COMMIT_ID.to_string(), "simple update".to_string()),
+        ];
+
+        let next_version = Version::new(1, 1, 0);
+        let changelog_req = ChangelogRequest::default();
+
+        let old = r#"## [1.1.0] - 1970-01-01
+
+### fix bugs
+- my awesomefix
+
+### other
+- complex update
+"#;
+        let new = get_changelog(
+            commits,
+            &next_version,
+            Some(changelog_req),
+            Some(old.to_string()),
+            None,
+        )
+        .unwrap();
+        assert_eq!(old, new)
     }
 }
