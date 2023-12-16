@@ -19,6 +19,7 @@ mod semver_check;
 mod strip_prefix;
 mod tmp_repo;
 mod version;
+mod toml_compare;
 
 pub use changelog::*;
 pub use command::*;
