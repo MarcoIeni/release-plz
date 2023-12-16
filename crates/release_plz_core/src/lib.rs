@@ -18,8 +18,8 @@ mod repo_url;
 mod semver_check;
 mod strip_prefix;
 mod tmp_repo;
-mod version;
 mod toml_compare;
+mod version;
 
 pub use changelog::*;
 pub use command::*;

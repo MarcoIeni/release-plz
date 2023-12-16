@@ -10,11 +10,12 @@ use crate::{
     semver_check::{self, SemverCheck},
     strip_prefix::strip_prefix,
     tmp_repo::TempRepo,
+    toml_compare::are_toml_dependencies_updated,
     version::NextVersionFromDiff,
-    ChangelogBuilder, PackagesToUpdate, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME, toml_compare::are_toml_dependencies_updated,
+    ChangelogBuilder, PackagesToUpdate, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::Context;
-use cargo_metadata::{semver::Version, Dependency, Package};
+use cargo_metadata::{semver::Version, Package};
 use cargo_utils::{upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
 use git_cliff_core::{commit::Commit, config::Config as GitCliffConfig};
@@ -923,7 +924,6 @@ fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
     let is_cargo_semver_checks_installed = semver_check::is_cargo_semver_checks_installed;
     run_semver_check && is_library(package) && is_cargo_semver_checks_installed()
 }
-
 
 fn workspace_members(manifest: impl AsRef<Path>) -> anyhow::Result<impl Iterator<Item = Package>> {
     let manifest = manifest.as_ref();
