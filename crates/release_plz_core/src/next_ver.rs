@@ -740,12 +740,18 @@ impl Updater<'_> {
             }
         }
 
-        let tag_commit = {
-            let git_tag = self
-                .project
-                .git_tag(&package.name, &package.version.to_string());
-            repository.get_tag_commit(&git_tag)
-        };
+        let git_tag = self
+            .project
+            .git_tag(&package.name, &package.version.to_string());
+        let tag_commit = repository.get_tag_commit(&git_tag);
+        if tag_commit.is_some() {
+            let registry_package = registry_package.with_context(|| format!("package `{}` not found in the registry, but tag {git_tag} exists. Consider running `cargo publish` manually to publish this package.", package.name))?;
+            anyhow::ensure!(
+                registry_package.version == package.version,
+                "package `{}` has a different version ({}) with respect to the registry package ({}), but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish the new version of this package.",
+                package.name, package.version, registry_package.version
+            )
+        }
         loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
