@@ -1,5 +1,4 @@
 use cargo_metadata::Dependency;
-use tracing::debug;
 
 /// Compare the dependencies of the registry package and the local one.
 /// Check if the dependencies of the registry package were updated.
