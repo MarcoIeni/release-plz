@@ -1,4 +1,5 @@
 use cargo_metadata::Dependency;
+use tracing::debug;
 
 /// Compare the dependencies of the registry package and the local one.
 /// Check if the dependencies of the registry package were updated.
@@ -8,7 +9,7 @@ pub fn are_toml_dependencies_updated(
     local_dependencies: &[Dependency],
 ) -> bool {
     local_dependencies.iter().any(|d| {
-        d.path.is_none() && is_dependency_in_registry_dependencies(d, registry_dependencies)
+        d.path.is_none() && !is_dependency_in_registry_dependencies(d, registry_dependencies)
     })
 }
 
