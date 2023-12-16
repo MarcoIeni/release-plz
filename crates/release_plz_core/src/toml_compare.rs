@@ -15,15 +15,12 @@ pub fn are_toml_dependencies_updated(
 /// Check if a local dependency is in the registry dependencies.
 /// If not, it means that the Cargo.toml file was updated since the last release.
 fn is_dependency_in_registry_dependencies(
-    local_dependency: &Dependency,
+    local_dep: &Dependency,
     registry_dependencies: &[Dependency],
 ) -> bool {
-    for registry_dep in registry_dependencies {
-        if are_dependencies_equal(local_dependency, registry_dep) {
-            return true;
-        }
-    }
-    false
+    registry_dependencies
+        .iter()
+        .any(|registry_dep| are_dependencies_equal(local_dep, registry_dep))
 }
 
 fn are_dependencies_equal(local_dep: &Dependency, registry_dep: &Dependency) -> bool {
