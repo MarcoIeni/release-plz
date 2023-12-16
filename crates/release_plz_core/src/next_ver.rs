@@ -10,11 +10,12 @@ use crate::{
     semver_check::{self, SemverCheck},
     strip_prefix::strip_prefix,
     tmp_repo::TempRepo,
+    toml_compare::are_toml_dependencies_updated,
     version::NextVersionFromDiff,
     ChangelogBuilder, PackagesToUpdate, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::Context;
-use cargo_metadata::{semver::Version, Dependency, Package};
+use cargo_metadata::{semver::Version, Package};
 use cargo_utils::{upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
 use git_cliff_core::{commit::Commit, config::Config as GitCliffConfig};
@@ -922,18 +923,6 @@ fn is_commit_too_old(
 fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
     let is_cargo_semver_checks_installed = semver_check::is_cargo_semver_checks_installed;
     run_semver_check && is_library(package) && is_cargo_semver_checks_installed()
-}
-
-/// Compare the dependencies of the registry package and the local one.
-/// Check if the dependencies of the registry package were updated.
-/// This function checks only dependencies of `Cargo.toml`.
-fn are_toml_dependencies_updated(
-    registry_dependencies: &[Dependency],
-    local_dependencies: &[Dependency],
-) -> bool {
-    local_dependencies
-        .iter()
-        .any(|d| d.path.is_none() && !registry_dependencies.contains(d))
 }
 
 fn workspace_members(manifest: impl AsRef<Path>) -> anyhow::Result<impl Iterator<Item = Package>> {
