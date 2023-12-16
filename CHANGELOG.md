@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.35](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.34...release-plz-v0.3.35) - 2023-12-16
+
+### Added
+- return error if tag exists and package isn't published ([#1143](https://github.com/MarcoIeni/release-plz/pull/1143))
+- support packages with git dependencies ([#1141](https://github.com/MarcoIeni/release-plz/pull/1141))
+- distinguish dependency update type ([#1140](https://github.com/MarcoIeni/release-plz/pull/1140))
+
+### Fixed
+- internal dependency conflict ([#1135](https://github.com/MarcoIeni/release-plz/pull/1135))
+
+### Other
+- update dependencies
+- *(deps)* bump cargo to 0.75.1 ([#1137](https://github.com/MarcoIeni/release-plz/pull/1137))
+
 ## [0.3.34](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.33...release-plz-v0.3.34) - 2023-12-13
 
 ### Fixed
