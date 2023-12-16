@@ -760,19 +760,28 @@ impl Updater<'_> {
                     "next version calculated starting from commits after `{current_commit_hash}`"
                 );
                     if diff.commits.is_empty() {
-                        let are_dependencies_updated = are_toml_dependencies_updated(
-                            &registry_package.dependencies,
-                            &package.dependencies,
-                        )
-                            || lock_compare::are_lock_dependencies_updated(
+                        let are_toml_dependencies_updated = || {
+                            are_toml_dependencies_updated(
+                                &registry_package.dependencies,
+                                &package.dependencies,
+                            )
+                        };
+                        let are_lock_dependencies_updated = || {
+                            lock_compare::are_lock_dependencies_updated(
                                 &self.project.cargo_lock_path(),
                                 registry_package_path,
                             )
-                            .context("Can't check if Cargo.lock dependencies are up to date")?;
-                        if are_dependencies_updated {
+                            .context("Can't check if Cargo.lock dependencies are up to date")
+                        };
+                        if are_toml_dependencies_updated() {
                             diff.commits.push(Commit::new(
                                 NO_COMMIT_ID.to_string(),
-                                "chore: update dependencies".to_string(),
+                                "chore: update Cargo.toml dependencies".to_string(),
+                            ));
+                        } else if are_lock_dependencies_updated()? {
+                            diff.commits.push(Commit::new(
+                                NO_COMMIT_ID.to_string(),
+                                "chore: update Cargo.lock dependencies".to_string(),
                             ));
                         } else {
                             info!("{}: already up to date", package.name);
