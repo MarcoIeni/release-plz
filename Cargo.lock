@@ -1677,7 +1677,7 @@ dependencies = [
  "gix-chunk",
  "gix-features 0.36.1",
  "gix-hash",
- "memmap2 0.9.1",
+ "memmap2 0.9.2",
  "thiserror",
 ]
 
@@ -3291,9 +3291,9 @@ dependencies = [
 
 [[package]]
 name = "memmap2"
-version = "0.9.1"
+version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f850157af41022bbb1b04ed15c011ce4d59520be82a4e3718b10c34b02cb85e"
+checksum = "39a69c7c189ae418f83003da62820aca28d15a07725ce51fb924999335d622ff"
 dependencies = [
  "libc",
 ]
