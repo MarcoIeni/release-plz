@@ -714,9 +714,9 @@ impl Updater<'_> {
 
     /// This operation is not thread-safe, because we do `git checkout` on the repository.
     #[instrument(
-    skip_all,
-    fields(package = %package.name)
-)]
+        skip_all,
+        fields(package = %package.name)
+    )]
     fn get_diff(
         &self,
         package: &Package,
