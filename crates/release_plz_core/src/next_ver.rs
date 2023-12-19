@@ -714,9 +714,9 @@ impl Updater<'_> {
 
     /// This operation is not thread-safe, because we do `git checkout` on the repository.
     #[instrument(
-    skip_all,
-    fields(package = %package.name)
-)]
+        skip_all,
+        fields(package = %package.name)
+    )]
     fn get_diff(
         &self,
         package: &Package,
@@ -725,7 +725,9 @@ impl Updater<'_> {
     ) -> anyhow::Result<Diff> {
         let package_path = get_package_path(package, repository, &self.project.root)?;
 
-        repository.checkout_head()?;
+        repository
+            .checkout_head()
+            .context("can't checkout head to calculate diff")?;
         let registry_package = registry_packages.get_package(&package.name);
         let mut diff = Diff::new(registry_package.is_some());
         if let Err(err) = repository.checkout_last_commit_at_path(&package_path) {
@@ -752,6 +754,7 @@ impl Updater<'_> {
                 package.name, package.version, registry_package.version
             )
         }
+        let cargo_lock_path = self.get_cargo_lock_path(repository)?;
         loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
@@ -760,6 +763,13 @@ impl Updater<'_> {
                 let registry_package_path = registry_package.package_path()?;
                 let are_packages_equal = are_packages_equal(&package_path, registry_package_path)
                     .context("cannot compare packages")?;
+                if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
+                    // We run `cargo package` when comparing packages.
+                    // `cargo package` can edit files, such as `Cargo.lock`, so we need to revert the changes.
+                    repository
+                        .checkout(cargo_lock_path)
+                        .context("cannot revert changes introduced when comparing packages")?;
+                }
                 if are_packages_equal
                     || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
                 {
@@ -823,8 +833,24 @@ impl Updater<'_> {
                 break;
             }
         }
-        repository.checkout_head()?;
+        repository
+            .checkout_head()
+            .context("can't checkout to head after calculating diff")?;
         Ok(diff)
+    }
+
+    fn get_cargo_lock_path(&self, repository: &Repo) -> anyhow::Result<Option<String>> {
+        let project_cargo_lock = self.project.cargo_lock_path();
+        let relative_lock_path = strip_prefix(&project_cargo_lock, &self.project.root)?;
+        let repository_cargo_lock = repository.directory().join(relative_lock_path);
+        if repository_cargo_lock.exists() {
+            let cargo_lock_path = repository_cargo_lock
+                .to_str()
+                .context("can't convert Cargo.lock path to string")?;
+            Ok(Some(cargo_lock_path.to_string()))
+        } else {
+            Ok(None)
+        }
     }
 }
 
