@@ -764,9 +764,7 @@ impl Updater<'_> {
                     .context("cannot compare packages")?;
                 // We run `cargo package` when comparing packages.
                 // `cargo package` can edit files, such as `Cargo.lock`, so we need to revert the changes.
-                repository
-                    .checkout(".")
-                    .context("cannot revert changes introduced when comparing packages")?;
+                self.restore_cargo_lock(repository)?;
                 if are_packages_equal
                     || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
                 {
@@ -834,6 +832,23 @@ impl Updater<'_> {
             .checkout_head()
             .context("can't checkout to head after calculating diff")?;
         Ok(diff)
+    }
+
+    fn restore_cargo_lock(&self, repository: &Repo) -> anyhow::Result<()> {
+        let project_cargo_lock = self.project.cargo_lock_path();
+        let relative_lock_path = strip_prefix(&project_cargo_lock, &self.project.root)?;
+        let repository_cargo_lock = repository.directory().join(relative_lock_path);
+        if repository_cargo_lock.exists() {
+            let cargo_lock_path = repository_cargo_lock
+                .to_str()
+                .context("can't convert Cargo.lock path to string")?;
+            // We run `cargo package` when comparing packages.
+            // `cargo package` can edit files, such as `Cargo.lock`, so we need to revert the changes.
+            repository
+                .checkout(cargo_lock_path)
+                .context("cannot revert changes introduced when comparing packages")?;
+        }
+        Ok(())
     }
 }
 
