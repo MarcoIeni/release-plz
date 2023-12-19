@@ -144,8 +144,9 @@ impl Repo {
         Ok(())
     }
 
+    #[instrument(skip(self))]
     pub fn checkout_head(&self) -> anyhow::Result<()> {
-        self.git(&["checkout", &self.original_branch])?;
+        self.checkout(&self.original_branch)?;
         Ok(())
     }
 

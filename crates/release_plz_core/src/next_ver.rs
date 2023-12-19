@@ -725,7 +725,9 @@ impl Updater<'_> {
     ) -> anyhow::Result<Diff> {
         let package_path = get_package_path(package, repository, &self.project.root)?;
 
-        repository.checkout_head()?;
+        repository
+            .checkout_head()
+            .context("can't checkout head to calculate diff")?;
         let registry_package = registry_packages.get_package(&package.name);
         let mut diff = Diff::new(registry_package.is_some());
         if let Err(err) = repository.checkout_last_commit_at_path(&package_path) {
@@ -760,6 +762,11 @@ impl Updater<'_> {
                 let registry_package_path = registry_package.package_path()?;
                 let are_packages_equal = are_packages_equal(&package_path, registry_package_path)
                     .context("cannot compare packages")?;
+                // We run `cargo package` when comparing packages.
+                // This command can edit files, such as `Cargo.lock`, so we need to revert the changes.
+                repository
+                    .checkout(".")
+                    .context("cannot revert changes introduced when comparing packages")?;
                 if are_packages_equal
                     || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
                 {
@@ -823,7 +830,9 @@ impl Updater<'_> {
                 break;
             }
         }
-        repository.checkout_head()?;
+        repository
+            .checkout_head()
+            .context("can't checkout to head after calculating diff")?;
         Ok(diff)
     }
 }
