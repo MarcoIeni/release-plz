@@ -763,7 +763,7 @@ impl Updater<'_> {
                 let are_packages_equal = are_packages_equal(&package_path, registry_package_path)
                     .context("cannot compare packages")?;
                 // We run `cargo package` when comparing packages.
-                // This command can edit files, such as `Cargo.lock`, so we need to revert the changes.
+                // `cargo package` can edit files, such as `Cargo.lock`, so we need to revert the changes.
                 repository
                     .checkout(".")
                     .context("cannot revert changes introduced when comparing packages")?;
