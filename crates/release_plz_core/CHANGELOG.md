@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.15.3...release_plz_core-v0.15.4) - 2023-12-19
+
+### Fixed
+- restore changes introduced by `cargo package` ([#1152](https://github.com/MarcoIeni/release-plz/pull/1152))
+
 ## [0.15.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.15.2...release_plz_core-v0.15.3) - 2023-12-16
 
 ### Added
