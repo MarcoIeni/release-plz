@@ -754,6 +754,7 @@ impl Updater<'_> {
                 package.name, package.version, registry_package.version
             )
         }
+        let cargo_lock_path = self.get_cargo_lock_path(repository)?;
         loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
@@ -762,9 +763,13 @@ impl Updater<'_> {
                 let registry_package_path = registry_package.package_path()?;
                 let are_packages_equal = are_packages_equal(&package_path, registry_package_path)
                     .context("cannot compare packages")?;
-                // We run `cargo package` when comparing packages.
-                // `cargo package` can edit files, such as `Cargo.lock`, so we need to revert the changes.
-                self.restore_cargo_lock(repository)?;
+                if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
+                    // We run `cargo package` when comparing packages.
+                    // `cargo package` can edit files, such as `Cargo.lock`, so we need to revert the changes.
+                    repository
+                        .checkout(cargo_lock_path)
+                        .context("cannot revert changes introduced when comparing packages")?;
+                }
                 if are_packages_equal
                     || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
                 {
@@ -834,7 +839,7 @@ impl Updater<'_> {
         Ok(diff)
     }
 
-    fn restore_cargo_lock(&self, repository: &Repo) -> anyhow::Result<()> {
+    fn get_cargo_lock_path(&self, repository: &Repo) -> anyhow::Result<Option<String>> {
         let project_cargo_lock = self.project.cargo_lock_path();
         let relative_lock_path = strip_prefix(&project_cargo_lock, &self.project.root)?;
         let repository_cargo_lock = repository.directory().join(relative_lock_path);
@@ -842,13 +847,10 @@ impl Updater<'_> {
             let cargo_lock_path = repository_cargo_lock
                 .to_str()
                 .context("can't convert Cargo.lock path to string")?;
-            // We run `cargo package` when comparing packages.
-            // `cargo package` can edit files, such as `Cargo.lock`, so we need to revert the changes.
-            repository
-                .checkout(cargo_lock_path)
-                .context("cannot revert changes introduced when comparing packages")?;
+            Ok(Some(cargo_lock_path.to_string()))
+        } else {
+            Ok(None)
         }
-        Ok(())
     }
 }
 
