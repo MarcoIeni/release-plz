@@ -470,7 +470,7 @@ mod tests {
                             release_type: Some(ReleaseType::Prod),
                             draft: Some(false),
                         },
-                        git_tag_enable: None ,
+                        git_tag_enable: None,
                         release: ReleaseConfig {
                             publish: None,
                             allow_dirty: None,
