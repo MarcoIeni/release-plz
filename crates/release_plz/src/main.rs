@@ -33,8 +33,8 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         }
         Command::ReleasePr(cmd_args) => {
             let config = cmd_args.update.config()?;
-            let pr_labels = config.workspace.release_pr.pr_labels.clone();
-            let pr_draft = config.workspace.release_pr.pr_draft;
+            let pr_labels = config.workspace.pr_labels.clone();
+            let pr_draft = config.workspace.pr_draft;
             let update_request = cmd_args.update.update_request(config)?;
             let repo_url = update_request
                 .repo_url()
