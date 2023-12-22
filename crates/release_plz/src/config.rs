@@ -90,8 +90,14 @@ pub struct Workspace {
     /// These options also affect the `release-plz release-pr` command.
     #[serde(flatten)]
     pub update: UpdateConfig,
-    #[serde(flatten)]
-    pub release_pr: ReleasePrConfig,
+    /// # PR Draft
+    /// If `true`, the created release PR will be marked as a draft.
+    #[serde(default)]
+    pub pr_draft: bool,
+    /// # PR Labels
+    /// Labels to add to the release PR.
+    #[serde(default)]
+    pub pr_labels: Vec<String>,
     #[serde(flatten)]
     pub common: CommonCmdConfig,
     /// Configuration applied to all packages by default.
@@ -136,20 +142,6 @@ pub struct UpdateConfig {
     /// - If `true`, allow dirty working directories to be updated. The uncommitted changes will be part of the update.
     /// - If `false` or [`Option::None`], the command will fail if the working directory is dirty.
     pub allow_dirty: Option<bool>,
-}
-
-/// Configuration for the `release-pr` command.
-/// Generical for the whole workspace. Cannot be customized on a per-package basic.
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
-pub struct ReleasePrConfig {
-    /// # PR Draft
-    /// If `true`, the created release PR will be marked as a draft.
-    #[serde(default)]
-    pub pr_draft: bool,
-    /// # PR Labels
-    /// Labels to add to the release PR.
-    #[serde(default)]
-    pub pr_labels: Vec<String>,
 }
 
 /// Config at the `[[package]]` level.
@@ -208,7 +200,7 @@ impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
         let is_publish_enabled = value.release.publish != Some(false);
         let is_git_release_enabled = value.git_release.enable != Some(false);
         let is_git_release_draft = value.git_release.draft == Some(true);
-        let is_git_tag_enabled = value.git_tag.enable != Some(false);
+        let is_git_tag_enabled = value.git_tag_enable != Some(false);
         let mut cfg = Self::default()
             .with_publish(release_plz_core::PublishConfig::enabled(is_publish_enabled))
             .with_git_release(
@@ -285,8 +277,10 @@ pub struct PackageReleaseConfig {
     /// Configuration for the GitHub/Gitea/GitLab release.
     #[serde(flatten, default)]
     pub git_release: GitReleaseConfig,
-    #[serde(flatten, default)]
-    pub git_tag: GitTagConfig,
+    /// # Git Tag Enable
+    /// Publish the git tag for the new package version.
+    /// Enabled by default.
+    pub git_tag_enable: Option<bool>,
     #[serde(flatten, default)]
     pub release: ReleaseConfig,
 }
@@ -297,7 +291,7 @@ impl PackageReleaseConfig {
         Self {
             git_release: self.git_release.merge(default.git_release),
             release: self.release.merge(default.release),
-            git_tag: self.git_tag.merge(default.git_tag),
+            git_tag_enable: self.git_tag_enable.or(default.git_tag_enable),
         }
     }
 }
@@ -338,23 +332,6 @@ pub enum SemverCheck {
     Yes,
     /// Don't run cargo-semver-checks.
     No,
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default, JsonSchema)]
-pub struct GitTagConfig {
-    /// # Git Tag Enable
-    /// Publish the git tag for the new package version.
-    /// Enabled by default.
-    #[serde(rename = "git_tag_enable")]
-    enable: Option<bool>,
-}
-
-impl GitTagConfig {
-    pub fn merge(self, default: GitTagConfig) -> Self {
-        Self {
-            enable: self.enable.or(default.enable),
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default, JsonSchema)]
@@ -444,10 +421,8 @@ mod tests {
                         ..Default::default()
                     },
                 },
-                release_pr: ReleasePrConfig {
-                    pr_draft: false,
-                    pr_labels: vec![],
-                },
+                pr_draft: false,
+                pr_labels: vec![],
                 publish_timeout: Some("10m".to_string()),
             },
             package: [].into(),
@@ -482,10 +457,8 @@ mod tests {
                 common: CommonCmdConfig {
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
-                release_pr: ReleasePrConfig {
-                    pr_draft: false,
-                    pr_labels: vec![],
-                },
+                pr_draft: false,
+                pr_labels: vec![],
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
                         semver_check: None,
@@ -497,7 +470,7 @@ mod tests {
                             release_type: Some(ReleaseType::Prod),
                             draft: Some(false),
                         },
-                        git_tag: GitTagConfig { enable: None },
+                        git_tag_enable: None ,
                         release: ReleaseConfig {
                             publish: None,
                             allow_dirty: None,
@@ -526,10 +499,8 @@ mod tests {
                 common: CommonCmdConfig {
                     repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 },
-                release_pr: ReleasePrConfig {
-                    pr_draft: false,
-                    pr_labels: vec!["label1".to_string()],
-                },
+                pr_draft: false,
+                pr_labels: vec!["label1".to_string()],
                 packages_defaults: PackageConfig {
                     update: PackageUpdateConfig {
                         semver_check: None,
