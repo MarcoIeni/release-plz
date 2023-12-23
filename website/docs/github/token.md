@@ -120,8 +120,8 @@ Here's how to use a GitHub App to generate a GitHub token:
        uses: actions/create-github-app-token@v1
        id: generate-token
        with:
-         app_id: ${{ secrets.APP_ID }} # <-- GitHub App ID secret name
-         private_key: ${{ secrets.APP_PRIVATE_KEY }} # <-- GitHub App private key secret name
+         app-id: ${{ secrets.APP_ID }} # <-- GitHub App ID secret name
+         private-key: ${{ secrets.APP_PRIVATE_KEY }} # <-- GitHub App private key secret name
      - name: Checkout repository
        uses: actions/checkout@v4
        with:
