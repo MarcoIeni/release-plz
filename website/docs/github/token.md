@@ -41,8 +41,8 @@ Create the PAT, choosing one of the two types:
 
 - [Fine-grained](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#fine-grained-personal-access-tokens):
   more secure because you can select the repositories where the PAT can be used.
-  Follow [these](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token),
-  giving the PAT the following permissions:
+  Follow [these](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)
+  instructions, giving the PAT the following permissions:
   - Select the repositories where you want to use the PAT, to give release-plz write access:
     ![pat repository access](../assets/repository-access.png)
   - Assign "Contents" and "Pull requests" read and write permissions:
