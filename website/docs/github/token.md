@@ -55,7 +55,7 @@ Create the PAT, choosing one of the two types:
 
 Once you generated your token, save it in the
 [secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets),
-and pass it to both the `actions/checkout` and `release-plz` actions:
+and pass it to both the `actions/checkout` and `release-plz` steps:
 
 ```yaml
 jobs:
