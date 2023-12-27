@@ -4088,6 +4088,7 @@ dependencies = [
  "assert_cmd",
  "async-trait",
  "base64 0.21.5",
+ "cargo_metadata",
  "cargo_utils",
  "chrono",
  "clap",

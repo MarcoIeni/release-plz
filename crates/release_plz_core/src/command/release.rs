@@ -5,7 +5,7 @@ use std::{
 };
 
 use anyhow::Context;
-use cargo_metadata::Package;
+use cargo_metadata::{Metadata, Package};
 use crates_index::{GitIndex, SparseIndex};
 use git_cmd::Repo;
 use secrecy::{ExposeSecret, SecretString};
@@ -20,10 +20,10 @@ use crate::{
     GitBackend, PackagePath, Project, CHANGELOG_FILENAME,
 };
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct ReleaseRequest {
-    /// The manifest of the project you want to release.
-    local_manifest: PathBuf,
+    /// Cargo metadata.
+    metadata: Metadata,
     /// Registry where you want to publish the packages.
     /// The registry name needs to be present in the Cargo config.
     /// If unspecified, the `publish` field of the package manifest is used.
@@ -46,11 +46,23 @@ pub struct ReleaseRequest {
 }
 
 impl ReleaseRequest {
-    pub fn new(local_manifest: PathBuf) -> Self {
+    pub fn new(metadata: Metadata) -> Self {
+        let minutes_30 = Duration::from_secs(30 * 60);
         Self {
-            local_manifest,
-            ..Default::default()
+            metadata,
+            registry: None,
+            token: None,
+            dry_run: false,
+            git_release: None,
+            repo_url: None,
+            packages_config: Default::default(),
+            publish_timeout: minutes_30,
         }
+    }
+
+    /// The manifest of the project you want to release.
+    pub fn local_manifest(&self) -> PathBuf {
+        cargo_utils::workspace_manifest(&self.metadata).into_std_path_buf()
     }
 
     pub fn with_registry(mut self, registry: impl Into<String>) -> Self {
@@ -102,7 +114,13 @@ impl ReleaseRequest {
         let config = self.get_package_config(&package.name);
         config
             .changelog_path
-            .map(|p| self.local_manifest.parent().unwrap().join(p))
+            .map(|p| {
+                self.metadata
+                    .workspace_root
+                    .clone()
+                    .into_std_path_buf()
+                    .join(p)
+            })
             .unwrap_or_else(|| {
                 package
                     .package_path()
@@ -311,8 +329,11 @@ pub struct GitRelease {
 }
 
 impl ReleaseRequest {
-    fn workspace_root(&self) -> anyhow::Result<&Path> {
-        crate::manifest_dir(&self.local_manifest).context("cannot find local_manifest parent")
+    fn workspace_root(&self) -> anyhow::Result<PathBuf> {
+        let local_manifest = self.local_manifest();
+        crate::manifest_dir(&local_manifest)
+            .map(|path| path.to_path_buf())
+            .context("cannot find local_manifest parent")
     }
 }
 
@@ -320,7 +341,12 @@ impl ReleaseRequest {
 #[instrument]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     let overrides = input.packages_config.overrides.keys().cloned().collect();
-    let project = Project::new(&input.local_manifest, None, overrides)?;
+    let project = Project::new(
+        &input.local_manifest(),
+        None,
+        overrides,
+        input.metadata.clone(),
+    )?;
     let pkgs = project.publishable_packages();
     let release_order = release_order(&pkgs).context("cant' determine release order")?;
     for package in release_order {
@@ -394,11 +420,11 @@ async fn release_package(
 ) -> anyhow::Result<()> {
     let workspace_root = input.workspace_root()?;
 
-    let repo = Repo::new(workspace_root)?;
+    let repo = Repo::new(workspace_root.clone())?;
 
     let publish = input.is_publish_enabled(&package.name);
     if publish {
-        let (_, stderr) = run_cargo_publish(package, input, workspace_root)
+        let (_, stderr) = run_cargo_publish(package, input, &workspace_root)
             .context("failed to run cargo publish")?;
         if !stderr.contains("Uploading") || stderr.contains("error:") {
             anyhow::bail!("failed to publish {}: {}", package.name, stderr);

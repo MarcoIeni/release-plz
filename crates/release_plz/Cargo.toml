@@ -21,9 +21,11 @@ docker-tests = []
 [dependencies]
 git_cmd = { path = "../git_cmd", version = "0.4.16" }
 release_plz_core = { path = "../release_plz_core", version = "0.15.4" }
+cargo_utils = { path = "../cargo_utils", version = "0.1" }
 
 anyhow.workspace = true
 base64.workspace = true
+cargo_metadata.workspace = true
 chrono = { workspace = true, features = ["clock"] }
 clap = { workspace = true, features = ["derive", "env"] }
 clap_complete.workspace = true

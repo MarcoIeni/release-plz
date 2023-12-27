@@ -113,9 +113,13 @@ impl Update {
         self.allow_dirty || config.workspace.update.allow_dirty == Some(true)
     }
 
-    pub fn update_request(&self, config: Config) -> anyhow::Result<UpdateRequest> {
+    pub fn update_request(
+        &self,
+        config: Config,
+        cargo_metadata: cargo_metadata::Metadata,
+    ) -> anyhow::Result<UpdateRequest> {
         let project_manifest = self.project_manifest();
-        let mut update = UpdateRequest::new(project_manifest.clone())
+        let mut update = UpdateRequest::new(cargo_metadata)
             .with_context(|| {
                 format!("Cannot find file {project_manifest:?}. Make sure you are inside a rust project or that --project-manifest points to a valid Cargo.toml file.")
             })?

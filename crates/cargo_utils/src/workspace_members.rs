@@ -1,5 +1,5 @@
 use anyhow::Context;
-use cargo_metadata::Package;
+use cargo_metadata::{Metadata, Package};
 use std::path::Path;
 
 pub fn get_manifest_metadata(manifest_path: &Path) -> anyhow::Result<cargo_metadata::Metadata> {
@@ -11,11 +11,7 @@ pub fn get_manifest_metadata(manifest_path: &Path) -> anyhow::Result<cargo_metad
 }
 
 /// Lookup all members of the current workspace
-pub fn workspace_members(
-    manifest_path: impl AsRef<Path>,
-) -> anyhow::Result<impl Iterator<Item = Package>> {
-    let metadata =
-        get_manifest_metadata(manifest_path.as_ref()).context("can't read workspace members")?;
+pub fn workspace_members(metadata: Metadata) -> anyhow::Result<impl Iterator<Item = Package>> {
     let workspace_members: std::collections::BTreeSet<_> =
         metadata.workspace_members.into_iter().collect();
     let workspace_members = metadata

@@ -9,7 +9,7 @@ use secrecy::SecretString;
 
 use crate::config::Config;
 
-use super::{local_manifest, repo_command::RepoCommand};
+use super::repo_command::RepoCommand;
 
 #[derive(clap::Parser, Debug)]
 pub struct Release {
@@ -75,7 +75,11 @@ impl Release {
         super::parse_config(self.config.as_deref())
     }
 
-    pub fn release_request(self, config: Config) -> anyhow::Result<ReleaseRequest> {
+    pub fn release_request(
+        self,
+        config: Config,
+        metadata: cargo_metadata::Metadata,
+    ) -> anyhow::Result<ReleaseRequest> {
         let git_release = if let Some(git_token) = &self.git_token {
             let git_token = SecretString::from(git_token.clone());
             let repo_url = self.get_repo_url(&config)?;
@@ -96,8 +100,7 @@ impl Release {
         } else {
             None
         };
-        let mut req = ReleaseRequest::new(local_manifest(self.project_manifest.as_deref()))
-            .with_dry_run(self.dry_run);
+        let mut req = ReleaseRequest::new(metadata).with_dry_run(self.dry_run);
 
         if let Some(registry) = self.registry {
             req = req.with_registry(registry);
