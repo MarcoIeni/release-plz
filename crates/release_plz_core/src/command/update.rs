@@ -129,13 +129,7 @@ impl PackagesUpdate {
 pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
     let (packages_to_update, repository) = crate::next_versions(input)?;
     let local_manifest_path = input.local_manifest();
-    let all_packages =
-        cargo_utils::workspace_members(Some(local_manifest_path)).with_context(|| {
-            format!(
-                "cannot read workspace members in manifest {:?}",
-                input.local_manifest()
-            )
-        })?;
+    let all_packages: Vec<Package> = crate::workspace_members(local_manifest_path)?.collect();
     update_manifests(&packages_to_update, local_manifest_path, &all_packages)?;
     update_changelogs(input, &packages_to_update)?;
     if !packages_to_update.updates.is_empty() {
