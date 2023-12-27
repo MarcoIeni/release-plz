@@ -2,19 +2,23 @@ use anyhow::Context;
 use cargo_metadata::Package;
 use std::path::Path;
 
+pub fn get_manifest_metadata(manifest_path: &Path) -> anyhow::Result<cargo_metadata::Metadata> {
+    cargo_metadata::MetadataCommand::new()
+        .no_deps()
+        .manifest_path(manifest_path)
+        .exec()
+        .with_context(|| format!("invalid manifest {manifest_path:?}"))
+}
+
 /// Lookup all members of the current workspace
 pub fn workspace_members(
-    manifest_path: Option<&Path>,
+    manifest_path: impl AsRef<Path>,
 ) -> anyhow::Result<impl Iterator<Item = Package>> {
-    let mut cmd = cargo_metadata::MetadataCommand::new();
-    cmd.no_deps();
-    if let Some(manifest_path) = manifest_path {
-        cmd.manifest_path(manifest_path);
-    }
-    let result = cmd.exec().with_context(|| "Invalid manifest")?;
+    let metadata =
+        get_manifest_metadata(manifest_path.as_ref()).context("can't read workspace members")?;
     let workspace_members: std::collections::BTreeSet<_> =
-        result.workspace_members.into_iter().collect();
-    let workspace_members = result
+        metadata.workspace_members.into_iter().collect();
+    let workspace_members = metadata
         .packages
         .into_iter()
         .filter(move |p| workspace_members.contains(&p.id))
