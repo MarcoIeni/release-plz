@@ -55,7 +55,7 @@ impl ReleaseRequest {
             dry_run: false,
             git_release: None,
             repo_url: None,
-            packages_config: Default::default(),
+            packages_config: PackagesConfig::default(),
             publish_timeout: minutes_30,
         }
     }
