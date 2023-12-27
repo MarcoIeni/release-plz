@@ -21,24 +21,6 @@ function HomepageHeader() {
         <p className="hero__subtitle">
           Release Rust crates from <b>CI</b> with a <b>Release PR</b> 🤖
         </p>
-        <div className={styles.buttons}>
-          <Link
-            style={{ marginRight: 10 }}
-            className="button button--secondary button--lg"
-            to="/docs"
-          >
-            Get Started️
-          </Link>
-          <span className={styles.indexCtasGitHubButtonWrapper} style={{ marginLeft: 10 }}>
-            <iframe
-              className={styles.indexCtasGitHubButton}
-              src="https://ghbtns.com/github-btn.html?user=MarcoIeni&amp;repo=release-plz&amp;type=star&amp;count=true&amp;size=large"
-              width={160}
-              height={30}
-              title="GitHub Stars"
-            />
-          </span>
-        </div>
       </div>
     </header>
   );
