@@ -32,7 +32,7 @@ release-plz:
 
 ## 📚 Docs
 
-Learn how to use release-plz in the mdbook [docs](https://release-plz.ieni.dev/).
+Learn how to use release-plz in the [docs](https://release-plz.ieni.dev/).
 
 ## 🤖 Running release-plz
 
