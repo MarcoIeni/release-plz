@@ -962,7 +962,8 @@ pub fn workspace_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Pack
 }
 
 pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
-    cargo_utils::workspace_members(manifest).map(|members| members.filter(|p| p.is_publishable()).collect())
+    cargo_utils::workspace_members(manifest)
+        .map(|members| members.filter(|p| p.is_publishable()).collect())
 }
 
 pub trait Publishable {
