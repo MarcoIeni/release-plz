@@ -957,11 +957,12 @@ fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
     run_semver_check && is_library(package) && is_cargo_semver_checks_installed()
 }
 
-fn workspace_members(manifest: impl AsRef<Path>) -> anyhow::Result<impl Iterator<Item = Package>> {
+pub fn workspace_members(
+    manifest: impl AsRef<Path>,
+) -> anyhow::Result<impl Iterator<Item = Package>> {
     let manifest = manifest.as_ref();
     let packages = cargo_utils::workspace_members(Some(manifest))
-        .with_context(|| format!("cannot read workspace members in manifest {manifest:?}"))?
-        .into_iter();
+        .with_context(|| format!("cannot read workspace members in manifest {manifest:?}"))?;
     Ok(packages)
 }
 
