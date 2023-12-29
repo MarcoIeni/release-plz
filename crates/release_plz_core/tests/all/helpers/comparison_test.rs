@@ -1,6 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use crate::helpers::gitea_mock_server::GiteaMockServer;
+use cargo_utils::get_manifest_metadata;
 use chrono::NaiveDate;
 use release_plz_core::{
     are_packages_equal, copy_to_temp_dir, ChangelogRequest, GitBackend, GitHub, Gitea,
@@ -47,7 +48,8 @@ impl ComparisonTest {
     }
 
     fn update_request(&self) -> UpdateRequest {
-        UpdateRequest::new(self.local_project_manifest())
+        let metadata = get_manifest_metadata(&self.local_project_manifest()).unwrap();
+        UpdateRequest::new(metadata)
             .unwrap()
             .with_changelog_req(ChangelogRequest {
                 release_date: NaiveDate::from_ymd_opt(2015, 5, 15),

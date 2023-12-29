@@ -202,6 +202,8 @@ impl Update {
 
 #[cfg(test)]
 mod tests {
+    use fake_package::metadata::fake_metadata;
+
     use super::*;
 
     #[test]
@@ -220,7 +222,7 @@ mod tests {
             config: None,
         };
         let config: Config = toml::from_str("").unwrap();
-        let req = update_args.update_request(config).unwrap();
+        let req = update_args.update_request(config, fake_metadata()).unwrap();
         let pkg_config = req.get_package_config("aaa");
         assert_eq!(pkg_config, release_plz_core::PackageUpdateConfig::default());
     }

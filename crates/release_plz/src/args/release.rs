@@ -135,6 +135,8 @@ impl RepoCommand for Release {
 
 #[cfg(test)]
 mod tests {
+    use fake_package::metadata::fake_metadata;
+
     use super::*;
 
     #[test]
@@ -153,7 +155,9 @@ mod tests {
 
         let release_args = default_args();
         let config: Config = toml::from_str(config).unwrap();
-        let actual_request = release_args.release_request(config).unwrap();
+        let actual_request = release_args
+            .release_request(config, fake_metadata())
+            .unwrap();
         assert!(actual_request.allow_dirty("aaa"));
     }
 
@@ -171,7 +175,9 @@ mod tests {
 
         let release_args = default_args();
         let config: Config = toml::from_str(config).unwrap();
-        let actual_request = release_args.release_request(config).unwrap();
+        let actual_request = release_args
+            .release_request(config, fake_metadata())
+            .unwrap();
         assert!(actual_request.allow_dirty("aaa"));
         assert!(actual_request.no_verify("aaa"));
     }
@@ -195,7 +201,9 @@ mod tests {
     fn default_config_is_converted_to_default_release_request() {
         let release_args = default_args();
         let config: Config = toml::from_str("").unwrap();
-        let request = release_args.release_request(config).unwrap();
+        let request = release_args
+            .release_request(config, fake_metadata())
+            .unwrap();
         let pkg_config = request.get_package_config("aaa");
         let expected = release_plz_core::PackageReleaseConfig {
             generic: release_plz_core::ReleaseConfig::default(),

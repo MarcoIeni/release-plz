@@ -1070,8 +1070,19 @@ impl PackageDependencies for Package {
 
 #[cfg(test)]
 mod tests {
+    use cargo_utils::get_manifest_metadata;
+
     use super::*;
     use std::{collections::HashSet, path::Path};
+
+    fn get_project(
+        local_manifest: &Path,
+        single_package: Option<&str>,
+        overrides: HashSet<String>,
+    ) -> anyhow::Result<Project> {
+        let metadata = get_manifest_metadata(local_manifest).unwrap();
+        Project::new(local_manifest, single_package, overrides, metadata)
+    }
 
     #[test]
     fn test_for_typos() {
@@ -1087,7 +1098,7 @@ mod tests {
     #[test]
     fn test_empty_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
-        let result = Project::new(local_manifest, None, HashSet::default());
+        let result = get_project(local_manifest, None, HashSet::default());
         assert!(result.is_ok());
     }
 
@@ -1095,7 +1106,7 @@ mod tests {
     fn test_successful_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let overrides = (["typo_test".to_string()]).into();
-        let result = Project::new(local_manifest, None, overrides);
+        let result = get_project(local_manifest, None, overrides);
         assert!(result.is_ok());
     }
 
@@ -1104,7 +1115,7 @@ mod tests {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let single_package = None;
         let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
-        let result = Project::new(local_manifest, single_package, overrides);
+        let result = get_project(local_manifest, single_package, overrides);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),

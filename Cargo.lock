@@ -1115,6 +1115,7 @@ name = "fake_package"
 version = "0.1.0"
 dependencies = [
  "cargo_metadata",
+ "cargo_utils",
  "serde_json",
 ]
 
@@ -4097,6 +4098,7 @@ dependencies = [
  "duration-str",
  "expect-test",
  "fake",
+ "fake_package",
  "git-cliff-core",
  "git_cmd",
  "release_plz_core",
