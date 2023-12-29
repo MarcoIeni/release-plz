@@ -19,7 +19,7 @@ pub struct NextVersionConfig {
 impl Default for NextVersionConfig {
     fn default() -> Self {
         NextVersionConfig {
-            uncontrolled_minor_bump: true,
+            uncontrolled_minor_bump: false,
             initial_major_increment: false,
         }
     }
