@@ -939,8 +939,9 @@ fn get_repo_path(
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<PathBuf> {
-    let relative_path = strip_prefix(old_path, project_root)
-        .context("error while retrieving package_path: project root not found")?;
+    let relative_path = strip_prefix(old_path, project_root).with_context(|| {
+        format!("error while retrieving package_path: project root {project_root:?} not found")
+    })?;
     let result_path = repository.directory().join(relative_path);
 
     Ok(result_path)
