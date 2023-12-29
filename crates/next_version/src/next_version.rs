@@ -1,9 +1,9 @@
 use semver::Version;
 
-use crate::VersionIncrement;
+use crate::{NextVersionConfig, VersionIncrement};
 
 pub trait NextVersion {
-    fn next<I>(&self, commits: I) -> Self
+    fn next<I>(&self, commits: I, config: Option<NextVersionConfig>) -> Self
     where
         I: IntoIterator,
         I::Item: AsRef<str>;
@@ -36,12 +36,12 @@ impl NextVersion for Version {
     /// let version = Version::new(0, 3, 3);
     /// assert_eq!(version.next(commits), Version::new(0, 3, 4));
     /// ```
-    fn next<I>(&self, commits: I) -> Self
+    fn next<I>(&self, commits: I, config: Option<NextVersionConfig>) -> Self
     where
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        let increment = VersionIncrement::from_commits(self, commits);
+        let increment = VersionIncrement::from_commits(self, commits, config);
         match increment {
             Some(increment) => increment.bump(self),
             None => self.clone(),
