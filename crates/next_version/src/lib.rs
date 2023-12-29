@@ -130,8 +130,8 @@
 //! assert_eq!(version.next(commits.clone()), expected);
 //! ```
 
-mod config;
 mod next_version;
 mod version_increment;
+mod version_updater;
 
-pub use crate::{config::NextVersionConfig, next_version::*, version_increment::*};
+pub use crate::{next_version::*, version_increment::*, version_updater::*};

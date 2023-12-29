@@ -1,9 +1,9 @@
 use semver::Version;
 
-use crate::{NextVersionConfig, VersionIncrement};
+use crate::VersionUpdater;
 
 pub trait NextVersion {
-    fn next<I>(&self, commits: I, config: Option<NextVersionConfig>) -> Self
+    fn next<I>(&self, commits: I) -> Self
     where
         I: IntoIterator,
         I::Item: AsRef<str>;
@@ -36,16 +36,12 @@ impl NextVersion for Version {
     /// let version = Version::new(0, 3, 3);
     /// assert_eq!(version.next(commits), Version::new(0, 3, 4));
     /// ```
-    fn next<I>(&self, commits: I, config: Option<NextVersionConfig>) -> Self
+    fn next<I>(&self, commits: I) -> Self
     where
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        let increment = VersionIncrement::from_commits(self, commits, config);
-        match increment {
-            Some(increment) => increment.bump(self),
-            None => self.clone(),
-        }
+        VersionUpdater::default().next(self, commits)
     }
 
     // taken from https://github.com/killercup/cargo-edit/blob/643e9253a84db02c52a7fa94f07d786d281362ab/src/version.rs#L38

@@ -1,7 +1,7 @@
 use conventional_commit_parser::commit::{CommitType, ConventionalCommit};
 use semver::Version;
 
-use crate::{NextVersion, NextVersionConfig};
+use crate::{NextVersion, VersionUpdater};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum VersionIncrement {
@@ -23,9 +23,9 @@ impl VersionIncrement {
     /// - If some commits match conventional commits, then the next version is calculated by using
     ///   [these](https://www.conventionalcommits.org/en/v1.0.0/#how-does-this-relate-to-semverare) rules.
     pub fn from_commits<I>(
+        updater: &VersionUpdater,
         current_version: &Version,
         commits: I,
-        config: Option<NextVersionConfig>,
     ) -> Option<Self>
     where
         I: IntoIterator,
@@ -47,7 +47,7 @@ impl VersionIncrement {
             Some(Self::from_conventional_commits(
                 current_version,
                 &commits,
-                config,
+                updater,
             ))
         }
     }
@@ -82,10 +82,8 @@ impl VersionIncrement {
     fn from_conventional_commits(
         current: &Version,
         commits: &[ConventionalCommit],
-        config: Option<NextVersionConfig>,
+        updater: &VersionUpdater,
     ) -> Self {
-        let config = config.unwrap_or_default();
-
         let is_there_a_feature = || {
             commits
                 .iter()
@@ -95,7 +93,7 @@ impl VersionIncrement {
         let is_there_a_breaking_change = || commits.iter().any(|commit| commit.is_breaking_change);
 
         let is_major_bump = || {
-            if config.initial_major_increment {
+            if updater.breaking_always_increment_major {
                 is_there_a_breaking_change()
             } else {
                 current.major != 0 && is_there_a_breaking_change()
@@ -103,7 +101,7 @@ impl VersionIncrement {
         };
 
         let is_minor_bump = || {
-            if !config.uncontrolled_minor_bump {
+            if !updater.features_always_increment_minor {
                 (current.major != 0 && is_there_a_feature())
                     || (current.major == 0 && current.minor != 0 && is_there_a_breaking_change())
             } else {
