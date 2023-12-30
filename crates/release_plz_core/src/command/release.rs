@@ -326,12 +326,7 @@ pub struct GitRelease {
 #[instrument]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     let overrides = input.packages_config.overrides.keys().cloned().collect();
-    let project = Project::new(
-        &input.local_manifest(),
-        None,
-        overrides,
-        &input.metadata,
-    )?;
+    let project = Project::new(&input.local_manifest(), None, overrides, &input.metadata)?;
     let pkgs = project.publishable_packages();
     let release_order = release_order(&pkgs).context("cant' determine release order")?;
     for package in release_order {

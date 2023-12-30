@@ -127,7 +127,8 @@ impl PackagesUpdate {
 /// Update a local rust project
 #[instrument(skip_all)]
 pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
-    let (packages_to_update, repository) = crate::next_versions(input).context("failed to determine next versions")?;
+    let (packages_to_update, repository) =
+        crate::next_versions(input).context("failed to determine next versions")?;
     let local_manifest_path = input.local_manifest();
     let all_packages: Vec<Package> =
         cargo_utils::workspace_members(input.cargo_metadata())?.collect();
