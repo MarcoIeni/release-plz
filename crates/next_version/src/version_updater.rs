@@ -17,7 +17,7 @@ use crate::VersionIncrement;
 ///     .with_breaking_always_increment_major(true)
 ///     .next(&Version::new(1, 2, 3), vec!["feat: commit 1", "fix: commit 2"]);
 ///
-/// println!("Updated version: {:?}", updated_version);
+/// assert_eq!(Version::new(1, 3, 0), updated_version);
 /// ```
 #[derive(Debug, Default)]
 pub struct VersionUpdater {
