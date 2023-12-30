@@ -1,7 +1,7 @@
 use conventional_commit_parser::commit::{CommitType, ConventionalCommit};
 use semver::Version;
 
-use crate::NextVersion;
+use crate::{NextVersion, VersionUpdater};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum VersionIncrement {
@@ -27,6 +27,19 @@ impl VersionIncrement {
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
+        let updater = VersionUpdater::default();
+        Self::from_commits_with_updater(&updater, current_version, commits)
+    }
+
+    pub(crate) fn from_commits_with_updater<I>(
+        updater: &VersionUpdater,
+        current_version: &Version,
+        commits: I,
+    ) -> Option<Self>
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>,
+    {
         let mut commits = commits.into_iter().peekable();
         let are_commits_present = commits.peek().is_some();
         if !are_commits_present {
@@ -40,7 +53,11 @@ impl VersionIncrement {
                 .filter_map(|c| conventional_commit_parser::parse(c.as_ref()).ok())
                 .collect();
 
-            Some(Self::from_conventional_commits(current_version, &commits))
+            Some(Self::from_conventional_commits(
+                current_version,
+                &commits,
+                updater,
+            ))
         }
     }
 
@@ -71,20 +88,32 @@ impl VersionIncrement {
     }
 
     /// If no conventional commits are present, the version is incremented as a Patch
-    fn from_conventional_commits(current: &Version, commits: &[ConventionalCommit]) -> Self {
+    fn from_conventional_commits(
+        current: &Version,
+        commits: &[ConventionalCommit],
+        updater: &VersionUpdater,
+    ) -> Self {
         let is_there_a_feature = || {
             commits
                 .iter()
                 .any(|commit| commit.commit_type == CommitType::Feature)
         };
 
-        let is_there_a_breaking_change = || commits.iter().any(|commit| commit.is_breaking_change);
+        let is_there_a_breaking_change = commits.iter().any(|commit| commit.is_breaking_change);
 
-        let is_major_bump = || current.major != 0 && is_there_a_breaking_change();
+        let is_major_bump = || {
+            is_there_a_breaking_change
+                && (current.major != 0 || updater.breaking_always_increment_major)
+        };
 
         let is_minor_bump = || {
-            (current.major != 0 && is_there_a_feature())
-                || (current.major == 0 && current.minor != 0 && is_there_a_breaking_change())
+            let is_feat_bump = || {
+                is_there_a_feature()
+                    && (current.major != 0 || updater.features_always_increment_minor)
+            };
+            let is_breaking_bump =
+                || current.major == 0 && current.minor != 0 && is_there_a_breaking_change;
+            is_feat_bump() || is_breaking_bump()
         };
 
         if is_major_bump() {
