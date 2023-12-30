@@ -98,12 +98,13 @@ impl VersionIncrement {
         };
 
         let is_minor_bump = || {
-            if updater.features_always_increment_minor {
-                is_there_a_feature() || (current.minor != 0 && is_there_a_breaking_change())
-            } else {
-                (current.major != 0 && is_there_a_feature())
-                    || (current.major == 0 && current.minor != 0 && is_there_a_breaking_change())
-            }
+            let is_feat_bump = || {
+                is_there_a_feature()
+                    && (current.major != 0 || updater.features_always_increment_minor)
+            };
+            let is_breaking_bump =
+                || current.major == 0 && current.minor != 0 && is_there_a_breaking_change();
+            is_feat_bump() || is_breaking_bump()
         };
 
         if is_major_bump() {
