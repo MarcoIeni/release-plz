@@ -571,7 +571,9 @@ impl Updater<'_> {
             .publishable_packages()
             .iter()
             .map(|&p| {
-                let diff = self.get_diff(p, registry_packages, repository)?;
+                let diff = self
+                    .get_diff(p, registry_packages, repository)
+                    .context("failed to retrieve difference between packages")?;
                 Ok((p, diff))
             })
             .collect();
