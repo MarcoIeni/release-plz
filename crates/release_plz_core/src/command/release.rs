@@ -114,13 +114,7 @@ impl ReleaseRequest {
         let config = self.get_package_config(&package.name);
         config
             .changelog_path
-            .map(|p| {
-                self.metadata
-                    .workspace_root
-                    .clone()
-                    .into_std_path_buf()
-                    .join(p)
-            })
+            .map(|p| self.metadata.workspace_root.as_std_path().join(p))
             .unwrap_or_else(|| {
                 package
                     .package_path()
