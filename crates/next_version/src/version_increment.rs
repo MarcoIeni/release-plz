@@ -101,11 +101,11 @@ impl VersionIncrement {
         };
 
         let is_minor_bump = || {
-            if !updater.features_always_increment_minor {
+            if updater.features_always_increment_minor {
+                is_there_a_feature() || (current.minor != 0 && is_there_a_breaking_change())
+            } else {
                 (current.major != 0 && is_there_a_feature())
                     || (current.major == 0 && current.minor != 0 && is_there_a_breaking_change())
-            } else {
-                (is_there_a_feature()) || (current.minor != 0 && is_there_a_breaking_change())
             }
         };
 
