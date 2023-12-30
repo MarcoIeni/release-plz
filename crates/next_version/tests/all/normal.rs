@@ -37,7 +37,7 @@ fn commit_with_feat_semver_prefix_increments_minor_version_when_major_is_zero() 
         VersionUpdater::new()
             .with_features_always_increment_minor(true)
             .with_breaking_always_increment_major(false)
-            .next(&version, commits),
+            .increment(&version, commits),
         Version::new(0, 3, 0)
     );
 }
@@ -64,7 +64,7 @@ fn commit_with_breaking_change_increments_major_version_when_major_is_zero() {
         VersionUpdater::new()
             .with_features_always_increment_minor(false)
             .with_breaking_always_increment_major(true)
-            .next(&version, commits),
+            .increment(&version, commits),
         Version::new(1, 0, 0)
     );
 }

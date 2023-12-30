@@ -41,7 +41,7 @@ impl NextVersion for Version {
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        VersionUpdater::default().next(self, commits)
+        VersionUpdater::default().increment(self, commits)
     }
 
     // taken from https://github.com/killercup/cargo-edit/blob/643e9253a84db02c52a7fa94f07d786d281362ab/src/version.rs#L38

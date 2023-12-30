@@ -23,6 +23,18 @@ impl VersionIncrement {
     /// - If some commits match conventional commits, then the next version is calculated by using
     ///   [these](https://www.conventionalcommits.org/en/v1.0.0/#how-does-this-relate-to-semverare) rules.
     pub fn from_commits<I>(
+        current_version: &Version,
+        commits: I,
+    ) -> Option<Self>
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>,
+    {
+        let updater = VersionUpdater::default();
+        Self::from_commits_with_updater(&updater, current_version, commits)
+    }
+
+    pub(crate) fn from_commits_with_updater<I>(
         updater: &VersionUpdater,
         current_version: &Version,
         commits: I,
