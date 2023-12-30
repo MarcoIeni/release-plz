@@ -133,7 +133,7 @@
 //! # Custom version increment
 //!
 //! If you don't like the default increment rules of the crate,
-//! you can customize them by using the [`VersionUpdater`] struct.
+//! you can customize them by using [`VersionUpdater`].
 
 mod next_version;
 mod version_increment;
