@@ -129,6 +129,11 @@
 //! let expected = Version::parse("1.0.1+abcd").unwrap();
 //! assert_eq!(version.next(commits.clone()), expected);
 //! ```
+//!
+//! # Custom version increment
+//!
+//! If you don't like the default increment rules of the crate,
+//! you can customize them by using the [`VersionUpdater`] struct.
 
 mod next_version;
 mod version_increment;
