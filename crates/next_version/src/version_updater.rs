@@ -59,10 +59,12 @@ impl VersionUpdater {
 
     /// Configures automatic minor version increments for feature changes.
     ///
-    /// When `true` is passed, it enables automatic minor version increments for feature changes.
-    /// This means that any introduced feature will trigger a minor version update.
+    /// - When `true` is passed, a feature will always trigger a minor version update.
+    /// - When `false` is passed, a feature will trigger:
+    ///   - a patch version update if the major version is 0.
+    ///   - a minor version update otherwise.
     ///
-    /// Default: `false`
+    /// Default: `false`.
     ///
     /// ```rust
     /// use semver::Version;
@@ -90,13 +92,15 @@ impl VersionUpdater {
         self
     }
 
-    /// Configures initial major version increments for breaking changes.
+    /// Configures `0 -> 1` major version increments for breaking changes.
     ///
-    /// When `true` is passed, it enables the initial major version increment
-    /// for breaking changes. This implies that the transition from version 0 to 1
-    /// will be triggered by a breaking change in the API.
+    /// - When `true` is passed, a breaking change commit will always trigger a major version update
+    ///   (including the transition from version 0 to 1)
+    /// - When `false` is passed, a breaking change commit will trigger:
+    ///   - a minor version update if the major version is 0.
+    ///   - a major version update otherwise.
     ///
-    /// Default: `false`
+    /// Default: `false`.
     ///
     /// ```rust
     /// use semver::Version;
