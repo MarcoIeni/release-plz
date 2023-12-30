@@ -318,7 +318,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
         &input.local_manifest,
         input.single_package.as_deref(),
         overrides,
-        input.metadata.clone(),
+        &input.metadata,
     )?;
     let updater = Updater {
         project: &local_project,
@@ -378,7 +378,7 @@ impl Project {
         local_manifest: &Path,
         single_package: Option<&str>,
         overrides: HashSet<String>,
-        metadata: Metadata,
+        metadata: &Metadata,
     ) -> anyhow::Result<Self> {
         let manifest = &local_manifest;
         let manifest_dir = manifest_dir(manifest)?.to_path_buf();
@@ -969,7 +969,7 @@ fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
     run_semver_check && is_library(package) && is_cargo_semver_checks_installed()
 }
 
-pub fn workspace_packages(metadata: Metadata) -> anyhow::Result<Vec<Package>> {
+pub fn workspace_packages(metadata: &Metadata) -> anyhow::Result<Vec<Package>> {
     cargo_utils::workspace_members(metadata).map(|members| members.collect())
 }
 
@@ -977,7 +977,7 @@ pub fn publishable_packages_from_manifest(
     manifest: impl AsRef<Path>,
 ) -> anyhow::Result<Vec<Package>> {
     let metadata = cargo_utils::get_manifest_metadata(manifest.as_ref())?;
-    cargo_utils::workspace_members(metadata)
+    cargo_utils::workspace_members(&metadata)
         .map(|members| members.filter(|p| p.is_publishable()).collect())
 }
 
@@ -1082,7 +1082,7 @@ mod tests {
         overrides: HashSet<String>,
     ) -> anyhow::Result<Project> {
         let metadata = get_manifest_metadata(local_manifest).unwrap();
-        Project::new(local_manifest, single_package, overrides, metadata)
+        Project::new(local_manifest, single_package, overrides, &metadata)
     }
 
     #[test]

@@ -330,7 +330,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
         &input.local_manifest(),
         None,
         overrides,
-        input.metadata.clone(),
+        &input.metadata,
     )?;
     let pkgs = project.publishable_packages();
     let release_order = release_order(&pkgs).context("cant' determine release order")?;

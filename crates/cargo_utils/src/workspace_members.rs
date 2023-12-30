@@ -11,11 +11,12 @@ pub fn get_manifest_metadata(manifest_path: &Path) -> anyhow::Result<cargo_metad
 }
 
 /// Lookup all members of the current workspace
-pub fn workspace_members(metadata: Metadata) -> anyhow::Result<impl Iterator<Item = Package>> {
+pub fn workspace_members(metadata: &Metadata) -> anyhow::Result<impl Iterator<Item = Package>> {
     let workspace_members: std::collections::BTreeSet<_> =
-        metadata.workspace_members.into_iter().collect();
+        metadata.workspace_members.clone().into_iter().collect();
     let workspace_members = metadata
         .packages
+        .clone()
         .into_iter()
         .filter(move |p| workspace_members.contains(&p.id))
         .map(|mut p| {
