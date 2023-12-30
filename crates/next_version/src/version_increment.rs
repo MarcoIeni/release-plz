@@ -90,10 +90,10 @@ impl VersionIncrement {
                 .any(|commit| commit.commit_type == CommitType::Feature)
         };
 
-        let is_there_a_breaking_change = || commits.iter().any(|commit| commit.is_breaking_change);
+        let is_there_a_breaking_change = commits.iter().any(|commit| commit.is_breaking_change);
 
         let is_major_bump = || {
-            is_there_a_breaking_change()
+            is_there_a_breaking_change
                 && (current.major != 0 || updater.breaking_always_increment_major)
         };
 
@@ -103,7 +103,7 @@ impl VersionIncrement {
                     && (current.major != 0 || updater.features_always_increment_minor)
             };
             let is_breaking_bump =
-                || current.major == 0 && current.minor != 0 && is_there_a_breaking_change();
+                || current.major == 0 && current.minor != 0 && is_there_a_breaking_change;
             is_feat_bump() || is_breaking_bump()
         };
 
