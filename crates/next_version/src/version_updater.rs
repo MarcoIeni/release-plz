@@ -33,7 +33,7 @@ impl Default for VersionUpdater {
 }
 
 impl VersionUpdater {
-    /// Constructs a new instance with default rules of the crate.
+    /// Constructs a new instance with the default rules of the crate.
     ///
     /// If you don't customize the struct further, it is equivalent to
     /// calling [`crate::NextVersion::next`].
@@ -63,6 +63,25 @@ impl VersionUpdater {
     /// This means that any introduced feature will trigger a minor version update.
     ///
     /// Default: `false`
+    ///
+    /// ```rust
+    /// use semver::Version;
+    /// use next_version::VersionUpdater;
+    ///
+    /// let commits = ["feat: make coffee"];
+    /// let version = Version::new(0, 2, 3);
+    /// assert_eq!(
+    ///     VersionUpdater::new()
+    ///         .with_features_always_increment_minor(true)
+    ///         .increment(&version, &commits),
+    ///     Version::new(0, 3, 0)
+    /// );
+    /// assert_eq!(
+    ///     VersionUpdater::new()
+    ///         .increment(&version, &commits),
+    ///     Version::new(0, 2, 4)
+    /// );
+    /// ```
     pub fn with_features_always_increment_minor(
         mut self,
         features_always_increment_minor: bool,
@@ -78,6 +97,25 @@ impl VersionUpdater {
     /// will be triggered by a breaking change in the API.
     ///
     /// Default: `false`
+    ///
+    /// ```rust
+    /// use semver::Version;
+    /// use next_version::VersionUpdater;
+    ///
+    /// let commits = ["feat!: incompatible change"];
+    /// let version = Version::new(0, 2, 3);
+    /// assert_eq!(
+    ///     VersionUpdater::new()
+    ///         .with_breaking_always_increment_major(true)
+    ///         .increment(&version, &commits),
+    ///     Version::new(1, 0, 0)
+    /// );
+    /// assert_eq!(
+    ///     VersionUpdater::new()
+    ///         .increment(&version, &commits),
+    ///     Version::new(0, 3, 0)
+    /// );
+    /// ```
     pub fn with_breaking_always_increment_major(
         mut self,
         breaking_always_increment_major: bool,
