@@ -13,7 +13,7 @@
 //! use semver::Version;
 //! use next_version::NextVersion;
 //!
-//! let commits = vec!["my change"];
+//! let commits = ["my change"];
 //! assert_eq!(Version::new(1, 2, 3).next(commits), Version::new(1, 2, 4));
 //! ```
 //!
@@ -25,10 +25,10 @@
 //! use semver::Version;
 //! use next_version::NextVersion;
 //!
-//! let commits = vec!["my change"];
+//! let commits = ["my change"];
 //! assert_eq!(Version::new(0, 0, 4).next(&commits), Version::new(0, 0, 5));
 //!
-//! let commits = vec!["feat!: break user"];
+//! let commits = ["feat!: break user"];
 //! assert_eq!(Version::new(0, 0, 1).next(&commits), Version::new(0, 0, 2));
 //! ```
 //!
@@ -47,7 +47,7 @@
 //! use semver::Version;
 //! use next_version::NextVersion;
 //!
-//! let commits = vec!["my change", "feat: make coffe"];
+//! let commits = ["my change", "feat: make coffe"];
 //! assert_eq!(Version::new(1, 2, 4).next(&commits), Version::new(1, 3, 0));
 //!
 //! assert_eq!(Version::new(0, 2, 4).next(&commits), Version::new(0, 2, 5));
@@ -67,7 +67,7 @@
 //! use semver::Version;
 //! use next_version::NextVersion;
 //!
-//! let commits = vec!["feat!: break user"];
+//! let commits = ["feat!: break user"];
 //! assert_eq!(Version::new(1, 2, 4).next(&commits), Version::new(2, 0, 0));
 //!
 //! assert_eq!(Version::new(0, 4, 4).next(&commits), Version::new(0, 5, 0));
@@ -87,7 +87,7 @@
 //! BREAKING CHANGE: user will be broken
 //! "#;
 //!
-//! let commits = vec![breaking_commit];
+//! let commits = [breaking_commit];
 //! assert_eq!(Version::new(1, 2, 4).next(&commits), Version::new(2, 0, 0));
 //! ```
 //!
@@ -100,7 +100,7 @@
 //! use semver::Version;
 //! use next_version::NextVersion;
 //!
-//! let commits = vec!["feat!: break user"];
+//! let commits = ["feat!: break user"];
 //! let version = Version::parse("1.0.0-alpha.1.2").unwrap();
 //! let expected = Version::parse("1.0.0-alpha.1.3").unwrap();
 //! assert_eq!(version.next(commits.clone()), expected);
@@ -120,7 +120,7 @@
 //! use semver::Version;
 //! use next_version::NextVersion;
 //!
-//! let commits = vec!["my change"];
+//! let commits = ["my change"];
 //! let version = Version::parse("1.0.0-beta.1+1.1.0").unwrap();
 //! let expected = Version::parse("1.0.0-beta.2+1.1.0").unwrap();
 //! assert_eq!(version.next(commits.clone()), expected);

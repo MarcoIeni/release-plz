@@ -32,7 +32,7 @@ impl NextVersion for Version {
     /// use next_version::NextVersion;
     /// use semver::Version;
     ///
-    /// let commits = vec!["feat: make coffe"];
+    /// let commits = ["feat: make coffe"];
     /// let version = Version::new(0, 3, 3);
     /// assert_eq!(version.next(commits), Version::new(0, 3, 4));
     /// ```
