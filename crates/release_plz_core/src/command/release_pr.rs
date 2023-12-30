@@ -44,7 +44,7 @@ impl ReleasePrRequest {
 }
 
 /// Open a pull request with the next packages versions of a local rust project
-#[instrument]
+#[instrument(skip_all)]
 pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let manifest_dir = input.update_request.local_manifest_dir()?;
     let tmp_project_root = copy_to_temp_dir(manifest_dir)?;

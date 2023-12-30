@@ -311,7 +311,7 @@ impl UpdateRequest {
 }
 
 /// Determine next version of packages
-#[instrument]
+#[instrument(skip_all)]
 pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
     let overrides = input.packages_config.overrides.keys().cloned().collect();
     let local_project = Project::new(
