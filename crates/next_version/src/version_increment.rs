@@ -22,10 +22,7 @@ impl VersionIncrement {
     ///   the version increment is [`VersionIncrement::Patch`].
     /// - If some commits match conventional commits, then the next version is calculated by using
     ///   [these](https://www.conventionalcommits.org/en/v1.0.0/#how-does-this-relate-to-semverare) rules.
-    pub fn from_commits<I>(
-        current_version: &Version,
-        commits: I,
-    ) -> Option<Self>
+    pub fn from_commits<I>(current_version: &Version, commits: I) -> Option<Self>
     where
         I: IntoIterator,
         I::Item: AsRef<str>,
