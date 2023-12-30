@@ -151,6 +151,13 @@ impl ReleaseRequest {
         let config = self.get_package_config(package);
         config.generic.no_verify
     }
+
+    fn workspace_root(&self) -> anyhow::Result<PathBuf> {
+        let local_manifest = self.local_manifest();
+        crate::manifest_dir(&local_manifest)
+            .map(|path| path.to_path_buf())
+            .context("cannot find local_manifest parent")
+    }
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -320,15 +327,6 @@ pub struct PackageReleaseConfig {
 pub struct GitRelease {
     /// Kind of Git Backend.
     pub backend: GitBackend,
-}
-
-impl ReleaseRequest {
-    fn workspace_root(&self) -> anyhow::Result<PathBuf> {
-        let local_manifest = self.local_manifest();
-        crate::manifest_dir(&local_manifest)
-            .map(|path| path.to_path_buf())
-            .context("cannot find local_manifest parent")
-    }
 }
 
 /// Release the project as it is.
