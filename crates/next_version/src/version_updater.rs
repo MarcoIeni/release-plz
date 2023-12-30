@@ -15,7 +15,7 @@ use crate::VersionIncrement;
 /// let updated_version = VersionUpdater::new()
 ///     .with_features_always_increment_minor(false)
 ///     .with_breaking_always_increment_major(true)
-///     .next(&Version::new(1, 2, 3), vec!["feat: commit 1", "fix: commit 2"]);
+///     .increment(&Version::new(1, 2, 3), vec!["feat: commit 1", "fix: commit 2"]);
 ///
 /// assert_eq!(Version::new(1, 3, 0), updated_version);
 /// ```
