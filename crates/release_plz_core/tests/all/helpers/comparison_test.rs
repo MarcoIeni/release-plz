@@ -1,6 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use crate::helpers::gitea_mock_server::GiteaMockServer;
+use anyhow::Context;
 use cargo_utils::get_manifest_metadata;
 use chrono::NaiveDate;
 use release_plz_core::{
@@ -83,16 +84,17 @@ impl ComparisonTest {
     }
 
     fn gitea_release_pr_request(&self, base_url: Url) -> anyhow::Result<ReleasePrRequest> {
-        let git = GitBackend::Gitea(Gitea::new(
-            RepoUrl::new(&format!("{}{OWNER}/{REPO}", base_url.as_str()))?,
-            Secret::from("token".to_string()),
-        )?);
+        let url = RepoUrl::new(&format!("{}{OWNER}/{REPO}", base_url.as_str()))
+            .context("can't crate url")?;
+        let git = GitBackend::Gitea(Gitea::new(url, Secret::from("token".to_string()))?);
         Ok(ReleasePrRequest::new(git, self.update_request()))
     }
 
     pub async fn gitea_open_release_pr(&self) -> anyhow::Result<()> {
         let base_url = self.gitea_mock_server.base_url();
-        let release_pr_request = self.gitea_release_pr_request(base_url)?;
+        let release_pr_request = self
+            .gitea_release_pr_request(base_url)
+            .context("failed to run release-pr")?;
         release_plz_core::release_pr(&release_pr_request).await
     }
 
