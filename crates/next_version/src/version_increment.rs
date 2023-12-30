@@ -93,11 +93,8 @@ impl VersionIncrement {
         let is_there_a_breaking_change = || commits.iter().any(|commit| commit.is_breaking_change);
 
         let is_major_bump = || {
-            if updater.breaking_always_increment_major {
-                is_there_a_breaking_change()
-            } else {
-                current.major != 0 && is_there_a_breaking_change()
-            }
+            is_there_a_breaking_change()
+                && (current.major != 0 || updater.breaking_always_increment_major)
         };
 
         let is_minor_bump = || {
