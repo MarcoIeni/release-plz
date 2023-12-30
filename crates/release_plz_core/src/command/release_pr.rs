@@ -60,7 +60,8 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .clone()
         .set_local_manifest(&local_manifest)
         .context("can't find temporary project")?;
-    let (packages_to_update, _temp_repository) = update(&new_update_request)?;
+    let (packages_to_update, _temp_repository) =
+        update(&new_update_request).context("failed to update packages")?;
     let git_client = GitClient::new(input.git.clone())?;
     if !packages_to_update.updates().is_empty() {
         let repo = Repo::new(new_manifest_dir)?;
