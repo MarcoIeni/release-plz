@@ -2,9 +2,10 @@ use semver::Version;
 
 use crate::VersionIncrement;
 
-/// Represents a version updater configuration.
+/// This struct allows to increment a version by
+/// specifying a configuration.
 ///
-/// This struct allows controlling version increments based on certain settings.
+/// Useful if you don't like the default increment rules of the crate.
 ///
 // # Example
 ///
@@ -15,7 +16,7 @@ use crate::VersionIncrement;
 /// let updated_version = VersionUpdater::new()
 ///     .with_features_always_increment_minor(false)
 ///     .with_breaking_always_increment_major(true)
-///     .increment(&Version::new(1, 2, 3), vec!["feat: commit 1", "fix: commit 2"]);
+///     .increment(&Version::new(1, 2, 3), ["feat: commit 1", "fix: commit 2"]);
 ///
 /// assert_eq!(Version::new(1, 3, 0), updated_version);
 /// ```
@@ -32,10 +33,23 @@ impl Default for VersionUpdater {
 }
 
 impl VersionUpdater {
-    /// Constructs a new instance with default settings.
+    /// Constructs a new instance with default rules of the crate.
     ///
-    /// Both minor version increments for feature changes and initial major version
-    /// increments for breaking changes are disabled (set to `false`).
+    /// If you don't customize the struct further, it is equivalent to
+    /// calling [`crate::NextVersion::next`].
+    ///
+    /// ```
+    /// use next_version::{NextVersion, VersionUpdater};
+    /// use semver::Version;
+    ///
+    /// let version = Version::new(1, 2, 3);
+    /// let commits = ["feat: commit 1", "fix: commit 2"];
+    /// let updated_version1 = VersionUpdater::new()
+    ///     .increment(&version, &commits);
+    /// let updated_version2 = version.next(&commits);
+    ///
+    /// assert_eq!(updated_version1, updated_version2);
+    /// ```
     pub fn new() -> Self {
         Self {
             features_always_increment_minor: false,
@@ -47,6 +61,8 @@ impl VersionUpdater {
     ///
     /// When `true` is passed, it enables automatic minor version increments for feature changes.
     /// This means that any introduced feature will trigger a minor version update.
+    ///
+    /// Default: `false`
     pub fn with_features_always_increment_minor(
         mut self,
         features_always_increment_minor: bool,
@@ -60,6 +76,8 @@ impl VersionUpdater {
     /// When `true` is passed, it enables the initial major version increment
     /// for breaking changes. This implies that the transition from version 0 to 1
     /// will be triggered by a breaking change in the API.
+    ///
+    /// Default: `false`
     pub fn with_breaking_always_increment_major(
         mut self,
         breaking_always_increment_major: bool,
