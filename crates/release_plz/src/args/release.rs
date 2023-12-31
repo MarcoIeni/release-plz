@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 
+use cargo_metadata::Metadata;
 use clap::{
     builder::{NonEmptyStringValueParser, PathBufValueParser},
     ValueEnum,
@@ -71,8 +72,12 @@ pub enum ReleaseGitBackendKind {
 }
 
 impl Release {
-    pub fn config(&self) -> anyhow::Result<Config> {
-        super::parse_config(self.config.as_deref(), self.optional_project_manifest())
+    pub fn config(&self, cargo_metadata: &Metadata) -> anyhow::Result<Config> {
+        super::parse_config(
+            self.config.as_deref(),
+            self.optional_project_manifest(),
+            cargo_metadata,
+        )
     }
 
     pub fn release_request(

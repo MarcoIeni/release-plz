@@ -27,14 +27,14 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
     match args.command {
         Command::Update(cmd_args) => {
             let cargo_metadata = cmd_args.cargo_metadata()?;
-            let config = cmd_args.config()?;
+            let config = cmd_args.config(&cargo_metadata)?;
             let update_request = cmd_args.update_request(config, cargo_metadata)?;
             let updates = release_plz_core::update(&update_request)?;
             println!("{}", updates.0.summary());
         }
         Command::ReleasePr(cmd_args) => {
             let cargo_metadata = cmd_args.update.cargo_metadata()?;
-            let config = cmd_args.update.config()?;
+            let config = cmd_args.update.config(&cargo_metadata)?;
             let pr_labels = config.workspace.pr_labels.clone();
             let pr_draft = config.workspace.pr_draft;
             let update_request = cmd_args.update.update_request(config, cargo_metadata)?;
@@ -51,7 +51,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         }
         Command::Release(cmd_args) => {
             let cargo_metadata = cmd_args.cargo_metadata()?;
-            let config = cmd_args.config()?;
+            let config = cmd_args.config(&cargo_metadata)?;
             let request: ReleaseRequest = cmd_args.release_request(config, cargo_metadata)?;
             release_plz_core::release(&request).await?;
         }

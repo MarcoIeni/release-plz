@@ -7,6 +7,7 @@ mod update;
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
+use cargo_metadata::Metadata;
 use release_plz_core::CARGO_TOML;
 use tracing::info;
 
@@ -62,6 +63,7 @@ fn local_manifest(project_manifest: Option<&Path>) -> PathBuf {
 fn parse_config(
     config_path: Option<&Path>,
     project_manifest: Option<&Path>,
+    cargo_metadata: &Metadata,
 ) -> anyhow::Result<Config> {
     let (config, path) = if let Some(config_path) = config_path {
         match std::fs::read_to_string(config_path) {
@@ -82,7 +84,7 @@ fn parse_config(
             .or(Some(Path::new(CARGO_TOML)))
             .filter(|v| v.exists())
         {
-            return match parse_config_from_metadata(project_manifest)? {
+            return match parse_config_from_metadata(cargo_metadata)? {
                 Some(config) => {
                     if file_contents.is_some() {
                         return Err(anyhow::anyhow!(
@@ -110,12 +112,7 @@ fn parse_config(
     toml::from_str(&config).with_context(|| format!("invalid config file {config_path:?}"))
 }
 
-fn parse_config_from_metadata(project_manifest: &Path) -> anyhow::Result<Option<Config>> {
-    let metadata = cargo_metadata::MetadataCommand::new()
-        .no_deps()
-        .manifest_path(project_manifest)
-        .exec()
-        .context("failed to execute cargo_metadata")?;
+fn parse_config_from_metadata(metadata: &Metadata) -> anyhow::Result<Option<Config>> {
     // check both workspace and package metadata
     for metadata in [
         Some(metadata.clone().workspace_metadata),
