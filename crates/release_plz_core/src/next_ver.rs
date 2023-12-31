@@ -390,15 +390,7 @@ impl Project {
         };
         debug!("project_root: {root:?}");
         let mut packages = workspace_packages(metadata)?;
-        for p in &mut packages {
-            let old_path = p.package_path()?;
-            let relative_package_path =
-                strip_prefix(old_path, &metadata.workspace_root)?.to_path_buf();
-            p.manifest_path = cargo_metadata::camino::Utf8PathBuf::from_path_buf(
-                manifest_dir.join(relative_package_path).join(CARGO_TOML),
-            )
-            .expect("can't create relative path");
-        }
+        override_packages_path(&mut packages, metadata, &manifest_dir)?;
         anyhow::ensure!(!packages.is_empty(), "no public packages found");
 
         check_overrides_typos(&packages, &overrides)?;
@@ -461,6 +453,26 @@ impl Project {
     pub fn cargo_lock_path(&self) -> PathBuf {
         self.root.join("Cargo.lock")
     }
+}
+
+/// Cargo metadata contains package paths of the original user project.
+/// Release-plz copies the user project to a temporary
+/// directory to avoid making changes to the original project.
+/// This function sets packages path relative to the specified `manifest_dir`.
+fn override_packages_path(
+    packages: &mut Vec<Package>,
+    metadata: &Metadata,
+    manifest_dir: &Path,
+) -> Result<(), anyhow::Error> {
+    for p in packages {
+        let old_path = p.package_path()?;
+        let relative_package_path = strip_prefix(old_path, &metadata.workspace_root)?.to_path_buf();
+        p.manifest_path = cargo_metadata::camino::Utf8PathBuf::from_path_buf(
+            manifest_dir.join(relative_package_path).join(CARGO_TOML),
+        )
+        .expect("can't create relative path");
+    }
+    Ok(())
 }
 
 fn check_overrides_typos(
