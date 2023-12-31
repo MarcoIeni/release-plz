@@ -14,6 +14,7 @@ use anyhow::{anyhow, Context};
 use tracing::{debug, instrument, trace, warn, Span};
 
 /// Repository
+#[derive(Debug)]
 pub struct Repo {
     /// Directory where you want to run git operations
     directory: PathBuf,

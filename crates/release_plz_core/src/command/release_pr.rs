@@ -8,8 +8,8 @@ use tracing::{info, instrument};
 use crate::git::backend::{contributors_from_commits, GitClient, GitPr, PrEdit};
 use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};
 use crate::{
-    copy_to_temp_dir, publishable_packages, update, GitBackend, PackagesUpdate, UpdateRequest,
-    CARGO_TOML,
+    copy_to_temp_dir, publishable_packages_from_manifest, update, GitBackend, PackagesUpdate,
+    UpdateRequest, CARGO_TOML,
 };
 
 #[derive(Debug)]
@@ -44,7 +44,7 @@ impl ReleasePrRequest {
 }
 
 /// Open a pull request with the next packages versions of a local rust project
-#[instrument]
+#[instrument(skip_all)]
 pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let manifest_dir = input.update_request.local_manifest_dir()?;
     let tmp_project_root = copy_to_temp_dir(manifest_dir)?;
@@ -60,7 +60,8 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         .clone()
         .set_local_manifest(&local_manifest)
         .context("can't find temporary project")?;
-    let (packages_to_update, _temp_repository) = update(&new_update_request)?;
+    let (packages_to_update, _temp_repository) =
+        update(&new_update_request).context("failed to update packages")?;
     let git_client = GitClient::new(input.git.clone())?;
     if !packages_to_update.updates().is_empty() {
         let repo = Repo::new(new_manifest_dir)?;
@@ -115,7 +116,7 @@ async fn open_or_update_release_pr(
 
     let new_pr = {
         let project_contains_multiple_pub_packages =
-            publishable_packages(local_manifest)?.len() > 1;
+            publishable_packages_from_manifest(local_manifest)?.len() > 1;
         Pr::new(
             repo.original_branch(),
             packages_to_update,

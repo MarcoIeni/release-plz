@@ -9,7 +9,7 @@ use secrecy::SecretString;
 
 use crate::config::Config;
 
-use super::{local_manifest, repo_command::RepoCommand};
+use super::repo_command::RepoCommand;
 
 #[derive(clap::Parser, Debug)]
 pub struct Release {
@@ -75,7 +75,11 @@ impl Release {
         super::parse_config(self.config.as_deref(), self.optional_project_manifest())
     }
 
-    pub fn release_request(self, config: Config) -> anyhow::Result<ReleaseRequest> {
+    pub fn release_request(
+        self,
+        config: Config,
+        metadata: cargo_metadata::Metadata,
+    ) -> anyhow::Result<ReleaseRequest> {
         let git_release = if let Some(git_token) = &self.git_token {
             let git_token = SecretString::from(git_token.clone());
             let repo_url = self.get_repo_url(&config)?;
@@ -96,8 +100,7 @@ impl Release {
         } else {
             None
         };
-        let mut req = ReleaseRequest::new(local_manifest(self.project_manifest.as_deref()))
-            .with_dry_run(self.dry_run);
+        let mut req = ReleaseRequest::new(metadata).with_dry_run(self.dry_run);
 
         if let Some(registry) = self.registry {
             req = req.with_registry(registry);
@@ -132,6 +135,8 @@ impl RepoCommand for Release {
 
 #[cfg(test)]
 mod tests {
+    use fake_package::metadata::fake_metadata;
+
     use super::*;
 
     #[test]
@@ -150,7 +155,9 @@ mod tests {
 
         let release_args = default_args();
         let config: Config = toml::from_str(config).unwrap();
-        let actual_request = release_args.release_request(config).unwrap();
+        let actual_request = release_args
+            .release_request(config, fake_metadata())
+            .unwrap();
         assert!(actual_request.allow_dirty("aaa"));
     }
 
@@ -168,7 +175,9 @@ mod tests {
 
         let release_args = default_args();
         let config: Config = toml::from_str(config).unwrap();
-        let actual_request = release_args.release_request(config).unwrap();
+        let actual_request = release_args
+            .release_request(config, fake_metadata())
+            .unwrap();
         assert!(actual_request.allow_dirty("aaa"));
         assert!(actual_request.no_verify("aaa"));
     }
@@ -192,7 +201,9 @@ mod tests {
     fn default_config_is_converted_to_default_release_request() {
         let release_args = default_args();
         let config: Config = toml::from_str("").unwrap();
-        let request = release_args.release_request(config).unwrap();
+        let request = release_args
+            .release_request(config, fake_metadata())
+            .unwrap();
         let pkg_config = request.get_package_config("aaa");
         let expected = release_plz_core::PackageReleaseConfig {
             generic: release_plz_core::ReleaseConfig::default(),

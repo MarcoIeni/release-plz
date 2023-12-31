@@ -88,12 +88,12 @@ mod tests {
     use fake_package::{FakeDependency, FakePackage};
 
     use super::*;
-    use crate::publishable_packages;
+    use crate::publishable_packages_from_manifest;
 
     // Test the package release order in the release-plz workspace itself.
     #[test]
     fn workspace_release_order_is_correct() {
-        let public_packages = publishable_packages("../../Cargo.toml").unwrap();
+        let public_packages = publishable_packages_from_manifest("../../Cargo.toml").unwrap();
         let pkgs = &public_packages.iter().collect::<Vec<_>>();
         assert_eq!(
             order(pkgs),

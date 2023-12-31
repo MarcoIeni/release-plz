@@ -1,7 +1,7 @@
 mod generate_completions;
 mod release;
 mod release_pr;
-mod repo_command;
+pub mod repo_command;
 mod update;
 
 use std::path::{Path, PathBuf};

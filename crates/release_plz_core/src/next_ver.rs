@@ -15,7 +15,7 @@ use crate::{
     ChangelogBuilder, PackagesToUpdate, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::Context;
-use cargo_metadata::{semver::Version, Package};
+use cargo_metadata::{semver::Version, Metadata, Package};
 use cargo_utils::{upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
 use git_cliff_core::{commit::Commit, config::Config as GitCliffConfig};
@@ -38,6 +38,8 @@ pub(crate) const NO_COMMIT_ID: &str = "N/A";
 pub struct UpdateRequest {
     /// The manifest of the project you want to update.
     local_manifest: PathBuf,
+    /// Cargo metadata.
+    metadata: Metadata,
     /// Manifest of the project containing packages at the versions published in the Cargo registry.
     registry_manifest: Option<PathBuf>,
     /// Update just this package.
@@ -174,9 +176,12 @@ fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
 }
 
 impl UpdateRequest {
-    pub fn new(local_manifest: impl AsRef<Path>) -> io::Result<Self> {
+    pub fn new(metadata: Metadata) -> anyhow::Result<Self> {
+        let local_manifest = cargo_utils::workspace_manifest(&metadata);
+        let local_manifest = canonical_local_manifest(local_manifest.as_ref())?;
         Ok(Self {
-            local_manifest: canonical_local_manifest(local_manifest.as_ref())?,
+            local_manifest,
+            metadata,
             registry_manifest: None,
             single_package: None,
             changelog_req: ChangelogRequest::default(),
@@ -199,6 +204,10 @@ impl UpdateRequest {
                     .expect("can't determine package path")
                     .join(CHANGELOG_FILENAME)
             })
+    }
+
+    pub fn cargo_metadata(&self) -> &Metadata {
+        &self.metadata
     }
 
     pub fn set_local_manifest(self, local_manifest: impl AsRef<Path>) -> io::Result<Self> {
@@ -302,13 +311,14 @@ impl UpdateRequest {
 }
 
 /// Determine next version of packages
-#[instrument]
+#[instrument(skip_all)]
 pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
     let overrides = input.packages_config.overrides.keys().cloned().collect();
     let local_project = Project::new(
         &input.local_manifest,
         input.single_package.as_deref(),
         overrides,
+        &input.metadata,
     )?;
     let updater = Updater {
         project: &local_project,
@@ -368,6 +378,7 @@ impl Project {
         local_manifest: &Path,
         single_package: Option<&str>,
         overrides: HashSet<String>,
+        metadata: &Metadata,
     ) -> anyhow::Result<Self> {
         let manifest = &local_manifest;
         let manifest_dir = manifest_dir(manifest)?.to_path_buf();
@@ -378,7 +389,8 @@ impl Project {
             PathBuf::from(project_root)
         };
         debug!("project_root: {root:?}");
-        let mut packages = workspace_packages(manifest)?;
+        let mut packages = workspace_packages(metadata)?;
+        override_packages_path(&mut packages, metadata, &manifest_dir)?;
         anyhow::ensure!(!packages.is_empty(), "no public packages found");
 
         check_overrides_typos(&packages, &overrides)?;
@@ -441,6 +453,26 @@ impl Project {
     pub fn cargo_lock_path(&self) -> PathBuf {
         self.root.join("Cargo.lock")
     }
+}
+
+/// Cargo metadata contains package paths of the original user project.
+/// Release-plz copies the user project to a temporary
+/// directory to avoid making changes to the original project.
+/// This function sets packages path relative to the specified `manifest_dir`.
+fn override_packages_path(
+    packages: &mut Vec<Package>,
+    metadata: &Metadata,
+    manifest_dir: &Path,
+) -> Result<(), anyhow::Error> {
+    for p in packages {
+        let old_path = p.package_path()?;
+        let relative_package_path = strip_prefix(old_path, &metadata.workspace_root)?.to_path_buf();
+        p.manifest_path = cargo_metadata::camino::Utf8PathBuf::from_path_buf(
+            manifest_dir.join(relative_package_path).join(CARGO_TOML),
+        )
+        .expect("can't create relative path");
+    }
+    Ok(())
 }
 
 fn check_overrides_typos(
@@ -560,7 +592,9 @@ impl Updater<'_> {
             .publishable_packages()
             .iter()
             .map(|&p| {
-                let diff = self.get_diff(p, registry_packages, repository)?;
+                let diff = self
+                    .get_diff(p, registry_packages, repository)
+                    .context("failed to retrieve difference between packages")?;
                 Ok((p, diff))
             })
             .collect();
@@ -928,8 +962,8 @@ fn get_repo_path(
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<PathBuf> {
-    let relative_path = strip_prefix(old_path, project_root)
-        .context("error while retrieving package_path: project root not found")?;
+    let relative_path =
+        strip_prefix(old_path, project_root).context("error while retrieving package_path")?;
     let result_path = repository.directory().join(relative_path);
 
     Ok(result_path)
@@ -957,12 +991,15 @@ fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
     run_semver_check && is_library(package) && is_cargo_semver_checks_installed()
 }
 
-pub fn workspace_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
-    cargo_utils::workspace_members(manifest).map(|members| members.collect())
+pub fn workspace_packages(metadata: &Metadata) -> anyhow::Result<Vec<Package>> {
+    cargo_utils::workspace_members(metadata).map(|members| members.collect())
 }
 
-pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
-    cargo_utils::workspace_members(manifest)
+pub fn publishable_packages_from_manifest(
+    manifest: impl AsRef<Path>,
+) -> anyhow::Result<Vec<Package>> {
+    let metadata = cargo_utils::get_manifest_metadata(manifest.as_ref())?;
+    cargo_utils::workspace_members(&metadata)
         .map(|members| members.filter(|p| p.is_publishable()).collect())
 }
 
@@ -1056,8 +1093,19 @@ impl PackageDependencies for Package {
 
 #[cfg(test)]
 mod tests {
+    use cargo_utils::get_manifest_metadata;
+
     use super::*;
     use std::{collections::HashSet, path::Path};
+
+    fn get_project(
+        local_manifest: &Path,
+        single_package: Option<&str>,
+        overrides: HashSet<String>,
+    ) -> anyhow::Result<Project> {
+        let metadata = get_manifest_metadata(local_manifest).unwrap();
+        Project::new(local_manifest, single_package, overrides, &metadata)
+    }
 
     #[test]
     fn test_for_typos() {
@@ -1073,7 +1121,7 @@ mod tests {
     #[test]
     fn test_empty_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
-        let result = Project::new(local_manifest, None, HashSet::default());
+        let result = get_project(local_manifest, None, HashSet::default());
         assert!(result.is_ok());
     }
 
@@ -1081,7 +1129,7 @@ mod tests {
     fn test_successful_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let overrides = (["typo_test".to_string()]).into();
-        let result = Project::new(local_manifest, None, overrides);
+        let result = get_project(local_manifest, None, overrides);
         assert!(result.is_ok());
     }
 
@@ -1090,7 +1138,7 @@ mod tests {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let single_package = None;
         let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
-        let result = Project::new(local_manifest, single_package, overrides);
+        let result = get_project(local_manifest, single_package, overrides);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
