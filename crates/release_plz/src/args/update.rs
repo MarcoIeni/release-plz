@@ -113,9 +113,13 @@ impl Update {
         self.allow_dirty || config.workspace.update.allow_dirty == Some(true)
     }
 
-    pub fn update_request(&self, config: Config) -> anyhow::Result<UpdateRequest> {
+    pub fn update_request(
+        &self,
+        config: Config,
+        cargo_metadata: cargo_metadata::Metadata,
+    ) -> anyhow::Result<UpdateRequest> {
         let project_manifest = self.project_manifest();
-        let mut update = UpdateRequest::new(project_manifest.clone())
+        let mut update = UpdateRequest::new(cargo_metadata)
             .with_context(|| {
                 format!("Cannot find file {project_manifest:?}. Make sure you are inside a rust project or that --project-manifest points to a valid Cargo.toml file.")
             })?
@@ -198,6 +202,8 @@ impl Update {
 
 #[cfg(test)]
 mod tests {
+    use fake_package::metadata::fake_metadata;
+
     use super::*;
 
     #[test]
@@ -216,7 +222,7 @@ mod tests {
             config: None,
         };
         let config: Config = toml::from_str("").unwrap();
-        let req = update_args.update_request(config).unwrap();
+        let req = update_args.update_request(config, fake_metadata()).unwrap();
         let pkg_config = req.get_package_config("aaa");
         assert_eq!(pkg_config, release_plz_core::PackageUpdateConfig::default());
     }

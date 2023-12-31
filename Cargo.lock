@@ -1114,6 +1114,7 @@ name = "fake_package"
 version = "0.1.0"
 dependencies = [
  "cargo_metadata",
+ "cargo_utils",
  "serde_json",
 ]
 
@@ -4160,6 +4161,7 @@ dependencies = [
  "assert_cmd",
  "async-trait",
  "base64 0.21.5",
+ "cargo_metadata",
  "cargo_utils",
  "chrono",
  "clap",
@@ -4168,6 +4170,7 @@ dependencies = [
  "duration-str",
  "expect-test",
  "fake",
+ "fake_package",
  "git-cliff-core",
  "git_cmd",
  "release_plz_core",

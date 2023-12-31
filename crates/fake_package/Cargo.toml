@@ -9,5 +9,6 @@ license = "MIT OR Apache-2.0"
 workspace = true
 
 [dependencies]
+cargo_utils = { path = "../cargo_utils", version = "0.1"}
 cargo_metadata.workspace = true
 serde_json.workspace = true
