@@ -873,23 +873,6 @@ impl Updater<'_> {
         Ok(diff)
     }
 
-    // #[instrument(skip(self))]
-    // fn get_package_path(
-    //     &self,
-    //     package: &Package,
-    //     repository: &Repo,
-    //     project_root: &Path,
-    // ) -> anyhow::Result<PathBuf> {
-    //     let package_path = package.package_path()?;
-    //     let relative_package_path = strip_prefix(package_path, &self.req.metadata.workspace_root)
-    //         .context("can't determine relative package path")?;
-    //     info!("relative package path: {relative_package_path:?}");
-    //     //get_repo_path(package_path, repository, project_root);
-    //     let result_path = repository.directory().join(relative_package_path);
-
-    //     Ok(result_path)
-    // }
-
     fn get_cargo_lock_path(&self, repository: &Repo) -> anyhow::Result<Option<String>> {
         let project_cargo_lock = self.project.cargo_lock_path();
         let relative_lock_path = strip_prefix(&project_cargo_lock, &self.project.root)?;
