@@ -17,6 +17,7 @@ jobs:
           token: ${{ secrets.CARGO_ASSIST_TOKEN }}
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Cargo assist
         uses: MarcoIeni/cargo-assist@main
         with:
