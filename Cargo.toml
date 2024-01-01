@@ -5,7 +5,7 @@ members = ["crates/*"]
 [workspace.dependencies]
 anyhow = "1.0.78"
 assert_cmd = "2.0.12"
-async-trait = "0.1.75"
+async-trait = "0.1.76"
 base64 = "0.21.5"
 cargo_metadata = "0.18.1"
 cargo = { version = "0.75.1", default-features = false }
