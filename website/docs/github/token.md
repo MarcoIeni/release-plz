@@ -96,7 +96,7 @@ Here's how to use a GitHub App to generate a GitHub token:
    - Under `Repository permissions: Pull requests` select `Access: Read & write`.
    - If you use [protected tags](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/configuring-tag-protection-rules):
      Under `Repository permissions: Administration` select `Access: Read & write`.
-   - (Optional) Under `Where can this GitHub App be installed?` select `Only on this account`
+   - (Optional) Under `Where can this GitHub App be installed?` select `Only on this account`.
    - (Optional) Set the release-plz [logo](/img/robot_head.jpeg).
 
 2. Create a Private key from the App settings page and store it securely.
