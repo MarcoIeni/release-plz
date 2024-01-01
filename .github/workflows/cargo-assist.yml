@@ -1,0 +1,23 @@
+name: Cargo Assist
+
+permissions:
+  contents: write
+
+on:
+  push:
+
+jobs:
+  cargo-assist:
+    name: Cargo assist
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.CARGO_ASSIST_TOKEN }}
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cargo assist
+        uses: MarcoIeni/cargo-assist@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
