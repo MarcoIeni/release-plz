@@ -46,16 +46,9 @@ impl Changelog<'_> {
     /// Update an existing changelog.
     pub fn prepend(self, old_changelog: impl Into<String>) -> anyhow::Result<String> {
         let old_changelog: String = old_changelog.into();
-        if let Ok(Some(last_version)) = changelog_parser::last_version_from_str(&old_changelog) {
-            let next_version = self
-                .release
-                .version
-                .as_ref()
-                .context("current release contains no version")?;
-            if next_version == &last_version {
-                // The changelog already contains this version, so we don't update the changelog.
-                return Ok(old_changelog);
-            }
+        if is_version_unchanged(&self.release) {
+            // The changelog already contains this version, so we don't update the changelog.
+            return Ok(old_changelog);
         }
         let old_header = changelog_parser::parse_header(&old_changelog);
         let config = self
@@ -66,9 +59,15 @@ impl Changelog<'_> {
         let mut out = Vec::new();
         changelog
             .prepend(old_changelog, &mut out)
-            .expect("cannot update changelog");
+            .context("cannot update changelog")?;
         String::from_utf8(out).context("cannot convert bytes to string")
     }
+}
+
+fn is_version_unchanged(release: &Release) -> bool {
+    let previous_version = release.previous.as_ref().and_then(|r| r.version.as_deref());
+    let new_version = release.version.as_deref();
+    previous_version == new_version
 }
 
 fn default_git_cliff_config(header: Option<String>, release_link: Option<&str>) -> Config {
@@ -81,6 +80,7 @@ fn default_git_cliff_config(header: Option<String>, release_link: Option<&str>) 
 pub struct ChangelogBuilder<'a> {
     commits: Vec<Commit<'a>>,
     version: String,
+    previous_version: Option<String>,
     config: Option<Config>,
     release_date: Option<NaiveDate>,
     release_link: Option<String>,
@@ -91,9 +91,17 @@ impl<'a> ChangelogBuilder<'a> {
         Self {
             commits,
             version: version.into(),
+            previous_version: None,
             config: None,
             release_date: None,
             release_link: None,
+        }
+    }
+
+    pub fn with_previous_version(self, previous_version: impl Into<String>) -> Self {
+        Self {
+            previous_version: Some(previous_version.into()),
+            ..self
         }
     }
 
@@ -143,13 +151,21 @@ impl<'a> ChangelogBuilder<'a> {
             }
         }
 
+        let previous = self.previous_version.map(|ver| Release {
+            version: Some(ver),
+            commits: vec![],
+            commit_id: None,
+            timestamp: 0,
+            previous: None,
+        });
+
         Changelog {
             release: Release {
                 version: Some(self.version),
                 commits,
                 commit_id: None,
                 timestamp: release_date,
-                previous: None,
+                previous: previous.map(Box::new),
             },
             release_link: self.release_link,
             config: self.config,
@@ -545,28 +561,4 @@ fn empty_changelog_is_updated() {
         - simple update
     "####]]
     .assert_eq(&new.unwrap());
-}
-
-#[test]
-fn same_version_is_not_added() {
-    let commits = vec![
-        Commit::new(crate::NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
-        Commit::new(crate::NO_COMMIT_ID.to_string(), "simple update".to_string()),
-    ];
-
-    // this version is already in the changelog
-    let changelog = ChangelogBuilder::new(commits, "1.1.0")
-        .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
-        .build();
-
-    let old = r#"## [1.1.0] - 1970-01-01
-
-### fix bugs
-- my awesomefix
-
-### other
-- complex update
-"#;
-    let new = changelog.prepend(old).unwrap();
-    assert_eq!(old, new)
 }

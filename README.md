@@ -32,7 +32,7 @@ release-plz:
 
 ## 📚 Docs
 
-Learn how to use release-plz in the mdbook [docs](https://release-plz.ieni.dev/).
+Learn how to use release-plz in the [docs](https://release-plz.ieni.dev/).
 
 ## 🤖 Running release-plz
 
@@ -45,7 +45,7 @@ There are two ways to run release-plz:
 
 Here you can find the public repositories using the release-plz GitHub action in CI:
 
-- [GitHub search](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action)
+- [GitHub search](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action%40)
 - [Dependency graph](https://github.com/MarcoIeni/release-plz-action/network/dependents)
 
 ## 🌓 Similar projects

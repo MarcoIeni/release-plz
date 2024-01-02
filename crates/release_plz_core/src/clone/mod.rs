@@ -19,9 +19,8 @@ use std::process::Command;
 use anyhow::{bail, Context};
 
 use cargo::core::dependency::Dependency;
-use cargo::core::source::Source;
 use cargo::core::Package;
-use cargo::core::QueryKind;
+use cargo::sources::source::{QueryKind, Source};
 use cargo::sources::{PathSource, SourceConfigMap};
 
 use walkdir::WalkDir;

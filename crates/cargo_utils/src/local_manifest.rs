@@ -5,6 +5,7 @@ use std::{
 };
 
 use anyhow::Context;
+use cargo_metadata::{camino::Utf8PathBuf, Metadata};
 use semver::Version;
 
 use crate::{DepTable, Manifest};
@@ -258,4 +259,8 @@ fn remove_feature_activation(
     for idx in remove_list.iter().rev() {
         feature_activations.remove(*idx);
     }
+}
+
+pub fn workspace_manifest(metadata: &Metadata) -> Utf8PathBuf {
+    metadata.workspace_root.join("Cargo.toml")
 }

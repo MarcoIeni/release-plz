@@ -10,11 +10,12 @@ use crate::{
     semver_check::{self, SemverCheck},
     strip_prefix::strip_prefix,
     tmp_repo::TempRepo,
+    toml_compare::are_toml_dependencies_updated,
     version::NextVersionFromDiff,
     ChangelogBuilder, PackagesToUpdate, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::Context;
-use cargo_metadata::{semver::Version, Dependency, Package};
+use cargo_metadata::{semver::Version, Metadata, Package};
 use cargo_utils::{upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
 use git_cliff_core::{commit::Commit, config::Config as GitCliffConfig};
@@ -42,6 +43,8 @@ pub trait RequestReleaseValidator {
 pub struct UpdateRequest {
     /// The manifest of the project you want to update.
     local_manifest: PathBuf,
+    /// Cargo metadata.
+    metadata: Metadata,
     /// Manifest of the project containing packages at the versions published in the Cargo registry.
     registry_manifest: Option<PathBuf>,
     /// Update just this package.
@@ -181,9 +184,12 @@ fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
 }
 
 impl UpdateRequest {
-    pub fn new(local_manifest: impl AsRef<Path>) -> io::Result<Self> {
+    pub fn new(metadata: Metadata) -> anyhow::Result<Self> {
+        let local_manifest = cargo_utils::workspace_manifest(&metadata);
+        let local_manifest = canonical_local_manifest(local_manifest.as_ref())?;
         Ok(Self {
-            local_manifest: canonical_local_manifest(local_manifest.as_ref())?,
+            local_manifest,
+            metadata,
             registry_manifest: None,
             single_package: None,
             changelog_req: ChangelogRequest::default(),
@@ -206,6 +212,10 @@ impl UpdateRequest {
                     .expect("can't determine package path")
                     .join(CHANGELOG_FILENAME)
             })
+    }
+
+    pub fn cargo_metadata(&self) -> &Metadata {
+        &self.metadata
     }
 
     pub fn set_local_manifest(self, local_manifest: impl AsRef<Path>) -> io::Result<Self> {
@@ -316,13 +326,14 @@ impl RequestReleaseValidator for UpdateRequest {
 }
 
 /// Determine next version of packages
-#[instrument]
+#[instrument(skip_all)]
 pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
     let overrides = input.packages_config.overrides.keys().cloned().collect();
     let local_project = Project::new(
         &input.local_manifest,
         input.single_package.as_deref(),
         overrides,
+        &input.metadata,
         input,
     )?;
     let updater = Updater {
@@ -383,6 +394,7 @@ impl Project {
         local_manifest: &Path,
         single_package: Option<&str>,
         overrides: HashSet<String>,
+        metadata: &Metadata,
         request_release_validator: &dyn RequestReleaseValidator,
     ) -> anyhow::Result<Self> {
         let manifest = local_manifest;
@@ -394,7 +406,8 @@ impl Project {
             PathBuf::from(project_root)
         };
         debug!("project_root: {root:?}");
-        let mut packages = workspace_packages(manifest)?;
+        let mut packages = workspace_packages(metadata)?;
+        override_packages_path(&mut packages, metadata, &manifest_dir)?;
         packages.retain(|p| request_release_validator.is_release_enabled(&p.name));
         anyhow::ensure!(!packages.is_empty(), ERR_NO_PUBLIC_PACKAGE);
 
@@ -458,6 +471,26 @@ impl Project {
     pub fn cargo_lock_path(&self) -> PathBuf {
         self.root.join("Cargo.lock")
     }
+}
+
+/// Cargo metadata contains package paths of the original user project.
+/// Release-plz copies the user project to a temporary
+/// directory to avoid making changes to the original project.
+/// This function sets packages path relative to the specified `manifest_dir`.
+fn override_packages_path(
+    packages: &mut Vec<Package>,
+    metadata: &Metadata,
+    manifest_dir: &Path,
+) -> Result<(), anyhow::Error> {
+    for p in packages {
+        let old_path = p.package_path()?;
+        let relative_package_path = strip_prefix(old_path, &metadata.workspace_root)?.to_path_buf();
+        p.manifest_path = cargo_metadata::camino::Utf8PathBuf::from_path_buf(
+            manifest_dir.join(relative_package_path).join(CARGO_TOML),
+        )
+        .expect("can't create relative path");
+    }
+    Ok(())
 }
 
 fn check_overrides_typos(
@@ -577,7 +610,9 @@ impl Updater<'_> {
             .publishable_packages()
             .iter()
             .map(|&p| {
-                let diff = self.get_diff(p, registry_packages, repository)?;
+                let diff = self
+                    .get_diff(p, registry_packages, repository)
+                    .context("failed to retrieve difference between packages")?;
                 Ok((p, diff))
             })
             .collect();
@@ -731,9 +766,9 @@ impl Updater<'_> {
 
     /// This operation is not thread-safe, because we do `git checkout` on the repository.
     #[instrument(
-    skip_all,
-    fields(package = %package.name)
-)]
+        skip_all,
+        fields(package = %package.name)
+    )]
     fn get_diff(
         &self,
         package: &Package,
@@ -742,7 +777,9 @@ impl Updater<'_> {
     ) -> anyhow::Result<Diff> {
         let package_path = get_package_path(package, repository, &self.project.root)?;
 
-        repository.checkout_head()?;
+        repository
+            .checkout_head()
+            .context("can't checkout head to calculate diff")?;
         let registry_package = registry_packages.get_package(&package.name);
         let mut diff = Diff::new(registry_package.is_some());
         if let Err(err) = repository.checkout_last_commit_at_path(&package_path) {
@@ -757,12 +794,19 @@ impl Updater<'_> {
             }
         }
 
-        let tag_commit = {
-            let git_tag = self
-                .project
-                .git_tag(&package.name, &package.version.to_string());
-            repository.get_tag_commit(&git_tag)
-        };
+        let git_tag = self
+            .project
+            .git_tag(&package.name, &package.version.to_string());
+        let tag_commit = repository.get_tag_commit(&git_tag);
+        if tag_commit.is_some() {
+            let registry_package = registry_package.with_context(|| format!("package `{}` not found in the registry, but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish this package.", package.name))?;
+            anyhow::ensure!(
+                registry_package.version == package.version,
+                "package `{}` has a different version ({}) with respect to the registry package ({}), but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish the new version of this package.",
+                package.name, package.version, registry_package.version
+            )
+        }
+        let cargo_lock_path = self.get_cargo_lock_path(repository)?;
         loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
@@ -771,6 +815,13 @@ impl Updater<'_> {
                 let registry_package_path = registry_package.package_path()?;
                 let are_packages_equal = are_packages_equal(&package_path, registry_package_path)
                     .context("cannot compare packages")?;
+                if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
+                    // We run `cargo package` when comparing packages.
+                    // `cargo package` can edit files, such as `Cargo.lock`, so we need to revert the changes.
+                    repository
+                        .checkout(cargo_lock_path)
+                        .context("cannot revert changes introduced when comparing packages")?;
+                }
                 if are_packages_equal
                     || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
                 {
@@ -778,19 +829,28 @@ impl Updater<'_> {
                     "next version calculated starting from commits after `{current_commit_hash}`"
                 );
                     if diff.commits.is_empty() {
-                        let are_dependencies_updated = are_toml_dependencies_updated(
-                            &registry_package.dependencies,
-                            &package.dependencies,
-                        )
-                            || lock_compare::are_lock_dependencies_updated(
+                        let are_toml_dependencies_updated = || {
+                            are_toml_dependencies_updated(
+                                &registry_package.dependencies,
+                                &package.dependencies,
+                            )
+                        };
+                        let are_lock_dependencies_updated = || {
+                            lock_compare::are_lock_dependencies_updated(
                                 &self.project.cargo_lock_path(),
                                 registry_package_path,
                             )
-                            .context("Can't check if Cargo.lock dependencies are up to date")?;
-                        if are_dependencies_updated {
+                            .context("Can't check if Cargo.lock dependencies are up to date")
+                        };
+                        if are_toml_dependencies_updated() {
                             diff.commits.push(Commit::new(
                                 NO_COMMIT_ID.to_string(),
-                                "chore: update dependencies".to_string(),
+                                "chore: update Cargo.toml dependencies".to_string(),
+                            ));
+                        } else if are_lock_dependencies_updated()? {
+                            diff.commits.push(Commit::new(
+                                NO_COMMIT_ID.to_string(),
+                                "chore: update Cargo.lock dependencies".to_string(),
                             ));
                         } else {
                             info!("{}: already up to date", package.name);
@@ -825,8 +885,24 @@ impl Updater<'_> {
                 break;
             }
         }
-        repository.checkout_head()?;
+        repository
+            .checkout_head()
+            .context("can't checkout to head after calculating diff")?;
         Ok(diff)
+    }
+
+    fn get_cargo_lock_path(&self, repository: &Repo) -> anyhow::Result<Option<String>> {
+        let project_cargo_lock = self.project.cargo_lock_path();
+        let relative_lock_path = strip_prefix(&project_cargo_lock, &self.project.root)?;
+        let repository_cargo_lock = repository.directory().join(relative_lock_path);
+        if repository_cargo_lock.exists() {
+            let cargo_lock_path = repository_cargo_lock
+                .to_str()
+                .context("can't convert Cargo.lock path to string")?;
+            Ok(Some(cargo_lock_path.to_string()))
+        } else {
+            Ok(None)
+        }
     }
 }
 
@@ -876,9 +952,14 @@ fn get_changelog(
         if let Some(link) = release_link {
             changelog_builder = changelog_builder.with_release_link(link)
         }
+        if let Some(old_changelog) = &old_changelog {
+            if let Ok(Some(last_version)) = changelog_parser::last_version_from_str(old_changelog) {
+                changelog_builder = changelog_builder.with_previous_version(last_version)
+            }
+        }
     }
     let new_changelog = changelog_builder.build();
-    let changelog = match old_changelog {
+    let changelog = match &old_changelog {
         Some(old_changelog) => new_changelog.prepend(old_changelog)?,
         None => new_changelog.generate(), // Old changelog doesn't exist.
     };
@@ -899,8 +980,8 @@ fn get_repo_path(
     repository: &Repo,
     project_root: &Path,
 ) -> anyhow::Result<PathBuf> {
-    let relative_path = strip_prefix(old_path, project_root)
-        .context("error while retrieving package_path: project root not found")?;
+    let relative_path =
+        strip_prefix(old_path, project_root).context("error while retrieving package_path")?;
     let result_path = repository.directory().join(relative_path);
 
     Ok(result_path)
@@ -928,32 +1009,16 @@ fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
     run_semver_check && is_library(package) && is_cargo_semver_checks_installed()
 }
 
-/// Compare the dependencies of the registry package and the local one.
-/// Check if the dependencies of the registry package were updated.
-/// This function checks only dependencies of `Cargo.toml`.
-fn are_toml_dependencies_updated(
-    registry_dependencies: &[Dependency],
-    local_dependencies: &[Dependency],
-) -> bool {
-    local_dependencies
-        .iter()
-        .any(|d| d.path.is_none() && !registry_dependencies.contains(d))
+pub fn workspace_packages(metadata: &Metadata) -> anyhow::Result<Vec<Package>> {
+    cargo_utils::workspace_members(metadata).map(|members| members.collect())
 }
 
-fn workspace_members(manifest: impl AsRef<Path>) -> anyhow::Result<impl Iterator<Item = Package>> {
-    let manifest = manifest.as_ref();
-    let packages = cargo_utils::workspace_members(Some(manifest))
-        .with_context(|| format!("cannot read workspace members in manifest {manifest:?}"))?
-        .into_iter();
-    Ok(packages)
-}
-
-pub fn workspace_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
-    workspace_members(manifest).map(|members| members.collect())
-}
-
-pub fn publishable_packages(manifest: impl AsRef<Path>) -> anyhow::Result<Vec<Package>> {
-    workspace_members(manifest).map(|members| members.filter(|p| p.is_publishable()).collect())
+pub fn publishable_packages_from_manifest(
+    manifest: impl AsRef<Path>,
+) -> anyhow::Result<Vec<Package>> {
+    let metadata = cargo_utils::get_manifest_metadata(manifest.as_ref())?;
+    cargo_utils::workspace_members(&metadata)
+        .map(|members| members.filter(|p| p.is_publishable()).collect())
 }
 
 pub trait Publishable {
@@ -1046,9 +1111,29 @@ impl PackageDependencies for Package {
 
 #[cfg(test)]
 mod tests {
+    use cargo_utils::get_manifest_metadata;
+
+    use super::*;
     use super::{check_for_typos, Project, ERR_NO_PUBLIC_PACKAGE};
     use crate::RequestReleaseValidator;
     use std::{collections::HashSet, path::Path};
+
+    fn get_project(
+        local_manifest: &Path,
+        single_package: Option<&str>,
+        overrides: HashSet<String>,
+        request_release_validator: bool,
+    ) -> anyhow::Result<Project> {
+        let metadata = get_manifest_metadata(local_manifest).unwrap();
+        let request_release_validator = RequestReleaseValidatorStub::new(request_release_validator);
+        Project::new(
+            local_manifest,
+            single_package,
+            overrides,
+            &metadata,
+            &request_release_validator,
+        )
+    }
 
     struct RequestReleaseValidatorStub {
         release: bool,
@@ -1080,13 +1165,7 @@ mod tests {
     #[test]
     fn test_empty_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
-        let request_release_validator = RequestReleaseValidatorStub::new(true);
-        let result = Project::new(
-            local_manifest,
-            None,
-            HashSet::default(),
-            &request_release_validator,
-        );
+        let result = get_project(local_manifest, None, HashSet::default(), true);
         assert!(result.is_ok());
     }
 
@@ -1094,8 +1173,7 @@ mod tests {
     fn test_successful_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let overrides = (["typo_test".to_string()]).into();
-        let request_release_validator = RequestReleaseValidatorStub::new(true);
-        let result = Project::new(local_manifest, None, overrides, &request_release_validator);
+        let result = get_project(local_manifest, None, overrides, true);
         assert!(result.is_ok());
     }
 
@@ -1104,13 +1182,7 @@ mod tests {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let single_package = None;
         let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
-        let request_release_validator = RequestReleaseValidatorStub::new(true);
-        let result = Project::new(
-            local_manifest,
-            single_package,
-            overrides,
-            &request_release_validator,
-        );
+        let result = get_project(local_manifest, single_package, overrides, true);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
@@ -1119,11 +1191,38 @@ mod tests {
     }
 
     #[test]
+    fn same_version_is_not_added_to_changelog() {
+        let commits = vec![
+            Commit::new(crate::NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
+            Commit::new(crate::NO_COMMIT_ID.to_string(), "simple update".to_string()),
+        ];
+
+        let next_version = Version::new(1, 1, 0);
+        let changelog_req = ChangelogRequest::default();
+
+        let old = r#"## [1.1.0] - 1970-01-01
+
+### fix bugs
+- my awesomefix
+
+### other
+- complex update
+"#;
+        let new = get_changelog(
+            commits,
+            &next_version,
+            Some(changelog_req),
+            Some(old.to_string()),
+            None,
+        )
+        .unwrap();
+        assert_eq!(old, new)
+    }
+
+    #[test]
     fn project_new_no_release_will_error() {
         let local_manifest = Path::new("../fake_package/Cargo.toml");
-        let overrides = ([]).into();
-        let request_release_validator = RequestReleaseValidatorStub::new(false);
-        let result = Project::new(local_manifest, None, overrides, &request_release_validator);
+        let result = get_project(local_manifest, None, HashSet::default(), false);
         assert!(result.is_err());
         assert_eq!(result.unwrap_err().to_string(), ERR_NO_PUBLIC_PACKAGE);
     }

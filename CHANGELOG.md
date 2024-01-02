@@ -6,6 +6,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.38](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.37...release-plz-v0.3.38) - 2023-12-30
+
+### Other
+- flatten part of config struct ([#1154](https://github.com/MarcoIeni/release-plz/pull/1154))
+- remove unuseful function ([#1166](https://github.com/MarcoIeni/release-plz/pull/1166))
+- simplify code ([#1165](https://github.com/MarcoIeni/release-plz/pull/1165))
+
+## [0.3.37](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.36...release-plz-v0.3.37) - 2023-12-19
+
+### Fixed
+- restore changes introduced by `cargo package` ([#1152](https://github.com/MarcoIeni/release-plz/pull/1152))
+
+## [0.3.36](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.35...release-plz-v0.3.36) - 2023-12-17
+
+### Other
+- update dependencies
+
+## [0.3.35](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.34...release-plz-v0.3.35) - 2023-12-16
+
+### Added
+- return error if tag exists and package isn't published ([#1143](https://github.com/MarcoIeni/release-plz/pull/1143))
+- support packages with git dependencies ([#1141](https://github.com/MarcoIeni/release-plz/pull/1141))
+- distinguish dependency update type ([#1140](https://github.com/MarcoIeni/release-plz/pull/1140))
+
+### Fixed
+- internal dependency conflict ([#1135](https://github.com/MarcoIeni/release-plz/pull/1135))
+
+### Other
+- update dependencies
+- *(deps)* bump cargo to 0.75.1 ([#1137](https://github.com/MarcoIeni/release-plz/pull/1137))
+
+## [0.3.34](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.33...release-plz-v0.3.34) - 2023-12-13
+
+### Fixed
+- pass previous version to git-cliff ([#1134](https://github.com/MarcoIeni/release-plz/pull/1134))
+
+### Other
+- update dependencies
+
 ## [0.3.33](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.32...release-plz-v0.3.33) - 2023-12-08
 
 ### Added

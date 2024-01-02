@@ -1,6 +1,6 @@
 [package]
 name = "next_version"
-version = "0.2.10"
+version = "0.2.12"
 edition = "2021"
 description = "Determine next semantic version based on conventional commits"
 license = "MIT OR Apache-2.0"

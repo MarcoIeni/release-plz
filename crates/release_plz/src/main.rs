@@ -9,7 +9,7 @@ use clap::Parser;
 use release_plz_core::{ReleasePrRequest, ReleaseRequest};
 use tracing::error;
 
-use crate::args::{CliArgs, Command};
+use crate::args::{repo_command::RepoCommand as _, CliArgs, Command};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -26,16 +26,18 @@ async fn main() -> anyhow::Result<()> {
 async fn run(args: CliArgs) -> anyhow::Result<()> {
     match args.command {
         Command::Update(cmd_args) => {
+            let cargo_metadata = cmd_args.cargo_metadata()?;
             let config = cmd_args.config()?;
-            let update_request = cmd_args.update_request(config)?;
+            let update_request = cmd_args.update_request(config, cargo_metadata)?;
             let updates = release_plz_core::update(&update_request)?;
             println!("{}", updates.0.summary());
         }
         Command::ReleasePr(cmd_args) => {
+            let cargo_metadata = cmd_args.update.cargo_metadata()?;
             let config = cmd_args.update.config()?;
-            let pr_labels = config.workspace.release_pr.pr_labels.clone();
-            let pr_draft = config.workspace.release_pr.pr_draft;
-            let update_request = cmd_args.update.update_request(config)?;
+            let pr_labels = config.workspace.pr_labels.clone();
+            let pr_draft = config.workspace.pr_draft;
+            let update_request = cmd_args.update.update_request(config, cargo_metadata)?;
             let repo_url = update_request
                 .repo_url()
                 .context("can't determine repo url")?;
@@ -48,8 +50,9 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             release_plz_core::release_pr(&request).await?;
         }
         Command::Release(cmd_args) => {
+            let cargo_metadata = cmd_args.cargo_metadata()?;
             let config = cmd_args.config()?;
-            let request: ReleaseRequest = cmd_args.release_request(config)?;
+            let request: ReleaseRequest = cmd_args.release_request(config, cargo_metadata)?;
             release_plz_core::release(&request).await?;
         }
         Command::GenerateCompletions(cmd_args) => cmd_args.print(),

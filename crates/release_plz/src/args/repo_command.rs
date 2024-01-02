@@ -15,6 +15,10 @@ pub trait RepoCommand {
         super::local_manifest(self.optional_project_manifest())
     }
 
+    fn cargo_metadata(&self) -> anyhow::Result<cargo_metadata::Metadata> {
+        cargo_utils::get_manifest_metadata(&self.project_manifest())
+    }
+
     fn get_repo_url(&self, config: &Config) -> anyhow::Result<RepoUrl> {
         match &self.user_repo_url(config) {
             Some(url) => RepoUrl::new(url),

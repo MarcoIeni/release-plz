@@ -3,50 +3,50 @@ resolver = "2"
 members = ["crates/*"]
 
 [workspace.dependencies]
-anyhow = "1.0.75"
+anyhow = "1.0.78"
 assert_cmd = "2.0.12"
-async-trait = "0.1.74"
+async-trait = "0.1.76"
 base64 = "0.21.5"
 cargo_metadata = "0.18.1"
-cargo = { version = "0.74.0", default-features = false }
+cargo = { version = "0.75.1", default-features = false }
 chrono = { version = "0.4.31", default-features = false }
 clap = "4.4.11"
-clap_complete = "4.4.3"
+clap_complete = "4.4.4"
 conventional_commit_parser = "0.9.4"
 crates-index = { version = "2.3.0", features = ["git", "sparse", "git-https"] }
 dirs = "5.0.1"
 dunce = "1.0.4"
-duration-str = { version = "0.7.0", default-features = false }
+duration-str = { version = "0.7.1", default-features = false }
 expect-test = "1.4.1"
-fake = "2.8.0"
-git-cliff-core = { version = "1.3.1", default-features = false }
+fake = "2.9.2"
+git-cliff-core = { version = "1.4.0", default-features = false }
 git-url-parse = "0.4.4"
 http = "0.2"
 ignore = "0.4.21"
 lazy_static = "1.4.0"
-once_cell = "1.18.0"
+once_cell = "1.19.0"
 parse-changelog = { version = "0.6.4", default-features = false }
 rayon = "1.8.0"
 regex = "1.10.2"
 reqwest = "0.11.22"
-reqwest-middleware = "0.2.3"
+reqwest-middleware = "0.2.4"
 reqwest-retry = "0.3.0"
 schemars = { version = "0.8.16", features = ["url"] }
 secrecy = "0.8.0"
 semver = "1.0.20"
 serde = "1.0.193"
-serde_json = "1.0.108"
+serde_json = "1.0.109"
 strip-ansi-escapes = "0.2.0"
-tempfile = "3.8.0"
-tokio = "1.34.0"
-toml = { version = "0.8.2" }
+tempfile = "3.8.1"
+tokio = "1.35.0"
+toml = { version = "0.8.8" }
 toml_edit = { version = "0.21.0" }
 tracing = "0.1.40"
 tracing-log = "0.2.0"
 tracing-subscriber = "0.3.18"
 url = { version = "2.5.0", default-features = false }
 walkdir = "2.4.0"
-wiremock = "0.5.21"
+wiremock = "0.5.22"
 
 [workspace.lints.clippy]
 await_holding_lock = "warn"

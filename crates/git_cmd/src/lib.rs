@@ -14,6 +14,7 @@ use anyhow::{anyhow, Context};
 use tracing::{debug, instrument, trace, warn, Span};
 
 /// Repository
+#[derive(Debug)]
 pub struct Repo {
     /// Directory where you want to run git operations
     directory: PathBuf,
@@ -144,8 +145,9 @@ impl Repo {
         Ok(())
     }
 
+    #[instrument(skip(self))]
     pub fn checkout_head(&self) -> anyhow::Result<()> {
-        self.git(&["checkout", &self.original_branch])?;
+        self.checkout(&self.original_branch)?;
         Ok(())
     }
 
