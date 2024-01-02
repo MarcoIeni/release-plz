@@ -31,6 +31,7 @@
         "publish_allow_dirty": null,
         "publish_no_verify": null,
         "publish_timeout": null,
+        "release": null,
         "repo_url": null,
         "semver_check": null
       },
@@ -135,6 +136,14 @@
         "publish_no_verify": {
           "title": "Publish No Verify",
           "description": "If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "release": {
+          "title": "Release",
+          "description": "Used to toggle off the update/release process for a workspace or package.",
           "type": [
             "boolean",
             "null"
@@ -294,6 +303,14 @@
           "description": "Timeout for the publishing process",
           "type": [
             "string",
+            "null"
+          ]
+        },
+        "release": {
+          "title": "Release",
+          "description": "Used to toggle off the update/release process for a workspace or package.",
+          "type": [
+            "boolean",
             "null"
           ]
         },
