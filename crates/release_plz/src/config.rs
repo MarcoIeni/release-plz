@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf, time::Duration};
 use url::Url;
 
+/// You can find the documentation of the configuration file
+/// [here](https://release-plz.ieni.dev/docs/config).
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
@@ -34,7 +36,7 @@ impl Config {
         is_changelog_update_disabled: bool,
         update_request: UpdateRequest,
     ) -> UpdateRequest {
-        let mut default_update_config = self.workspace.packages_defaults.update.clone();
+        let mut default_update_config = self.workspace.packages_defaults.clone();
         if is_changelog_update_disabled {
             default_update_config.changelog_update = false.into();
         }
@@ -44,7 +46,7 @@ impl Config {
             let mut update_config = config.clone();
             update_config = update_config.merge(self.workspace.packages_defaults.clone());
             if is_changelog_update_disabled {
-                update_config.update.changelog_update = false.into();
+                update_config.common.changelog_update = false.into();
             }
             update_request = update_request.with_package_config(package, update_config.into());
         }
@@ -57,12 +59,12 @@ impl Config {
         no_verify: bool,
         release_request: ReleaseRequest,
     ) -> ReleaseRequest {
-        let mut default_config = self.workspace.packages_defaults.release.clone();
+        let mut default_config = self.workspace.packages_defaults.clone();
         if no_verify {
-            default_config.release.no_verify = Some(true);
+            default_config.publish_no_verify = Some(true);
         }
         if allow_dirty {
-            default_config.release.allow_dirty = Some(true);
+            default_config.publish_allow_dirty = Some(true);
         }
         let mut release_request =
             release_request.with_default_package_config(default_config.into());
@@ -72,10 +74,10 @@ impl Config {
             release_config = release_config.merge(self.workspace.packages_defaults.clone());
 
             if no_verify {
-                release_config.release.release.no_verify = Some(true);
+                release_config.common.publish_no_verify = Some(true);
             }
             if allow_dirty {
-                release_config.release.release.allow_dirty = Some(true);
+                release_config.common.publish_allow_dirty = Some(true);
             }
             release_request = release_request.with_package_config(package, release_config.into());
         }
@@ -83,13 +85,23 @@ impl Config {
     }
 }
 
-/// Global configuration.
+/// Config at the `[workspace]` level.
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
 pub struct Workspace {
-    /// Configuration for the `release-plz update` command.
-    /// These options also affect the `release-plz release-pr` command.
+    /// Configuration applied at the `[[package]]` level, too.
     #[serde(flatten)]
-    pub update: UpdateConfig,
+    pub packages_defaults: PackageConfig,
+    /// # Allow Dirty
+    /// - If `true`, allow dirty working directories to be updated. The uncommitted changes will be part of the update.
+    /// - If `false` or [`Option::None`], the command will fail if the working directory is dirty.
+    pub allow_dirty: Option<bool>,
+    /// # Changelog Config
+    /// Path to the git cliff configuration file. Defaults to the `keep a changelog` configuration.
+    pub changelog_config: Option<PathBuf>,
+    /// # Dependencies Update
+    /// - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
+    /// - If `false` or [`Option::None`], only update the workspace packages by running `cargo update --workspace`.
+    pub dependencies_update: Option<bool>,
     /// # PR Draft
     /// If `true`, the created release PR will be marked as a draft.
     #[serde(default)]
@@ -98,14 +110,14 @@ pub struct Workspace {
     /// Labels to add to the release PR.
     #[serde(default)]
     pub pr_labels: Vec<String>,
-    #[serde(flatten)]
-    pub common: CommonCmdConfig,
-    /// Configuration applied to all packages by default.
-    #[serde(flatten)]
-    pub packages_defaults: PackageConfig,
     /// # Publish Timeout
     /// Timeout for the publishing process
     pub publish_timeout: Option<String>,
+    /// # Repo URL
+    /// GitHub/Gitea repository url where your project is hosted.
+    /// It is used to generate the changelog release link.
+    /// It defaults to the url of the default remote.
+    pub repo_url: Option<Url>,
 }
 
 impl Workspace {
@@ -117,42 +129,12 @@ impl Workspace {
     }
 }
 
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
-/// Configuration shared among various commands.
-pub struct CommonCmdConfig {
-    /// # Repo URL
-    /// GitHub/Gitea repository url where your project is hosted.
-    /// It is used to generate the changelog release link.
-    /// It defaults to the url of the default remote.
-    pub repo_url: Option<Url>,
-}
-
-/// Configuration for the `update` command.
-/// Generical for the whole workspace. Cannot be customized on a per-package basic.
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
-pub struct UpdateConfig {
-    /// # Dependencies Update
-    /// - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
-    /// - If `false` or [`Option::None`], only update the workspace packages by running `cargo update --workspace`.
-    pub dependencies_update: Option<bool>,
-    /// # Changelog Config
-    /// Path to the git cliff configuration file. Defaults to the `keep a changelog` configuration.
-    pub changelog_config: Option<PathBuf>,
-    /// # Allow Dirty
-    /// - If `true`, allow dirty working directories to be updated. The uncommitted changes will be part of the update.
-    /// - If `false` or [`Option::None`], the command will fail if the working directory is dirty.
-    pub allow_dirty: Option<bool>,
-}
-
 /// Config at the `[[package]]` level.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, JsonSchema)]
 pub struct PackageSpecificConfig {
-    /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
+    /// Configuration that can be specified at the `[workspace]` level, too.
     #[serde(flatten)]
-    update: PackageUpdateConfig,
-    /// Options for the `release-plz release` command.
-    #[serde(flatten)]
-    release: PackageReleaseConfig,
+    common: PackageConfig,
     /// # Changelog Path
     /// Normally the changelog is placed in the same directory of the Cargo.toml file.
     /// The user can provide a custom path here.
@@ -169,8 +151,7 @@ impl PackageSpecificConfig {
     /// Merge the package-specific configuration with the global configuration.
     pub fn merge(self, default: PackageConfig) -> PackageSpecificConfig {
         PackageSpecificConfig {
-            update: self.update.merge(default.update),
-            release: self.release.merge(default.release),
+            common: self.common.merge(default),
             changelog_path: self.changelog_path,
             changelog_include: self.changelog_include,
         }
@@ -186,7 +167,7 @@ pub struct PackageSpecificConfigWithName {
 
 impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
     fn from(config: PackageSpecificConfig) -> Self {
-        let generic = config.release.into();
+        let generic = config.common.into();
 
         Self {
             generic,
@@ -195,11 +176,11 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
     }
 }
 
-impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
-    fn from(value: PackageReleaseConfig) -> Self {
-        let is_publish_enabled = value.release.publish != Some(false);
-        let is_git_release_enabled = value.git_release.enable != Some(false);
-        let is_git_release_draft = value.git_release.draft == Some(true);
+impl From<PackageConfig> for release_plz_core::ReleaseConfig {
+    fn from(value: PackageConfig) -> Self {
+        let is_publish_enabled = value.publish != Some(false);
+        let is_git_release_enabled = value.git_release_enable != Some(false);
+        let is_git_release_draft = value.git_release_draft == Some(true);
         let is_git_tag_enabled = value.git_tag_enable != Some(false);
         let mut cfg = Self::default()
             .with_publish(release_plz_core::PublishConfig::enabled(is_publish_enabled))
@@ -209,28 +190,54 @@ impl From<PackageReleaseConfig> for release_plz_core::ReleaseConfig {
             )
             .with_git_tag(release_plz_core::GitTagConfig::enabled(is_git_tag_enabled));
 
-        if let Some(no_verify) = value.release.no_verify {
+        if let Some(no_verify) = value.publish_no_verify {
             cfg = cfg.with_no_verify(no_verify);
         }
-        if let Some(allow_dirty) = value.release.allow_dirty {
+        if let Some(allow_dirty) = value.publish_allow_dirty {
             cfg = cfg.with_allow_dirty(allow_dirty);
         }
         cfg
     }
 }
 
+/// Configuration that can be specified both at the `[workspace]` and at the `[[package]]` level.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone, JsonSchema)]
 pub struct PackageConfig {
-    /// Options for the `release-plz update` command (therefore `release-plz release-pr` too).
-    #[serde(flatten)]
-    update: PackageUpdateConfig,
-    /// Options for the `release-plz release` command.
-    #[serde(flatten)]
-    release: PackageReleaseConfig,
+    /// # Changelog Update
+    /// Whether to create/update changelog or not.
+    /// If unspecified, the changelog is updated.
+    pub changelog_update: Option<bool>,
+    /// # Git Release Enable
+    /// Publish the GitHub/Gitea release for the created git tag.
+    /// Enabled by default.
+    pub git_release_enable: Option<bool>,
+    /// # Git Release Type
+    /// Whether to mark the created release as not ready for production.
+    pub git_release_type: Option<ReleaseType>,
+    /// # Git Release Draft
+    /// If true, will not auto-publish the release.
+    pub git_release_draft: Option<bool>,
+    /// # Git Tag Enable
+    /// Publish the git tag for the new package version.
+    /// Enabled by default.
+    pub git_tag_enable: Option<bool>,
+    /// # Publish
+    /// If `Some(false)`, don't run `cargo publish`.
+    pub publish: Option<bool>,
+    /// # Publish Allow Dirty
+    /// If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.
+    pub publish_allow_dirty: Option<bool>,
+    /// # Publish No Verify
+    /// If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.
+    pub publish_no_verify: Option<bool>,
+    /// # Semver Check
+    /// Controls when to run cargo-semver-checks.
+    /// If unspecified, run cargo-semver-checks if the package is a library.
+    pub semver_check: Option<bool>,
 }
 
-impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
-    fn from(config: PackageUpdateConfig) -> Self {
+impl From<PackageConfig> for release_plz_core::UpdateConfig {
+    fn from(config: PackageConfig) -> Self {
         Self {
             semver_check: config.semver_check != Some(false),
             changelog_update: config.changelog_update != Some(false),
@@ -241,83 +248,27 @@ impl From<PackageUpdateConfig> for release_plz_core::UpdateConfig {
 impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
     fn from(config: PackageSpecificConfig) -> Self {
         Self {
-            generic: config.update.into(),
+            generic: config.common.into(),
             changelog_path: config.changelog_path,
             changelog_include: config.changelog_include.unwrap_or_default(),
         }
     }
 }
 
-/// Customization for the `release-plz update` command.
-/// These can be overridden on a per-package basic.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone, JsonSchema)]
-pub struct PackageUpdateConfig {
-    /// # Semver Check
-    /// Controls when to run cargo-semver-checks.
-    /// If unspecified, run cargo-semver-checks if the package is a library.
-    pub semver_check: Option<bool>,
-    /// # Changelog Update
-    /// Whether to create/update changelog or not.
-    /// If unspecified, the changelog is updated.
-    pub changelog_update: Option<bool>,
-}
-
-impl PackageUpdateConfig {
+impl PackageConfig {
     /// Merge the package-specific configuration with the global configuration.
-    pub fn merge(self, default: PackageUpdateConfig) -> PackageUpdateConfig {
-        PackageUpdateConfig {
+    pub fn merge(self, default: Self) -> Self {
+        Self {
             semver_check: self.semver_check.or(default.semver_check),
             changelog_update: self.changelog_update.or(default.changelog_update),
-        }
-    }
-}
+            git_release_enable: self.git_release_enable.or(default.git_release_enable),
+            git_release_type: self.git_release_type.or(default.git_release_type),
+            git_release_draft: self.git_release_draft.or(default.git_release_draft),
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone, JsonSchema)]
-pub struct PackageReleaseConfig {
-    /// Configuration for the GitHub/Gitea/GitLab release.
-    #[serde(flatten, default)]
-    pub git_release: GitReleaseConfig,
-    /// # Git Tag Enable
-    /// Publish the git tag for the new package version.
-    /// Enabled by default.
-    pub git_tag_enable: Option<bool>,
-    #[serde(flatten, default)]
-    pub release: ReleaseConfig,
-}
-
-impl PackageReleaseConfig {
-    /// Merge the package-specific configuration with the global configuration.
-    pub fn merge(self, default: Self) -> Self {
-        Self {
-            git_release: self.git_release.merge(default.git_release),
-            release: self.release.merge(default.release),
-            git_tag_enable: self.git_tag_enable.or(default.git_tag_enable),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone, JsonSchema)]
-pub struct ReleaseConfig {
-    /// # Publish
-    /// If `Some(false)`, don't run `cargo publish`.
-    pub publish: Option<bool>,
-    /// # Publish Allow Dirty
-    /// If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.
-    #[serde(rename = "publish_allow_dirty")]
-    pub allow_dirty: Option<bool>,
-    /// # Publish No Verify
-    /// If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.
-    #[serde(rename = "publish_no_verify")]
-    pub no_verify: Option<bool>,
-}
-
-impl ReleaseConfig {
-    /// Merge the package-specific configuration with the global configuration.
-    pub fn merge(self, default: Self) -> Self {
-        Self {
             publish: self.publish.or(default.publish),
-            allow_dirty: self.allow_dirty.or(default.allow_dirty),
-            no_verify: self.no_verify.or(default.no_verify),
+            publish_allow_dirty: self.publish_allow_dirty.or(default.publish_allow_dirty),
+            publish_no_verify: self.publish_no_verify.or(default.publish_no_verify),
+            git_tag_enable: self.git_tag_enable.or(default.git_tag_enable),
         }
     }
 }
@@ -332,34 +283,6 @@ pub enum SemverCheck {
     Yes,
     /// Don't run cargo-semver-checks.
     No,
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default, JsonSchema)]
-pub struct GitReleaseConfig {
-    /// # Git Release Enable
-    /// Publish the GitHub/Gitea release for the created git tag.
-    /// Enabled by default.
-    #[serde(rename = "git_release_enable")]
-    enable: Option<bool>,
-    /// # Git Release Type
-    /// Whether to mark the created release as not ready for production.
-    #[serde(rename = "git_release_type")]
-    pub release_type: Option<ReleaseType>,
-    /// # Git Release Draft
-    /// If true, will not auto-publish the release.
-    #[serde(rename = "git_release_draft")]
-    pub draft: Option<bool>,
-}
-
-impl GitReleaseConfig {
-    /// Merge the package-specific configuration with the global configuration.
-    pub fn merge(self, default: Self) -> Self {
-        Self {
-            enable: self.enable.or(default.enable),
-            release_type: self.release_type.or(default.release_type),
-            draft: self.draft.or(default.draft),
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, Copy, JsonSchema)]
@@ -399,27 +322,17 @@ mod tests {
 
         let expected_config = Config {
             workspace: Workspace {
-                update: UpdateConfig {
-                    dependencies_update: Some(false),
-                    changelog_config: Some("../git-cliff.toml".into()),
-                    allow_dirty: None,
-                },
-                common: CommonCmdConfig {
-                    repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
-                },
+                dependencies_update: Some(false),
+                changelog_config: Some("../git-cliff.toml".into()),
+                allow_dirty: None,
+                repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 packages_defaults: PackageConfig {
-                    update: PackageUpdateConfig {
-                        semver_check: None,
-                        changelog_update: None,
-                    },
-                    release: PackageReleaseConfig {
-                        git_release: GitReleaseConfig {
-                            enable: Some(true),
-                            release_type: Some(ReleaseType::Prod),
-                            draft: Some(false),
-                        },
-                        ..Default::default()
-                    },
+                    semver_check: None,
+                    changelog_update: None,
+                    git_release_enable: Some(true),
+                    git_release_type: Some(ReleaseType::Prod),
+                    git_release_draft: Some(false),
+                    ..Default::default()
                 },
                 pr_draft: false,
                 pr_labels: vec![],
@@ -449,34 +362,22 @@ mod tests {
 
         let expected_config = Config {
             workspace: Workspace {
-                update: UpdateConfig {
-                    dependencies_update: None,
-                    changelog_config: Some("../git-cliff.toml".into()),
-                    allow_dirty: Some(false),
-                },
-                common: CommonCmdConfig {
-                    repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
-                },
+                dependencies_update: None,
+                changelog_config: Some("../git-cliff.toml".into()),
+                allow_dirty: Some(false),
+                repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 pr_draft: false,
                 pr_labels: vec![],
                 packages_defaults: PackageConfig {
-                    update: PackageUpdateConfig {
-                        semver_check: None,
-                        changelog_update: true.into(),
-                    },
-                    release: PackageReleaseConfig {
-                        git_release: GitReleaseConfig {
-                            enable: true.into(),
-                            release_type: Some(ReleaseType::Prod),
-                            draft: Some(false),
-                        },
-                        git_tag_enable: None,
-                        release: ReleaseConfig {
-                            publish: None,
-                            allow_dirty: None,
-                            no_verify: None,
-                        },
-                    },
+                    semver_check: None,
+                    changelog_update: Some(true),
+                    git_release_enable: Some(true),
+                    git_release_type: Some(ReleaseType::Prod),
+                    git_release_draft: Some(false),
+                    git_tag_enable: None,
+                    publish: None,
+                    publish_allow_dirty: None,
+                    publish_no_verify: None,
                 },
                 publish_timeout: Some("5s".to_string()),
             },
@@ -491,45 +392,31 @@ mod tests {
     fn config_is_serialized() {
         let config = Config {
             workspace: Workspace {
-                update: UpdateConfig {
-                    dependencies_update: None,
-                    changelog_config: Some("../git-cliff.toml".into()),
-                    allow_dirty: None,
-                },
-                common: CommonCmdConfig {
-                    repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
-                },
+                dependencies_update: None,
+                changelog_config: Some("../git-cliff.toml".into()),
+                allow_dirty: None,
+                repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 pr_draft: false,
                 pr_labels: vec!["label1".to_string()],
                 packages_defaults: PackageConfig {
-                    update: PackageUpdateConfig {
-                        semver_check: None,
-                        changelog_update: true.into(),
-                    },
-                    release: PackageReleaseConfig {
-                        git_release: GitReleaseConfig {
-                            enable: true.into(),
-                            release_type: Some(ReleaseType::Prod),
-                            draft: Some(false),
-                        },
-                        ..Default::default()
-                    },
+                    semver_check: None,
+                    changelog_update: true.into(),
+                    git_release_enable: true.into(),
+                    git_release_type: Some(ReleaseType::Prod),
+                    git_release_draft: Some(false),
+                    ..Default::default()
                 },
                 publish_timeout: Some("10m".to_string()),
             },
             package: [PackageSpecificConfigWithName {
                 name: "crate1".to_string(),
                 config: PackageSpecificConfig {
-                    update: PackageUpdateConfig {
+                    common: PackageConfig {
                         semver_check: Some(false),
                         changelog_update: true.into(),
-                    },
-                    release: PackageReleaseConfig {
-                        git_release: GitReleaseConfig {
-                            enable: true.into(),
-                            release_type: Some(ReleaseType::Prod),
-                            draft: Some(false),
-                        },
+                        git_release_enable: true.into(),
+                        git_release_type: Some(ReleaseType::Prod),
+                        git_release_draft: Some(false),
                         ..Default::default()
                     },
                     changelog_path: Some("./CHANGELOG.md".into()),
@@ -541,23 +428,23 @@ mod tests {
 
         expect_test::expect![[r#"
             [workspace]
+            changelog_update = true
+            git_release_enable = true
+            git_release_type = "prod"
+            git_release_draft = false
             changelog_config = "../git-cliff.toml"
             pr_draft = false
             pr_labels = ["label1"]
-            repo_url = "https://github.com/MarcoIeni/release-plz"
-            changelog_update = true
-            git_release_enable = true
-            git_release_type = "prod"
-            git_release_draft = false
             publish_timeout = "10m"
+            repo_url = "https://github.com/MarcoIeni/release-plz"
 
             [[package]]
             name = "crate1"
-            semver_check = false
             changelog_update = true
             git_release_enable = true
             git_release_type = "prod"
             git_release_draft = false
+            semver_check = false
             changelog_path = "./CHANGELOG.md"
             changelog_include = ["pkg1"]
         "#]]

@@ -33,13 +33,7 @@ pub trait RepoCommand {
 
     /// Repo url specified by user
     fn user_repo_url<'a>(&'a self, config: &'a Config) -> Option<&str> {
-        self.repo_url().or_else(|| {
-            config
-                .workspace
-                .common
-                .repo_url
-                .as_ref()
-                .map(|u| u.as_str())
-        })
+        self.repo_url()
+            .or_else(|| config.workspace.repo_url.as_ref().map(|u| u.as_str()))
     }
 }
