@@ -106,11 +106,11 @@ impl Update {
     }
 
     fn dependencies_update(&self, config: &Config) -> bool {
-        self.update_deps || config.workspace.update.dependencies_update == Some(true)
+        self.update_deps || config.workspace.dependencies_update == Some(true)
     }
 
     fn allow_dirty(&self, config: &Config) -> bool {
-        self.allow_dirty || config.workspace.update.allow_dirty == Some(true)
+        self.allow_dirty || config.workspace.allow_dirty == Some(true)
     }
 
     pub fn update_request(
@@ -196,7 +196,7 @@ impl Update {
     fn user_changelog_config<'a>(&'a self, config: &'a Config) -> Option<&'a Path> {
         self.changelog_config
             .as_deref()
-            .or(config.workspace.update.changelog_config.as_deref())
+            .or(config.workspace.changelog_config.as_deref())
     }
 }
 

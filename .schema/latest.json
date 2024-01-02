@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/MarcoIeni/release-plz/.schema/latest.json",
   "title": "Config",
+  "description": "You can find the documentation of the configuration file [here](https://release-plz.ieni.dev/docs/config).",
   "type": "object",
   "properties": {
     "package": {
@@ -179,7 +180,7 @@
       ]
     },
     "Workspace": {
-      "description": "Global configuration.",
+      "description": "Config at the `[workspace]` level.",
       "type": "object",
       "properties": {
         "allow_dirty": {
