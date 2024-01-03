@@ -1,7 +1,7 @@
 use std::{fs, io, path::Path};
 
 use anyhow::Context;
-use tracing::debug;
+use tracing::{debug, trace};
 
 use crate::strip_prefix::strip_prefix;
 
@@ -32,7 +32,7 @@ pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<
     let to = to.as_ref().join(dir_name);
     debug!("copying directory from {:?} to {:?}", from, to);
     if !to.exists() {
-        debug!("creating directory {:?}", to);
+        trace!("creating directory {:?}", to);
         fs::create_dir_all(&to).with_context(|| format!("cannot create directory {to:?}"))?;
     }
 
@@ -59,7 +59,7 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
             if destination == to {
                 continue;
             }
-            debug!("creating directory {:?}", destination);
+            trace!("creating directory {:?}", destination);
             fs::create_dir(&destination)
                 .with_context(|| format!("cannot create directory {destination:?}"))?;
         } else if file_type.is_symlink() {
@@ -79,7 +79,7 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
                 )
             })?;
         } else if file_type.is_file() {
-            debug!("copying file {:?} to {:?}", entry.path(), &destination);
+            trace!("copying file {:?} to {:?}", entry.path(), &destination);
             fs::copy(entry.path(), &destination).with_context(|| {
                 format!("cannot copy file {:?} to {:?}", entry.path(), &destination)
             })?;
