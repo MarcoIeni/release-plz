@@ -38,7 +38,7 @@ impl Config {
     ) -> UpdateRequest {
         let mut default_update_config = self.workspace.packages_defaults.clone();
         if is_changelog_update_disabled {
-            default_update_config.update.changelog_update = false.into();
+            default_update_config.changelog_update = false.into();
         }
         let mut update_request =
             update_request.with_default_package_config(default_update_config.into());
@@ -182,7 +182,8 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
         let is_git_release_enabled = value.git_release_enable != Some(false);
         let is_git_release_draft = value.git_release_draft == Some(true);
         let is_git_tag_enabled = value.git_tag_enable != Some(false);
-        let release = value.release != Some(false);        let mut cfg = Self::default()
+        let release = value.release != Some(false);
+        let mut cfg = Self::default()
             .with_publish(release_plz_core::PublishConfig::enabled(is_publish_enabled))
             .with_git_release(
                 release_plz_core::GitReleaseConfig::enabled(is_git_release_enabled)
@@ -202,22 +203,6 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
 }
 
 /// Configuration that can be specified both at the `[workspace]` and at the `[[package]]` level.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone, JsonSchema)]
-pub struct PackageCommonConfig {
-    /// # Release
-    /// Used to toggle off the update/release process for a workspace or package.
-    pub release: Option<bool>,
-}
-
-impl PackageCommonConfig {
-    /// Merge the package-specific configuration with the global configuration.
-    pub fn merge(self, default: Self) -> Self {
-        Self {
-            release: self.release.or(default.release),
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone, JsonSchema)]
 pub struct PackageConfig {
     /// # Changelog Update
@@ -251,17 +236,17 @@ pub struct PackageConfig {
     /// Controls when to run cargo-semver-checks.
     /// If unspecified, run cargo-semver-checks if the package is a library.
     pub semver_check: Option<bool>,
-    /// Options shared among `update` `release-pr` and `release` commands.
-    #[serde(flatten)]
-    common: PackageCommonConfig,
+    /// # Release
+    /// Used to toggle off the update/release process for a workspace or package.
+    pub release: Option<bool>,
 }
 
 impl From<PackageConfig> for release_plz_core::UpdateConfig {
     fn from(config: PackageConfig) -> Self {
         Self {
-            semver_check: config.update.semver_check != Some(false),
-            changelog_update: config.update.changelog_update != Some(false),
-            release: config.common.release != Some(false),
+            semver_check: config.semver_check != Some(false),
+            changelog_update: config.changelog_update != Some(false),
+            release: config.release != Some(false),
         }
     }
 }
@@ -290,6 +275,7 @@ impl PackageConfig {
             publish_allow_dirty: self.publish_allow_dirty.or(default.publish_allow_dirty),
             publish_no_verify: self.publish_no_verify.or(default.publish_no_verify),
             git_tag_enable: self.git_tag_enable.or(default.git_tag_enable),
+            release: self.release.or(default.release),
         }
     }
 }
@@ -337,7 +323,7 @@ mod tests {
         git_release_enable = true
         git_release_type = "prod"
         git_release_draft = false
-        publish_timeout = "5m"
+        publish_timeout = "10m"
     "#;
 
     const BASE_PACKAGE_CONFIG: &str = r#"
@@ -350,7 +336,7 @@ mod tests {
             workspace: Workspace {
                 dependencies_update: Some(false),
                 changelog_config: Some("../git-cliff.toml".into()),
-                allow_dirty: None,
+                allow_dirty: Some(false),
                 repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 packages_defaults: PackageConfig {
                     semver_check: None,
@@ -359,50 +345,26 @@ mod tests {
                     git_release_type: Some(ReleaseType::Prod),
                     git_release_draft: Some(false),
                     ..Default::default()
-                    common: PackageCommonConfig::default(),
                 },
                 pr_draft: false,
                 pr_labels: vec![],
-                publish_timeout: Some("5m".to_string()),
+                publish_timeout: Some("10m".to_string()),
             },
             package: [].into(),
         }
     }
 
-    #[test]
-    fn config_is_deserialized() {
-        let config = r#"
-            [workspace]
-            changelog_config = "../git-cliff.toml"
-            allow_dirty = false
-            repo_url = "https://github.com/MarcoIeni/release-plz"
-            changelog_update = true
-
-            git_release_enable = true
-            git_release_type = "prod"
-            git_release_draft = false
-            publish_timeout = "5s"
-        "#;
-
-        let expected_config = Config {
-            workspace: Workspace {
-                dependencies_update: None,
-                changelog_config: Some("../git-cliff.toml".into()),
-                allow_dirty: Some(false),
-                repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
-                pr_draft: false,
-                pr_labels: vec![],
-                packages_defaults: PackageConfig {
+    fn create_base_package_config() -> PackageSpecificConfigWithName {
+        PackageSpecificConfigWithName {
+            name: "crate1".to_string(),
+            config: PackageSpecificConfig {
+                common: PackageConfig {
                     semver_check: None,
-                    changelog_update: Some(true),
-                    git_release_enable: Some(true),
-                    git_release_type: Some(ReleaseType::Prod),
-                    git_release_draft: Some(false),
-                    git_tag_enable: None,
-                    publish: None,
-                    publish_allow_dirty: None,
-                    publish_no_verify: None,
-                    common: PackageCommonConfig::default(),
+                    changelog_update: None,
+                    git_release_enable: None,
+                    git_release_type: None,
+                    git_release_draft: None,
+                    ..Default::default()
                 },
                 changelog_path: None,
                 changelog_include: None,
@@ -427,11 +389,7 @@ mod tests {
         );
 
         let mut expected_config = create_base_workspace_config();
-        expected_config
-            .workspace
-            .packages_defaults
-            .update
-            .changelog_update = true.into();
+        expected_config.workspace.packages_defaults.changelog_update = true.into();
 
         let config: Config = toml::from_str(config).unwrap();
         assert_eq!(config, expected_config)
@@ -446,7 +404,7 @@ mod tests {
 
         let mut expected_config = create_base_workspace_config();
         let mut package_config = create_base_package_config();
-        package_config.config.package_config.common.release = expected_value.into();
+        package_config.config.common.release = expected_value.into();
         expected_config.package = [package_config].into();
 
         let config: Config = toml::from_str(config).unwrap();
@@ -471,7 +429,7 @@ mod tests {
         );
 
         let mut expected_config = create_base_workspace_config();
-        expected_config.workspace.packages_defaults.common.release = expected_value.into();
+        expected_config.workspace.packages_defaults.release = expected_value.into();
 
         let config: Config = toml::from_str(config).unwrap();
         assert_eq!(config, expected_config)
@@ -503,10 +461,8 @@ mod tests {
                     git_release_enable: true.into(),
                     git_release_type: Some(ReleaseType::Prod),
                     git_release_draft: Some(false),
+                    release: Some(true),
                     ..Default::default()
-                    common: PackageCommonConfig {
-                        release: Some(true),
-                    },
                 },
                 publish_timeout: Some("10m".to_string()),
             },
@@ -519,17 +475,8 @@ mod tests {
                         git_release_enable: true.into(),
                         git_release_type: Some(ReleaseType::Prod),
                         git_release_draft: Some(false),
-                        release: PackageReleaseConfig {
-                            git_release: GitReleaseConfig {
-                                enable: true.into(),
-                                release_type: Some(ReleaseType::Prod),
-                                draft: Some(false),
-                            },
-                            ..Default::default()
-                        },
-                        common: PackageCommonConfig {
-                            release: Some(false),
-                        },
+                        release: Some(false),
+                        ..Default::default()
                     },
                     changelog_path: Some("./CHANGELOG.md".into()),
                     changelog_include: Some(vec!["pkg1".to_string()]),
@@ -544,10 +491,10 @@ mod tests {
             git_release_enable = true
             git_release_type = "prod"
             git_release_draft = false
+            release = true
             changelog_config = "../git-cliff.toml"
             pr_draft = false
             pr_labels = ["label1"]
-            release = true
             publish_timeout = "10m"
             repo_url = "https://github.com/MarcoIeni/release-plz"
 
