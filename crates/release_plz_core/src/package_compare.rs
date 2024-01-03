@@ -21,6 +21,7 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyh
         local_package, registry_package
     );
     if !are_cargo_toml_equal(local_package, registry_package) {
+        debug!("Cargo.toml is different");
         return Ok(false);
     }
 
