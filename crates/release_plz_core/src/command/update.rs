@@ -219,7 +219,7 @@ fn update_cargo_lock(root: &Path, update_all_dependencies: bool) -> anyhow::Resu
     Ok(())
 }
 
-#[instrument]
+#[instrument(skip(all_packages))]
 fn set_version(
     all_packages: &[Package],
     package_path: &Path,
