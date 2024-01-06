@@ -41,7 +41,7 @@ publish_no_verify = true # add `--no-verify` to `cargo publish` for `package_b`
 
 [[package]]
 name = "package_c"
-release = false # disables the processing of this package
+release = false # don't process this package
 ```
 
 ## Reference

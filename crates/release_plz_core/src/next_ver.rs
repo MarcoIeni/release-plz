@@ -351,7 +351,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
         repository.repo.is_clean()?;
     }
     let packages_to_update =
-        updater.packages_to_update(&registry_packages, &repository.repo, input)?;
+        updater.packages_to_update(&registry_packages, &repository.repo, input.local_manifest())?;
     Ok((packages_to_update, repository))
 }
 
@@ -529,7 +529,7 @@ impl Updater<'_> {
         &self,
         registry_packages: &PackagesCollection,
         repository: &Repo,
-        input: &UpdateRequest,
+        local_manifest_path: &Path,
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
@@ -548,7 +548,7 @@ impl Updater<'_> {
             .collect();
 
         let new_workspace_version = new_workspace_version(
-            input.local_manifest(),
+            local_manifest_path,
             &packages_diffs,
             &workspace_version_pkgs,
         )?;
@@ -1122,10 +1122,10 @@ mod tests {
         local_manifest: &Path,
         single_package: Option<&str>,
         overrides: HashSet<String>,
-        request_release_validator: bool,
+        is_release_enabled: bool,
     ) -> anyhow::Result<Project> {
         let metadata = get_manifest_metadata(local_manifest).unwrap();
-        let request_release_validator = RequestReleaseValidatorStub::new(request_release_validator);
+        let request_release_validator = RequestReleaseValidatorStub::new(is_release_enabled);
         Project::new(
             local_manifest,
             single_package,
