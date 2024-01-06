@@ -17,7 +17,7 @@ use crate::{
     changelog_parser,
     git::backend::GitClient,
     release_order::release_order,
-    GitBackend, PackagePath, Project, CHANGELOG_FILENAME,
+    GitBackend, PackagePath, Project, RequestReleaseValidator, CHANGELOG_FILENAME,
 };
 
 #[derive(Debug)]
@@ -153,6 +153,13 @@ impl ReleaseRequest {
     }
 }
 
+impl RequestReleaseValidator for ReleaseRequest {
+    fn is_release_enabled(&self, package: &str) -> bool {
+        let config = self.get_package_config(package);
+        config.generic.release
+    }
+}
+
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 struct PackagesConfig {
     /// Config for packages that don't have a specific configuration.
@@ -179,7 +186,7 @@ impl PackagesConfig {
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ReleaseConfig {
     publish: PublishConfig,
     git_release: GitReleaseConfig,
@@ -190,6 +197,8 @@ pub struct ReleaseConfig {
     /// Allow dirty working directories to be packaged.
     /// If true, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
     allow_dirty: bool,
+    /// High-level toggle to process this package or ignore it
+    release: bool,
 }
 
 impl ReleaseConfig {
@@ -218,12 +227,30 @@ impl ReleaseConfig {
         self
     }
 
+    pub fn with_release(mut self, release: bool) -> Self {
+        self.release = release;
+        self
+    }
+
     pub fn publish(&self) -> &PublishConfig {
         &self.publish
     }
 
     pub fn git_release(&self) -> &GitReleaseConfig {
         &self.git_release
+    }
+}
+
+impl Default for ReleaseConfig {
+    fn default() -> Self {
+        Self {
+            publish: PublishConfig::default(),
+            git_release: GitReleaseConfig::default(),
+            git_tag: GitTagConfig::default(),
+            no_verify: false,
+            allow_dirty: false,
+            release: true,
+        }
     }
 }
 
@@ -326,9 +353,15 @@ pub struct GitRelease {
 #[instrument]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     let overrides = input.packages_config.overrides.keys().cloned().collect();
-    let project = Project::new(&input.local_manifest(), None, overrides, &input.metadata)?;
-    let pkgs = project.publishable_packages();
-    let release_order = release_order(&pkgs).context("cant' determine release order")?;
+    let project = Project::new(
+        &input.local_manifest(),
+        None,
+        overrides,
+        &input.metadata,
+        input,
+    )?;
+    let packages = project.publishable_packages();
+    let release_order = release_order(&packages).context("cannot determine release order")?;
     for package in release_order {
         let repo = Repo::new(&input.metadata.workspace_root)?;
         let git_tag = project.git_tag(&package.name, &package.version.to_string());
