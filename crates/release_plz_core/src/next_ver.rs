@@ -393,7 +393,6 @@ impl Project {
         override_packages_path(&mut packages, metadata, &manifest_dir)?;
 
         let packages_names: Vec<&str> = packages.iter().map(|p| p.name.as_str()).collect();
-
         anyhow::ensure!(!packages.is_empty(), "no public packages found. Are there any public packages in your project? Analyzed packages: {packages_names:?}");
 
         check_overrides_typos(&packages, &overrides)?;
