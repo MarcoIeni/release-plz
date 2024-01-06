@@ -391,7 +391,10 @@ impl Project {
         debug!("project_root: {root:?}");
         let mut packages = workspace_packages(metadata)?;
         override_packages_path(&mut packages, metadata, &manifest_dir)?;
-        anyhow::ensure!(!packages.is_empty(), "no public packages found");
+
+        let packages_names: Vec<&str> = packages.iter().map(|p| p.name.as_str()).collect();
+
+        anyhow::ensure!(!packages.is_empty(), "no public packages found. Are there any public packages in your project? Analyzed packages: {packages_names:?}");
 
         check_overrides_typos(&packages, &overrides)?;
         let contains_multiple_pub_packages = packages.len() > 1;
