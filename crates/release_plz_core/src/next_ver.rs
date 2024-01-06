@@ -113,7 +113,7 @@ pub struct UpdateConfig {
     /// Whether to create/update changelog or not.
     /// Default: `true`.
     pub changelog_update: bool,
-    /// High-level toggle to process this package or ignore it
+    /// High-level toggle to process this package or ignore it.
     pub release: bool,
 }
 
