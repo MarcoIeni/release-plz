@@ -41,3 +41,15 @@ async fn release_plz_releases_a_new_project() {
 
     assert_eq!(packages().len(), 1);
 }
+
+#[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_plz_uses_config_from_manifest() {
+    let context = TestContext::new().await;
+    context.disable_changelog_update();
+
+    context.run_release_pr().success();
+
+    let opened_prs = context.opened_release_prs().await;
+    assert_eq!(opened_prs.len(), 0);
+}

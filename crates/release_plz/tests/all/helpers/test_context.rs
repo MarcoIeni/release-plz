@@ -92,6 +92,14 @@ impl TestContext {
             .assert()
     }
 
+    pub fn disable_changelog_update(&self) {
+        let cargo_toml_path = self.repo_dir().join("Cargo.toml");
+        let mut cargo_toml = LocalManifest::try_new(&cargo_toml_path).unwrap();
+        cargo_toml.data["workspace"]["metadata"]["release-plz"]["workspace"]["changelog_update"] =
+            toml_edit::Item::Value(toml_edit::Value::Boolean(toml_edit::Formatted::new(false)));
+        cargo_toml.write().unwrap();
+    }
+
     pub fn repo_dir(&self) -> PathBuf {
         self.test_dir.path().join(&self.gitea.repo)
     }
@@ -115,6 +123,8 @@ fn commit_cargo_init(repo_dir: &Path, gitea: &GiteaContext) -> Repo {
     // set email
     repo.git(&["config", "user.email", "a@example.com"])
         .unwrap();
+    // disable gpg signing
+    repo.git(&["config", "commit.gpgsign", "false"]).unwrap();
 
     create_cargo_config(repo_dir, username);
 
