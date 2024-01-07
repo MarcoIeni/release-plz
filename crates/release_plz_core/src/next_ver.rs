@@ -33,7 +33,6 @@ use tracing::{debug, info, instrument, warn};
 
 // Used to indicate that this is a dummy commit with no corresponding ID available
 pub(crate) const NO_COMMIT_ID: &str = "N/A";
-const ERR_NO_PUBLIC_PACKAGE: &str = "no public packages found";
 
 pub trait RequestReleaseValidator {
     fn is_release_enabled(&self, package_name: &str) -> bool;
@@ -409,8 +408,8 @@ impl Project {
         let mut packages = workspace_packages(metadata)?;
         override_packages_path(&mut packages, metadata, &manifest_dir)?;
 
+        let packages_names: Vec<String> = packages.iter().map(|p| p.name.clone()).collect();
         packages.retain(|p| request_release_validator.is_release_enabled(&p.name));
-        let packages_names: Vec<&str> = packages.iter().map(|p| p.name.as_str()).collect();
         anyhow::ensure!(!packages.is_empty(), "no public packages found. Are there any public packages in your project? Analyzed packages: {packages_names:?}");
 
         check_overrides_typos(&packages, &overrides)?;
@@ -1116,7 +1115,7 @@ mod tests {
     use cargo_utils::get_manifest_metadata;
 
     use super::*;
-    use super::{check_for_typos, Project, ERR_NO_PUBLIC_PACKAGE};
+    use super::{check_for_typos, Project};
     use crate::RequestReleaseValidator;
     use std::{collections::HashSet, path::Path};
 
@@ -1226,6 +1225,7 @@ mod tests {
         let local_manifest = Path::new("../fake_package/Cargo.toml");
         let result = get_project(local_manifest, None, HashSet::default(), false);
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), ERR_NO_PUBLIC_PACKAGE);
+        expect_test::expect![[r#"no public packages found. Are there any public packages in your project? Analyzed packages: ["cargo_utils", "fake_package", "git_cmd", "test_logs", "next_version", "release-plz", "release_plz_core"]"#]]
+        .assert_eq(&result.unwrap_err().to_string());
     }
 }
