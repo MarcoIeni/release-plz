@@ -6,7 +6,7 @@ members = ["crates/*"]
 anyhow = "1.0.78"
 assert_cmd = "2.0.12"
 async-trait = "0.1.77"
-base64 = "0.21.5"
+base64 = "0.21.6"
 cargo_metadata = "0.18.1"
 cargo = { version = "0.75.1", default-features = false }
 chrono = { version = "0.4.31", default-features = false }
