@@ -22,7 +22,7 @@ fake = "2.9.2"
 git-cliff-core = { version = "1.4.0", default-features = false }
 git-url-parse = "0.4.4"
 http = "0.2"
-ignore = "0.4.21"
+ignore = "0.4.22"
 lazy_static = "1.4.0"
 once_cell = "1.19.0"
 parse-changelog = { version = "0.6.4", default-features = false }
