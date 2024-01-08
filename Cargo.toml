@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/*"]
 
 [workspace.dependencies]
-anyhow = "1.0.78"
+anyhow = "1.0.79"
 assert_cmd = "2.0.12"
 async-trait = "0.1.77"
 base64 = "0.21.6"
