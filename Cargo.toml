@@ -10,7 +10,7 @@ base64 = "0.21.5"
 cargo_metadata = "0.18.1"
 cargo = { version = "0.75.1", default-features = false }
 chrono = { version = "0.4.31", default-features = false }
-clap = "4.4.11"
+clap = "4.4.13"
 clap_complete = "4.4.4"
 conventional_commit_parser = "0.9.4"
 crates-index = { version = "2.3.0", features = ["git", "sparse", "git-https"] }
