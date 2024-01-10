@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf, time::Duration};
 use url::Url;
 
+use crate::changelog_config::ChangelogCfg;
+
 /// You can find the documentation of the configuration file
 /// [here](https://release-plz.ieni.dev/docs/config).
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
@@ -14,6 +16,8 @@ pub struct Config {
     /// Global configuration. Applied to all packages by default.
     #[serde(default)]
     pub workspace: Workspace,
+    #[serde(default)]
+    pub changelog: ChangelogCfg,
     /// # Package
     /// Package-specific configuration. This overrides `workspace`.
     /// Not all settings of `workspace` can be overridden.
@@ -333,6 +337,7 @@ mod tests {
 
     fn create_base_workspace_config() -> Config {
         Config {
+            changelog: ChangelogCfg::default(),
             workspace: Workspace {
                 dependencies_update: Some(false),
                 changelog_config: Some("../git-cliff.toml".into()),
@@ -448,6 +453,7 @@ mod tests {
     #[test]
     fn config_is_serialized() {
         let config = Config {
+            changelog: ChangelogCfg::default(),
             workspace: Workspace {
                 dependencies_update: None,
                 changelog_config: Some("../git-cliff.toml".into()),
@@ -497,6 +503,8 @@ mod tests {
             pr_labels = ["label1"]
             publish_timeout = "10m"
             repo_url = "https://github.com/MarcoIeni/release-plz"
+
+            [changelog]
 
             [[package]]
             name = "crate1"

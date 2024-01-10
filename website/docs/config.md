@@ -367,3 +367,8 @@ By default, release-plz runs [cargo-semver-checks] if the package is a library.
 
 [cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
 [git-cliff]: https://git-cliff.org
+
+### The `[changelog]` section
+
+TODO:
+- Show how to replace REPO. git-cliff does it with the post-processors.
