@@ -1,9 +1,9 @@
 mod args;
+mod changelog_config;
 mod config;
 mod generate_schema;
 mod log;
 mod update_checker;
-mod changelog_config;
 
 use anyhow::Context;
 use clap::Parser;
