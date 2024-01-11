@@ -106,9 +106,18 @@ impl Repo {
         Ok(())
     }
 
+    /// Get the list of changed files.
+    /// `filter` is applied for each line of `git status --porcelain`.
+    /// Only changes for which `filter` returns true are returned.
+    pub fn changes(&self, filter: impl FnMut(&&str) -> bool) -> anyhow::Result<Vec<String>> {
+        let output = self.git(&["status", "--porcelain"])?;
+        let changed_files = changed_files(&output, filter);
+        Ok(changed_files)
+    }
+
     pub fn changes_except_typechanges(&self) -> anyhow::Result<Vec<String>> {
         let output = self.git(&["status", "--porcelain"])?;
-        let changed_files = changed_files(&output);
+        let changed_files = changed_files(&output, |line| !line.starts_with("T "));
         Ok(changed_files)
     }
 
@@ -248,6 +257,16 @@ impl Repo {
         Ok(last_commit.to_string())
     }
 
+    /// Get the name of the current branch.
+    pub fn current_branch(&self) -> anyhow::Result<String> {
+        self.git(&["rev-parse", "--abbrev-ref", "HEAD"])
+    }
+
+    /// Get the SHA1 of the current HEAD.
+    pub fn current_head(&self) -> anyhow::Result<String> {
+        self.git(&["rev-parse", "HEAD"])
+    }
+
     pub fn current_commit_message(&self) -> anyhow::Result<String> {
         self.git(&["log", "-1", "--pretty=format:%B"])
     }
@@ -301,12 +320,12 @@ impl Repo {
     }
 }
 
-fn changed_files(output: &str) -> Vec<String> {
+fn changed_files(output: &str, filter: impl FnMut(&&str) -> bool) -> Vec<String> {
     output
         .lines()
         .map(|l| l.trim())
         // filter typechanges
-        .filter(|l| !l.starts_with("T "))
+        .filter(filter)
         .filter_map(|e| e.rsplit(' ').next())
         .map(|e| e.to_string())
         .collect()
@@ -424,7 +443,7 @@ mod tests {
 A  crates
 D  crates/git_cmd/CHANGELOG.md
 ";
-        let changed_files = changed_files(git_status_output);
+        let changed_files = changed_files(git_status_output, |line| !line.starts_with("T "));
         assert_eq!(
             changed_files,
             vec!["README.md", "crates", "crates/git_cmd/CHANGELOG.md",]

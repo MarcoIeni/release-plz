@@ -4193,6 +4193,7 @@ name = "release_plz_core"
 version = "0.16.0"
 dependencies = [
  "anyhow",
+ "base64 0.21.7",
  "cargo",
  "cargo_metadata",
  "cargo_utils",

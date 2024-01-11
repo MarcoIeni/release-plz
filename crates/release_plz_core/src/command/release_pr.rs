@@ -6,6 +6,7 @@ use anyhow::{anyhow, Context};
 use tracing::{info, instrument};
 
 use crate::git::backend::{contributors_from_commits, GitClient, GitPr, PrEdit};
+use crate::git::github_graphql;
 use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};
 use crate::{
     copy_to_temp_dir, publishable_packages_from_manifest, update, GitBackend, PackagesUpdate,
@@ -19,15 +20,18 @@ pub struct ReleasePrRequest {
     draft: bool,
     /// Labels to add to the release PR.
     labels: Vec<String>,
+    /// Commit using API.
+    api_commit: bool,
     pub update_request: UpdateRequest,
 }
 
 impl ReleasePrRequest {
-    pub fn new(git: GitBackend, update_request: UpdateRequest) -> Self {
+    pub fn new(git: GitBackend, update_request: UpdateRequest, api_commit: bool) -> Self {
         Self {
             git,
             draft: false,
             labels: vec![],
+            api_commit,
             update_request,
         }
     }
@@ -74,6 +78,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
                 &repo,
                 input.draft,
                 input.labels.clone(),
+                input.api_commit,
             )
             .await?;
         }
@@ -89,6 +94,7 @@ async fn open_or_update_release_pr(
     repo: &Repo,
     draft: bool,
     pr_labels: Vec<String>,
+    api_commit: bool,
 ) -> anyhow::Result<()> {
     let mut opened_release_prs = git_client
         .opened_prs(BRANCH_PREFIX)
@@ -143,7 +149,7 @@ async fn open_or_update_release_pr(
                         .close_pr(opened_pr.number)
                         .await
                         .context("cannot close old release-plz prs")?;
-                    create_pr(git_client, repo, &new_pr).await?
+                    create_pr(git_client, repo, &new_pr, api_commit).await?
                 }
             } else {
                 // There's a contributor, so we don't want to force-push in this PR.
@@ -155,16 +161,26 @@ async fn open_or_update_release_pr(
                     .close_pr(opened_pr.number)
                     .await
                     .context("cannot close old release-plz prs")?;
-                create_pr(git_client, repo, &new_pr).await?
+                create_pr(git_client, repo, &new_pr, api_commit).await?
             }
         }
-        None => create_pr(git_client, repo, &new_pr).await?,
+        None => create_pr(git_client, repo, &new_pr, api_commit).await?,
     }
     Ok(())
 }
 
-async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Result<()> {
-    create_release_branch(repo, &pr.branch)?;
+async fn create_pr(
+    git_client: &GitClient,
+    repo: &Repo,
+    pr: &Pr,
+    api_commit: bool,
+) -> anyhow::Result<()> {
+    if !api_commit {
+        create_release_branch(repo, &pr.branch)?;
+    } else {
+        // TODO: guard if the backend is github, here or earlier
+        create_release_branch_with_api_commit(git_client, repo, &pr.branch).await?;
+    }
     git_client.open_pr(pr).await.context("Failed to open PR")?;
     Ok(())
 }
@@ -243,6 +259,16 @@ fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Res
     add_changes_and_commit(repository)?;
     repository.push(release_branch)?;
     Ok(())
+}
+
+async fn create_release_branch_with_api_commit(
+    client: &GitClient,
+    repository: &Repo,
+    release_branch: &str,
+) -> anyhow::Result<()> {
+    repository.checkout_new_branch(release_branch)?;
+    repository.push(release_branch)?;
+    github_graphql::commit_changes(client, repository, "chore: release").await
 }
 
 fn add_changes_and_commit(repository: &Repo) -> anyhow::Result<()> {
