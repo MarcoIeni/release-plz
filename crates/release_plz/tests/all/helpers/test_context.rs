@@ -97,7 +97,10 @@ impl TestContext {
         let mut cargo_toml = LocalManifest::try_new(&cargo_toml_path).unwrap();
         cargo_toml.data["workspace"]["metadata"]["release-plz"]["workspace"]["changelog_update"] =
             toml_edit::Item::Value(toml_edit::Value::Boolean(toml_edit::Formatted::new(false)));
+
         cargo_toml.write().unwrap();
+        let repo = Repo::new(self.repo_dir()).unwrap();
+        repo.add_all_and_commit("Disable changelog update").unwrap();
     }
 
     pub fn repo_dir(&self) -> PathBuf {
