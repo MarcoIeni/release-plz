@@ -1,6 +1,6 @@
 use anyhow::Context;
+use git_cliff_core::config::ChangelogConfig;
 use regex::Regex;
-use release_plz_core::changelog_config::ChangelogConfig;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -54,11 +54,11 @@ pub enum Sorting {
     Newest,
 }
 
-impl From<Sorting> for release_plz_core::changelog_config::Sorting {
-    fn from(sorting: Sorting) -> Self {
-        match sorting {
-            Sorting::Oldest => Self::Oldest,
-            Sorting::Newest => Self::Newest,
+impl std::fmt::Display for Sorting {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Sorting::Oldest => write!(f, "oldest"),
+            Sorting::Newest => write!(f, "newest"),
         }
     }
 }
@@ -131,11 +131,17 @@ impl TryFrom<CommitParser> for git_cliff_core::config::CommitParser {
     }
 }
 
-impl TryFrom<ChangelogCfg> for ChangelogConfig {
+fn vec_try_into<T, U, E>(vec: Vec<T>) -> Result<Vec<U>, E>
+where
+    T: TryInto<U, Error = E>,
+{
+    vec.into_iter().map(|cp| cp.try_into()).collect()
+}
+
+impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
     type Error = anyhow::Error;
 
     fn try_from(cfg: ChangelogCfg) -> Result<Self, Self::Error> {
-        let changelog_config = ChangelogConfig::default();
         let commit_preprocessors: Vec<git_cliff_core::config::TextProcessor> =
             vec_try_into(cfg.commit_preprocessors)
                 .context("failed to parse commit_preprocessors")?;
@@ -143,29 +149,41 @@ impl TryFrom<ChangelogCfg> for ChangelogConfig {
             vec_try_into(cfg.link_parsers).context("failed to parse link_parsers")?;
         let commit_parsers: Vec<git_cliff_core::config::CommitParser> =
             vec_try_into(cfg.commit_parsers).context("failed to parse commit_parsers")?;
+        let tag_pattern = cfg
+            .tag_pattern
+            .map(|pattern| Regex::new(&pattern).context("failed to parse message regex"))
+            .transpose()?;
+
+        let trim = cfg.trim.unwrap_or(true);
+        let sort_commits = cfg.sort_commits.unwrap_or(Sorting::default());
+
+        // TODO use as default the following
+        //  commit_parsers: kac_commit_parsers(),
 
         Ok(Self {
-            header: cfg.header.unwrap_or(changelog_config.header),
-            body: cfg.body,
-            trim: cfg.trim.unwrap_or(changelog_config.trim),
-            commit_preprocessors,
-            sort_commits: cfg
-                .sort_commits
-                .map(|s| s.into())
-                .unwrap_or(changelog_config.sort_commits),
-            link_parsers,
-            commit_parsers,
-            protect_breaking_commits: cfg
-                .protect_breaking_commits
-                .unwrap_or(changelog_config.protect_breaking_commits),
-            tag_pattern: cfg.tag_pattern,
+            changelog: ChangelogConfig {
+                header: cfg.header,
+                body: cfg.body,
+                trim: Some(trim),
+                postprocessors: None,
+                footer: None,
+            },
+            git: git_cliff_core::config::GitConfig {
+                conventional_commits: None,
+                filter_unconventional: None,
+                split_commits: None,
+                commit_preprocessors: Some(commit_preprocessors),
+                commit_parsers: Some(commit_parsers),
+                protect_breaking_commits: cfg.protect_breaking_commits,
+                link_parsers: Some(link_parsers),
+                filter_commits: None,
+                tag_pattern,
+                skip_tags: None,
+                ignore_tags: None,
+                topo_order: None,
+                sort_commits: Some(format!("{sort_commits}")),
+                limit_commits: None,
+            },
         })
     }
-}
-
-fn vec_try_into<T, U, E>(vec: Vec<T>) -> Result<Vec<U>, E>
-where
-    T: TryInto<U, Error = E>,
-{
-    vec.into_iter().map(|cp| cp.try_into()).collect()
 }
