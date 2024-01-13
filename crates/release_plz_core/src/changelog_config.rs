@@ -1,10 +1,18 @@
+use chrono::NaiveDate;
 use git_cliff_core::config::{CommitParser, LinkParser, TextProcessor};
 
-use crate::{kac_commit_parsers, CHANGELOG_HEADER};
+use crate::kac_commit_parsers;
 
-#[derive(Clone)]
+#[derive(Debug, Clone, Default)]
+pub struct ChangelogRequest {
+    /// When the new release is published. If unspecified, current date is used.
+    pub release_date: Option<NaiveDate>,
+    pub changelog_config: Option<ChangelogConfig>,
+}
+
+#[derive(Debug, Clone)]
 pub struct ChangelogConfig {
-    pub header: String,
+    pub header: Option<String>,
     pub body: Option<String>,
     pub trim: bool,
     pub commit_preprocessors: Vec<TextProcessor>,
@@ -21,7 +29,7 @@ pub struct ChangelogConfig {
 impl Default for ChangelogConfig {
     fn default() -> Self {
         Self {
-            header: CHANGELOG_HEADER.to_string(),
+            header: None,
             body: None,
             trim: true,
             commit_preprocessors: vec![],

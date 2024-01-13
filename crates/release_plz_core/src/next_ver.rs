@@ -1,4 +1,5 @@
 use crate::{
+    changelog_config::ChangelogRequest,
     changelog_parser::{self, ChangelogRelease},
     copy_dir::copy_dir,
     diff::Diff,
@@ -17,8 +18,7 @@ use crate::{
 use anyhow::Context;
 use cargo_metadata::{semver::Version, Metadata, Package};
 use cargo_utils::{upgrade_requirement, LocalManifest};
-use chrono::NaiveDate;
-use git_cliff_core::{commit::Commit, config::Config as GitCliffConfig};
+use git_cliff_core::commit::Commit;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
@@ -165,13 +165,6 @@ impl UpdateConfig {
             ..self
         }
     }
-}
-
-#[derive(Debug, Clone, Default)]
-pub struct ChangelogRequest {
-    /// When the new release is published. If unspecified, current date is used.
-    pub release_date: Option<NaiveDate>,
-    pub changelog_config: Option<GitCliffConfig>,
 }
 
 fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {

@@ -186,7 +186,7 @@ impl Update {
         let config = if path.exists() {
             Some(GitCliffConfig::parse(path).context("failed to parse git-cliff config file")?)
         } else {
-            None
+            config.changelog.map(|c| c.try_into())
         };
 
         Ok(config)

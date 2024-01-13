@@ -1,4 +1,3 @@
-use crate::changelog_config::ChangelogConfig;
 use crate::semver_check::SemverCheck;
 use crate::CARGO_TOML;
 use crate::{tmp_repo::TempRepo, PackagePath, UpdateRequest, UpdateResult};
@@ -17,7 +16,6 @@ pub type PackagesToUpdate = Vec<(Package, UpdateResult)>;
 #[derive(Clone, Default)]
 pub struct PackagesUpdate {
     updates: PackagesToUpdate,
-    changelog_config: ChangelogConfig,
     /// New workspace version. If None, the workspace version is not updated.
     /// See cargo [docs](https://doc.rust-lang.org/cargo/reference/workspaces.html#root-package).
     workspace_version: Option<Version>,
@@ -26,7 +24,6 @@ pub struct PackagesUpdate {
 impl PackagesUpdate {
     pub fn new(updates: PackagesToUpdate) -> Self {
         Self {
-            changelog_config: ChangelogConfig::default(),
             updates,
             workspace_version: None,
         }
