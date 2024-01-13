@@ -40,4 +40,3 @@ pub enum Sorting {
     #[default]
     Newest,
 }
-
