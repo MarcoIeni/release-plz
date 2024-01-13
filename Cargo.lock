@@ -4173,6 +4173,7 @@ dependencies = [
  "fake_package",
  "git-cliff-core",
  "git_cmd",
+ "regex",
  "release_plz_core",
  "reqwest",
  "schemars",

@@ -187,7 +187,7 @@ fn default_git_config() -> GitConfig {
     GitConfig {
         conventional_commits: Some(true),
         filter_unconventional: Some(false),
-        commit_parsers: Some(commit_parsers()),
+        commit_parsers: Some(kac_commit_parsers()),
         filter_commits: Some(true),
         tag_pattern: None,
         skip_tags: None,
@@ -216,7 +216,7 @@ fn commit_parser(regex: &str, group: &str) -> CommitParser {
 }
 
 /// Commit parsers based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-fn commit_parsers() -> Vec<CommitParser> {
+pub fn kac_commit_parsers() -> Vec<CommitParser> {
     vec![
         commit_parser("^feat", "added"),
         commit_parser("^changed", "changed"),
