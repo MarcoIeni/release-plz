@@ -940,9 +940,7 @@ fn get_changelog(
         if let Some(release_date) = changelog_req.release_date {
             changelog_builder = changelog_builder.with_release_date(release_date)
         }
-        if let Some(config) = changelog_req.changelog_config {
-            changelog_builder = changelog_builder.with_config(config)
-        }
+        changelog_builder = changelog_builder.with_config(changelog_req.changelog_config);
         if let Some(link) = release_link {
             changelog_builder = changelog_builder.with_release_link(link)
         }

@@ -4,7 +4,7 @@ use anyhow::Context;
 use chrono::NaiveDate;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use git_cliff_core::config::Config as GitCliffConfig;
-use release_plz_core::{ChangelogRequest, UpdateRequest};
+use release_plz_core::{changelog_config::ChangelogRequest, UpdateRequest};
 
 use crate::config::Config;
 
@@ -165,7 +165,7 @@ impl Update {
         Ok(update)
     }
 
-    fn changelog_config(&self, config: &Config) -> anyhow::Result<Option<GitCliffConfig>> {
+    fn changelog_config(&self, config: &Config) -> anyhow::Result<GitCliffConfig> {
         let default_config_path = dirs::config_dir()
             .context("cannot get config dir")?
             .join("git-cliff")
@@ -183,13 +183,17 @@ impl Update {
         };
 
         // Parse the configuration file.
-        let config = if path.exists() {
-            Some(GitCliffConfig::parse(path).context("failed to parse git-cliff config file")?)
+        let changelog_config = if path.exists() {
+            anyhow::ensure!(config.changelog.is_default(), "specifying the `[changelog]` configuration has no effect if `changelog_config` path is specified");
+            GitCliffConfig::parse(path).context("failed to parse git-cliff config file")?
         } else {
-            config.changelog.map(|c| c.try_into())
+            config
+                .changelog
+                .try_into()
+                .context("invalid `[changelog] config")?
         };
 
-        Ok(config)
+        Ok(changelog_config)
     }
 
     /// Changelog configuration specified by user

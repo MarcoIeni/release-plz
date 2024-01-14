@@ -24,6 +24,13 @@ pub struct ChangelogCfg {
     pub tag_pattern: Option<String>,
 }
 
+impl ChangelogCfg {
+    pub fn is_default(&self) -> bool {
+        let default_config = ChangelogCfg::default();
+        &default_config == self
+    }
+}
+
 /// Used for modifying commit messages.
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
 pub struct TextProcessor {
@@ -148,8 +155,6 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
                 .context("failed to parse commit_preprocessors")?;
         let link_parsers: Vec<git_cliff_core::config::LinkParser> =
             vec_try_into(cfg.link_parsers).context("failed to parse link_parsers")?;
-        let commit_parsers: Vec<git_cliff_core::config::CommitParser> =
-            vec_try_into(cfg.commit_parsers).context("failed to parse commit_parsers")?;
         let tag_pattern = cfg
             .tag_pattern
             .map(|pattern| Regex::new(&pattern).context("failed to parse message tag_pattern"))
