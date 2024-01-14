@@ -1,6 +1,7 @@
 use anyhow::Context;
 use git_cliff_core::config::ChangelogConfig;
 use regex::Regex;
+use release_plz_core::kac_commit_parsers;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -151,14 +152,16 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
             vec_try_into(cfg.commit_parsers).context("failed to parse commit_parsers")?;
         let tag_pattern = cfg
             .tag_pattern
-            .map(|pattern| Regex::new(&pattern).context("failed to parse message regex"))
+            .map(|pattern| Regex::new(&pattern).context("failed to parse message tag_pattern"))
             .transpose()?;
 
         let trim = cfg.trim.unwrap_or(true);
         let sort_commits = cfg.sort_commits.unwrap_or(Sorting::default());
 
-        // TODO use as default the following
-        //  commit_parsers: kac_commit_parsers(),
+        let commit_parsers: Vec<git_cliff_core::config::CommitParser> =
+            vec_try_into(cfg.commit_parsers)
+                .context("failed to parse commit_parsers")
+                .unwrap_or(kac_commit_parsers());
 
         Ok(Self {
             changelog: ChangelogConfig {
