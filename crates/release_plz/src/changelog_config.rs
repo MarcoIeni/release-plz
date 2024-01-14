@@ -5,7 +5,7 @@ use release_plz_core::kac_commit_parsers;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, JsonSchema)]
 pub struct ChangelogCfg {
     pub header: Option<String>,
     pub body: Option<String>,
@@ -32,7 +32,7 @@ impl ChangelogCfg {
 }
 
 /// Used for modifying commit messages.
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, JsonSchema)]
 pub struct TextProcessor {
     /// Regex for matching a text to replace.
     pub pattern: String,
@@ -71,7 +71,7 @@ impl std::fmt::Display for Sorting {
     }
 }
 
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, JsonSchema)]
 pub struct LinkParser {
     /// Regex for finding links in the commit message.
     pub pattern: String,
@@ -94,7 +94,7 @@ impl TryFrom<LinkParser> for git_cliff_core::config::LinkParser {
 }
 
 /// Parser for grouping commits.
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, JsonSchema)]
 pub struct CommitParser {
     /// Regex for matching the commit message.
     pub message: Option<String>,

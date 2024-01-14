@@ -5,8 +5,8 @@ use anyhow::Context;
 use cargo_utils::get_manifest_metadata;
 use chrono::NaiveDate;
 use release_plz_core::{
-    are_packages_equal, copy_to_temp_dir, ChangelogRequest, GitBackend, GitHub, Gitea,
-    ReleasePrRequest, RepoUrl, UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
+    are_packages_equal, changelog_config::ChangelogRequest, copy_to_temp_dir, GitBackend, GitHub,
+    Gitea, ReleasePrRequest, RepoUrl, UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use secrecy::Secret;
 use tempfile::{tempdir, TempDir};
@@ -54,7 +54,7 @@ impl ComparisonTest {
             .unwrap()
             .with_changelog_req(ChangelogRequest {
                 release_date: NaiveDate::from_ymd_opt(2015, 5, 15),
-                changelog_config: None,
+                ..ChangelogRequest::default()
             })
             .with_registry_project_manifest(self.registry_project_manfifest())
             .unwrap()

@@ -189,6 +189,7 @@ impl Update {
         } else {
             config
                 .changelog
+                .clone()
                 .try_into()
                 .context("invalid `[changelog] config")?
         };
