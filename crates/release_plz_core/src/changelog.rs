@@ -24,16 +24,14 @@ pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";
 
 pub struct Changelog<'a> {
     release: Release<'a>,
-    config: Option<Config>,
+    config: Config,
     release_link: Option<String>,
 }
 
 impl Changelog<'_> {
     /// Generate the full changelog.
     pub fn generate(self) -> String {
-        let config = self
-            .config
-            .unwrap_or_else(|| default_git_cliff_config(None, self.release_link.as_deref()));
+        let config = self.changelog_config(None, self.release_link.as_deref());
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .expect("error while building changelog");
         let mut out = Vec::new();
@@ -51,9 +49,7 @@ impl Changelog<'_> {
             return Ok(old_changelog);
         }
         let old_header = changelog_parser::parse_header(&old_changelog);
-        let config = self
-            .config
-            .unwrap_or_else(|| default_git_cliff_config(old_header, self.release_link.as_deref()));
+        let config = self.changelog_config(old_header, self.release_link.as_deref());
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .context("error while building changelog")?;
         let mut out = Vec::new();
@@ -62,19 +58,45 @@ impl Changelog<'_> {
             .context("cannot update changelog")?;
         String::from_utf8(out).context("cannot convert bytes to string")
     }
+
+    fn changelog_config(&self, header: Option<String>, release_link: Option<&str>) -> Config {
+        Config {
+            changelog: ChangelogConfig {
+                header: Some(
+                    self.config
+                        .changelog
+                        .header
+                        .unwrap_or(String::from(CHANGELOG_HEADER)),
+                ),
+                body: Some(
+                    self.config
+                        .changelog
+                        .body
+                        .unwrap_or(default_changelog_body_config(release_link)),
+                ),
+                trim: Some(self.config.changelog.trim.unwrap_or(true)),
+                ..self.config.changelog
+            },
+            git: GitConfig {
+                conventional_commits: Some(self.config.git.conventional_commits.unwrap_or(true)),
+                filter_unconventional: Some(self.config.git.filter_unconventional.unwrap_or(false)),
+                commit_parsers: Some(
+                    self.config
+                        .git
+                        .commit_parsers
+                        .unwrap_or(kac_commit_parsers()),
+                ),
+                filter_commits: Some(self.config.git.filter_commits.unwrap_or(true)),
+                ..self.config.git
+            },
+        }
+    }
 }
 
 fn is_version_unchanged(release: &Release) -> bool {
     let previous_version = release.previous.as_ref().and_then(|r| r.version.as_deref());
     let new_version = release.version.as_deref();
     previous_version == new_version
-}
-
-fn default_git_cliff_config(header: Option<String>, release_link: Option<&str>) -> Config {
-    Config {
-        changelog: default_changelog_config(header, release_link),
-        git: default_git_config(),
-    }
 }
 
 pub struct ChangelogBuilder<'a> {
@@ -183,25 +205,6 @@ impl<'a> ChangelogBuilder<'a> {
     }
 }
 
-fn default_git_config() -> GitConfig {
-    GitConfig {
-        conventional_commits: Some(true),
-        filter_unconventional: Some(false),
-        commit_parsers: Some(kac_commit_parsers()),
-        filter_commits: Some(true),
-        tag_pattern: None,
-        skip_tags: None,
-        split_commits: None,
-        protect_breaking_commits: None,
-        topo_order: None,
-        ignore_tags: None,
-        limit_commits: None,
-        sort_commits: None,
-        commit_preprocessors: None,
-        link_parsers: None,
-    }
-}
-
 fn commit_parser(regex: &str, group: &str) -> CommitParser {
     CommitParser {
         message: Regex::new(regex).ok(),
@@ -226,16 +229,6 @@ pub fn kac_commit_parsers() -> Vec<CommitParser> {
         commit_parser("^security", "security"),
         commit_parser(".*", "other"),
     ]
-}
-
-fn default_changelog_config(header: Option<String>, release_link: Option<&str>) -> ChangelogConfig {
-    ChangelogConfig {
-        header: Some(header.unwrap_or(String::from(CHANGELOG_HEADER))),
-        body: Some(default_changelog_body_config(release_link)),
-        footer: None,
-        postprocessors: None,
-        trim: Some(true),
-    }
 }
 
 fn default_changelog_body_config(release_link: Option<&str>) -> String {

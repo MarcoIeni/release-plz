@@ -184,7 +184,7 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
                 commit_parsers: Some(commit_parsers),
                 protect_breaking_commits: cfg.protect_breaking_commits,
                 link_parsers: Some(link_parsers),
-                filter_commits: None,
+                filter_commits: Some(true),
                 tag_pattern,
                 skip_tags: None,
                 ignore_tags: None,
