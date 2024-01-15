@@ -807,18 +807,20 @@ impl Updater<'_> {
                 package.name, package.version, registry_package.version
             )
         }
-        let cargo_lock_path = self.get_cargo_lock_path(repository)?;
         loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
             if let Some(registry_package) = registry_package {
                 debug!("package {} found in cargo registry", registry_package.name);
                 let registry_package_path = registry_package.package_path()?;
+
+                // We run `cargo package` when comparing packages, which can edit files, such as `Cargo.lock`.
+                // Store its path so it can be reverted after comparison.
+                let cargo_lock_path = self.get_cargo_lock_path(repository)?;
                 let are_packages_equal = are_packages_equal(&package_path, registry_package_path)
                     .context("cannot compare packages")?;
                 if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
-                    // We run `cargo package` when comparing packages.
-                    // `cargo package` can edit files, such as `Cargo.lock`, so we need to revert the changes.
+                    // Revert any changes to `Cargo.lock`
                     repository
                         .checkout(cargo_lock_path)
                         .context("cannot revert changes introduced when comparing packages")?;
