@@ -10,14 +10,11 @@ pub struct ChangelogCfg {
     pub header: Option<String>,
     pub body: Option<String>,
     pub trim: Option<bool>,
-    #[serde(default)]
-    pub commit_preprocessors: Vec<TextProcessor>,
+    pub commit_preprocessors: Option<Vec<TextProcessor>>,
     pub sort_commits: Option<Sorting>,
-    #[serde(default)]
-    pub link_parsers: Vec<LinkParser>,
+    pub link_parsers: Option<Vec<LinkParser>>,
     /// Commits that don't match any of the commit parsers are skipped.
-    #[serde(default)]
-    pub commit_parsers: Vec<CommitParser>,
+    pub commit_parsers: Option<Vec<CommitParser>>,
     /// Whether to protect all breaking changes from being skipped by a commit
     /// parser.
     pub protect_breaking_commits: Option<bool>,
@@ -150,29 +147,29 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
     type Error = anyhow::Error;
 
     fn try_from(cfg: ChangelogCfg) -> Result<Self, Self::Error> {
-        let commit_preprocessors: Vec<git_cliff_core::config::TextProcessor> =
-            vec_try_into(cfg.commit_preprocessors)
-                .context("failed to parse commit_preprocessors")?;
-        let link_parsers: Vec<git_cliff_core::config::LinkParser> =
-            vec_try_into(cfg.link_parsers).context("failed to parse link_parsers")?;
+        let commit_preprocessors: Option<Vec<git_cliff_core::config::TextProcessor>> = cfg
+            .commit_preprocessors
+            .map(|p| vec_try_into(p).context("failed to parse commit_preprocessors"))?;
+        let link_parsers: Option<Vec<git_cliff_core::config::LinkParser>> = cfg
+            .link_parsers
+            .map(|l| vec_try_into(l))
+            .context("failed to parse link_parsers")?;
         let tag_pattern = cfg
             .tag_pattern
             .map(|pattern| Regex::new(&pattern).context("failed to parse message tag_pattern"))
             .transpose()?;
 
-        let trim = cfg.trim.unwrap_or(true);
         let sort_commits = cfg.sort_commits.unwrap_or(Sorting::default());
 
-        let commit_parsers: Vec<git_cliff_core::config::CommitParser> =
-            vec_try_into(cfg.commit_parsers)
-                .context("failed to parse commit_parsers")
-                .unwrap_or(kac_commit_parsers());
+        let commit_parsers: Option<Vec<git_cliff_core::config::CommitParser>> = cfg
+            .commit_parsers
+            .map(|c| vec_try_into(c).context("failed to parse commit_parsers"))?;
 
         Ok(Self {
             changelog: ChangelogConfig {
                 header: cfg.header,
                 body: cfg.body,
-                trim: Some(trim),
+                trim: cfg.trim,
                 postprocessors: None,
                 footer: None,
             },
@@ -180,11 +177,11 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
                 conventional_commits: None,
                 filter_unconventional: None,
                 split_commits: None,
-                commit_preprocessors: Some(commit_preprocessors),
-                commit_parsers: Some(commit_parsers),
+                commit_preprocessors: commit_preprocessors,
+                commit_parsers,
                 protect_breaking_commits: cfg.protect_breaking_commits,
-                link_parsers: Some(link_parsers),
-                filter_commits: Some(true),
+                link_parsers,
+                filter_commits: None,
                 tag_pattern,
                 skip_tags: None,
                 ignore_tags: None,

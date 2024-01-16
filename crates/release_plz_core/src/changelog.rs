@@ -24,7 +24,7 @@ pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";
 
 pub struct Changelog<'a> {
     release: Release<'a>,
-    config: Config,
+    config: Option<Config>,
     release_link: Option<String>,
 }
 
@@ -60,34 +60,47 @@ impl Changelog<'_> {
     }
 
     fn changelog_config(&self, header: Option<String>, release_link: Option<&str>) -> Config {
+        let user_config = self
+            .config
+            .clone()
+            .unwrap_or(git_cliff_core::config::Config {
+                changelog: ChangelogConfig::default(),
+                git: GitConfig::default(),
+            });
+        let default_git_config = default_git_config();
+        let default_changelog_config = default_changelog_config(header, release_link);
         Config {
             changelog: ChangelogConfig {
-                header: Some(
-                    self.config
-                        .changelog
-                        .header
-                        .unwrap_or(String::from(CHANGELOG_HEADER)),
-                ),
-                body: Some(
-                    self.config
-                        .changelog
-                        .body
-                        .unwrap_or(default_changelog_body_config(release_link)),
-                ),
-                trim: Some(self.config.changelog.trim.unwrap_or(true)),
-                ..self.config.changelog
+                header: user_config
+                    .changelog
+                    .header
+                    .or(default_changelog_config.header),
+                body: user_config.changelog.body.or(default_changelog_config.body),
+                trim: user_config.changelog.trim.or(default_changelog_config.trim),
+                ..user_config.changelog
             },
             git: GitConfig {
-                conventional_commits: Some(self.config.git.conventional_commits.unwrap_or(true)),
-                filter_unconventional: Some(self.config.git.filter_unconventional.unwrap_or(false)),
-                commit_parsers: Some(
-                    self.config
-                        .git
-                        .commit_parsers
-                        .unwrap_or(kac_commit_parsers()),
-                ),
-                filter_commits: Some(self.config.git.filter_commits.unwrap_or(true)),
-                ..self.config.git
+                conventional_commits: user_config
+                    .git
+                    .conventional_commits
+                    .or(default_git_config.conventional_commits),
+                filter_unconventional: user_config
+                    .git
+                    .filter_unconventional
+                    .or(default_git_config.filter_unconventional),
+                commit_parsers: user_config
+                    .git
+                    .commit_parsers
+                    .or(default_git_config.commit_parsers),
+                filter_commits: user_config
+                    .git
+                    .filter_commits
+                    .or(default_git_config.filter_commits),
+                sort_commits: user_config
+                    .git
+                    .sort_commits
+                    .or(default_git_config.sort_commits),
+                ..user_config.git
             },
         }
     }
@@ -205,6 +218,25 @@ impl<'a> ChangelogBuilder<'a> {
     }
 }
 
+fn default_git_config() -> GitConfig {
+    GitConfig {
+        conventional_commits: Some(true),
+        filter_unconventional: Some(false),
+        commit_parsers: Some(kac_commit_parsers()),
+        filter_commits: Some(true),
+        tag_pattern: None,
+        skip_tags: None,
+        split_commits: None,
+        protect_breaking_commits: None,
+        topo_order: None,
+        ignore_tags: None,
+        limit_commits: None,
+        sort_commits: Some("newest".to_string()),
+        commit_preprocessors: None,
+        link_parsers: None,
+    }
+}
+
 fn commit_parser(regex: &str, group: &str) -> CommitParser {
     CommitParser {
         message: Regex::new(regex).ok(),
@@ -219,7 +251,7 @@ fn commit_parser(regex: &str, group: &str) -> CommitParser {
 }
 
 /// Commit parsers based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-pub fn kac_commit_parsers() -> Vec<CommitParser> {
+fn kac_commit_parsers() -> Vec<CommitParser> {
     vec![
         commit_parser("^feat", "added"),
         commit_parser("^changed", "changed"),
@@ -229,6 +261,16 @@ pub fn kac_commit_parsers() -> Vec<CommitParser> {
         commit_parser("^security", "security"),
         commit_parser(".*", "other"),
     ]
+}
+
+fn default_changelog_config(header: Option<String>, release_link: Option<&str>) -> ChangelogConfig {
+    ChangelogConfig {
+        header: Some(header.unwrap_or(String::from(CHANGELOG_HEADER))),
+        body: Some(default_changelog_body_config(release_link)),
+        footer: None,
+        postprocessors: None,
+        trim: Some(true),
+    }
 }
 
 fn default_changelog_body_config(release_link: Option<&str>) -> String {

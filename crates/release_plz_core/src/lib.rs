@@ -1,6 +1,5 @@
 mod cargo;
 mod changelog;
-pub mod changelog_config;
 mod changelog_parser;
 mod clone;
 mod command;
