@@ -111,14 +111,9 @@ fn format_deletions(paths: &[impl AsRef<Path>]) -> Result<String> {
 
     for path in paths {
         if has_previous {
-            deletions.push_str(", ");
+            deletions.push_str(",\n");
         }
-        deletions.push_str(&format!(
-            r#"{{
-                path: "{}"
-            }}"#,
-            path.as_ref().display(),
-        ));
+        deletions.push_str(&format!(r#"{{ path: "{}" }}"#, path.as_ref().display()));
 
         has_previous = true;
     }
@@ -159,10 +154,7 @@ fn format_addition(repo_dir: impl AsRef<Path>, path: impl AsRef<Path>) -> Result
     let content = BASE64_STANDARD.encode(fs::read(realpath)?);
 
     Ok(format!(
-        r#"{{
-            path: "{}",
-            contents: "{content}"
-        }}"#,
+        r#"{{ path: "{}", contents: "{content}" }}"#,
         path.display()
     ))
 }
