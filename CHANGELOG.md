@@ -15,8 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevent error if Cargo.lock doesn't exist during portions of commit history ([#1205](https://github.com/MarcoIeni/release-plz/pull/1205))
 
 ### Other
-- flatten configuration struct ([#1182](https://github.com/MarcoIeni/release-plz/pull/1182))
-- read cargo metadata in release-plz crate ([#1167](https://github.com/MarcoIeni/release-plz/pull/1167))
 - improve public packages error message ([#1187](https://github.com/MarcoIeni/release-plz/pull/1187))
 - add debug statement when Cargo.toml differs ([#1184](https://github.com/MarcoIeni/release-plz/pull/1184))
 - less verbose logs ([#1183](https://github.com/MarcoIeni/release-plz/pull/1183))

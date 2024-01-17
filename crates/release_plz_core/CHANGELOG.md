@@ -18,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - improve public packages error message ([#1187](https://github.com/MarcoIeni/release-plz/pull/1187))
 - add debug statement when Cargo.toml differs ([#1184](https://github.com/MarcoIeni/release-plz/pull/1184))
 - less verbose logs ([#1183](https://github.com/MarcoIeni/release-plz/pull/1183))
-- read cargo metadata in release-plz crate ([#1167](https://github.com/MarcoIeni/release-plz/pull/1167))
 
 ## [0.15.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.15.4...release_plz_core-v0.15.5) - 2023-12-30
 
