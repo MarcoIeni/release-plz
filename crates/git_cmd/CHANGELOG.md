@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.18](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.4.17...git_cmd-v0.4.18) - 2024-01-16
+
+### Other
+- add `#[derive(Debug)]` to `Repo` struct ([#1167](https://github.com/MarcoIeni/release-plz/pull/1167))
+
 ## [0.4.17](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.4.16...git_cmd-v0.4.17) - 2023-12-30
 
 ### Other
