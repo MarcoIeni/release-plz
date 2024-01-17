@@ -1,7 +1,6 @@
 use anyhow::Context;
 use git_cliff_core::config::ChangelogConfig;
 use regex::Regex;
-use release_plz_core::kac_commit_parsers;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -149,21 +148,23 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
     fn try_from(cfg: ChangelogCfg) -> Result<Self, Self::Error> {
         let commit_preprocessors: Option<Vec<git_cliff_core::config::TextProcessor>> = cfg
             .commit_preprocessors
-            .map(|p| vec_try_into(p).context("failed to parse commit_preprocessors"))?;
+            .map(|p| vec_try_into(p).context("failed to parse commit_preprocessors"))
+            .transpose()?;
         let link_parsers: Option<Vec<git_cliff_core::config::LinkParser>> = cfg
             .link_parsers
-            .map(|l| vec_try_into(l))
-            .context("failed to parse link_parsers")?;
+            .map(|l| vec_try_into(l).context("failed to parse link_parsers"))
+            .transpose()?;
         let tag_pattern = cfg
             .tag_pattern
             .map(|pattern| Regex::new(&pattern).context("failed to parse message tag_pattern"))
             .transpose()?;
 
-        let sort_commits = cfg.sort_commits.unwrap_or(Sorting::default());
+        let sort_commits = cfg.sort_commits.unwrap_or_default();
 
         let commit_parsers: Option<Vec<git_cliff_core::config::CommitParser>> = cfg
             .commit_parsers
-            .map(|c| vec_try_into(c).context("failed to parse commit_parsers"))?;
+            .map(|c| vec_try_into(c).context("failed to parse commit_parsers"))
+            .transpose()?;
 
         Ok(Self {
             changelog: ChangelogConfig {
@@ -177,7 +178,7 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
                 conventional_commits: None,
                 filter_unconventional: None,
                 split_commits: None,
-                commit_preprocessors: commit_preprocessors,
+                commit_preprocessors,
                 commit_parsers,
                 protect_breaking_commits: cfg.protect_breaking_commits,
                 link_parsers,

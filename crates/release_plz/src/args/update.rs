@@ -4,7 +4,7 @@ use anyhow::Context;
 use chrono::NaiveDate;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use git_cliff_core::config::Config as GitCliffConfig;
-use release_plz_core::{changelog_config::ChangelogRequest, UpdateRequest};
+use release_plz_core::{ChangelogRequest, UpdateRequest};
 
 use crate::config::Config;
 
@@ -151,7 +151,7 @@ impl Update {
                 .transpose()?;
             let changelog_req = ChangelogRequest {
                 release_date,
-                changelog_config: self.changelog_config(&config)?,
+                changelog_config: Some(self.changelog_config(&config)?),
             };
             update = update.with_changelog_req(changelog_req);
         }
