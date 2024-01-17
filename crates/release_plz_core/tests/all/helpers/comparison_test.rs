@@ -5,8 +5,8 @@ use anyhow::Context;
 use cargo_utils::get_manifest_metadata;
 use chrono::NaiveDate;
 use release_plz_core::{
-    are_packages_equal, copy_to_temp_dir, GitBackend, GitHub, Gitea, ReleasePrRequest, RepoUrl,
-    UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME, ChangelogRequest,
+    are_packages_equal, copy_to_temp_dir, ChangelogRequest, GitBackend, GitHub, Gitea,
+    ReleasePrRequest, RepoUrl, UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use secrecy::Secret;
 use tempfile::{tempdir, TempDir};
