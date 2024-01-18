@@ -160,10 +160,6 @@ impl GitClient {
         })
     }
 
-    pub fn backend(&self) -> BackendType {
-        self.backend
-    }
-
     pub fn per_page(&self) -> &str {
         match self.backend {
             BackendType::Github => "per_page",

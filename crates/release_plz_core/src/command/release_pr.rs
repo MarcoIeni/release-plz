@@ -165,7 +165,7 @@ async fn open_or_update_release_pr(
 }
 
 async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Result<()> {
-    if matches!(git_client.backend(), BackendType::Github) {
+    if matches!(git_client.backend, BackendType::Github) {
         github_create_release_branch(git_client, repo, &pr.branch).await?;
     } else {
         create_release_branch(repo, &pr.branch)?;
