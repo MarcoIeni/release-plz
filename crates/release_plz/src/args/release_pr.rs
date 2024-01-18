@@ -18,12 +18,6 @@ pub struct ReleasePr {
     /// Kind of git host where your project is hosted.
     #[arg(long, value_enum, default_value_t = GitBackendKind::Github)]
     backend: GitBackendKind,
-    /// Make commit using github API. Only allowed for `github` backend.
-    ///
-    /// Commits made through API will be associated with the `git-token` owner.
-    /// This allows for getting the verified status.
-    #[arg(long, env)]
-    pub api_commit: bool,
 }
 
 #[derive(ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]

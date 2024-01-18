@@ -44,7 +44,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let git = cmd_args
                 .git_backend(repo_url.clone())
                 .context("invalid git backend settings")?;
-            let request = ReleasePrRequest::new(git, update_request, cmd_args.api_commit)
+            let request = ReleasePrRequest::new(git, update_request)
                 .mark_as_draft(pr_draft)
                 .with_labels(pr_labels);
             release_plz_core::release_pr(&request).await?;
