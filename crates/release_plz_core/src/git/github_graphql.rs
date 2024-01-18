@@ -1,9 +1,10 @@
-use std::{collections::HashMap, fs, path::Path};
+use std::{collections::HashMap, path::Path};
 
 use anyhow::Result;
 use base64::prelude::*;
 use git_cmd::Repo;
 use serde_json::Value;
+use tokio::fs;
 use tracing::{debug, trace};
 
 use crate::GitClient;
@@ -28,7 +29,7 @@ pub async fn commit_changes(client: &GitClient, repo: &Repo, message: &str) -> R
         &deletions,
         &changes,
         repo.directory(),
-    )?;
+    ).await?;
 
     debug!("Sending createCommitOnBranch to {}", API_ENDPOINT);
     trace!("{}", commit_query);
@@ -66,7 +67,7 @@ fn removed_files(repo: &Repo) -> Result<Vec<String>> {
 }
 
 // format a graphql query to create commit on branch
-fn format_commit_query(
+async fn format_commit_query(
     owner_and_repo: &str,
     branch: &str,
     message: &str,
@@ -76,7 +77,7 @@ fn format_commit_query(
     repo_dir: impl AsRef<Path>,
 ) -> Result<String> {
     let deletions = format_deletions(deletions)?;
-    let additions = format_additions(repo_dir, additions)?;
+    let additions = format_additions(repo_dir, additions).await?;
     Ok(format!(
         r#"mutation {{
           createCommitOnBranch(input: {{
@@ -124,7 +125,10 @@ fn format_deletions(paths: &[impl AsRef<Path>]) -> Result<String> {
 }
 
 // format a list of modified/added files for a commit query
-fn format_additions(repo_dir: impl AsRef<Path>, paths: &[impl AsRef<Path>]) -> Result<String> {
+async fn format_additions(
+    repo_dir: impl AsRef<Path>,
+    paths: &[impl AsRef<Path>],
+) -> Result<String> {
     let repo_dir = repo_dir.as_ref();
     let mut additions = String::new();
     let mut has_previous = false;
@@ -135,9 +139,9 @@ fn format_additions(repo_dir: impl AsRef<Path>, paths: &[impl AsRef<Path>]) -> R
         if has_previous {
             additions.push_str(",\n");
         }
+
         let realpath = repo_dir.join(path);
-        // TODO: async
-        let content = BASE64_STANDARD.encode(fs::read(realpath)?);
+        let content = BASE64_STANDARD.encode(fs::read(realpath).await?);
 
         additions.push_str(&format!(
             r#"{{ path: "{}", contents: "{content}" }}"#,
