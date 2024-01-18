@@ -135,7 +135,14 @@ fn format_additions(repo_dir: impl AsRef<Path>, paths: &[impl AsRef<Path>]) -> R
         if has_previous {
             additions.push_str(",\n");
         }
-        additions.push_str(&format_addition(repo_dir, path)?);
+        let realpath = repo_dir.join(path);
+        // TODO: async
+        let content = BASE64_STANDARD.encode(fs::read(realpath)?);
+
+        additions.push_str(&format!(
+            r#"{{ path: "{}", contents: "{content}" }}"#,
+            path.as_ref().display()
+        ));
 
         has_previous = true;
     }
@@ -143,18 +150,4 @@ fn format_additions(repo_dir: impl AsRef<Path>, paths: &[impl AsRef<Path>]) -> R
     additions.push(']');
 
     Ok(additions)
-}
-
-// format a single object containing changed or added file
-fn format_addition(repo_dir: impl AsRef<Path>, path: impl AsRef<Path>) -> Result<String> {
-    let path = path.as_ref();
-    let realpath = repo_dir.as_ref().join(path);
-
-    // TODO: async
-    let content = BASE64_STANDARD.encode(fs::read(realpath)?);
-
-    Ok(format!(
-        r#"{{ path: "{}", contents: "{content}" }}"#,
-        path.display()
-    ))
 }
