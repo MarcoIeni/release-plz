@@ -116,9 +116,7 @@ impl Repo {
     }
 
     pub fn changes_except_typechanges(&self) -> anyhow::Result<Vec<String>> {
-        let output = self.git(&["status", "--porcelain"])?;
-        let changed_files = changed_files(&output, |line| !line.starts_with("T "));
-        Ok(changed_files)
+        self.changes(|line| !line.starts_with("T "))
     }
 
     pub fn add<T: AsRef<str>>(&self, paths: &[T]) -> anyhow::Result<()> {
