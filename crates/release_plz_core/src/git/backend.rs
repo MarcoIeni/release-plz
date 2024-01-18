@@ -29,7 +29,7 @@ impl GitBackend {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BackendType {
     Github,
     Gitea,
@@ -38,7 +38,7 @@ pub enum BackendType {
 
 #[derive(Debug)]
 pub struct GitClient {
-    backend: BackendType,
+    pub backend: BackendType,
     pub remote: Remote,
     pub client: reqwest_middleware::ClientWithMiddleware,
 }
@@ -161,11 +161,7 @@ impl GitClient {
     }
 
     pub fn backend(&self) -> BackendType {
-        match self.backend {
-            BackendType::Github => BackendType::Github,
-            BackendType::Gitea => BackendType::Gitea,
-            BackendType::Gitlab => BackendType::Gitlab,
-        }
+        self.backend
     }
 
     pub fn per_page(&self) -> &str {
