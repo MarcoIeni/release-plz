@@ -1,15 +1,25 @@
 use std::{collections::HashMap, path::Path};
 
-use anyhow::Result;
+use anyhow::{ensure, Result};
 use base64::prelude::*;
 use git_cmd::Repo;
 use serde_json::Value;
 use tokio::fs;
 use tracing::{debug, trace};
+use url::Url;
 
+use crate::git::backend::Remote;
 use crate::GitClient;
 
-const API_ENDPOINT: &str = "https://api.github.com/graphql";
+fn get_graphql_endpoint(remote: &Remote) -> Result<Url> {
+    let domain = remote.base_url.domain().unwrap_or("");
+    ensure!(domain.contains("github"), "Not a Github remote");
+
+    let mut base_url = remote.base_url.clone();
+    base_url.set_path("graphql");
+
+    Ok(base_url)
+}
 
 /// TODO: add tests
 /// Commit all the changes (except typestates) that are present in the repository
@@ -29,9 +39,12 @@ pub async fn commit_changes(client: &GitClient, repo: &Repo, message: &str) -> R
         &deletions,
         &changes,
         repo.directory(),
-    ).await?;
+    )
+    .await?;
 
-    debug!("Sending createCommitOnBranch to {}", API_ENDPOINT);
+    let graphql_endpoint = get_graphql_endpoint(&client.remote)?;
+
+    debug!("Sending createCommitOnBranch to {}", graphql_endpoint);
     trace!("{}", commit_query);
 
     let mut json = HashMap::new();
@@ -39,7 +52,7 @@ pub async fn commit_changes(client: &GitClient, repo: &Repo, message: &str) -> R
 
     let res: Value = client
         .client
-        .post(API_ENDPOINT)
+        .post(graphql_endpoint)
         .json(&json)
         .send()
         .await?
