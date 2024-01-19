@@ -1,6 +1,6 @@
 [package]
 name = "release-plz"
-version = "0.3.38"
+version = "0.3.39"
 edition = "2021"
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz"
@@ -19,10 +19,9 @@ default = ["docker-tests"]
 docker-tests = []
 
 [dependencies]
-git_cmd = { path = "../git_cmd", version = "0.4.17" }
-release_plz_core = { path = "../release_plz_core", version = "0.15.5" }
+git_cmd = { path = "../git_cmd", version = "0.4.18" }
+release_plz_core = { path = "../release_plz_core", version = "0.16.0" }
 cargo_utils = { path = "../cargo_utils", version = "0.1" }
-fake_package = { path = "../fake_package", version = "0.1" }
 
 anyhow.workspace = true
 base64.workspace = true
@@ -49,6 +48,7 @@ url.workspace = true
 [dev-dependencies]
 cargo_utils = { path = "../cargo_utils" }
 test_logs = { path = "../test_logs" }
+fake_package = { path = "../fake_package" }
 
 assert_cmd.workspace = true
 async-trait.workspace = true

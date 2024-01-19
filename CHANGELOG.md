@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.39](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.38...release-plz-v0.3.39) - 2024-01-16
+
+### Added
+- Add release flag ([#1098](https://github.com/MarcoIeni/release-plz/pull/1098))
+
+### Fixed
+- Prevent error if Cargo.lock doesn't exist during portions of commit history ([#1205](https://github.com/MarcoIeni/release-plz/pull/1205))
+
+### Other
+- improve public packages error message ([#1187](https://github.com/MarcoIeni/release-plz/pull/1187))
+- add debug statement when Cargo.toml differs ([#1184](https://github.com/MarcoIeni/release-plz/pull/1184))
+- less verbose logs ([#1183](https://github.com/MarcoIeni/release-plz/pull/1183))
+
 ## [0.3.38](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.37...release-plz-v0.3.38) - 2023-12-30
 
 ### Other
