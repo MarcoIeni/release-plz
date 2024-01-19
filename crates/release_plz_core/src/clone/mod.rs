@@ -6,6 +6,7 @@
 mod cloner_builder;
 mod source;
 
+use cargo::util::cache_lock::CacheLockMode;
 pub use cloner_builder::*;
 pub use source::*;
 use tracing::warn;
@@ -74,7 +75,9 @@ impl Cloner {
     /// Returns the cloned crates and the path where they are cloned.
     /// If a crate doesn't exist, is not returned.
     pub fn clone(&self, crates: &[Crate]) -> CargoResult<Vec<(Package, PathBuf)>> {
-        let _lock = self.config.acquire_package_cache_lock()?;
+        let _lock = self
+            .config
+            .acquire_package_cache_lock(CacheLockMode::DownloadExclusive)?;
 
         let mut src = get_source(self.srcid, &self.config)?;
         let mut cloned_pkgs = vec![];

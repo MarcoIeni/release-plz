@@ -705,7 +705,7 @@ dependencies = [
  "gix 0.57.1",
  "hex",
  "home",
- "http 0.2.11",
+ "http",
  "memchr",
  "rustc-hash",
  "semver",
@@ -2839,7 +2839,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "futures-util",
- "http 0.2.11",
+ "http",
  "indexmap",
  "slab",
  "tokio",
@@ -2913,17 +2913,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "http"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b32afd38673a8016f7c9ae69e5af41a58f81b1d31689040f2f1959594ce194ea"
-dependencies = [
- "bytes",
- "fnv",
- "itoa",
-]
-
-[[package]]
 name = "http-auth"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2939,7 +2928,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ceab25649e9960c0311ea418d17bee82c0dcec1bd053b5f9a66e265a693bed2"
 dependencies = [
  "bytes",
- "http 0.2.11",
+ "http",
  "pin-project-lite",
 ]
 
@@ -2953,7 +2942,7 @@ dependencies = [
  "async-channel",
  "base64 0.13.1",
  "futures-lite",
- "http 0.2.11",
+ "http",
  "infer",
  "pin-project-lite",
  "rand 0.7.3",
@@ -3002,7 +2991,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http 0.2.11",
+ "http",
  "http-body",
  "httparse",
  "httpdate",
@@ -4216,7 +4205,7 @@ dependencies = [
  "git-cliff-core",
  "git-url-parse",
  "git_cmd",
- "http 1.0.0",
+ "http",
  "ignore",
  "lazy_static",
  "next_version 0.2.13",
@@ -4254,7 +4243,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http 0.2.11",
+ "http",
  "http-body",
  "hyper",
  "hyper-tls",
@@ -4290,7 +4279,7 @@ checksum = "88a3e86aa6053e59030e7ce2d2a3b258dd08fc2d337d52f73f6cb480f5858690"
 dependencies = [
  "anyhow",
  "async-trait",
- "http 0.2.11",
+ "http",
  "reqwest",
  "serde",
  "task-local-extensions",
@@ -4308,7 +4297,7 @@ dependencies = [
  "chrono",
  "futures",
  "getrandom 0.2.12",
- "http 0.2.11",
+ "http",
  "hyper",
  "parking_lot 0.11.2",
  "reqwest",
