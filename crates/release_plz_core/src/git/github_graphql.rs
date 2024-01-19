@@ -1,6 +1,6 @@
 use std::{collections::HashMap, path::Path};
 
-use anyhow::{ensure, Result};
+use anyhow::Result;
 use base64::prelude::*;
 use git_cmd::Repo;
 use serde_json::Value;
@@ -11,14 +11,11 @@ use url::Url;
 use crate::git::backend::Remote;
 use crate::GitClient;
 
-fn get_graphql_endpoint(remote: &Remote) -> Result<Url> {
-    let domain = remote.base_url.domain().unwrap_or("");
-    ensure!(domain.contains("github"), "Not a Github remote");
-
+fn get_graphql_endpoint(remote: &Remote) -> Url {
     let mut base_url = remote.base_url.clone();
     base_url.set_path("graphql");
 
-    Ok(base_url)
+    base_url
 }
 
 /// TODO: add tests
@@ -42,7 +39,7 @@ pub async fn commit_changes(client: &GitClient, repo: &Repo, message: &str) -> R
     )
     .await?;
 
-    let graphql_endpoint = get_graphql_endpoint(&client.remote)?;
+    let graphql_endpoint = get_graphql_endpoint(&client.remote);
 
     debug!("Sending createCommitOnBranch to {}", graphql_endpoint);
     trace!("{}", commit_query);
