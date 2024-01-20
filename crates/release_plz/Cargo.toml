@@ -1,6 +1,6 @@
 [package]
 name = "release-plz"
-version = "0.3.39"
+version = "0.3.40"
 edition = "2021"
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz"
