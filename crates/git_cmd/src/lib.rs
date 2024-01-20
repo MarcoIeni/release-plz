@@ -442,10 +442,9 @@ A  crates
 D  crates/git_cmd/CHANGELOG.md
 ";
         let changed_files = changed_files(git_status_output, |line| !line.starts_with("T "));
-        assert_eq!(
-            changed_files,
-            vec!["README.md", "crates", "crates/git_cmd/CHANGELOG.md",]
-        )
+        // `CHANGELOG.md` is ignored because it's a typechange
+        let expected_changed_files = vec!["README.md", "crates", "crates/git_cmd/CHANGELOG.md"];
+        assert_eq!(changed_files, expected_changed_files)
     }
 
     #[test]
