@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Correct dependency update behavior for release-pr ([#1217](https://github.com/MarcoIeni/release-plz/pull/1217))
 
 ### Other
-- update Cargo.toml dependencies
 - update dependencies ([#1213](https://github.com/MarcoIeni/release-plz/pull/1213))
 
 ## [0.3.39](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.38...release-plz-v0.3.39) - 2024-01-16
