@@ -12,7 +12,7 @@ categories = ["development-tools"]
 workspace = true
 
 [dependencies]
-base64 = "0.21.6"
+base64.workspace = true
 cargo_utils = { path = "../cargo_utils", version = "0.1.36" }
 git_cmd = { path = "../git_cmd", version = "0.4.19" }
 next_version = { path = "../next_version", version = "0.2" }
