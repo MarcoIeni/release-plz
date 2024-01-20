@@ -64,7 +64,7 @@ impl Repo {
             Err(e) => {
                 let err = e.to_string();
                 if err.contains("fatal: no upstream configured for branch") {
-                    let branch = Self::get_current_branch(directory)?;
+                    let branch = get_current_branch(directory)?;
                     warn!("no upstream configured for branch {branch}");
                     Ok(("origin".to_string(), branch))
                 } else if err.contains("fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.") {
@@ -76,16 +76,8 @@ impl Repo {
         }
     }
 
-    fn get_current_branch(directory: impl AsRef<Path>) -> anyhow::Result<String> {
-        git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "HEAD"])
-        .map_err(|e|
-            if e.to_string().contains("fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.") {
-                anyhow!("git repository does not contain any commit.")
-            }
-            else {
-                e
-            }
-        )
+    pub fn get_current_branch(&self) -> anyhow::Result<String> {
+        get_current_branch(&self.directory)
     }
 
     /// Check if there are uncommitted changes.
@@ -255,11 +247,6 @@ impl Repo {
         Ok(last_commit.to_string())
     }
 
-    /// Get the name of the current branch.
-    pub fn current_branch(&self) -> anyhow::Result<String> {
-        self.git(&["rev-parse", "--abbrev-ref", "HEAD"])
-    }
-
     /// Get the SHA1 of the current HEAD.
     pub fn current_head(&self) -> anyhow::Result<String> {
         self.git(&["rev-parse", "HEAD"])
@@ -360,6 +347,19 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
         }
         Err(anyhow!(error))
     }
+}
+
+/// Get the name of the current branch.
+fn get_current_branch(directory: impl AsRef<Path>) -> anyhow::Result<String> {
+    git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "HEAD"]).map_err(|e| {
+        if e.to_string().contains(
+            "fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.",
+        ) {
+            anyhow!("git repository does not contain any commit.")
+        } else {
+            e
+        }
+    })
 }
 
 #[cfg(test)]

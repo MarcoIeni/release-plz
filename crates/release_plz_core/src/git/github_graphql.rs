@@ -22,7 +22,7 @@ fn get_graphql_endpoint(remote: &Remote) -> Url {
 /// using GitHub's [GraphQL api](https://docs.github.com/en/graphql).
 pub async fn commit_changes(client: &GitClient, repo: &Repo, message: &str) -> Result<()> {
     let owner_and_repo = format!("{}/{}", client.remote.owner, client.remote.repo);
-    let branch = repo.current_branch()?;
+    let branch = repo.get_current_branch()?;
     let current_head = repo.current_head()?;
     let deletions = removed_files(repo)?;
     let changes = changed_files(repo)?;
