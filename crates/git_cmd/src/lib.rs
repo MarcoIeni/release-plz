@@ -247,15 +247,11 @@ impl Repo {
         Ok(last_commit.to_string())
     }
 
-    /// Get the SHA1 of the current HEAD.
-    pub fn current_head(&self) -> anyhow::Result<String> {
-        self.git(&["rev-parse", "HEAD"])
-    }
-
     pub fn current_commit_message(&self) -> anyhow::Result<String> {
         self.git(&["log", "-1", "--pretty=format:%B"])
     }
 
+    /// Get the SHA1 of the current HEAD.
     pub fn current_commit_hash(&self) -> anyhow::Result<String> {
         self.git(&["log", "-1", "--pretty=format:%H"])
     }
