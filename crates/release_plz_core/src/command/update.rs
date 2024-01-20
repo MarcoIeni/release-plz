@@ -131,6 +131,8 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
         crate::next_versions(input).context("failed to determine next versions")?;
     let local_manifest_path = input.local_manifest();
     let local_metadata = cargo_utils::get_manifest_metadata(local_manifest_path)?;
+    // Read packages from `local_metadata` to update the manifest of local
+    // workspace dependencies.
     let all_packages: Vec<Package> = cargo_utils::workspace_members(&local_metadata)?.collect();
     update_manifests(&packages_to_update, local_manifest_path, &all_packages)?;
     update_changelogs(input, &packages_to_update)?;
