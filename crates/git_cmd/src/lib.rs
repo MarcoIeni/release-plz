@@ -437,7 +437,7 @@ mod tests {
     #[test]
     fn changes_files_except_typechanges_are_detected() {
         let git_status_output = r"T CHANGELOG.md
- M README.md
+M README.md
 A  crates
 D  crates/git_cmd/CHANGELOG.md
 ";
