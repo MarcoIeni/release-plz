@@ -31,8 +31,10 @@ created on an account with write access to the repository.
 This is the standard method
 [recommended by GitHub](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
 
-Note that the account that owns the PAT will be the author of the release pull request and the commit itself.
-If you don't want release-plz to open release pull requests and commit with your account, consider creating a
+Note that the account that owns the PAT will be the author of the release pull
+request and the commit itself.
+If you don't want release-plz to open release pull requests and commit with
+your account, consider creating a
 [machine user](https://docs.github.com/en/get-started/learning-about-github/types-of-github-accounts#personal-accounts).
 If your machine user needs a cool avatar, you can use the release-plz [logo](/img/robot_head.jpeg).
 
