@@ -19,7 +19,7 @@ fn get_graphql_endpoint(remote: &Remote) -> Url {
 }
 
 /// Commit all the changes (except typestates) that are present in the repository
-/// using GitHub's [GraphQL api](https://docs.github.com/en/graphql).
+/// using GitHub's [GraphQL api](https://docs.github.com/en/graphql/reference/mutations#createcommitonbranch).
 pub async fn commit_changes(
     client: &GitClient,
     repo: &Repo,
