@@ -46,13 +46,12 @@ pub async fn commit_changes(
     debug!("Sending createCommitOnBranch to {}", graphql_endpoint);
     trace!("{}", commit_query);
 
-    let mut json = HashMap::new();
-    json.insert("query", commit_query.as_str());
+    let json_body: HashMap<&str, &str> = [("query", commit_query.as_str())].into();
 
     let res: Value = client
         .client
         .post(graphql_endpoint)
-        .json(&json)
+        .json(&json_body)
         .send()
         .await?
         .json()
