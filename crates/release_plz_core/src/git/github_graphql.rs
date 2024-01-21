@@ -26,13 +26,12 @@ pub async fn commit_changes(
     message: &str,
     branch: &str,
 ) -> Result<()> {
-    let owner_and_repo = format!("{}/{}", client.remote.owner, client.remote.repo);
     let current_head = repo.current_commit_hash()?;
     let deletions = removed_files(repo)?;
     let changes = changed_files(repo)?;
 
     let commit_query = format_commit_query(
-        &owner_and_repo,
+        &client.remote.owner_slash_repo(),
         branch,
         message,
         &current_head,
