@@ -76,10 +76,6 @@ impl Repo {
         }
     }
 
-    pub fn get_current_branch(&self) -> anyhow::Result<String> {
-        get_current_branch(&self.directory)
-    }
-
     /// Check if there are uncommitted changes.
     pub fn is_clean(&self) -> anyhow::Result<()> {
         let changes = self.changes_except_typechanges()?;

@@ -20,16 +20,20 @@ fn get_graphql_endpoint(remote: &Remote) -> Url {
 
 /// Commit all the changes (except typestates) that are present in the repository
 /// using GitHub's [GraphQL api](https://docs.github.com/en/graphql).
-pub async fn commit_changes(client: &GitClient, repo: &Repo, message: &str) -> Result<()> {
+pub async fn commit_changes(
+    client: &GitClient,
+    repo: &Repo,
+    message: &str,
+    branch: &str,
+) -> Result<()> {
     let owner_and_repo = format!("{}/{}", client.remote.owner, client.remote.repo);
-    let branch = repo.get_current_branch()?;
     let current_head = repo.current_commit_hash()?;
     let deletions = removed_files(repo)?;
     let changes = changed_files(repo)?;
 
     let commit_query = format_commit_query(
         &owner_and_repo,
-        &branch,
+        branch,
         message,
         &current_head,
         &deletions,

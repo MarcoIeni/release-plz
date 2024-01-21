@@ -257,7 +257,7 @@ async fn github_create_release_branch(
 ) -> anyhow::Result<()> {
     repository.checkout_new_branch(release_branch)?;
     repository.push(release_branch)?;
-    github_graphql::commit_changes(client, repository, "chore: release").await
+    github_graphql::commit_changes(client, repository, "chore: release", release_branch).await
 }
 
 fn add_changes_and_commit(repository: &Repo) -> anyhow::Result<()> {
