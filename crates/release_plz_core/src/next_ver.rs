@@ -8,6 +8,7 @@ use crate::{
     package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection, RegistryPackage},
     repo_url::RepoUrl,
+    repo_versions::{self, RepoVersions},
     semver_check::{self, SemverCheck},
     tera::{tera_context, tera_var, PACKAGE_VAR, VERSION_VAR},
     tmp_repo::TempRepo,
@@ -133,6 +134,9 @@ pub struct UpdateConfig {
     pub release: bool,
     /// Template for the git tag created by release-plz.
     pub tag_name_template: Option<String>,
+    /// Whether to use git tags instead of the Cargo registry to determine package versions.
+    /// Default: `false`.
+    pub git_only: bool,
 }
 
 /// Package-specific config
@@ -158,6 +162,10 @@ impl PackageUpdateConfig {
     pub fn should_update_changelog(&self) -> bool {
         self.generic.changelog_update
     }
+
+    pub fn git_only(&self) -> bool {
+        self.generic.git_only
+    }
 }
 
 impl Default for UpdateConfig {
@@ -165,6 +173,7 @@ impl Default for UpdateConfig {
         Self {
             semver_check: true,
             changelog_update: true,
+            git_only: false,
             release: true,
             tag_name_template: None,
         }
@@ -184,6 +193,10 @@ impl UpdateConfig {
             changelog_update,
             ..self
         }
+    }
+
+    pub fn with_git_only(self, git_only: bool) -> Self {
+        Self { git_only, ..self }
     }
 }
 
@@ -393,8 +406,17 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
-    let packages_to_update =
-        updater.packages_to_update(&registry_packages, &repository.repo, input.local_manifest())?;
+    let repository_packages = repo_versions::get_repo_versions(
+        &repository.repo,
+        local_project.contains_multiple_pub_packages,
+    );
+
+    let packages_to_update = updater.packages_to_update(
+        &registry_packages,
+        repository_packages.as_ref(),
+        &repository.repo,
+        input.local_manifest(),
+    )?;
     Ok((packages_to_update, repository))
 }
 
@@ -431,7 +453,7 @@ pub struct Project {
     manifest_dir: Utf8PathBuf,
     /// The project contains more than one public package.
     /// Not affected by `single_package` option.
-    contains_multiple_pub_packages: bool,
+    pub contains_multiple_pub_packages: bool,
 }
 
 pub fn root_repo_path(local_manifest: &Utf8Path) -> anyhow::Result<Utf8PathBuf> {
@@ -647,12 +669,14 @@ impl Updater<'_> {
     fn packages_to_update(
         &self,
         registry_packages: &PackagesCollection,
+        repository_packages: Option<&RepoVersions>,
         repository: &Repo,
         local_manifest_path: &Utf8Path,
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
-        let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
+        let packages_diffs =
+            self.get_packages_diffs(registry_packages, repository_packages, repository)?;
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate::default();
 
@@ -725,6 +749,7 @@ impl Updater<'_> {
     fn get_packages_diffs(
         &self,
         registry_packages: &PackagesCollection,
+        repository_packages: Option<&RepoVersions>,
         repository: &Repo,
     ) -> anyhow::Result<Vec<(&Package, Diff)>> {
         // Store diff for each package. This operation is not thread safe, so we do it in one
@@ -735,7 +760,7 @@ impl Updater<'_> {
             .iter()
             .map(|&p| {
                 let diff = self
-                    .get_diff(p, registry_packages, repository)
+                    .get_diff(p, registry_packages, repository_packages, repository)
                     .context("failed to retrieve difference between packages")?;
                 Ok((p, diff))
             })
@@ -897,16 +922,26 @@ impl Updater<'_> {
         &self,
         package: &Package,
         registry_packages: &PackagesCollection,
+        repository_packages: Option<&RepoVersions>,
         repository: &Repo,
     ) -> anyhow::Result<Diff> {
         let package_path = get_package_path(package, repository, &self.project.root)
             .context("failed to determine package path")?;
+        let package_config: PackageUpdateConfig = self.req.get_package_config(&package.name);
+        let git_only = package_config.git_only();
 
         repository
             .checkout_head()
             .context("can't checkout head to calculate diff")?;
         let registry_package = registry_packages.get_registry_package(&package.name);
-        let mut diff = Diff::new(registry_package.is_some());
+        let repository_version = repository_packages
+            .map(|repo_versions| repo_versions.get_package_version(&package.name))
+            .flatten();
+        let mut diff = Diff::new(if git_only {
+            repository_version.is_some()
+        } else {
+            registry_package.is_some()
+        });
         let pathbufs_to_check = pathbufs_to_check(&package_path, package);
         let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
         if let Err(err) = repository.checkout_last_commit_at_paths(&paths_to_check) {

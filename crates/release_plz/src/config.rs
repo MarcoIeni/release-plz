@@ -242,6 +242,10 @@ pub struct PackageConfig {
     /// Whether to create/update changelog or not.
     /// If unspecified, the changelog is updated.
     pub changelog_update: Option<bool>,
+    /// # Git-only Mode
+    /// Whether to use git tags instead of the Cargo registry to determine
+    /// package versions.
+    pub git_only: Option<bool>,
     /// # Git Release Enable
     /// Publish the GitHub/Gitea release for the created git tag.
     /// Enabled by default.
@@ -291,6 +295,7 @@ impl From<PackageConfig> for release_plz_core::UpdateConfig {
         Self {
             semver_check: config.semver_check != Some(false),
             changelog_update: config.changelog_update != Some(false),
+            git_only: config.git_only == Some(true),
             release: config.release != Some(false),
             tag_name_template: config.git_tag_name,
         }
@@ -313,6 +318,7 @@ impl PackageConfig {
         Self {
             semver_check: self.semver_check.or(default.semver_check),
             changelog_update: self.changelog_update.or(default.changelog_update),
+            git_only: self.git_only.or(default.git_only),
             git_release_enable: self.git_release_enable.or(default.git_release_enable),
             git_release_type: self.git_release_type.or(default.git_release_type),
             git_release_draft: self.git_release_draft.or(default.git_release_draft),
@@ -403,6 +409,7 @@ mod tests {
                 packages_defaults: PackageConfig {
                     semver_check: None,
                     changelog_update: None,
+                    git_only: None,
                     git_release_enable: Some(true),
                     git_release_type: Some(ReleaseType::Prod),
                     git_release_draft: Some(false),
@@ -424,6 +431,7 @@ mod tests {
                 common: PackageConfig {
                     semver_check: None,
                     changelog_update: None,
+                    git_only: None,
                     git_release_enable: None,
                     git_release_type: None,
                     git_release_draft: None,
@@ -522,6 +530,7 @@ mod tests {
                 packages_defaults: PackageConfig {
                     semver_check: None,
                     changelog_update: true.into(),
+                    git_only: None,
                     git_release_enable: true.into(),
                     git_release_type: Some(ReleaseType::Prod),
                     git_release_draft: Some(false),
@@ -537,6 +546,7 @@ mod tests {
                     common: PackageConfig {
                         semver_check: Some(false),
                         changelog_update: true.into(),
+                        git_only: None,
                         git_release_enable: true.into(),
                         git_release_type: Some(ReleaseType::Prod),
                         git_release_draft: Some(false),

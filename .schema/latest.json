@@ -40,6 +40,7 @@
         "changelog_config": null,
         "changelog_update": null,
         "dependencies_update": null,
+        "git_only": null,
         "git_release_body": null,
         "git_release_draft": null,
         "git_release_enable": null,
@@ -277,6 +278,14 @@
             "null"
           ]
         },
+        "git_only": {
+          "title": "Git-only Mode",
+          "description": "Whether to use git tags instead of the Cargo registry to determine package versions.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
         "git_release_body": {
           "title": "Git Release Body",
           "description": "Tera template of the git release body created by release-plz.",
@@ -486,6 +495,14 @@
         "dependencies_update": {
           "title": "Dependencies Update",
           "description": "- If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`. - If `false` or [`Option::None`], only update the workspace packages by running `cargo update --workspace`.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "git_only": {
+          "title": "Git-only Mode",
+          "description": "Whether to use git tags instead of the Cargo registry to determine package versions.",
           "type": [
             "boolean",
             "null"
