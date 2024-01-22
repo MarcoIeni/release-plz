@@ -181,13 +181,15 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
         let is_publish_enabled = value.publish != Some(false);
         let is_git_release_enabled = value.git_release_enable != Some(false);
         let is_git_release_draft = value.git_release_draft == Some(true);
+        let is_git_pre_release = value.git_release_type == Some(ReleaseType::Pre);
         let is_git_tag_enabled = value.git_tag_enable != Some(false);
         let release = value.release != Some(false);
         let mut cfg = Self::default()
             .with_publish(release_plz_core::PublishConfig::enabled(is_publish_enabled))
             .with_git_release(
                 release_plz_core::GitReleaseConfig::enabled(is_git_release_enabled)
-                    .set_draft(is_git_release_draft),
+                    .set_draft(is_git_release_draft)
+                    .set_pre_release(is_git_pre_release),
             )
             .with_git_tag(release_plz_core::GitTagConfig::enabled(is_git_tag_enabled))
             .with_release(release);

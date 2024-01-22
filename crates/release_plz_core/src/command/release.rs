@@ -279,6 +279,7 @@ impl PublishConfig {
 pub struct GitReleaseConfig {
     enabled: bool,
     draft: bool,
+    pre_release: bool,
 }
 
 impl Default for GitReleaseConfig {
@@ -292,6 +293,7 @@ impl GitReleaseConfig {
         Self {
             enabled,
             draft: false,
+            pre_release: false,
         }
     }
 
@@ -301,6 +303,11 @@ impl GitReleaseConfig {
 
     pub fn set_draft(mut self, draft: bool) -> Self {
         self.draft = draft;
+        self
+    }
+
+    pub fn set_pre_release(mut self, pre_release: bool) -> Self {
+        self.pre_release = pre_release;
         self
     }
 }
@@ -464,15 +471,13 @@ async fn release_package(
                 .as_ref()
                 .context("git release not configured. Did you specify git-token and backend?")?;
             let release_body = release_body(input, package);
-            let is_release_draft = input
-                .get_package_config(&package.name)
-                .generic
-                .git_release
-                .draft;
+            let release_config = input.get_package_config(&package.name).generic.git_release;
+            // let is_pre_release = release_config.
             let release_info = GitReleaseInfo {
                 git_tag,
                 release_body,
-                draft: is_release_draft,
+                draft: release_config.draft,
+                pre_release: release_config.pre_release,
             };
             publish_git_release(&release_info, &git_release.backend).await?;
         }
@@ -487,6 +492,7 @@ pub struct GitReleaseInfo {
     pub git_tag: String,
     pub release_body: String,
     pub draft: bool,
+    pub pre_release: bool,
 }
 
 fn run_cargo_publish(
