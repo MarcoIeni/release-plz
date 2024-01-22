@@ -472,7 +472,6 @@ async fn release_package(
                 .context("git release not configured. Did you specify git-token and backend?")?;
             let release_body = release_body(input, package);
             let release_config = input.get_package_config(&package.name).generic.git_release;
-            // let is_pre_release = release_config.
             let release_info = GitReleaseInfo {
                 git_tag,
                 release_body,
