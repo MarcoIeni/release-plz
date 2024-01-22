@@ -5,7 +5,10 @@ use tracing::{debug, trace};
 
 use crate::strip_prefix::strip_prefix;
 
-fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(original: P, link: Q) -> io::Result<()> {
+pub(crate) fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(
+    original: P,
+    link: Q,
+) -> io::Result<()> {
     debug!(
         "creating symlink {:?} -> {:?}",
         &original.as_ref(),

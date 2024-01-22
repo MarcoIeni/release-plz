@@ -177,3 +177,102 @@ async fn format_additions(
 
     Ok(additions)
 }
+
+#[cfg(test)]
+mod tests {
+    use tempfile::tempdir;
+
+    use super::*;
+
+    use crate::copy_dir::create_symlink;
+
+    #[tokio::test]
+    async fn github_commit_query() {
+        let temporary = tempdir().unwrap();
+        let repo_dir = temporary.as_ref();
+        let repo = Repo::init(repo_dir);
+
+        // make the initial commit on top which we'll make changes
+        let unchanged_path = repo_dir.join("unchanged.txt");
+        fs::write(&unchanged_path, b"unchanged").await.unwrap();
+
+        let changed = "changed.txt";
+        let changed_path = repo_dir.join(changed);
+        fs::write(&changed_path, b"changed").await.unwrap();
+
+        let removed = "removed.txt";
+        let removed_path = repo_dir.join("removed.txt");
+        fs::write(&removed_path, b"removed").await.unwrap();
+
+        let type_changed_path = repo_dir.join("type_changed.txt");
+        create_symlink(&unchanged_path, &type_changed_path).unwrap();
+
+        repo.add_all_and_commit("initial commit").unwrap();
+
+        // apply changes to the repository
+
+        // file addition
+        let added = "added.txt";
+        let added_path = repo_dir.join(added);
+        let added_base64_content = BASE64_STANDARD.encode(b"added");
+        fs::write(&added_path, b"added").await.unwrap();
+
+        // file change
+        let changed_base64_content = BASE64_STANDARD.encode(b"file changed");
+        fs::write(&changed_path, b"file changed").await.unwrap();
+
+        // file removal
+        fs::remove_file(&removed_path).await.unwrap();
+
+        // type change (replace symlink with a content it pointed to)
+        fs::remove_file(&type_changed_path).await.unwrap();
+        fs::write(&type_changed_path, b"unchanged").await.unwrap();
+
+        // check if the commit query is correctly created
+        let owner_slash_repo = "owner/repo";
+        let branch = "main";
+        let message = "message";
+        let current_head = repo.current_commit_hash().unwrap();
+
+        let expected_query = format!(
+            r#"mutation {{
+              createCommitOnBranch(input: {{
+                branch: {{
+                  repositoryNameWithOwner: "{owner_slash_repo}",
+                  branchName: "{branch}"
+                }},
+                message: {{ headline: "{message}" }},
+                expectedHeadOid: "{current_head}",
+                fileChanges: {{
+                  deletions: [{{ path: "{removed}" }}],
+                  additions: [
+                      {{ path: "{changed}", contents: "{changed_base64_content}" }},
+                      {{ path: "{added}", contents: "{added_base64_content}" }}
+                  ]
+                }}
+              }}) {{
+                commit {{
+                  author {{
+                    name,
+                    email
+                  }}
+                }}
+              }}
+            }}"#
+        );
+        let query = GithubCommit::new(owner_slash_repo, &repo, message, branch)
+            .unwrap()
+            .format_query()
+            .await
+            .unwrap();
+
+        // remove all the whitespace from queries for comparison
+        let expected_query: String = expected_query
+            .chars()
+            .filter(|c| !c.is_whitespace())
+            .collect();
+        let query: String = query.chars().filter(|c| !c.is_whitespace()).collect();
+
+        assert_eq!(expected_query, query);
+    }
+}
