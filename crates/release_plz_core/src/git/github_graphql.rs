@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::{collections::HashMap, path::Path};
 
 use anyhow::Result;
@@ -11,13 +12,6 @@ use url::Url;
 use crate::git::backend::Remote;
 use crate::GitClient;
 
-fn get_graphql_endpoint(remote: &Remote) -> Url {
-    let mut base_url = remote.base_url.clone();
-    base_url.set_path("graphql");
-
-    base_url
-}
-
 /// Commit all the changes (except typestates) that are present in the repository
 /// using GitHub's [GraphQL api](https://docs.github.com/en/graphql/reference/mutations#createcommitonbranch).
 pub async fn commit_changes(
@@ -26,23 +20,10 @@ pub async fn commit_changes(
     message: &str,
     branch: &str,
 ) -> Result<()> {
-    let current_head = repo.current_commit_hash()?;
-    let deletions = removed_files(repo)?;
-    let changes = changed_files(repo)?;
-
-    let commit_query = format_commit_query(
-        &client.remote.owner_slash_repo(),
-        branch,
-        message,
-        &current_head,
-        &deletions,
-        &changes,
-        repo.directory(),
-    )
-    .await?;
-
+    let commit = GithubCommit::new(&client.remote.owner_slash_repo(), repo, message, branch)?;
     let graphql_endpoint = get_graphql_endpoint(&client.remote);
 
+    let commit_query = commit.format_query().await?;
     debug!("Sending createCommitOnBranch to {}", graphql_endpoint);
     trace!("{}", commit_query);
 
@@ -67,6 +48,13 @@ pub async fn commit_changes(
     Ok(())
 }
 
+fn get_graphql_endpoint(remote: &Remote) -> Url {
+    let mut base_url = remote.base_url.clone();
+    base_url.set_path("graphql");
+
+    base_url
+}
+
 // get the list of changes in repository excluding typechanges and removed files
 fn changed_files(repo: &Repo) -> Result<Vec<String>> {
     repo.changes(|line| !line.starts_with("T ") && !line.starts_with("D "))
@@ -77,41 +65,64 @@ fn removed_files(repo: &Repo) -> Result<Vec<String>> {
     repo.changes(|line| line.starts_with("D "))
 }
 
-// format a graphql query to create commit on branch
-async fn format_commit_query(
-    owner_and_repo: &str,
-    branch: &str,
-    message: &str,
-    current_head: &str,
-    deletions: &[impl AsRef<Path>],
-    additions: &[impl AsRef<Path>],
-    repo_dir: impl AsRef<Path>,
-) -> Result<String> {
-    let deletions = format_deletions(deletions)?;
-    let additions = format_additions(repo_dir, additions).await?;
-    Ok(format!(
-        r#"mutation {{
-          createCommitOnBranch(input: {{
-            branch: {{
-              repositoryNameWithOwner: "{owner_and_repo}",
-              branchName: "{branch}"
-            }},
-            message: {{ headline: "{message}" }},
-            expectedHeadOid: "{current_head}",
-            fileChanges: {{
-              deletions: {deletions},
-              additions: {additions}
-            }}
-          }}) {{
-            commit {{
-              author {{
-                name,
-                email
+struct GithubCommit {
+    owner_slash_repo: String,
+    branch: String,
+    message: String,
+    current_head: String,
+    deletions: Vec<String>,
+    additions: Vec<String>,
+    repo_dir: PathBuf,
+}
+
+impl GithubCommit {
+    fn new(owner_slash_repo: &str, repo: &Repo, message: &str, branch: &str) -> Result<Self> {
+        Ok(Self {
+            owner_slash_repo: owner_slash_repo.to_owned(),
+            branch: branch.to_owned(),
+            message: message.to_owned(),
+            current_head: repo.current_commit_hash()?,
+            deletions: removed_files(repo)?,
+            additions: changed_files(repo)?,
+            repo_dir: repo.directory().to_owned(),
+        })
+    }
+
+    // format a graphql query to create commit on branch
+    async fn format_query(&self) -> Result<String> {
+        let GithubCommit {
+            owner_slash_repo,
+            branch,
+            message,
+            current_head,
+            ..
+        } = self;
+        let deletions = format_deletions(&self.deletions)?;
+        let additions = format_additions(&self.repo_dir, &self.additions).await?;
+        Ok(format!(
+            r#"mutation {{
+              createCommitOnBranch(input: {{
+                branch: {{
+                  repositoryNameWithOwner: "{owner_slash_repo}",
+                  branchName: "{branch}"
+                }},
+                message: {{ headline: "{message}" }},
+                expectedHeadOid: "{current_head}",
+                fileChanges: {{
+                  deletions: {deletions},
+                  additions: {additions}
+                }}
+              }}) {{
+                commit {{
+                  author {{
+                    name,
+                    email
+                  }}
+                }}
               }}
-            }}
-          }}
-        }}"#
-    ))
+            }}"#
+        ))
+    }
 }
 
 // format a list of deleted files for a commit query
