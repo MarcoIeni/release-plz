@@ -54,11 +54,10 @@ impl TryFrom<TextProcessor> for git_cliff_core::config::TextProcessor {
     type Error = anyhow::Error;
 }
 
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, Copy, JsonSchema)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Copy, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum Sorting {
     Oldest,
-    #[default]
     Newest,
 }
 
@@ -169,7 +168,7 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
             to_opt_vec(cfg.link_parsers, "link_parsers")?;
         let tag_pattern = to_opt_regex(cfg.tag_pattern.as_deref(), "tag_pattern")?;
 
-        let sort_commits = cfg.sort_commits.unwrap_or_default();
+        let sort_commits = cfg.sort_commits.map(|s| format!("{s}"));
 
         let commit_parsers: Option<Vec<git_cliff_core::config::CommitParser>> =
             to_opt_vec(cfg.commit_parsers, "commit_parsers")?;
@@ -195,7 +194,7 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
                 skip_tags: None,
                 ignore_tags: None,
                 topo_order: None,
-                sort_commits: Some(format!("{sort_commits}")),
+                sort_commits,
                 limit_commits: None,
             },
         })
