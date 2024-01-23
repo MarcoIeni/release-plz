@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.41](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.40...release-plz-v0.3.41) - 2024-01-23
+
+### Added
+- use github graphql api for commits ([#1201](https://github.com/MarcoIeni/release-plz/pull/1201))
+
+### Other
+- update Cargo.lock dependencies
+- *(repo_url)* extract code ([#1220](https://github.com/MarcoIeni/release-plz/pull/1220))
+
 ## [0.3.40](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.39...release-plz-v0.3.40) - 2024-01-20
 
 ### Fixed
