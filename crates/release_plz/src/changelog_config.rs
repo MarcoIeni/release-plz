@@ -98,6 +98,7 @@ impl TryFrom<LinkParser> for git_cliff_core::config::LinkParser {
 pub struct CommitParser {
     /// Regex for matching the commit message.
     pub message: Option<String>,
+	/// Regex for matching the commit body.
     pub body: Option<String>,
     /// Group of the commit.
     pub group: Option<String>,
