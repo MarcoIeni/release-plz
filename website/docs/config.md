@@ -49,7 +49,7 @@ release = false # don't process this package
 The configuration file is written in the [TOML](https://toml.io/) format and consists of
 the following sections:
 
-- [`[workspace]`](#the-workspace-section) — Default configuration.
+- [`[workspace]`](#the-workspace-section) — Configuration applied to all packages by default.
   - [`allow_dirty`](#the-allow_dirty-field) — Update dirty working directories.
   - [`changelog_config`](#the-changelog_config-field) — Path to the [git-cliff] configuration file.
   - [`changelog_update`](#the-changelog_update-field) — Update changelog.
@@ -80,6 +80,10 @@ the following sections:
   - [`release`](#the-release-field-package-section) - Enable the processing of this package.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
     Don't verify package build.
+- [`[changelog]`](#the-changelog-section) — Changelog configuration.
+  - [`header`](#the-header-field) — Changelog header.
+  - [`body`](#the-body-field) — Changelog body.
+  - [`trim`](#the-trim-field) — ...
 
 ### The `[workspace]` section
 
@@ -370,5 +374,24 @@ By default, release-plz runs [cargo-semver-checks] if the package is a library.
 
 ### The `[changelog]` section
 
+#### The `header` field
+
+#### The `body` field
+
+#### The `trim` field
+
+#### The `commit_preprocessors` field
+
 TODO:
+
 - Show how to replace REPO. git-cliff does it with the post-processors.
+
+#### The `sort_commits` field
+
+#### The `link_parsers` field
+
+#### The `commit_parsers` field
+
+#### The `protect_breaking_commits` field
+
+#### The `tag_pattern` field
