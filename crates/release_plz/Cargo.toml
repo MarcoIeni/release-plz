@@ -1,6 +1,6 @@
 [package]
 name = "release-plz"
-version = "0.3.40"
+version = "0.3.41"
 edition = "2021"
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz"
@@ -19,8 +19,8 @@ default = ["docker-tests"]
 docker-tests = []
 
 [dependencies]
-git_cmd = { path = "../git_cmd", version = "0.4.19" }
-release_plz_core = { path = "../release_plz_core", version = "0.16.1" }
+git_cmd = { path = "../git_cmd", version = "0.4.20" }
+release_plz_core = { path = "../release_plz_core", version = "0.16.2" }
 cargo_utils = { path = "../cargo_utils", version = "0.1" }
 
 anyhow.workspace = true
