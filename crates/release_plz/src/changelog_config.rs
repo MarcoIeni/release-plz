@@ -45,7 +45,7 @@ pub struct TextProcessor {
 impl TryFrom<TextProcessor> for git_cliff_core::config::TextProcessor {
     fn try_from(cfg: TextProcessor) -> Result<Self, Self::Error> {
         Ok(Self {
-            pattern: Regex::new(&cfg.pattern).context("failed to parse regex")?,
+            pattern: to_regex(&cfg.pattern, "pattern")?,
             replace: cfg.replace,
             replace_command: cfg.replace_command,
         })
@@ -86,7 +86,7 @@ impl TryFrom<LinkParser> for git_cliff_core::config::LinkParser {
 
     fn try_from(value: LinkParser) -> Result<Self, Self::Error> {
         Ok(Self {
-            pattern: Regex::new(&value.pattern).context("failed to parse regex")?,
+            pattern: to_regex(&value.pattern, "pattern")?,
             href: value.href,
             text: value.text,
         })
@@ -119,25 +119,25 @@ impl TryFrom<CommitParser> for git_cliff_core::config::CommitParser {
 
     fn try_from(cfg: CommitParser) -> Result<Self, Self::Error> {
         Ok(Self {
-            message: cfg
-                .message
-                .map(|m| Regex::new(&m).context("failed to parse message regex"))
-                .transpose()?,
-            body: cfg
-                .body
-                .map(|b| Regex::new(&b).context("failed to parse body regex"))
-                .transpose()?,
+            message: to_opt_regex(cfg.message.as_deref(), "message")?,
+            body: to_opt_regex(cfg.body.as_deref(), "body")?,
             group: cfg.group,
             default_scope: cfg.default_scope,
             scope: cfg.scope,
             skip: cfg.skip,
             field: cfg.field,
-            pattern: cfg
-                .pattern
-                .map(|p| Regex::new(&p).context("failed to parse pattern regex"))
-                .transpose()?,
+            pattern: to_opt_regex(cfg.pattern.as_deref(), "pattern")?,
         })
     }
+}
+
+fn to_regex(input: &str, element_name: &str) -> anyhow::Result<Regex> {
+    Regex::new(input).with_context(|| format!("failed to parse `{element_name}` regex"))
+}
+
+/// Convert an input string to an (optional) regex.
+fn to_opt_regex(input: Option<&str>, element_name: &str) -> anyhow::Result<Option<Regex>> {
+    input.map(|i| to_regex(i, element_name)).transpose()
 }
 
 fn vec_try_into<T, U>(vec: Vec<T>, name: &str) -> anyhow::Result<Vec<U>>
@@ -164,10 +164,7 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
             .link_parsers
             .map(|l| vec_try_into(l, "link_parsers"))
             .transpose()?;
-        let tag_pattern = cfg
-            .tag_pattern
-            .map(|pattern| Regex::new(&pattern).context("failed to parse message tag_pattern"))
-            .transpose()?;
+        let tag_pattern = to_opt_regex(cfg.tag_pattern.as_deref(), "tag_pattern")?;
 
         let sort_commits = cfg.sort_commits.unwrap_or_default();
 
