@@ -54,7 +54,7 @@ impl ComparisonTest {
             .unwrap()
             .with_changelog_req(ChangelogRequest {
                 release_date: NaiveDate::from_ymd_opt(2015, 5, 15),
-                ..ChangelogRequest::default()
+                changelog_config: None,
             })
             .with_registry_project_manifest(self.registry_project_manfifest())
             .unwrap()
