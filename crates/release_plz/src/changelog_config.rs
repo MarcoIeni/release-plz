@@ -8,15 +8,19 @@ use serde::{Deserialize, Serialize};
 pub struct ChangelogCfg {
     pub header: Option<String>,
     pub body: Option<String>,
+    /// If set to `true`, leading and trailing whitespace are removed from the [`Self::body`].
     pub trim: Option<bool>,
+    /// An array of commit preprocessors for manipulating the commit messages before parsing/grouping them.
     pub commit_preprocessors: Option<Vec<TextProcessor>>,
+    /// How to sort the commits inside the various sections.
     pub sort_commits: Option<Sorting>,
+    /// An array of link parsers for extracting external references, and turning them into URLs, using regex.
     pub link_parsers: Option<Vec<LinkParser>>,
     /// Commits that don't match any of the commit parsers are skipped.
     pub commit_parsers: Option<Vec<CommitParser>>,
-    /// Whether to protect all breaking changes from being skipped by a commit
-    /// parser.
+    /// Whether to protect all breaking changes from being skipped by a commit parser.
     pub protect_breaking_commits: Option<bool>,
+    /// A regular expression for matching the git tags to add to the changelog.
     pub tag_pattern: Option<String>,
 }
 
