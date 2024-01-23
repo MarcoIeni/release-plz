@@ -9,10 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.16.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.16.1...release_plz_core-v0.16.2) - 2024-01-23
 
 ### Added
-- use github graphql api for commits ([#1201](https://github.com/MarcoIeni/release-plz/pull/1201))
-
-### Other
-- *(repo_url)* extract code ([#1220](https://github.com/MarcoIeni/release-plz/pull/1220))
+- use github graphql api for commits to have the GitHub "Verified" badge on release-plz commits
+  ([#1201](https://github.com/MarcoIeni/release-plz/pull/1201))
 
 ## [0.16.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.16.0...release_plz_core-v0.16.1) - 2024-01-20
 
