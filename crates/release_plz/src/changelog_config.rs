@@ -98,7 +98,7 @@ impl TryFrom<LinkParser> for git_cliff_core::config::LinkParser {
 pub struct CommitParser {
     /// Regex for matching the commit message.
     pub message: Option<String>,
-	/// Regex for matching the commit body.
+    /// Regex for matching the commit body.
     pub body: Option<String>,
     /// Group of the commit.
     pub group: Option<String>,
@@ -140,11 +140,16 @@ impl TryFrom<CommitParser> for git_cliff_core::config::CommitParser {
     }
 }
 
-fn vec_try_into<T, U, E>(vec: Vec<T>) -> Result<Vec<U>, E>
+fn vec_try_into<T, U>(vec: Vec<T>, name: &str) -> anyhow::Result<Vec<U>>
 where
-    T: TryInto<U, Error = E>,
+    T: TryInto<U, Error = anyhow::Error>,
 {
-    vec.into_iter().map(|cp| cp.try_into()).collect()
+    vec.into_iter()
+        .map(|cp| {
+            cp.try_into()
+                .with_context(|| format!("failed to parse {name}"))
+        })
+        .collect()
 }
 
 impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
@@ -153,11 +158,11 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
     fn try_from(cfg: ChangelogCfg) -> Result<Self, Self::Error> {
         let commit_preprocessors: Option<Vec<git_cliff_core::config::TextProcessor>> = cfg
             .commit_preprocessors
-            .map(|p| vec_try_into(p).context("failed to parse commit_preprocessors"))
+            .map(|p| vec_try_into(p, "commit_preprocessors"))
             .transpose()?;
         let link_parsers: Option<Vec<git_cliff_core::config::LinkParser>> = cfg
             .link_parsers
-            .map(|l| vec_try_into(l).context("failed to parse link_parsers"))
+            .map(|l| vec_try_into(l, "link_parsers"))
             .transpose()?;
         let tag_pattern = cfg
             .tag_pattern
@@ -168,7 +173,7 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
 
         let commit_parsers: Option<Vec<git_cliff_core::config::CommitParser>> = cfg
             .commit_parsers
-            .map(|c| vec_try_into(c).context("failed to parse commit_parsers"))
+            .map(|c| vec_try_into(c, "commit_parsers"))
             .transpose()?;
 
         Ok(Self {
