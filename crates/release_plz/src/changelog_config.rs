@@ -140,14 +140,21 @@ fn to_opt_regex(input: Option<&str>, element_name: &str) -> anyhow::Result<Optio
     input.map(|i| to_regex(i, element_name)).transpose()
 }
 
-fn vec_try_into<T, U>(vec: Vec<T>, name: &str) -> anyhow::Result<Vec<U>>
+fn to_opt_vec<T, U>(vec: Option<Vec<T>>, element_name: &str) -> anyhow::Result<Option<Vec<U>>>
+where
+    T: TryInto<U, Error = anyhow::Error>,
+{
+    vec.map(|v| vec_try_into(v, element_name)).transpose()
+}
+
+fn vec_try_into<T, U>(vec: Vec<T>, element_name: &str) -> anyhow::Result<Vec<U>>
 where
     T: TryInto<U, Error = anyhow::Error>,
 {
     vec.into_iter()
         .map(|cp| {
             cp.try_into()
-                .with_context(|| format!("failed to parse {name}"))
+                .with_context(|| format!("failed to parse {element_name}"))
         })
         .collect()
 }
@@ -156,22 +163,16 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
     type Error = anyhow::Error;
 
     fn try_from(cfg: ChangelogCfg) -> Result<Self, Self::Error> {
-        let commit_preprocessors: Option<Vec<git_cliff_core::config::TextProcessor>> = cfg
-            .commit_preprocessors
-            .map(|p| vec_try_into(p, "commit_preprocessors"))
-            .transpose()?;
-        let link_parsers: Option<Vec<git_cliff_core::config::LinkParser>> = cfg
-            .link_parsers
-            .map(|l| vec_try_into(l, "link_parsers"))
-            .transpose()?;
+        let commit_preprocessors: Option<Vec<git_cliff_core::config::TextProcessor>> =
+            to_opt_vec(cfg.commit_preprocessors, "commit_preprocessors")?;
+        let link_parsers: Option<Vec<git_cliff_core::config::LinkParser>> =
+            to_opt_vec(cfg.link_parsers, "link_parsers")?;
         let tag_pattern = to_opt_regex(cfg.tag_pattern.as_deref(), "tag_pattern")?;
 
         let sort_commits = cfg.sort_commits.unwrap_or_default();
 
-        let commit_parsers: Option<Vec<git_cliff_core::config::CommitParser>> = cfg
-            .commit_parsers
-            .map(|c| vec_try_into(c, "commit_parsers"))
-            .transpose()?;
+        let commit_parsers: Option<Vec<git_cliff_core::config::CommitParser>> =
+            to_opt_vec(cfg.commit_parsers, "commit_parsers")?;
 
         Ok(Self {
             changelog: ChangelogConfig {
