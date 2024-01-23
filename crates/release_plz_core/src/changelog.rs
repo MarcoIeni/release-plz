@@ -67,42 +67,47 @@ impl Changelog<'_> {
                 changelog: ChangelogConfig::default(),
                 git: GitConfig::default(),
             });
-        let default_git_config = default_git_config();
-        let default_changelog_config = default_changelog_config(header, release_link);
         Config {
-            changelog: ChangelogConfig {
-                header: user_config
-                    .changelog
-                    .header
-                    .or(default_changelog_config.header),
-                body: user_config.changelog.body.or(default_changelog_config.body),
-                trim: user_config.changelog.trim.or(default_changelog_config.trim),
-                ..user_config.changelog
-            },
-            git: GitConfig {
-                conventional_commits: user_config
-                    .git
-                    .conventional_commits
-                    .or(default_git_config.conventional_commits),
-                filter_unconventional: user_config
-                    .git
-                    .filter_unconventional
-                    .or(default_git_config.filter_unconventional),
-                commit_parsers: user_config
-                    .git
-                    .commit_parsers
-                    .or(default_git_config.commit_parsers),
-                filter_commits: user_config
-                    .git
-                    .filter_commits
-                    .or(default_git_config.filter_commits),
-                sort_commits: user_config
-                    .git
-                    .sort_commits
-                    .or(default_git_config.sort_commits),
-                ..user_config.git
-            },
+            changelog: apply_defaults_to_changelog_config(
+                user_config.changelog,
+                header,
+                release_link,
+            ),
+            git: apply_defaults_to_git_config(user_config.git),
         }
+    }
+}
+
+/// Apply release-plz defaults
+fn apply_defaults_to_changelog_config(
+    changelog: ChangelogConfig,
+    header: Option<String>,
+    release_link: Option<&str>,
+) -> ChangelogConfig {
+    let default_changelog_config = default_changelog_config(header, release_link);
+    ChangelogConfig {
+        header: changelog.header.or(default_changelog_config.header),
+        body: changelog.body.or(default_changelog_config.body),
+        trim: changelog.trim.or(default_changelog_config.trim),
+        ..changelog
+    }
+}
+
+/// Apply release-plz defaults
+fn apply_defaults_to_git_config(git: GitConfig) -> GitConfig {
+    let default_git_config = default_git_config();
+
+    GitConfig {
+        conventional_commits: git
+            .conventional_commits
+            .or(default_git_config.conventional_commits),
+        filter_unconventional: git
+            .filter_unconventional
+            .or(default_git_config.filter_unconventional),
+        commit_parsers: git.commit_parsers.or(default_git_config.commit_parsers),
+        filter_commits: git.filter_commits.or(default_git_config.filter_commits),
+        sort_commits: git.sort_commits.or(default_git_config.sort_commits),
+        ..git
     }
 }
 
