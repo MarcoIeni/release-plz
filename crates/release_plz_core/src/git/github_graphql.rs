@@ -201,7 +201,7 @@ mod tests {
         fs::write(&changed_path, b"changed").await.unwrap();
 
         let removed = "removed.txt";
-        let removed_path = repo_dir.join("removed.txt");
+        let removed_path = repo_dir.join(removed);
         fs::write(&removed_path, b"removed").await.unwrap();
 
         let type_changed_path = repo_dir.join("type_changed.txt");
