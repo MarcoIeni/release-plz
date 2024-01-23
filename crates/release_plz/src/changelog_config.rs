@@ -200,3 +200,5 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
         })
     }
 }
+
+// TODO: write test to check that the configuration is deserialized correctly
