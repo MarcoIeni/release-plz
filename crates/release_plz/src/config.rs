@@ -181,12 +181,9 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
         let is_publish_enabled = value.publish != Some(false);
         let is_git_release_enabled = value.git_release_enable != Some(false);
         let is_git_release_draft = value.git_release_draft == Some(true);
-        let git_release_type = match value.git_release_type {
-            Some(ReleaseType::Prod) => Some(release_plz_core::ReleaseType::Prod),
-            Some(ReleaseType::Pre) => Some(release_plz_core::ReleaseType::Pre),
-            Some(ReleaseType::Auto) => Some(release_plz_core::ReleaseType::Auto),
-            None => None,
-        };
+        let git_release_type: Option<release_plz_core::ReleaseType> = value
+            .git_release_type
+            .map(|release_type| release_type.into());
         let is_git_tag_enabled = value.git_tag_enable != Some(false);
         let release = value.release != Some(false);
         let mut cfg = Self::default()
@@ -315,6 +312,16 @@ pub enum ReleaseType {
     /// in case there is a semver pre-release in the tag e.g. v1.0.0-rc1.
     /// Otherwise, will mark the release as ready for production.
     Auto,
+}
+
+impl From<ReleaseType> for release_plz_core::ReleaseType {
+    fn from(value: ReleaseType) -> Self {
+        match value {
+            ReleaseType::Prod => Self::Prod,
+            ReleaseType::Pre => Self::Pre,
+            ReleaseType::Auto => Self::Auto,
+        }
+    }
 }
 
 #[cfg(test)]
