@@ -320,13 +320,10 @@ impl GitReleaseConfig {
         self
     }
 
-    pub fn is_pre_release(&self, git_tag: &str) -> bool {
+    pub fn is_pre_release(&self, version: &Version) -> bool {
         match self.release_type {
             ReleaseType::Pre => true,
-            ReleaseType::Auto => match Version::parse(git_tag.trim_start_matches('v')) {
-                Ok(v) => v.is_prerelease(),
-                Err(_) => false,
-            },
+            ReleaseType::Auto => version.is_prerelease(),
             ReleaseType::Prod => false,
         }
     }
@@ -492,7 +489,7 @@ async fn release_package(
                 .context("git release not configured. Did you specify git-token and backend?")?;
             let release_body = release_body(input, package);
             let release_config = input.get_package_config(&package.name).generic.git_release;
-            let is_pre_release = release_config.is_pre_release(&git_tag);
+            let is_pre_release = release_config.is_pre_release(&package.version);
             let release_info = GitReleaseInfo {
                 git_tag,
                 release_body,
@@ -591,24 +588,32 @@ mod tests {
     #[test]
     fn git_release_config_pre_release_default_works() {
         let config = GitReleaseConfig::default();
+        let version = Version::parse("1.0.0").unwrap();
+        let rc_version = Version::parse("1.0.0-rc1").unwrap();
 
-        assert!(!config.is_pre_release("v1.0.0"));
-        assert!(!config.is_pre_release("v1.0.0-rc1"));
+        assert!(!config.is_pre_release(&version));
+        assert!(!config.is_pre_release(&rc_version));
     }
 
     #[test]
     fn git_release_config_pre_release_auto_works() {
         let mut config = GitReleaseConfig::default();
         config = config.set_release_type(ReleaseType::Auto);
-        assert!(config.is_pre_release("v1.0.0-rc1"));
-        assert!(!config.is_pre_release("v1.0.0"));
+        let version = Version::parse("1.0.0").unwrap();
+        let rc_version = Version::parse("1.0.0-rc1").unwrap();
+
+        assert!(!config.is_pre_release(&version));
+        assert!(config.is_pre_release(&rc_version));
     }
 
     #[test]
     fn git_release_config_pre_release_pre_works() {
         let mut config = GitReleaseConfig::default();
         config = config.set_release_type(ReleaseType::Pre);
-        assert!(config.is_pre_release("v1.0.0-rc1"));
-        assert!(config.is_pre_release("v1.0.0"));
+        let version = Version::parse("1.0.0").unwrap();
+        let rc_version = Version::parse("1.0.0-rc1").unwrap();
+
+        assert!(config.is_pre_release(&version));
+        assert!(config.is_pre_release(&rc_version));
     }
 }
