@@ -5,7 +5,8 @@ use std::{
 };
 
 use anyhow::Context;
-use cargo_metadata::{Metadata, Package};
+use cargo::util_semver::VersionExt;
+use cargo_metadata::{semver::Version, Metadata, Package};
 use crates_index::{GitIndex, SparseIndex};
 use git_cmd::Repo;
 use secrecy::{ExposeSecret, SecretString};
@@ -275,11 +276,19 @@ impl PublishConfig {
     }
 }
 
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+pub enum ReleaseType {
+    #[default]
+    Prod,
+    Pre,
+    Auto,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GitReleaseConfig {
     enabled: bool,
     draft: bool,
-    pre_release: bool,
+    release_type: Option<ReleaseType>,
 }
 
 impl Default for GitReleaseConfig {
@@ -293,7 +302,7 @@ impl GitReleaseConfig {
         Self {
             enabled,
             draft: false,
-            pre_release: false,
+            release_type: Some(ReleaseType::Prod),
         }
     }
 
@@ -306,9 +315,20 @@ impl GitReleaseConfig {
         self
     }
 
-    pub fn set_pre_release(mut self, pre_release: bool) -> Self {
-        self.pre_release = pre_release;
+    pub fn set_release_type(mut self, release_type: Option<ReleaseType>) -> Self {
+        self.release_type = release_type;
         self
+    }
+
+    pub fn is_pre_release(&self, git_tag: &str) -> bool {
+        match self.release_type {
+            Some(ReleaseType::Pre) => true,
+            Some(ReleaseType::Auto) => match Version::parse(git_tag.trim_start_matches('v')) {
+                Ok(v) => v.is_prerelease(),
+                Err(_) => false,
+            },
+            Some(ReleaseType::Prod) | None => false,
+        }
     }
 }
 
@@ -472,11 +492,12 @@ async fn release_package(
                 .context("git release not configured. Did you specify git-token and backend?")?;
             let release_body = release_body(input, package);
             let release_config = input.get_package_config(&package.name).generic.git_release;
+            let is_pre_release = release_config.is_pre_release(&git_tag);
             let release_info = GitReleaseInfo {
                 git_tag,
                 release_body,
                 draft: release_config.draft,
-                pre_release: release_config.pre_release,
+                pre_release: is_pre_release,
             };
             publish_git_release(&release_info, &git_release.backend).await?;
         }
@@ -561,4 +582,33 @@ async fn publish_git_release(
         .await
         .context("Failed to create release")?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn git_release_config_pre_release_default_works() {
+        let config = GitReleaseConfig::default();
+
+        assert!(!config.is_pre_release("v1.0.0"));
+        assert!(!config.is_pre_release("v1.0.0-rc1"));
+    }
+
+    #[test]
+    fn git_release_config_pre_release_auto_works() {
+        let mut config = GitReleaseConfig::default();
+        config = config.set_release_type(Some(ReleaseType::Auto));
+        assert!(config.is_pre_release("v1.0.0-rc1"));
+        assert!(!config.is_pre_release("v1.0.0"));
+    }
+
+    #[test]
+    fn git_release_config_pre_release_pre_works() {
+        let mut config = GitReleaseConfig::default();
+        config = config.set_release_type(Some(ReleaseType::Pre));
+        assert!(config.is_pre_release("v1.0.0-rc1"));
+        assert!(config.is_pre_release("v1.0.0"));
+    }
 }
