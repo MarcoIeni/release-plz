@@ -64,7 +64,7 @@ impl Repo {
             Err(e) => {
                 let err = e.to_string();
                 if err.contains("fatal: no upstream configured for branch") {
-                    let branch = Self::get_current_branch(directory)?;
+                    let branch = get_current_branch(directory)?;
                     warn!("no upstream configured for branch {branch}");
                     Ok(("origin".to_string(), branch))
                 } else if err.contains("fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.") {
@@ -74,18 +74,6 @@ impl Repo {
                 }
             }
         }
-    }
-
-    fn get_current_branch(directory: impl AsRef<Path>) -> anyhow::Result<String> {
-        git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "HEAD"])
-        .map_err(|e|
-            if e.to_string().contains("fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.") {
-                anyhow!("git repository does not contain any commit.")
-            }
-            else {
-                e
-            }
-        )
     }
 
     /// Check if there are uncommitted changes.
@@ -106,10 +94,17 @@ impl Repo {
         Ok(())
     }
 
-    pub fn changes_except_typechanges(&self) -> anyhow::Result<Vec<String>> {
+    /// Get the list of changed files.
+    /// `filter` is applied for each line of `git status --porcelain`.
+    /// Only changes for which `filter` returns true are returned.
+    pub fn changes(&self, filter: impl FnMut(&&str) -> bool) -> anyhow::Result<Vec<String>> {
         let output = self.git(&["status", "--porcelain"])?;
-        let changed_files = changed_files(&output);
+        let changed_files = changed_files(&output, filter);
         Ok(changed_files)
+    }
+
+    pub fn changes_except_typechanges(&self) -> anyhow::Result<Vec<String>> {
+        self.changes(|line| !line.starts_with("T "))
     }
 
     pub fn add<T: AsRef<str>>(&self, paths: &[T]) -> anyhow::Result<()> {
@@ -252,6 +247,7 @@ impl Repo {
         self.git(&["log", "-1", "--pretty=format:%B"])
     }
 
+    /// Get the SHA1 of the current HEAD.
     pub fn current_commit_hash(&self) -> anyhow::Result<String> {
         self.git(&["log", "-1", "--pretty=format:%H"])
     }
@@ -301,12 +297,12 @@ impl Repo {
     }
 }
 
-fn changed_files(output: &str) -> Vec<String> {
+fn changed_files(output: &str, filter: impl FnMut(&&str) -> bool) -> Vec<String> {
     output
         .lines()
         .map(|l| l.trim())
         // filter typechanges
-        .filter(|l| !l.starts_with("T "))
+        .filter(filter)
         .filter_map(|e| e.rsplit(' ').next())
         .map(|e| e.to_string())
         .collect()
@@ -343,6 +339,19 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
         }
         Err(anyhow!(error))
     }
+}
+
+/// Get the name of the current branch.
+fn get_current_branch(directory: impl AsRef<Path>) -> anyhow::Result<String> {
+    git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "HEAD"]).map_err(|e| {
+        if e.to_string().contains(
+            "fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.",
+        ) {
+            anyhow!("git repository does not contain any commit.")
+        } else {
+            e
+        }
+    })
 }
 
 #[cfg(test)]
@@ -420,15 +429,14 @@ mod tests {
     #[test]
     fn changes_files_except_typechanges_are_detected() {
         let git_status_output = r"T CHANGELOG.md
- M README.md
+M README.md
 A  crates
 D  crates/git_cmd/CHANGELOG.md
 ";
-        let changed_files = changed_files(git_status_output);
-        assert_eq!(
-            changed_files,
-            vec!["README.md", "crates", "crates/git_cmd/CHANGELOG.md",]
-        )
+        let changed_files = changed_files(git_status_output, |line| !line.starts_with("T "));
+        // `CHANGELOG.md` is ignored because it's a typechange
+        let expected_changed_files = vec!["README.md", "crates", "crates/git_cmd/CHANGELOG.md"];
+        assert_eq!(changed_files, expected_changed_files)
     }
 
     #[test]

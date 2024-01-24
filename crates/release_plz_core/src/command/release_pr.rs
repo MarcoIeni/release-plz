@@ -5,7 +5,8 @@ use git_cmd::Repo;
 use anyhow::{anyhow, Context};
 use tracing::{info, instrument};
 
-use crate::git::backend::{contributors_from_commits, GitClient, GitPr, PrEdit};
+use crate::git::backend::{contributors_from_commits, BackendType, GitClient, GitPr, PrEdit};
+use crate::git::github_graphql;
 use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};
 use crate::{
     copy_to_temp_dir, publishable_packages_from_manifest, update, GitBackend, PackagesUpdate,
@@ -164,7 +165,11 @@ async fn open_or_update_release_pr(
 }
 
 async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Result<()> {
-    create_release_branch(repo, &pr.branch)?;
+    if matches!(git_client.backend, BackendType::Github) {
+        github_create_release_branch(git_client, repo, &pr.branch).await?;
+    } else {
+        create_release_branch(repo, &pr.branch)?;
+    }
     git_client.open_pr(pr).await.context("Failed to open PR")?;
     Ok(())
 }
@@ -243,6 +248,16 @@ fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Res
     add_changes_and_commit(repository)?;
     repository.push(release_branch)?;
     Ok(())
+}
+
+async fn github_create_release_branch(
+    client: &GitClient,
+    repository: &Repo,
+    release_branch: &str,
+) -> anyhow::Result<()> {
+    repository.checkout_new_branch(release_branch)?;
+    repository.push(release_branch)?;
+    github_graphql::commit_changes(client, repository, "chore: release", release_branch).await
 }
 
 fn add_changes_and_commit(repository: &Repo) -> anyhow::Result<()> {

@@ -29,7 +29,7 @@ impl GitBackend {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BackendType {
     Github,
     Gitea,
@@ -38,7 +38,7 @@ pub enum BackendType {
 
 #[derive(Debug)]
 pub struct GitClient {
-    backend: BackendType,
+    pub backend: BackendType,
     pub remote: Remote,
     pub client: reqwest_middleware::ClientWithMiddleware,
 }
@@ -49,6 +49,12 @@ pub struct Remote {
     pub repo: String,
     pub token: SecretString,
     pub base_url: Url,
+}
+
+impl Remote {
+    pub fn owner_slash_repo(&self) -> String {
+        format!("{}/{}", self.owner, self.repo)
+    }
 }
 
 #[derive(Deserialize)]
@@ -231,8 +237,9 @@ impl GitClient {
 
     fn repo_url(&self) -> String {
         format!(
-            "{}repos/{}/{}",
-            self.remote.base_url, self.remote.owner, self.remote.repo
+            "{}repos/{}",
+            self.remote.base_url,
+            self.remote.owner_slash_repo()
         )
     }
 
@@ -243,8 +250,8 @@ impl GitClient {
         let mut release_prs: Vec<GitPr> = vec![];
         loop {
             debug!(
-                "Loading prs from {}/{}, page {page}",
-                self.remote.owner, self.remote.repo
+                "Loading prs from {}, page {page}",
+                self.remote.owner_slash_repo()
             );
             let prs: Vec<GitPr> = self
                 .opened_prs_page(page, page_size)
@@ -302,7 +309,7 @@ impl GitClient {
 
     #[instrument(skip(self, pr))]
     pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<()> {
-        debug!("Opening PR in {}/{}", self.remote.owner, self.remote.repo);
+        debug!("Opening PR in {}", self.remote.owner_slash_repo());
         let git_pr: GitPr = self
             .client
             .post(self.pulls_url())

@@ -44,9 +44,13 @@ impl RepoUrl {
         self.host.contains("github")
     }
 
+    pub fn full_host(&self) -> String {
+        format!("https://{}/{}/{}", self.host, self.owner, self.name)
+    }
+
     /// Get GitHub/Gitea release link
     pub fn git_release_link(&self, prev_tag: &str, new_tag: &str) -> String {
-        let host = format!("https://{}/{}/{}", self.host, self.owner, self.name);
+        let host = self.full_host();
 
         if prev_tag == new_tag {
             format!("{host}/releases/tag/{new_tag}")
@@ -56,7 +60,7 @@ impl RepoUrl {
     }
 
     pub fn git_pr_link(&self) -> String {
-        let host = format!("https://{}/{}/{}", self.host, self.owner, self.name);
+        let host = self.full_host();
         let pull_path = if self.is_on_github() { "pull" } else { "pulls" };
         format!("{host}/{pull_path}")
     }

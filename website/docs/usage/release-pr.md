@@ -37,4 +37,12 @@ If there's already an open release PR:
 `release-plz release-pr` also supports creating PRs for repositories hosted on
 Gitea with the `--backend` flag:
 
-`release-plz release-pr --token <gitea application token> --backend gitea`
+`release-plz release-pr --git-token <gitea application token> --backend gitea`
+
+## Github
+
+On Github, the `release-plz release-pr` will use your `--git-token` to create a commit
+through the [GraphQL API](https://docs.github.com/en/graphql) rather
+than making a commit locally and pushing the changes.
+This allows having a [Verified](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
+commit without specifying a GPG signature.
