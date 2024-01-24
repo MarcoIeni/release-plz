@@ -288,7 +288,7 @@ pub enum ReleaseType {
 pub struct GitReleaseConfig {
     enabled: bool,
     draft: bool,
-    release_type: Option<ReleaseType>,
+    release_type: ReleaseType,
 }
 
 impl Default for GitReleaseConfig {
@@ -302,7 +302,7 @@ impl GitReleaseConfig {
         Self {
             enabled,
             draft: false,
-            release_type: Some(ReleaseType::Prod),
+            release_type: ReleaseType::default(),
         }
     }
 
@@ -315,19 +315,19 @@ impl GitReleaseConfig {
         self
     }
 
-    pub fn set_release_type(mut self, release_type: Option<ReleaseType>) -> Self {
+    pub fn set_release_type(mut self, release_type: ReleaseType) -> Self {
         self.release_type = release_type;
         self
     }
 
     pub fn is_pre_release(&self, git_tag: &str) -> bool {
         match self.release_type {
-            Some(ReleaseType::Pre) => true,
-            Some(ReleaseType::Auto) => match Version::parse(git_tag.trim_start_matches('v')) {
+            ReleaseType::Pre => true,
+            ReleaseType::Auto => match Version::parse(git_tag.trim_start_matches('v')) {
                 Ok(v) => v.is_prerelease(),
                 Err(_) => false,
             },
-            Some(ReleaseType::Prod) | None => false,
+            ReleaseType::Prod => false,
         }
     }
 }
@@ -599,7 +599,7 @@ mod tests {
     #[test]
     fn git_release_config_pre_release_auto_works() {
         let mut config = GitReleaseConfig::default();
-        config = config.set_release_type(Some(ReleaseType::Auto));
+        config = config.set_release_type(ReleaseType::Auto);
         assert!(config.is_pre_release("v1.0.0-rc1"));
         assert!(!config.is_pre_release("v1.0.0"));
     }
@@ -607,7 +607,7 @@ mod tests {
     #[test]
     fn git_release_config_pre_release_pre_works() {
         let mut config = GitReleaseConfig::default();
-        config = config.set_release_type(Some(ReleaseType::Pre));
+        config = config.set_release_type(ReleaseType::Pre);
         assert!(config.is_pre_release("v1.0.0-rc1"));
         assert!(config.is_pre_release("v1.0.0"));
     }
