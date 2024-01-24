@@ -155,14 +155,13 @@ The publish mode for a release. Supported modes are *(GitHub, Gitea only)*:
 
 - `Prod`: will mark the release as ready for production. *(Default)*.
 - `Pre`: will mark the release as not ready for production (pre-release).
-- `Auto`: will mark the release as not ready for production in case there is a semver pre-release in the tag e.g. v1.0.0-rc1. Otherwise it will be marked as ready for production.
-
+- `Auto`: will mark the release as not ready for production in case there is a semver pre-release
+  in the tag e.g. v1.0.0-rc1. Otherwise it will be marked as ready for production.
 
 #### The `git_release_draft` field
 
 - If `true`, release-plz creates the git release as draft (unpublished). *(GitHub, Gitea only)*.
 - If `false`, release-plz publishes the created git release. *(Default)*.
-
 
 #### The `git_tag_enable` field
 
@@ -353,7 +352,6 @@ Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) fi
 #### The `git_release_type` field (`package` section)
 
 Overrides the [`workspace.git_release_type`](#the-git_release_type-field) field. *(GitHub, Gitea only)*.
-
 
 #### The `git_release_draft` field (`package` section)
 
