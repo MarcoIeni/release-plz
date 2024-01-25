@@ -56,13 +56,10 @@ the following sections:
   - [`dependencies_update`](#the-dependencies_update-field) — Update all dependencies.
   - [`git_release_enable`](#the-git_release_enable-field) — Enable git release.
   - [`git_release_type`](#the-git_release_type-field) — Publish mode for git release.
-    *(GitHub, Gitea only)*.
   - [`git_release_draft`](#the-git_release_draft-field) — Publish git release as draft.
-    *(GitHub, Gitea only)*.
   - [`git_tag_enable`](#the-git_tag_enable-field) — Enable git tag.
   - [`pr_draft`](#the-pr_draft-field) — Open the release Pull Request as a draft.
   - [`pr_labels`](#the-pr_labels-field) — Add labels to the release Pull Request.
-    *(GitHub only)*.
   - [`publish`](#the-publish-field) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
@@ -77,9 +74,7 @@ the following sections:
   - [`changelog_update`](#the-changelog_update-field-package-section) — Update changelog.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
   - [`git_release_type`](#the-git_release_type-field-package-section) — Publish mode for git release.
-    *(GitHub, Gitea only)*.
   - [`git_release_draft`](#the-git_release_draft-field-package-section) — Publish git release as draft.
-    *(GitHub, Gitea only)*.
   - [`git_tag_enable`](#the-git_tag_enable-field-package-section) — Enable git tag.
   - [`publish`](#the-publish-field-package-section) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field-package-section) — Package dirty directories.
@@ -151,17 +146,24 @@ The supported git releases are:
 
 #### The `git_release_type` field
 
-The publish mode for a release. Supported modes are *(GitHub, Gitea only)*:
+The publish mode for a release. Supported modes are:
 
-- `Prod`: will mark the release as ready for production. *(Default)*.
-- `Pre`: will mark the release as not ready for production (pre-release).
-- `Auto`: will mark the release as not ready for production in case there is a semver pre-release
-  in the tag e.g. v1.0.0-rc1. Otherwise it will be marked as ready for production.
+- `"prod"`: will mark the release as ready for production. *(Default)*.
+- `"pre"`: will mark the release as not ready for production (pre-release).
+- `"auto"`:
+  - if there's a SemVer pre-release in the version (e.g. `v1.0.0-rc1`), will mark the release as
+    not ready for production (pre-release).
+  - if there isn't a semver pre-release in the version (e.g. `v1.0.0`), will mark the release as
+    ready for production.
+
+*(GitHub, Gitea only)*.
 
 #### The `git_release_draft` field
 
-- If `true`, release-plz creates the git release as draft (unpublished). *(GitHub, Gitea only)*.
+- If `true`, release-plz creates the git release as draft (unpublished).
 - If `false`, release-plz publishes the created git release. *(Default)*.
+
+*(GitHub, Gitea only)*.
 
 #### The `git_tag_enable` field
 
@@ -351,11 +353,11 @@ Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) fi
 
 #### The `git_release_type` field (`package` section)
 
-Overrides the [`workspace.git_release_type`](#the-git_release_type-field) field. *(GitHub, Gitea only)*.
+Overrides the [`workspace.git_release_type`](#the-git_release_type-field) field.
 
 #### The `git_release_draft` field (`package` section)
 
-Overrides the [`workspace.git_release_draft`](#the-git_release_draft-field) field. *(GitHub, Gitea only)*.
+Overrides the [`workspace.git_release_draft`](#the-git_release_draft-field) field.
 
 #### The `git_tag_enable` field (`package` section)
 
