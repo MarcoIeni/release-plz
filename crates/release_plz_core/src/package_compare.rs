@@ -55,9 +55,13 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyh
             && *file != ".cargo_vcs_info.json"
     });
 
-    if !local_files.clone().eq(registry_files) {
+    if !local_files.clone().eq(registry_files.clone()) {
         // New files were added or removed.
-        debug!("cargo package list is different");
+        debug!(
+            "cargo package list is different. Local files: {:?}, registry files: {:?}",
+            local_files.collect::<Vec<_>>(),
+            registry_files.collect::<Vec<_>>(),
+        );
         return Ok(false);
     }
 

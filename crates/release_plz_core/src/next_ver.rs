@@ -869,7 +869,7 @@ impl Updater<'_> {
                     diff.set_version_unpublished();
                     break;
                 } else {
-                    debug!("packages are different");
+                    debug!("commit {current_commit_hash}: packages are different");
                     // At this point of the git history, the two packages are different,
                     // which means that this commit is not present in the published package.
                     diff.commits.push(Commit::new(

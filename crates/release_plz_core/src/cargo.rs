@@ -64,6 +64,7 @@ pub async fn is_published(
     package: &Package,
     timeout: Duration,
 ) -> anyhow::Result<bool> {
+    debug!("is published: {:?}", package.name);
     tokio::time::timeout(timeout, async {
         match index {
             CargoIndex::Git(index) => is_published_git(index, package),
@@ -75,12 +76,14 @@ pub async fn is_published(
 }
 
 pub fn is_published_git(index: &mut GitIndex, package: &Package) -> anyhow::Result<bool> {
+    debug!("is published git: {:?}", package.name);
     // See if we already have the package in cache.
     if is_in_cache_git(index, package) {
         return Ok(true);
     }
 
     // The package is not in the cache, so we update the cache.
+    debug!("update git index");
     index.update().context("failed to update git index")?;
 
     // Try again with updated index.
@@ -94,9 +97,11 @@ fn is_in_cache_git(index: &GitIndex, package: &Package) -> bool {
 }
 
 async fn is_in_cache_sparse(index: &SparseIndex, package: &Package) -> anyhow::Result<bool> {
+    debug!("is published in cache sparse: {:?}", package.name);
     let crate_data = fetch_sparse_metadata(index, &package.name)
         .await
         .context("failed fetching sparse metadata")?;
+    debug!("retrieved crate data");
     let version = &package.version.to_string();
     Ok(is_in_cache(crate_data.as_ref(), version))
 }
@@ -151,6 +156,7 @@ pub async fn wait_until_published(
     package: &Package,
     timeout: Duration,
 ) -> anyhow::Result<()> {
+    debug!("wait until published: {:?}", package.name);
     let now: Instant = Instant::now();
     let sleep_time = Duration::from_secs(2);
     let mut logged = false;

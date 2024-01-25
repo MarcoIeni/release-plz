@@ -254,7 +254,7 @@ impl Repo {
 
     /// Create a git tag
     pub fn tag(&self, name: &str) -> anyhow::Result<String> {
-        self.git(&["tag", name])
+        self.git(&["tag", name, "-m", name])
     }
 
     /// Get the commit hash of the given tag
