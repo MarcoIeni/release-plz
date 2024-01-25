@@ -83,6 +83,7 @@
           }
         },
         "commit_preprocessors": {
+          "description": "An array of commit preprocessors for manipulating the commit messages before parsing/grouping them.",
           "type": [
             "array",
             "null"
@@ -98,6 +99,7 @@
           ]
         },
         "link_parsers": {
+          "description": "An array of link parsers for extracting external references, and turning them into URLs, using regex.",
           "type": [
             "array",
             "null"
@@ -114,6 +116,7 @@
           ]
         },
         "sort_commits": {
+          "description": "How to sort the commits inside the various sections.",
           "anyOf": [
             {
               "$ref": "#/definitions/Sorting"
@@ -124,12 +127,14 @@
           ]
         },
         "tag_pattern": {
+          "description": "A regular expression for matching the git tags to add to the changelog.",
           "type": [
             "string",
             "null"
           ]
         },
         "trim": {
+          "description": "If set to `true`, leading and trailing whitespace are removed from the [`Self::body`].",
           "type": [
             "boolean",
             "null"
@@ -142,6 +147,7 @@
       "type": "object",
       "properties": {
         "body": {
+          "description": "Regex for matching the commit body.",
           "type": [
             "string",
             "null"
