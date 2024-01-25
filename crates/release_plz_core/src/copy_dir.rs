@@ -56,7 +56,8 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
         .build();
     for entry in walker {
         let entry = entry.context("invalid entry")?;
-        let destination = destination_path(&to, &entry, from)?;
+        let destination =
+            destination_path(&to, &entry, from).context("failed to determine destination path")?;
         let file_type = entry.file_type().context("unknown file type")?;
         if file_type.is_dir() {
             if destination == to {

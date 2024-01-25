@@ -55,6 +55,7 @@ the following sections:
   - [`changelog_update`](#the-changelog_update-field) — Update changelog.
   - [`dependencies_update`](#the-dependencies_update-field) — Update all dependencies.
   - [`git_release_enable`](#the-git_release_enable-field) — Enable git release.
+  - [`git_release_type`](#the-git_release_type-field) — Publish mode for git release.
   - [`git_release_draft`](#the-git_release_draft-field) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field) — Enable git tag.
   - [`pr_draft`](#the-pr_draft-field) — Open the release Pull Request as a draft.
@@ -72,6 +73,7 @@ the following sections:
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
   - [`changelog_update`](#the-changelog_update-field-package-section) — Update changelog.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
+  - [`git_release_type`](#the-git_release_type-field-package-section) — Git release type.
   - [`git_release_draft`](#the-git_release_draft-field-package-section) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field-package-section) — Enable git tag.
   - [`publish`](#the-publish-field-package-section) — Publish to cargo registry.
@@ -146,10 +148,27 @@ The supported git releases are:
 - [Gitea](https://docs.gitea.io/en-us/)
 - [GitLab](https://docs.gitlab.com/ee/user/project/releases/#releases)
 
+#### The `git_release_type` field
+
+Define whether to label the release as production or non-production ready.
+Supported values are:
+
+- `"prod"`: will mark the release as ready for production. *(Default)*.
+- `"pre"`: will mark the release as not ready for production (pre-release).
+- `"auto"`:
+  - if there's a SemVer pre-release in the version (e.g. `v1.0.0-rc1`), will mark the release as
+    not ready for production (pre-release).
+  - if there isn't a semver pre-release in the version (e.g. `v1.0.0`), will mark the release as
+    ready for production.
+
+*(GitHub, Gitea only)*.
+
 #### The `git_release_draft` field
 
 - If `true`, release-plz creates the git release as draft (unpublished).
 - If `false`, release-plz publishes the created git release. *(Default)*.
+
+*(GitHub, Gitea only)*.
 
 #### The `git_tag_enable` field
 
@@ -336,6 +355,10 @@ This field cannot be set in the `[workspace]` section.
 #### The `git_release_enable` field (`package` section)
 
 Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) field.
+
+#### The `git_release_type` field (`package` section)
+
+Overrides the [`workspace.git_release_type`](#the-git_release_type-field) field.
 
 #### The `git_release_draft` field (`package` section)
 

@@ -78,6 +78,7 @@ pub struct CreateReleaseOption<'a> {
     body: &'a str,
     name: &'a str,
     draft: &'a bool,
+    prerelease: &'a bool,
 }
 
 #[derive(Deserialize)]
@@ -193,6 +194,7 @@ impl GitClient {
             body: &release_info.release_body,
             name: &release_info.git_tag,
             draft: &release_info.draft,
+            prerelease: &release_info.pre_release,
         };
         self.client
             .post(format!("{}/releases", self.repo_url()))
