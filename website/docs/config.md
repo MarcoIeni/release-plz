@@ -73,7 +73,7 @@ the following sections:
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
   - [`changelog_update`](#the-changelog_update-field-package-section) — Update changelog.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
-  - [`git_release_type`](#the-git_release_type-field-package-section) — Publish mode for git release.
+  - [`git_release_type`](#the-git_release_type-field-package-section) — Git release type.
   - [`git_release_draft`](#the-git_release_draft-field-package-section) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field-package-section) — Enable git tag.
   - [`publish`](#the-publish-field-package-section) — Publish to cargo registry.
@@ -146,7 +146,8 @@ The supported git releases are:
 
 #### The `git_release_type` field
 
-The publish mode for a release. Supported modes are:
+Define whether to label the release as production or non-production ready.
+Supported values are:
 
 - `"prod"`: will mark the release as ready for production. *(Default)*.
 - `"pre"`: will mark the release as not ready for production (pre-release).
