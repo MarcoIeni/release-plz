@@ -147,7 +147,7 @@ impl Cloner {
 
                     clone_git_repo(repo.as_ref().unwrap(), dest_path)?;
                 } else {
-                    clone_directory(pkg.root(), dest_path)?;
+                    clone_directory(pkg.root(), dest_path).context("failed to clone directory")?;
                 }
                 Some(pkg)
             }

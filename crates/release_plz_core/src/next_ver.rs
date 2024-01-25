@@ -345,7 +345,9 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
         input.registry.as_deref(),
     )?;
 
-    let repository = local_project.get_repo()?;
+    let repository = local_project
+        .get_repo()
+        .context("failed to determine local project repository")?;
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
@@ -406,7 +408,8 @@ impl Project {
         };
         debug!("project_root: {root:?}");
         let mut packages = workspace_packages(metadata)?;
-        override_packages_path(&mut packages, metadata, &manifest_dir)?;
+        override_packages_path(&mut packages, metadata, &manifest_dir)
+            .context("failed to override packages path")?;
 
         let packages_names: Vec<String> = packages.iter().map(|p| p.name.clone()).collect();
         packages.retain(|p| request_release_validator.is_release_enabled(&p.name));
@@ -776,7 +779,8 @@ impl Updater<'_> {
         registry_packages: &PackagesCollection,
         repository: &Repo,
     ) -> anyhow::Result<Diff> {
-        let package_path = get_package_path(package, repository, &self.project.root)?;
+        let package_path = get_package_path(package, repository, &self.project.root)
+            .context("failed to determine package path")?;
 
         repository
             .checkout_head()
@@ -816,7 +820,9 @@ impl Updater<'_> {
 
                 // We run `cargo package` when comparing packages, which can edit files, such as `Cargo.lock`.
                 // Store its path so it can be reverted after comparison.
-                let cargo_lock_path = self.get_cargo_lock_path(repository)?;
+                let cargo_lock_path = self
+                    .get_cargo_lock_path(repository)
+                    .context("failed to determine Cargo.lock path")?;
                 let are_packages_equal = are_packages_equal(&package_path, registry_package_path)
                     .context("cannot compare packages")?;
                 if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
