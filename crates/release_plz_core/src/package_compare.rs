@@ -101,9 +101,11 @@ fn run_cargo_package(package: &Path) -> anyhow::Result<String> {
     let args = ["package", "--list", "--quiet", "--allow-dirty"];
     let output = run_cargo(package, &args).context("cannot run `cargo package`")?;
 
-    if !output.status.success() {
-        anyhow::bail!("error while running `cargo package`: {}", output.stderr);
-    }
+    anyhow::ensure!(
+        output.status.success(),
+        "error while running `cargo package`: {}",
+        output.stderr
+    );
 
     Ok(output.stdout)
 }
