@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.42](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.41...release-plz-v0.3.42) - 2024-01-26
 
 ### Added
-- add pre-release option ([#1228](https://github.com/MarcoIeni/release-plz/pull/1228))
+- add `git_release_type` configuration option to allow GitHub/Gitea prereleases ([#1228](https://github.com/MarcoIeni/release-plz/pull/1228))
 
 ### Fixed
 - support rust-toolchain.toml file ([#1234](https://github.com/MarcoIeni/release-plz/pull/1234))
