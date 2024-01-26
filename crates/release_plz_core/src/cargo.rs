@@ -53,6 +53,15 @@ pub fn run_cargo(root: &Path, args: &[&str]) -> anyhow::Result<(String, String)>
     debug!("cargo stderr: {}", output_stderr);
     debug!("cargo stdout: {}", output_stdout);
 
+    if !output.status.success() {
+        anyhow::bail!(
+            "cargo {} failed with {}. stderr: {}",
+            args.join(" "),
+            output.status,
+            output_stderr
+        );
+    }
+
     Ok((
         output_stdout.trim().to_owned(),
         output_stderr.trim().to_owned(),
