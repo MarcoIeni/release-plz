@@ -397,24 +397,59 @@ By default, release-plz runs [cargo-semver-checks] if the package is a library.
 
 ### The `[changelog]` section
 
+Example with default values (todo):
+
+```toml
+[changelog]
+header = "Changelog"
+body = "Body"
+trim = true
+protect_breaking_commits = true
+
+[[changelog.commit_preprocessors]]
+pattern = "pattern"
+replace = "replace"
+replace_command = "replace_command"
+
+[[changelog.commit_preprocessors]]
+pattern = "pattern2"
+replace = "replace2"
+replace_command = "replace_command2"
+
+[[changelog.commit_parsers]]
+message = "message"
+body = "body"
+group = "group"
+default_scope = "default_scope"
+scope = "scope"
+skip = true
+field = "field"
+pattern = "pattern"
+
+[[changelog.link_parsers]]
+pattern = "pattern"
+href = "href"
+text = "text"
+```
+
 #### The `header` field
 
 #### The `body` field
 
 #### The `trim` field
 
-#### The `commit_preprocessors` field
+#### The `protect_breaking_commits` field
+
+#### The `tag_pattern` field
+
+#### The `sort_commits` field
+
+#### The `[[changelog.commit_preprocessors]]` field
 
 TODO:
 
 - Show how to replace REPO. git-cliff does it with the post-processors.
 
-#### The `sort_commits` field
+#### The `[[changelog.link_parsers]]` field
 
-#### The `link_parsers` field
-
-#### The `commit_parsers` field
-
-#### The `protect_breaking_commits` field
-
-#### The `tag_pattern` field
+#### The `[[changelog.commit_parsers]]` field
