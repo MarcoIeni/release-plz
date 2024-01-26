@@ -201,4 +201,119 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
     }
 }
 
-// TODO: write test to check that the configuration is deserialized correctly
+// write test to check that the configuration is deserialized correctly
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_deserialize_toml() {
+        let config = git_cliff_core::config::Config {
+            changelog: git_cliff_core::config::ChangelogConfig {
+                header: Some("Changelog".to_string()),
+                body: Some("Body".to_string()),
+                trim: Some(true),
+                postprocessors: None,
+                footer: None,
+            },
+            git: git_cliff_core::config::GitConfig {
+                conventional_commits: Some(true),
+                filter_unconventional: Some(true),
+                split_commits: Some(true),
+                commit_preprocessors: Some(vec![
+                    git_cliff_core::config::TextProcessor {
+                        pattern: regex::Regex::new("pattern").unwrap(),
+                        replace: Some("replace".to_string()),
+                        replace_command: Some("replace_command".to_string()),
+                    },
+                    git_cliff_core::config::TextProcessor {
+                        pattern: regex::Regex::new("pattern2").unwrap(),
+                        replace: Some("replace2".to_string()),
+                        replace_command: Some("replace_command2".to_string()),
+                    },
+                ]),
+                commit_parsers: Some(vec![
+                    git_cliff_core::config::CommitParser {
+                        message: Some(regex::Regex::new("message").unwrap()),
+                        body: Some(regex::Regex::new("body").unwrap()),
+                        group: Some("group".to_string()),
+                        default_scope: Some("default_scope".to_string()),
+                        scope: Some("scope".to_string()),
+                        skip: Some(true),
+                        field: Some("field".to_string()),
+                        pattern: Some(regex::Regex::new("pattern").unwrap()),
+                    },
+                    git_cliff_core::config::CommitParser {
+                        message: Some(regex::Regex::new("message2").unwrap()),
+                        body: Some(regex::Regex::new("body2").unwrap()),
+                        group: Some("group2".to_string()),
+                        default_scope: Some("default_scope2".to_string()),
+                        scope: Some("scope2".to_string()),
+                        skip: Some(false),
+                        field: Some("field2".to_string()),
+                        pattern: Some(regex::Regex::new("pattern2").unwrap()),
+                    },
+                ]),
+                protect_breaking_commits: Some(true),
+                link_parsers: Some(vec![git_cliff_core::config::LinkParser {
+                    pattern: regex::Regex::new("pattern").unwrap(),
+                    href: "href".to_string(),
+                    text: Some("text".to_string()),
+                }]),
+                filter_commits: None,
+                tag_pattern: None,
+                skip_tags: None,
+                ignore_tags: None,
+                topo_order: None,
+                sort_commits: None,
+                limit_commits: None,
+            },
+        };
+        expect_test::expect![[r#"
+            [changelog]
+            header = "Changelog"
+            body = "Body"
+            trim = true
+
+            [git]
+            conventional_commits = true
+            filter_unconventional = true
+            split_commits = true
+            protect_breaking_commits = true
+
+            [[git.commit_preprocessors]]
+            pattern = "pattern"
+            replace = "replace"
+            replace_command = "replace_command"
+
+            [[git.commit_preprocessors]]
+            pattern = "pattern2"
+            replace = "replace2"
+            replace_command = "replace_command2"
+
+            [[git.commit_parsers]]
+            message = "message"
+            body = "body"
+            group = "group"
+            default_scope = "default_scope"
+            scope = "scope"
+            skip = true
+            field = "field"
+            pattern = "pattern"
+
+            [[git.commit_parsers]]
+            message = "message2"
+            body = "body2"
+            group = "group2"
+            default_scope = "default_scope2"
+            scope = "scope2"
+            skip = false
+            field = "field2"
+            pattern = "pattern2"
+
+            [[git.link_parsers]]
+            pattern = "pattern"
+            href = "href"
+            text = "text"
+        "#]]
+        .assert_eq(&toml::to_string(&config).unwrap());
+    }
+}
