@@ -6,7 +6,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, JsonSchema)]
 pub struct ChangelogCfg {
+    /// Section at the top of the changelog.
     pub header: Option<String>,
+    /// Template for the body of the changelog. I.e. the commit messages.
+    /// This is a [tera](https://keats.github.io/tera/) template.
     pub body: Option<String>,
     /// If set to `true`, leading and trailing whitespace are removed from the [`Self::body`].
     pub trim: Option<bool>,
