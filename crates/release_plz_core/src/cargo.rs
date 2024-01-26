@@ -7,7 +7,7 @@ use std::{
     env,
     io::{BufRead, BufReader},
     path::Path,
-    process::{Command, Stdio},
+    process::{Command, ExitStatus, Stdio},
     time::{Duration, Instant},
 };
 
@@ -21,7 +21,7 @@ fn cargo_cmd() -> Command {
     Command::new(cargo)
 }
 
-pub fn run_cargo(root: &Path, args: &[&str]) -> anyhow::Result<(String, String)> {
+pub fn run_cargo(root: &Path, args: &[&str]) -> anyhow::Result<CmdOutput> {
     debug!("cargo {}", args.join(" "));
 
     let mut stderr_lines = vec![];
@@ -53,10 +53,22 @@ pub fn run_cargo(root: &Path, args: &[&str]) -> anyhow::Result<(String, String)>
     debug!("cargo stderr: {}", output_stderr);
     debug!("cargo stdout: {}", output_stdout);
 
-    Ok((
-        output_stdout.trim().to_owned(),
-        output_stderr.trim().to_owned(),
-    ))
+    anyhow::ensure!(
+        output.status.success(),
+        "cargo failed. Args: {args:?}; stdout: {output_stdout}; stderr: {output_stderr}"
+    );
+
+    Ok(CmdOutput {
+        status: output.status,
+        stdout: output_stdout,
+        stderr: output_stderr,
+    })
+}
+
+pub struct CmdOutput {
+    pub status: ExitStatus,
+    pub stdout: String,
+    pub stderr: String,
 }
 
 pub async fn is_published(

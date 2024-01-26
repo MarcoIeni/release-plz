@@ -14,7 +14,7 @@ use tracing::{info, instrument, warn};
 use url::Url;
 
 use crate::{
-    cargo::{is_published, run_cargo, wait_until_published, CargoIndex},
+    cargo::{is_published, run_cargo, wait_until_published, CargoIndex, CmdOutput},
     changelog_parser,
     git::backend::GitClient,
     release_order::release_order,
@@ -460,10 +460,13 @@ async fn release_package(
 
     let publish = input.is_publish_enabled(&package.name);
     if publish {
-        let (_, stderr) = run_cargo_publish(package, input, workspace_root.as_std_path())
+        let output = run_cargo_publish(package, input, workspace_root.as_std_path())
             .context("failed to run cargo publish")?;
-        if !stderr.contains("Uploading") || stderr.contains("error:") {
-            anyhow::bail!("failed to publish {}: {}", package.name, stderr);
+        if !output.status.success()
+            || !output.stderr.contains("Uploading")
+            || output.stderr.contains("error:")
+        {
+            anyhow::bail!("failed to publish {}: {}", package.name, output.stderr);
         }
     }
 
@@ -516,7 +519,7 @@ fn run_cargo_publish(
     package: &Package,
     input: &ReleaseRequest,
     workspace_root: &Path,
-) -> anyhow::Result<(String, String)> {
+) -> anyhow::Result<CmdOutput> {
     let mut args = vec!["publish"];
     args.push("--color");
     args.push("always");
