@@ -216,8 +216,16 @@ fn update_cargo_lock(root: &Path, update_all_dependencies: bool) -> anyhow::Resu
     if !update_all_dependencies {
         args.push("--workspace")
     }
-    crate::cargo::run_cargo(root, &args)
+    let output = crate::cargo::run_cargo(root, &args)
         .context("error while running cargo to update the Cargo.lock file")?;
+
+    anyhow::ensure!(
+        output.status.success(),
+        "cargo update failed. stdout: {}; stderr: {}",
+        output.stdout,
+        output.stderr
+    );
+
     Ok(())
 }
 
