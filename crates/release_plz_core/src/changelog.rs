@@ -516,6 +516,7 @@ mod tests {
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .with_config(Config {
                 changelog: ChangelogConfig {
+                    header: Some("".to_string()),
                     body: Some(
                         r"{%- for commit in commits %}
                             {{ commit.message }} - {{ commit.id }}
@@ -565,7 +566,7 @@ mod tests {
 
             ## [1.1.1] - 2015-05-15
 
-            ### Fix
+            ### Fixed
             - another fix
             - myfix
         "#]]
