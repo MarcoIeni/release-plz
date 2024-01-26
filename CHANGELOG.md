@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.42](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.41...release-plz-v0.3.42) - 2024-01-26
+
+### Added
+- add pre-release option ([#1228](https://github.com/MarcoIeni/release-plz/pull/1228))
+
+### Fixed
+- support rust-toolchain.toml file ([#1234](https://github.com/MarcoIeni/release-plz/pull/1234))
+
+### Other
+- add context to some errors ([#1232](https://github.com/MarcoIeni/release-plz/pull/1232))
+
 ## [0.3.41](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.40...release-plz-v0.3.41) - 2024-01-23
 
 ### Added
