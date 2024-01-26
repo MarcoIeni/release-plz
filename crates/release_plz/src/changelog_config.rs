@@ -251,9 +251,7 @@ mod tests {
                 footer: None,
             },
             git: git_cliff_core::config::GitConfig {
-                conventional_commits: None,
-                filter_unconventional: None,
-                split_commits: None,
+                protect_breaking_commits: Some(true),
                 commit_preprocessors: Some(vec![
                     git_cliff_core::config::TextProcessor {
                         pattern: regex::Regex::new("pattern").unwrap(),
@@ -276,7 +274,6 @@ mod tests {
                     field: Some("field".to_string()),
                     pattern: Some(regex::Regex::new("pattern").unwrap()),
                 }]),
-                protect_breaking_commits: Some(true),
                 link_parsers: Some(vec![git_cliff_core::config::LinkParser {
                     pattern: regex::Regex::new("pattern").unwrap(),
                     href: "href".to_string(),
@@ -289,6 +286,9 @@ mod tests {
                 topo_order: None,
                 sort_commits: None,
                 limit_commits: None,
+                conventional_commits: None,
+                filter_unconventional: None,
+                split_commits: None,
             },
         };
 
