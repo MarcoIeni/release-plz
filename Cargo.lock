@@ -249,7 +249,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c48f0051a4b4c5e0b6d365cd04af53aeaa209e3cc15ec2cdb69e73cc87fbd0dc"
 dependencies = [
  "memchr",
- "regex-automata 0.4.4",
+ "regex-automata 0.4.5",
  "serde",
 ]
 
@@ -489,9 +489,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chrono"
-version = "0.4.32"
+version = "0.4.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41daef31d7a747c5c847246f36de49ced6f7403b4cdabc807a97b5cc184cda7a"
+checksum = "9f13690e35a5e4ace198e7beea2895d29f3a9cc55015fcebe6336bd2010af9eb"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
@@ -1661,7 +1661,7 @@ dependencies = [
  "gix-chunk",
  "gix-features 0.36.1",
  "gix-hash 0.13.3",
- "memmap2 0.9.3",
+ "memmap2 0.9.4",
  "thiserror",
 ]
 
@@ -1675,7 +1675,7 @@ dependencies = [
  "gix-chunk",
  "gix-features 0.38.0",
  "gix-hash 0.14.1",
- "memmap2 0.9.3",
+ "memmap2 0.9.4",
  "thiserror",
 ]
 
@@ -2081,7 +2081,7 @@ dependencies = [
  "gix-traverse 0.37.0",
  "itoa",
  "libc",
- "memmap2 0.9.3",
+ "memmap2 0.9.4",
  "rustix",
  "smallvec",
  "thiserror",
@@ -2263,7 +2263,7 @@ dependencies = [
  "gix-object 0.41.0",
  "gix-path",
  "gix-tempfile 13.0.0",
- "memmap2 0.9.3",
+ "memmap2 0.9.4",
  "parking_lot 0.12.1",
  "smallvec",
  "thiserror",
@@ -2318,9 +2318,9 @@ dependencies = [
 
 [[package]]
 name = "gix-path"
-version = "0.10.4"
+version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14a6282621aed1becc3f83d64099a564b3b9063f22783d9a87ea502a3e9f2e40"
+checksum = "97e9ad649bf5e109562d6acba657ca428661ec08e77eaf3a755d8fa55485be9c"
 dependencies = [
  "bstr",
  "gix-trace",
@@ -2470,7 +2470,7 @@ dependencies = [
  "gix-tempfile 13.0.0",
  "gix-utils",
  "gix-validate",
- "memmap2 0.9.3",
+ "memmap2 0.9.4",
  "thiserror",
  "winnow",
 ]
@@ -2808,7 +2808,7 @@ dependencies = [
  "aho-corasick",
  "bstr",
  "log",
- "regex-automata 0.4.4",
+ "regex-automata 0.4.5",
  "regex-syntax 0.8.2",
 ]
 
@@ -3066,7 +3066,7 @@ dependencies = [
  "globset",
  "log",
  "memchr",
- "regex-automata 0.4.4",
+ "regex-automata 0.4.5",
  "same-file",
  "walkdir",
  "winapi-util",
@@ -3297,9 +3297,9 @@ dependencies = [
 
 [[package]]
 name = "libz-sys"
-version = "1.1.14"
+version = "1.1.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "295c17e837573c8c821dbaeb3cceb3d745ad082f7572191409e69cbc1b3fd050"
+checksum = "037731f5d3aaa87a5675e895b63ddff1a87624bc29f77004ea829809654e48f6"
 dependencies = [
  "cc",
  "libc",
@@ -3372,9 +3372,9 @@ dependencies = [
 
 [[package]]
 name = "memmap2"
-version = "0.9.3"
+version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45fd3a57831bf88bc63f8cebc0cf956116276e97fef3966103e96416209f7c92"
+checksum = "fe751422e4a8caa417e13c3ea66452215d7d63e19e604f4980461212f3ae1322"
 dependencies = [
  "libc",
 ]
@@ -4121,7 +4121,7 @@ checksum = "b62dbe01f0b06f9d8dc7d49e05a0785f153b00b2c227856282f671e0318c9b15"
 dependencies = [
  "aho-corasick",
  "memchr",
- "regex-automata 0.4.4",
+ "regex-automata 0.4.5",
  "regex-syntax 0.8.2",
 ]
 
@@ -4136,9 +4136,9 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.4.4"
+version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b7fa1134405e2ec9353fd416b17f8dacd46c473d7d3fd1cf202706a14eb792a"
+checksum = "5bb987efffd3c6d0d8f5f89510bb458559eab11e4f869acb20bf845e016259cd"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -4159,7 +4159,7 @@ checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 
 [[package]]
 name = "release-plz"
-version = "0.3.41"
+version = "0.3.42"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -4197,7 +4197,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.16.2"
+version = "0.17.0"
 dependencies = [
  "anyhow",
  "base64 0.21.7",
@@ -5724,9 +5724,9 @@ checksum = "dff9641d1cd4be8d1a070daf9e3773c5f67e78b4d9d42263020c057706765c04"
 
 [[package]]
 name = "winnow"
-version = "0.5.34"
+version = "0.5.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7cf47b659b318dccbd69cc4797a39ae128f533dce7902a1096044d1967b9c16"
+checksum = "1931d78a9c73861da0134f453bb1f790ce49b2e30eba8410b4b79bac72b46a2d"
 dependencies = [
  "memchr",
 ]

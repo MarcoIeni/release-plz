@@ -99,13 +99,15 @@ fn rename(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<()> {
 fn run_cargo_package(package: &Path) -> anyhow::Result<String> {
     // we use `--allow-dirty` because we have `Cargo.toml.orig.orig`, which is an uncommitted change.
     let args = ["package", "--list", "--quiet", "--allow-dirty"];
-    let (stdout, stderr) = run_cargo(package, &args).context("cannot run `cargo package`")?;
+    let output = run_cargo(package, &args).context("cannot run `cargo package`")?;
 
-    if !stderr.is_empty() {
-        anyhow::bail!("error while running `cargo package`: {stderr}");
-    }
+    anyhow::ensure!(
+        output.status.success(),
+        "error while running `cargo package`: {}",
+        output.stderr
+    );
 
-    Ok(stdout)
+    Ok(output.stdout)
 }
 
 fn are_cargo_toml_equal(local_package: &Path, registry_package: &Path) -> bool {
