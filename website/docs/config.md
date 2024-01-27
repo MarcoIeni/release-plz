@@ -427,6 +427,7 @@ header = "# Changelog"
 body = "Body"
 trim = true
 protect_breaking_commits = true
+sort_commits "newest"
 
 commit_preprocessors = [
   # remove issue numbers from commits
@@ -442,6 +443,10 @@ commit_parsers = [
     { message = "^fix", group = "Fixed" },
     { message = "^.*: fix", group = "Fixed" },
     { message = "^.*", group = "Changed" },
+]
+
+link_parsers = [
+    { pattern = "RFC(\\d+)", text = "ietf-rfc$1", href = "https://datatracker.ietf.org/doc/html/rfc$1"}
 ]
 ```
 
@@ -637,10 +642,15 @@ An array of link parsers for extracting external references, and turning them in
 
 Examples:
 
-- `{ pattern = "#(\\d+)", href = "https://github.com/orhun/git-cliff/issues/$1"}`
-  - Extract all GitLab issues and PRs and generate URLs linking to them.
-  The link text will be the matching pattern.
-- `{ pattern = "RFC(\\d+)", text = "ietf-rfc$1", href = "https://datatracker.ietf.org/doc/html/rfc$1"}`,
-  - Extract mentions of IETF RFCs and generate URLs linking to them. It also rewrites the text as "ietf-rfc...".
+```toml
+link_parsers = [
+    # Extract all GitLab issues and PRs and generate URLs linking to them.
+    # The link text will be the matching pattern.
+    { pattern = "#(\\d+)", href = "https://github.com/me/my-proj/issues/$1"}
+    # Extract mentions of IETF RFCs and generate URLs linking to them.
+    # It also rewrites the text as "ietf-rfc...".
+    { pattern = "RFC(\\d+)", text = "ietf-rfc$1", href = "https://datatracker.ietf.org/doc/html/rfc$1"}
+]
+```
 
-These extracted links can be used in the [body](#the-body-field) with the `commits.links` variable.
+The extracted links can be used in the [body](#the-body-field) with the `commits.links` variable.
