@@ -31,8 +31,10 @@ use std::{
 use tempfile::{tempdir, TempDir};
 use tracing::{debug, info, instrument, warn};
 
-// Used to indicate that this is a dummy commit with no corresponding ID available
-pub(crate) const NO_COMMIT_ID: &str = "N/A";
+// Used to indicate that this is a dummy commit with no corresponding ID available.
+// It should be at least 7 characters long to avoid a panic in git-cliff
+// (Git-cliff assumes it's a valid commit ID).
+pub(crate) const NO_COMMIT_ID: &str = "0000000";
 
 pub trait RequestReleaseValidator {
     fn is_release_enabled(&self, package_name: &str) -> bool;
