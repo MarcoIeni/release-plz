@@ -86,6 +86,12 @@ the following sections:
   - [`header`](#the-header-field) — Changelog header.
   - [`body`](#the-body-field) — Changelog body.
   - [`trim`](#the-trim-field) — ...
+  - [`protect_breaking_commits`](#the-protect_breaking_commits-field) — ...
+  - [`tag_pattern`](#the-tag_pattern-field) — ...
+  - [`sort_commits`](#the-sort_commits-field) — ...
+  - [`commit_preprocessors`](#the-commit_preprocessors-field) — ...
+  - [`link_parsers`](#the-link_parsers-field) — ...
+  - [`commit_parsers`](#the-commit_parsers-field) — ...
 
 ### The `[workspace]` section
 
@@ -444,12 +450,12 @@ text = "text"
 
 #### The `sort_commits` field
 
-#### The `[[changelog.commit_preprocessors]]` field
+#### The `commit_preprocessors` field
 
 TODO:
 
 - Show how to replace REPO. git-cliff does it with the post-processors.
 
-#### The `[[changelog.link_parsers]]` field
+#### The `link_parsers` field
 
-#### The `[[changelog.commit_parsers]]` field
+#### The `commit_parsers` field
