@@ -60,13 +60,7 @@ impl Changelog<'_> {
     }
 
     fn changelog_config(&self, header: Option<String>, release_link: Option<&str>) -> Config {
-        let user_config = self
-            .config
-            .clone()
-            .unwrap_or(git_cliff_core::config::Config {
-                changelog: ChangelogConfig::default(),
-                git: GitConfig::default(),
-            });
+        let user_config = self.config.clone().unwrap_or(default_git_cliff_config());
         Config {
             changelog: apply_defaults_to_changelog_config(
                 user_config.changelog,
@@ -85,6 +79,7 @@ fn apply_defaults_to_changelog_config(
     release_link: Option<&str>,
 ) -> ChangelogConfig {
     let default_changelog_config = default_changelog_config(header, release_link);
+
     ChangelogConfig {
         header: changelog.header.or(default_changelog_config.header),
         body: changelog.body.or(default_changelog_config.body),
@@ -115,6 +110,13 @@ fn is_version_unchanged(release: &Release) -> bool {
     let previous_version = release.previous.as_ref().and_then(|r| r.version.as_deref());
     let new_version = release.version.as_deref();
     previous_version == new_version
+}
+
+fn default_git_cliff_config() -> Config {
+    Config {
+        changelog: ChangelogConfig::default(),
+        git: GitConfig::default(),
+    }
 }
 
 pub struct ChangelogBuilder<'a> {
@@ -523,7 +525,7 @@ mod tests {
                         {% endfor -%}"
                             .to_string(),
                     ),
-                    ..Default::default()
+                    ..ChangelogConfig::default()
                 },
                 git: GitConfig::default(),
             })
@@ -550,7 +552,7 @@ mod tests {
                 changelog: default_changelog_config(None, None),
                 git: GitConfig {
                     sort_commits: Some("oldest".to_string()),
-                    ..Default::default()
+                    ..GitConfig::default()
                 },
             })
             .build();

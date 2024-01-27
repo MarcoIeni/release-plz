@@ -11,7 +11,7 @@ pub struct ChangelogCfg {
     /// Template for the body of the changelog. I.e. the commit messages.
     /// This is a [tera](https://keats.github.io/tera/) template.
     pub body: Option<String>,
-    /// If set to `true`, leading and trailing whitespace are removed from the [`Self::body`].
+    /// If set to `true`, leading and trailing whitespace are removed from [`Self::body`].
     pub trim: Option<bool>,
     /// An array of commit preprocessors for manipulating the commit messages before parsing/grouping them.
     pub commit_preprocessors: Option<Vec<TextProcessor>>,
