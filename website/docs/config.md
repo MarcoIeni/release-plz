@@ -449,6 +449,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### The `body` field
 
+Default:
+
+```toml
+[changelog]
+body = """
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | upper_first }}
+{% for commit in commits %}
+{%- if commit.scope -%}
+- *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
+{% else -%}
+- {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
+{% endif -%}
+{% endfor -%}
+{% endfor %}"#;
+"""
+```
+
+:::tip
+The default `body` also links to the version release on GitHub.
+To do this in your custom `body``, hardcode the link of your repository.
+E.g.:
+
+```toml
+[changelog]
+body = """
+## [{{ version | trim_start_matches(pat="v") }}](https://github.com/me/my-proj/compare/{{ previous.version }}...{{ version }}) - {{ timestamp | date(format="%Y-%m-%d") }}
+
+...rest of the body...
+```
+:::
+
 #### The `trim` field
 
 #### The `protect_breaking_commits` field
