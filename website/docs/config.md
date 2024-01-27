@@ -131,6 +131,22 @@ Path to the [git-cliff] configuration file.
 If unspecified, release-plz uses the [keep a changelog](https://keepachangelog.com/en/1.1.0/) format.
 You can learn more in the [changelog format](changelog-format.md) section.
 
+:::warning
+This field is deprecated.
+Instead of specifying a `git-cliff` configuration file,
+use the [changelog](#the-changelog-section) section instead.
+
+> Why do you prefer having a `changelog` section in the `release-plz.toml` file,
+> instead of having the changelog configuration in the `git-cliff.toml` file?
+
+The `git-cliff.toml` contains many options that release-plz doesn't use.
+To avoid confusion, release-plz has a `[changelog]` section,
+containing only the options it uses.
+
+Ideally, release-plz users shouldn't need to read the `git-cliff` documentation
+to customize their changelog.
+:::
+
 #### The `changelog_update` field
 
 - If `true`, update the changelog of the crates. *(Default)*.
@@ -451,6 +467,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Template that represents a single release in the changelog.
 It contains the commit messages.
+Learn more about the template syntax in the changelog format [docs](./changelog-format.md).
 
 Default:
 
@@ -471,11 +488,6 @@ body = """
 {% endfor %}"#;
 """
 ```
-
-:::tip
-Release-plz uses `git-cliff` to generate the changelog.
-To learn more about the `body` field, see the git-cliff [templating](https://git-cliff.org/docs/templating) documentation.
-:::
 
 :::tip
 The default `body` also links to the version release on GitHub.

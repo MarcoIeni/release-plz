@@ -24,3 +24,7 @@ The most important prefixes you should have in mind are:
   (indicated by the `!`) and results in a SemVer major bump.
 
 Commits that don't follow the Conventional Commit format result in a SemVer patch bump.
+
+## Body template
+
+TODO: include https://git-cliff.org/docs/templating
