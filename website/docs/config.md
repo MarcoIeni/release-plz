@@ -430,7 +430,7 @@ header = "# Changelog"
 body = "Body"
 trim = true
 protect_breaking_commits = true
-sort_commits "newest"
+sort_commits = "newest"
 
 commit_preprocessors = [
   # remove issue numbers from commits
