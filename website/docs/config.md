@@ -483,13 +483,37 @@ body = """
 ```
 :::
 
+TODO: document https://git-cliff.org/docs/templating/context
+
 #### The `trim` field
+
+If set to `true`, leading and trailing whitespace are removed from the [body](#the-body-field).
+
+It is useful for adding indentation to the template for readability.
+
+Default: `true`.
 
 #### The `protect_breaking_commits` field
 
+If `true`, [commit_parsers](#the-commit_parsers-field) won't skip any commits with breaking changes, regardless of the filter.
+
+Default: `false`.
+
 #### The `tag_pattern` field
 
+A regular expression for matching the git tags that release-plz should add to the changelog.
+If a tag doesn't match the pattern, it won't be added to the changelog.
+
+By default, all tags are included.
+
 #### The `sort_commits` field
+
+Sort the commits inside sections by specified order.
+
+Possible values:
+
+- `oldest`
+- `newest`
 
 #### The `commit_preprocessors` field
 
@@ -511,5 +535,16 @@ TODO:
 - Show how to replace REPO. git-cliff does it with the post-processors.
 
 #### The `link_parsers` field
+
+An array of link parsers for extracting external references, and turning them into URLs, using regex.
+
+Examples:
+
+- `{ pattern = "#(\\d+)", href = "https://github.com/orhun/git-cliff/issues/$1"}`
+  - Extract all GitLab issues and PRs and generate URLs linking to them. The link text will be the matching pattern.
+- `{ pattern = "RFC(\\d+)", text = "ietf-rfc$1", href = "https://datatracker.ietf.org/doc/html/rfc$1"}`,
+  - Extract mentions of IETF RFCs and generate URLs linking to them. It also rewrites the text as "ietf-rfc...".
+
+These extracted links can be used in the [body](#the-body-field) with the `commits.links` variable.
 
 #### The `commit_parsers` field
