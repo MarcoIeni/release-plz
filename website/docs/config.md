@@ -42,6 +42,9 @@ publish_no_verify = true # add `--no-verify` to `cargo publish` for `package_b`
 [[package]]
 name = "package_c"
 release = false # don't process this package
+
+[changelog]
+protect_breaking_commits = true # always include commits with breaking changes in the changelog
 ```
 
 ## Reference
