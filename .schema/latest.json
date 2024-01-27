@@ -67,6 +67,7 @@
       "type": "object",
       "properties": {
         "body": {
+          "description": "Template that represents a single release in the changelog. It contains the commit messages. This is a [tera](https://keats.github.io/tera/) template.",
           "type": [
             "string",
             "null"
@@ -93,6 +94,7 @@
           }
         },
         "header": {
+          "description": "Text at the beginning of the changelog.",
           "type": [
             "string",
             "null"
@@ -134,7 +136,7 @@
           ]
         },
         "trim": {
-          "description": "If set to `true`, leading and trailing whitespace are removed from the [`Self::body`].",
+          "description": "If set to `true`, leading and trailing whitespace are removed from [`Self::body`].",
           "type": [
             "boolean",
             "null"
