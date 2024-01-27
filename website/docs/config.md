@@ -567,19 +567,19 @@ To customize the order, use HTML comments:
 
 ```toml
 commit_parsers = [
-    { message = "^feat*", group = "<!-- 0 -->:rocket: New features" },
-    { message = "^fix*", group = "<!-- 1 -->:bug: Bug fixes" },
-    { message = "^perf*", group = "<!-- 2 -->:zap: Performance" },
-    { message = "^chore*", group = "<!-- 3 -->:gear: Miscellaneous" },
+    { message = "^feat*", group = "<!-- 0 -->New features" },
+    { message = "^fix*", group = "<!-- 1 -->Bug fixes" },
+    { message = "^perf*", group = "<!-- 2 -->Performance" },
+    { message = "^chore*", group = "<!-- 3 -->Miscellaneous" },
 ]
 ```
 
 This produces the following order:
 
-- 🚀 New features
-- 🐛 Bug fixes
-- ⚡ Performance
-- ⚙️ Miscellaneous
+- New features
+- Bug fixes
+- Performance
+- Miscellaneous
 
 Then strip the tags in the template with this series of filters:
 
