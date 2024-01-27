@@ -537,16 +537,56 @@ Possible values:
 
 #### The `commit_preprocessors` field
 
+You can use commit preprocessors to manipulate the commit messages before parsing/grouping them.
+Specify a regex `pattern` to `replace` parts of the commit message/body.
+
 Here are some examples:
 
 ```toml
 commit_preprocessors = [
-  # Remove gitmoji from commit messages, both actual UTF emoji and :emoji:
-  { pattern = ' *(:\w+:|[\p{Emoji_Presentation}\p{Extended_Pictographic}\u{200D}]) *', replace = "" },
+  # Replace `foo` with `bar`
+  { pattern = "foo", replace = "bar" },
+
   # Replace `<REPO>` in the template body with the repository URL
   { pattern = '<REPO>', replace = "https://github.com/me/my-proj" },
+
+  # Replace multiple spaces with a single space.
+  { pattern = "  +", replace = " "}
+
+  # Replace the issue number with the link.
+  { pattern = "\\(#([0-9]+)\\)", replace = "([#${1}](https://github.com/me/my-proj/issues/${1}))"}
+
+  # Replace the issue link with the number.
+  { pattern = "https://github.com/[^ ]/issues/([0-9]+)", replace = "[Issue #${1}]"}
+
+  # Remove prefix
+  { pattern = 'Merged PR #[0-9]: (.*)', replace = "$1"}
+
+  # Remove gitmoji from commit messages, both actual UTF emoji and :emoji:
+  { pattern = ' *(:\w+:|[\p{Emoji_Presentation}\p{Extended_Pictographic}\u{200D}]) *', replace = "" },
+
+  # Hyperlink PR references from merge commits.
+  { pattern = "Merge pull request #([0-9]+) from [^ ]+", replace = "PR # [${1}](https://github.com/me/my-proj/pull/${1}):"}
+
+  # Hyperlink commit links, with short commit hash as description.
+  { pattern = "https://github.com/orhun/git-cliff/commit/([a-f0-9]{7})[a-f0-9]*", replace = "commit # [${1}](${0})"}
+
+  # Hyperlink bare commit hashes like "abcd1234" in commit logs, with short commit hash as description.
+  { pattern = "([ \\n])(([a-f0-9]{7})[a-f0-9]*)", replace = "${1}commit # [${3}](https://github.com/me/my-proj/commit/${2})"}
 ]
 ```
+
+##### Using external commands
+
+Custom OS commands can also be used to edit the commit messages.
+
+For example, here's how you can use [pandoc](https://pandoc.org/) to convert all commit messages to the [CommonMark](https://commonmark.org/) format:
+
+- `{ pattern = ".*", replace_command = "pandoc -t commonmark"}`
+
+The `$COMMIT_SHA` environment variable is set when executing the command. For example, you can read the commit itself:
+
+- `{ pattern = '.*', replace_command = 'git show -s --format=%B $COMMIT_SHA' }`
 
 #### The `commit_parsers` field
 
@@ -590,10 +630,6 @@ Then strip the tags in the template with this series of filters:
 ```
 
 :::
-
-TODO:
-
-- Show how to replace REPO. git-cliff does it with the post-processors.
 
 #### The `link_parsers` field
 
