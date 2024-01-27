@@ -167,7 +167,8 @@ From the [Git docs](https://git-scm.com/book/en/v2/Git-Basics-Viewing-the-Commit
 
 ### Examples
 
-[Here](https://git-cliff.org/docs/templating/examples) you can find some examples of custom git-cliff templates.
+[Here](https://git-cliff.org/docs/templating/examples) you can find some examples of
+custom git-cliff templates.
 Converting the git-cliff configuration file into the
 [`[changelog]`](./config.md#the-changelog-section) section of the release-plz configuration file is easy.
 
