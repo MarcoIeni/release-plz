@@ -8,7 +8,8 @@ use serde::{Deserialize, Serialize};
 pub struct ChangelogCfg {
     /// Text at the beginning of the changelog.
     pub header: Option<String>,
-    /// Template for the body of the changelog. I.e. the commit messages.
+    /// Template that represents a single release in the changelog.
+    /// It contains the commit messages.
     /// This is a [tera](https://keats.github.io/tera/) template.
     pub body: Option<String>,
     /// If set to `true`, leading and trailing whitespace are removed from [`Self::body`].

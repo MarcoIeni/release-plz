@@ -449,6 +449,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### The `body` field
 
+Template that represents a single release in the changelog.
+It contains the commit messages.
+
 Default:
 
 ```toml
@@ -470,8 +473,13 @@ body = """
 ```
 
 :::tip
+Release-plz uses `git-cliff` to generate the changelog.
+To learn more about the `body` field, see the git-cliff [templating](https://git-cliff.org/docs/templating) documentation.
+:::
+
+:::tip
 The default `body` also links to the version release on GitHub.
-To do this in your custom `body``, hardcode the link of your repository.
+To do this, hardcode the link of your repository.
 E.g.:
 
 ```toml
@@ -482,8 +490,6 @@ body = """
 ...rest of the body...
 ```
 :::
-
-TODO: document https://git-cliff.org/docs/templating/context
 
 #### The `trim` field
 
