@@ -4,7 +4,8 @@ Release-plz generates the changelog by using [git-cliff](https://git-cliff.org) 
 By default, release-plz uses the
 [keep a changelog](https://keepachangelog.com/en/1.1.0/) format.
 
-You can customize the changelog format in the [`[changelog]`](./config.md#the-changelog-section)  section of the configuration.
+You can customize the changelog format in the [`[changelog]`](./config.md#the-changelog-section)
+section of the configuration.
 
 ## How should I write my commits?
 
@@ -23,15 +24,16 @@ Commits that don't follow the Conventional Commit format result in a SemVer patc
 ## Body template
 
 A template is a text where variables and expressions get replaced with values when it is rendered.
-By providing a custom [`body`](./config.md#the-body-field) template, you can customize the changelog format.
-
-TODO: include https://git-cliff.org/docs/templating
+By providing a custom [`body`](./config.md#the-body-field) template, you can customize the
+changelog format.
 
 ### Syntax
 
 **git-cliff** uses the [Tera](https://keats.github.io/tera/) template engine.
 
-See the [Tera Documentation](https://keats.github.io/tera/docs/#templates) for more information about [control structures](https://keats.github.io/tera/docs/#control-structures), [built-in filters](https://keats.github.io/tera/docs/#built-ins), etc.
+See the [Tera Documentation](https://keats.github.io/tera/docs/#templates) for more information
+about [control structures](https://keats.github.io/tera/docs/#control-structures),
+[built-in filters](https://keats.github.io/tera/docs/#built-ins), etc.
 
 Custom built-in filters that **git-cliff** uses:
 
@@ -138,20 +140,20 @@ The `breaking` flag is set to `true` when:
 
 - Or when the `BREAKING CHANGE:` footer is present:
 
-  ```
+  ```text
   feat: add xyz
 
   BREAKING CHANGE: this is a breaking change
   ```
 
 `breaking_description` contains:
+
 - The description of the `BREAKING CHANGE` footer (if present).
 - the commit `message` otherwise.
 
 If the `BREAKING CHANGE:` footer is present, the footer is present in `commit.footers`.
 
 See also the [protect_breaking_commits](./config.md#the-protect_breaking_commits-field) field.
-
 
 ### `committer` vs `author`
 
@@ -166,9 +168,11 @@ From the [Git docs](https://git-scm.com/book/en/v2/Git-Basics-Viewing-the-Commit
 ### Examples
 
 [Here](https://git-cliff.org/docs/templating/examples) you can find some examples of custom git-cliff templates.
-Converting the git-cliff configuration file into the [`[changelog]`](./config.md#the-changelog-section) section of the release-plz configuration file is easy.
+Converting the git-cliff configuration file into the
+[`[changelog]`](./config.md#the-changelog-section) section of the release-plz configuration file is easy.
 
-If you want to contribute your cool template using the release-plz configuration file, please open a PR! 🙏
+If you want to contribute your cool template using the release-plz configuration file,
+please open a PR! 🙏
 
 ### Tips and tricks
 
