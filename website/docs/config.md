@@ -403,42 +403,49 @@ By default, release-plz runs [cargo-semver-checks] if the package is a library.
 
 ### The `[changelog]` section
 
-Example with default values (todo):
+Example:
 
 ```toml
 [changelog]
-header = "Changelog"
+header = "# Changelog"
 body = "Body"
 trim = true
 protect_breaking_commits = true
 
-[[changelog.commit_preprocessors]]
-pattern = "pattern"
-replace = "replace"
-replace_command = "replace_command"
+commit_preprocessors = [
+  # remove issue numbers from commits
+  { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "" },
+]
 
-[[changelog.commit_preprocessors]]
-pattern = "pattern2"
-replace = "replace2"
-replace_command = "replace_command2"
-
-[[changelog.commit_parsers]]
-message = "message"
-body = "body"
-group = "group"
-default_scope = "default_scope"
-scope = "scope"
-skip = true
-field = "field"
-pattern = "pattern"
-
-[[changelog.link_parsers]]
-pattern = "pattern"
-href = "href"
-text = "text"
+commit_parsers = [
+    { message = "^.*: add", group = "Added" },
+    { message = "^.*: support", group = "Added" },
+    { message = "^.*: remove", group = "Removed" },
+    { message = "^.*: delete", group = "Removed" },
+    { message = "^test", group = "Fixed" },
+    { message = "^fix", group = "Fixed" },
+    { message = "^.*: fix", group = "Fixed" },
+    { message = "^.*", group = "Changed" },
+]
 ```
 
 #### The `header` field
+
+Text at the beginning of the changelog.
+
+Default:
+
+```toml
+[changelog]
+header = """# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+"""
+```
 
 #### The `body` field
 
@@ -451,6 +458,19 @@ text = "text"
 #### The `sort_commits` field
 
 #### The `commit_preprocessors` field
+
+Default:
+
+```toml
+commit_parsers = [
+    { message = "^feat", group = "added" },
+    { message = "^changed", group = "changed" },
+    { message = "^deprecated", group = "deprecated" },
+    { message = "^fix", group = "fixed" },
+    { message = "^security", group = "security" },
+    { message = "^.*", group = "other" },
+]
+```
 
 TODO:
 

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, JsonSchema)]
 pub struct ChangelogCfg {
-    /// Section at the top of the changelog.
+    /// Text at the beginning of the changelog.
     pub header: Option<String>,
     /// Template for the body of the changelog. I.e. the commit messages.
     /// This is a [tera](https://keats.github.io/tera/) template.
@@ -218,30 +218,18 @@ mod tests {
             trim = true
             protect_breaking_commits = true
 
-            [[changelog.commit_preprocessors]]
-            pattern = "pattern"
-            replace = "replace"
-            replace_command = "replace_command"
+            commit_preprocessors = [
+                { pattern = "pattern", replace = "replace", replace_command = "replace_command" },
+                { pattern = "pattern2", replace = "replace2", replace_command = "replace_command2" }
+            ]
 
-            [[changelog.commit_preprocessors]]
-            pattern = "pattern2"
-            replace = "replace2"
-            replace_command = "replace_command2"
+            commit_parsers = [
+                { message = "message", body = "body", group = "group", default_scope = "default_scope", scope = "scope", skip = true, field = "field", pattern = "pattern"}
+            ]
 
-            [[changelog.commit_parsers]]
-            message = "message"
-            body = "body"
-            group = "group"
-            default_scope = "default_scope"
-            scope = "scope"
-            skip = true
-            field = "field"
-            pattern = "pattern"
-
-            [[changelog.link_parsers]]
-            pattern = "pattern"
-            href = "href"
-            text = "text"
+            link_parsers = [
+                { pattern = "pattern", href = "href", text = "text" }
+            ]
     "#;
         let cfg: Config = toml::from_str(toml).unwrap();
         let actual_cliff_config: git_cliff_core::config::Config = cfg.changelog.try_into().unwrap();
