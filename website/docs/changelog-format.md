@@ -31,7 +31,7 @@ TODO: include https://git-cliff.org/docs/templating
 
 **git-cliff** uses the [Tera](https://keats.github.io/tera/) template engine.
 
-See the [Tera Documentation](https://keats.github.io/tera/docs/#templates) for more information about [control structures](https://keats.github.io/tera/docs/#control-structures), [built-ins filters](https://keats.github.io/tera/docs/#built-ins), etc.
+See the [Tera Documentation](https://keats.github.io/tera/docs/#templates) for more information about [control structures](https://keats.github.io/tera/docs/#control-structures), [built-in filters](https://keats.github.io/tera/docs/#built-ins), etc.
 
 Custom built-in filters that **git-cliff** uses:
 
@@ -53,7 +53,7 @@ For a conventional commit like:
 [footer(s)]
 ```
 
-you can use the following context is in the template:
+you can use the following context in the template:
 
 ```json
 {
