@@ -537,12 +537,14 @@ Possible values:
 
 #### The `commit_preprocessors` field
 
-For example, to remove [gitmoji](https://gitmoji.dev/) from the commit messages, use:
+Here are some examples:
 
 ```toml
 commit_preprocessors = [
-  # Remove gitmoji, both actual UTF emoji and :emoji:
+  # Remove gitmoji from commit messages, both actual UTF emoji and :emoji:
   { pattern = ' *(:\w+:|[\p{Emoji_Presentation}\p{Extended_Pictographic}\u{200D}]) *', replace = "" },
+  # Replace `<REPO>` in the template body with the repository URL
+  { pattern = '<REPO>', replace = "https://github.com/me/my-proj" },
 ]
 ```
 
