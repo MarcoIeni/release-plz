@@ -39,11 +39,129 @@ Custom built-in filters that **git-cliff** uses:
 
 ### Context
 
-TODO: finish this https://git-cliff.org/docs/templating/context
+The context contains the data used to render the template.
+In the following, we represent the context used for the
+changelog generation using [JSON](https://en.wikipedia.org/wiki/JSON).
 
-The context is the model that holds the required data for a template rendering. The [JSON](https://en.wikipedia.org/wiki/JSON) format is used in the following examples for the representation of a context.
+For a conventional commit like:
 
-...
+```text
+<type>[scope]: <description>
+
+[body]
+
+[footer(s)]
+```
+
+you can use the following context is in the template:
+
+```json
+{
+  "version": "v0.1.0-rc.21",
+  "commits": [
+    {
+      "id": "e795460c9bb7275294d1fa53a9d73258fb51eb10",
+      "group": "<type> (overridden by commit_parsers)",
+      "scope": "[scope]",
+      "message": "<description>",
+      "body": "[body]",
+      "footers": [
+        {
+          "token": "<name of the footer, such as 'Signed-off-by'>",
+          "separator": "<the separator between the token and value, such as ':'>",
+          "value": "<the value following the separator",
+          "breaking": false
+        }
+      ],
+      "breaking_description": "<description>",
+      "breaking": false,
+      "conventional": true,
+      "merge_commit": false,
+      "links": [
+        { "text": "(set by link_parsers)", "href": "(set by link_parsers)" }
+      ],
+      "author": {
+        "name": "User Name",
+        "email": "user.email@example.com",
+        "timestamp": 1660330071
+      },
+      "committer": {
+        "name": "User Name",
+        "email": "user.email@example.com",
+        "timestamp": 1660330071
+      }
+    }
+  ],
+  "commit_id": "a440c6eb26404be4877b7e3ad592bfaa5d4eb210 (release commit)",
+  "timestamp": 1625169301,
+  "previous": {
+    "version": "previous release"
+  }
+}
+```
+
+#### Footers
+
+A conventional commit's body may end with any number of structured key-value pairs known as
+[footers](https://www.conventionalcommits.org/en/v1.0.0/#specification).
+
+They follow a format similar to [the git trailers convention](https://git-scm.com/docs/git-interpret-trailers):
+
+```text
+<token><separator><value>
+```
+
+You can access the footers in the template using the `commit.footers` array.
+Each object in the array has the following fields:
+
+- `token`, the name of the footer (preceding the separator character)
+- `separator`, the footer's separator string (either `: ` or ` #`)
+- `value`, the value following the separator character
+- `breaking`, which is `true` if this is a `BREAKING CHANGE:` footer, and `false` otherwise
+
+Here are some examples of footers:
+
+- `Signed-off-by: User Name <user.email@example.com>`
+- `Reviewed-by: User Name <user.email@example.com>`
+- `Fixes #1234`
+- `BREAKING CHANGE: breaking change description`
+
+### Breaking Changes
+
+The `breaking` flag is set to `true` when:
+
+- The commit has an exclamation mark after the commit type and scope, e.g.:
+
+  ```text
+  feat(scope)!: this is a breaking change
+  ```
+
+- Or when the `BREAKING CHANGE:` footer is present:
+
+  ```
+  feat: add xyz
+
+  BREAKING CHANGE: this is a breaking change
+  ```
+
+`breaking_description` contains:
+- The description of the `BREAKING CHANGE` footer (if present).
+- the commit `message` otherwise.
+
+If the `BREAKING CHANGE:` footer is present, the footer is present in `commit.footers`.
+
+See also the [protect_breaking_commits](./config.md#the-protect_breaking_commits-field) field.
+
+
+### `committer` vs `author`
+
+From the [Git docs](https://git-scm.com/book/en/v2/Git-Basics-Viewing-the-Commit-History):
+
+> You may be wondering what the difference is between author and committer.
+> The author is the person who originally wrote the work, whereas the committer is the person who
+> last applied the work.
+> So, if you send in a patch to a project and one of the core members applies the patch,
+> both of you get credit — you as the author, and the core member as the committer.
 
 ### Examples
 
