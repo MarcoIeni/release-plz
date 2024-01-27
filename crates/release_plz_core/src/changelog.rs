@@ -508,7 +508,7 @@ mod tests {
     #[test]
     fn changelog_has_commit_id() {
         let commits = vec![
-            Commit::new("0000000".to_string(), "fix: myfix".to_string()),
+            Commit::new("1111111".to_string(), "fix: myfix".to_string()),
             Commit::new(
                 NO_COMMIT_ID.to_string(),
                 "chore: something else".to_string(),
@@ -533,9 +533,9 @@ mod tests {
 
         expect_test::expect![[r####"
 
-            myfix - 0000000
+            myfix - 1111111
 
-            something else - N/A
+            something else - 0000000
         "####]]
         .assert_eq(&changelog.generate());
     }
