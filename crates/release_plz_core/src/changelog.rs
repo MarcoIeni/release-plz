@@ -31,9 +31,7 @@ pub struct Changelog<'a> {
 impl Changelog<'_> {
     /// Generate the full changelog.
     pub fn generate(self) -> String {
-        let config = self
-            .config
-            .unwrap_or_else(|| default_git_cliff_config(None, self.release_link.as_deref()));
+        let config = self.changelog_config(None, self.release_link.as_deref());
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .expect("error while building changelog");
         let mut out = Vec::new();
@@ -51,9 +49,7 @@ impl Changelog<'_> {
             return Ok(old_changelog);
         }
         let old_header = changelog_parser::parse_header(&old_changelog);
-        let config = self
-            .config
-            .unwrap_or_else(|| default_git_cliff_config(old_header, self.release_link.as_deref()));
+        let config = self.changelog_config(old_header, self.release_link.as_deref());
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .context("error while building changelog")?;
         let mut out = Vec::new();
@@ -61,6 +57,52 @@ impl Changelog<'_> {
             .prepend(old_changelog, &mut out)
             .context("cannot update changelog")?;
         String::from_utf8(out).context("cannot convert bytes to string")
+    }
+
+    fn changelog_config(&self, header: Option<String>, release_link: Option<&str>) -> Config {
+        let user_config = self.config.clone().unwrap_or(default_git_cliff_config());
+        Config {
+            changelog: apply_defaults_to_changelog_config(
+                user_config.changelog,
+                header,
+                release_link,
+            ),
+            git: apply_defaults_to_git_config(user_config.git),
+        }
+    }
+}
+
+/// Apply release-plz defaults
+fn apply_defaults_to_changelog_config(
+    changelog: ChangelogConfig,
+    header: Option<String>,
+    release_link: Option<&str>,
+) -> ChangelogConfig {
+    let default_changelog_config = default_changelog_config(header, release_link);
+
+    ChangelogConfig {
+        header: changelog.header.or(default_changelog_config.header),
+        body: changelog.body.or(default_changelog_config.body),
+        trim: changelog.trim.or(default_changelog_config.trim),
+        ..changelog
+    }
+}
+
+/// Apply release-plz defaults
+fn apply_defaults_to_git_config(git: GitConfig) -> GitConfig {
+    let default_git_config = default_git_config();
+
+    GitConfig {
+        conventional_commits: git
+            .conventional_commits
+            .or(default_git_config.conventional_commits),
+        filter_unconventional: git
+            .filter_unconventional
+            .or(default_git_config.filter_unconventional),
+        commit_parsers: git.commit_parsers.or(default_git_config.commit_parsers),
+        filter_commits: git.filter_commits.or(default_git_config.filter_commits),
+        sort_commits: git.sort_commits.or(default_git_config.sort_commits),
+        ..git
     }
 }
 
@@ -70,10 +112,10 @@ fn is_version_unchanged(release: &Release) -> bool {
     previous_version == new_version
 }
 
-fn default_git_cliff_config(header: Option<String>, release_link: Option<&str>) -> Config {
+fn default_git_cliff_config() -> Config {
     Config {
-        changelog: default_changelog_config(header, release_link),
-        git: default_git_config(),
+        changelog: ChangelogConfig::default(),
+        git: GitConfig::default(),
     }
 }
 
@@ -187,7 +229,7 @@ fn default_git_config() -> GitConfig {
     GitConfig {
         conventional_commits: Some(true),
         filter_unconventional: Some(false),
-        commit_parsers: Some(commit_parsers()),
+        commit_parsers: Some(kac_commit_parsers()),
         filter_commits: Some(true),
         tag_pattern: None,
         skip_tags: None,
@@ -196,7 +238,7 @@ fn default_git_config() -> GitConfig {
         topo_order: None,
         ignore_tags: None,
         limit_commits: None,
-        sort_commits: None,
+        sort_commits: Some("newest".to_string()),
         commit_preprocessors: None,
         link_parsers: None,
     }
@@ -216,7 +258,7 @@ fn commit_parser(regex: &str, group: &str) -> CommitParser {
 }
 
 /// Commit parsers based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-fn commit_parsers() -> Vec<CommitParser> {
+fn kac_commit_parsers() -> Vec<CommitParser> {
     vec![
         commit_parser("^feat", "added"),
         commit_parser("^changed", "changed"),
@@ -466,7 +508,7 @@ mod tests {
     #[test]
     fn changelog_has_commit_id() {
         let commits = vec![
-            Commit::new("0000000".to_string(), "fix: myfix".to_string()),
+            Commit::new("1111111".to_string(), "fix: myfix".to_string()),
             Commit::new(
                 NO_COMMIT_ID.to_string(),
                 "chore: something else".to_string(),
@@ -476,13 +518,14 @@ mod tests {
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .with_config(Config {
                 changelog: ChangelogConfig {
+                    header: Some("".to_string()),
                     body: Some(
                         r"{%- for commit in commits %}
                             {{ commit.message }} - {{ commit.id }}
                         {% endfor -%}"
                             .to_string(),
                     ),
-                    ..Default::default()
+                    ..ChangelogConfig::default()
                 },
                 git: GitConfig::default(),
             })
@@ -490,9 +533,9 @@ mod tests {
 
         expect_test::expect![[r####"
 
-            myfix - 0000000
+            myfix - 1111111
 
-            something else - N/A
+            something else - 0000000
         "####]]
         .assert_eq(&changelog.generate());
     }
@@ -509,7 +552,7 @@ mod tests {
                 changelog: default_changelog_config(None, None),
                 git: GitConfig {
                     sort_commits: Some("oldest".to_string()),
-                    ..Default::default()
+                    ..GitConfig::default()
                 },
             })
             .build();
@@ -525,7 +568,7 @@ mod tests {
 
             ## [1.1.1] - 2015-05-15
 
-            ### Fix
+            ### Fixed
             - another fix
             - myfix
         "#]]

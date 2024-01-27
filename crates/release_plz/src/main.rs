@@ -1,4 +1,5 @@
 mod args;
+mod changelog_config;
 mod config;
 mod generate_schema;
 mod log;

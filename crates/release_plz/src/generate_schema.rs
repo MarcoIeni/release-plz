@@ -40,6 +40,7 @@ mod tests {
     use std::path::Path;
     use std::{env, fs};
 
+    // If this test fails, run `cargo run -- generate-schema` to update the schema.
     #[test]
     fn schema_is_up_to_date() {
         // Let's get the root workspace folder

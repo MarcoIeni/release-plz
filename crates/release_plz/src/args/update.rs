@@ -151,7 +151,7 @@ impl Update {
                 .transpose()?;
             let changelog_req = ChangelogRequest {
                 release_date,
-                changelog_config: self.changelog_config(&config)?,
+                changelog_config: Some(self.changelog_config(&config)?),
             };
             update = update.with_changelog_req(changelog_req);
         }
@@ -165,7 +165,7 @@ impl Update {
         Ok(update)
     }
 
-    fn changelog_config(&self, config: &Config) -> anyhow::Result<Option<GitCliffConfig>> {
+    fn changelog_config(&self, config: &Config) -> anyhow::Result<GitCliffConfig> {
         let default_config_path = dirs::config_dir()
             .context("cannot get config dir")?
             .join("git-cliff")
@@ -183,13 +183,18 @@ impl Update {
         };
 
         // Parse the configuration file.
-        let config = if path.exists() {
-            Some(GitCliffConfig::parse(path).context("failed to parse git-cliff config file")?)
+        let changelog_config = if path.exists() {
+            anyhow::ensure!(config.changelog.is_default(), "specifying the `[changelog]` configuration has no effect if `changelog_config` path is specified");
+            GitCliffConfig::parse(path).context("failed to parse git-cliff config file")?
         } else {
-            None
+            config
+                .changelog
+                .clone()
+                .try_into()
+                .context("invalid `[changelog] config")?
         };
 
-        Ok(config)
+        Ok(changelog_config)
     }
 
     /// Changelog configuration specified by user

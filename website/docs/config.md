@@ -42,6 +42,9 @@ publish_no_verify = true # add `--no-verify` to `cargo publish` for `package_b`
 [[package]]
 name = "package_c"
 release = false # don't process this package
+
+[changelog]
+protect_breaking_commits = true # always include commits with breaking changes in the changelog
 ```
 
 ## Reference
@@ -49,7 +52,7 @@ release = false # don't process this package
 The configuration file is written in the [TOML](https://toml.io/) format and consists of
 the following sections:
 
-- [`[workspace]`](#the-workspace-section) — Default configuration.
+- [`[workspace]`](#the-workspace-section) — Configuration applied to all packages by default.
   - [`allow_dirty`](#the-allow_dirty-field) — Update dirty working directories.
   - [`changelog_config`](#the-changelog_config-field) — Path to the [git-cliff] configuration file.
   - [`changelog_update`](#the-changelog_update-field) — Update changelog.
@@ -82,6 +85,16 @@ the following sections:
   - [`release`](#the-release-field-package-section) - Enable the processing of this package.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
     Don't verify package build.
+- [`[changelog]`](#the-changelog-section) — Changelog configuration.
+  - [`header`](#the-header-field) — Changelog header.
+  - [`body`](#the-body-field) — Changelog body.
+  - [`trim`](#the-trim-field) — ...
+  - [`protect_breaking_commits`](#the-protect_breaking_commits-field) — Never skip commits with breaking changes.
+  - [`tag_pattern`](#the-tag_pattern-field) — Regex of tags to include in the changelog.
+  - [`sort_commits`](#the-sort_commits-field) — How to sort commits.
+  - [`commit_preprocessors`](#the-commit_preprocessors-field) — Manipulate commit messages.
+  - [`link_parsers`](#the-link_parsers-field) — Parse links in commit messages.
+  - [`commit_parsers`](#the-commit_parsers-field) — Organize commits into sections.
 
 ### The `[workspace]` section
 
@@ -120,6 +133,22 @@ This field only affects the `release-plz update` and `release-plz release-pr` co
 Path to the [git-cliff] configuration file.
 If unspecified, release-plz uses the [keep a changelog](https://keepachangelog.com/en/1.1.0/) format.
 You can learn more in the [changelog format](changelog-format.md) section.
+
+:::warning
+This field is deprecated.
+Instead of specifying a `git-cliff` configuration file,
+use the [changelog](#the-changelog-section) section instead.
+
+> Why do you prefer having a `changelog` section in the `release-plz.toml` file,
+> instead of having the changelog configuration in the `git-cliff.toml` file?
+
+The `git-cliff.toml` contains many options that release-plz doesn't use.
+To avoid confusion, release-plz has a `[changelog]` section,
+containing only the options it uses.
+
+Ideally, release-plz users shouldn't need to read the `git-cliff` documentation
+to customize their changelog.
+:::
 
 #### The `changelog_update` field
 
@@ -390,3 +419,241 @@ By default, release-plz runs [cargo-semver-checks] if the package is a library.
 
 [cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
 [git-cliff]: https://git-cliff.org
+
+### The `[changelog]` section
+
+Example:
+
+```toml
+[changelog]
+header = "# Changelog"
+body = "Body"
+trim = true
+protect_breaking_commits = true
+sort_commits = "newest"
+
+commit_preprocessors = [
+  # remove issue numbers from commits
+  { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "" },
+]
+
+commit_parsers = [
+    { message = "^.*: add", group = "Added" },
+    { message = "^.*: support", group = "Added" },
+    { message = "^.*: remove", group = "Removed" },
+    { message = "^.*: delete", group = "Removed" },
+    { message = "^test", group = "Fixed" },
+    { message = "^fix", group = "Fixed" },
+    { message = "^.*: fix", group = "Fixed" },
+    { message = "^.*", group = "Changed" },
+]
+
+link_parsers = [
+    { pattern = "RFC(\\d+)", text = "ietf-rfc$1", href = "https://datatracker.ietf.org/doc/html/rfc$1"}
+]
+```
+
+#### The `header` field
+
+Text at the beginning of the changelog.
+
+Default:
+
+```toml
+[changelog]
+header = """# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+"""
+```
+
+#### The `body` field
+
+Template that represents a single release in the changelog.
+It contains the commit messages.
+Learn more about the template syntax in the changelog format [docs](./changelog-format.md).
+
+Default:
+
+```toml
+[changelog]
+body = """
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | upper_first }}
+{% for commit in commits %}
+{%- if commit.scope -%}
+- *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
+{% else -%}
+- {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
+{% endif -%}
+{% endfor -%}
+{% endfor %}"#;
+"""
+```
+
+:::tip
+The default `body` also links to the version release on GitHub.
+To do this, hardcode the link of your repository.
+E.g.:
+
+```toml
+[changelog]
+body = """
+## [{{ version | trim_start_matches(pat="v") }}](https://github.com/me/my-proj/compare/{{ previous.version }}...{{ version }}) - {{ timestamp | date(format="%Y-%m-%d") }}
+
+...rest of the body...
+```
+
+:::
+
+#### The `trim` field
+
+If set to `true`, leading and trailing whitespace are removed from the [body](#the-body-field).
+
+It is useful for adding indentation to the template for readability.
+
+Default: `true`.
+
+#### The `protect_breaking_commits` field
+
+If `true`, [commit_parsers](#the-commit_parsers-field) won't skip any commits with breaking
+changes, regardless of the filter.
+
+Default: `false`.
+
+#### The `tag_pattern` field
+
+A regular expression for matching the git tags that release-plz should add to the changelog.
+If a tag doesn't match the pattern, it won't be added to the changelog.
+
+By default, all tags are included.
+
+#### The `sort_commits` field
+
+Sort the commits inside sections by specified order.
+
+Possible values:
+
+- `oldest`
+- `newest`
+
+#### The `commit_preprocessors` field
+
+You can use commit preprocessors to manipulate the commit messages before parsing/grouping them.
+Specify a regex `pattern` to `replace` parts of the commit message/body.
+
+Here are some examples:
+
+```toml
+commit_preprocessors = [
+  # Replace `foo` with `bar`
+  { pattern = "foo", replace = "bar" },
+
+  # Replace `<REPO>` in the template body with the repository URL
+  { pattern = '<REPO>', replace = "https://github.com/me/my-proj" },
+
+  # Replace multiple spaces with a single space.
+  { pattern = "  +", replace = " "}
+
+  # Replace the issue number with the link.
+  { pattern = "\\(#([0-9]+)\\)", replace = "([#${1}](https://github.com/me/my-proj/issues/${1}))"}
+
+  # Replace the issue link with the number.
+  { pattern = "https://github.com/[^ ]/issues/([0-9]+)", replace = "[Issue #${1}]"}
+
+  # Remove prefix
+  { pattern = 'Merged PR #[0-9]: (.*)', replace = "$1"}
+
+  # Remove gitmoji from commit messages, both actual UTF emoji and :emoji:
+  { pattern = ' *(:\w+:|[\p{Emoji_Presentation}\p{Extended_Pictographic}\u{200D}]) *', replace = "" },
+
+  # Hyperlink PR references from merge commits.
+  { pattern = "Merge pull request #([0-9]+) from [^ ]+", replace = "PR # [${1}](https://github.com/me/my-proj/pull/${1}):"}
+
+  # Hyperlink commit links, with short commit hash as description.
+  { pattern = "https://github.com/orhun/git-cliff/commit/([a-f0-9]{7})[a-f0-9]*", replace = "commit # [${1}](${0})"}
+
+  # Hyperlink bare commit hashes like "abcd1234" in commit logs, with short commit hash as description.
+  { pattern = "([ \\n])(([a-f0-9]{7})[a-f0-9]*)", replace = "${1}commit # [${3}](https://github.com/me/my-proj/commit/${2})"}
+]
+```
+
+##### Using external commands
+
+Custom OS commands can also be used to edit the commit messages.
+
+For example, here's how you can use [pandoc](https://pandoc.org/) to convert all commit messages to the [CommonMark](https://commonmark.org/) format:
+
+- `{ pattern = ".*", replace_command = "pandoc -t commonmark"}`
+
+The `$COMMIT_SHA` environment variable is set when executing the command. For example, you can read the commit itself:
+
+- `{ pattern = '.*', replace_command = 'git show -s --format=%B $COMMIT_SHA' }`
+
+#### The `commit_parsers` field
+
+Default:
+
+```toml
+commit_parsers = [
+    { message = "^feat", group = "added" },
+    { message = "^changed", group = "changed" },
+    { message = "^deprecated", group = "deprecated" },
+    { message = "^fix", group = "fixed" },
+    { message = "^security", group = "security" },
+    { message = "^.*", group = "other" },
+]
+```
+
+:::tip
+The groups come out in alphabetical order.
+To customize the order, use HTML comments:
+
+```toml
+commit_parsers = [
+    { message = "^feat*", group = "<!-- 0 -->New features" },
+    { message = "^fix*", group = "<!-- 1 -->Bug fixes" },
+    { message = "^perf*", group = "<!-- 2 -->Performance" },
+    { message = "^chore*", group = "<!-- 3 -->Miscellaneous" },
+]
+```
+
+This produces the following order:
+
+- New features
+- Bug fixes
+- Performance
+- Miscellaneous
+
+Then strip the tags in the template with this series of filters:
+
+```jinja2
+### {{ group | striptags | trim | upper_first }}
+```
+
+:::
+
+#### The `link_parsers` field
+
+An array of link parsers for extracting external references, and turning them into URLs, using regex.
+
+Examples:
+
+```toml
+link_parsers = [
+    # Extract all GitLab issues and PRs and generate URLs linking to them.
+    # The link text will be the matching pattern.
+    { pattern = "#(\\d+)", href = "https://github.com/me/my-proj/issues/$1"}
+    # Extract mentions of IETF RFCs and generate URLs linking to them.
+    # It also rewrites the text as "ietf-rfc...".
+    { pattern = "RFC(\\d+)", text = "ietf-rfc$1", href = "https://datatracker.ietf.org/doc/html/rfc$1"}
+]
+```
+
+The extracted links can be used in the [body](#the-body-field) with the `commits.links` variable.

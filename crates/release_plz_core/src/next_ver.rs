@@ -18,7 +18,7 @@ use anyhow::Context;
 use cargo_metadata::{semver::Version, Metadata, Package};
 use cargo_utils::{upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
-use git_cliff_core::{commit::Commit, config::Config as GitCliffConfig};
+use git_cliff_core::commit::Commit;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
@@ -31,8 +31,10 @@ use std::{
 use tempfile::{tempdir, TempDir};
 use tracing::{debug, info, instrument, warn};
 
-// Used to indicate that this is a dummy commit with no corresponding ID available
-pub(crate) const NO_COMMIT_ID: &str = "N/A";
+// Used to indicate that this is a dummy commit with no corresponding ID available.
+// It should be at least 7 characters long to avoid a panic in git-cliff
+// (Git-cliff assumes it's a valid commit ID).
+pub(crate) const NO_COMMIT_ID: &str = "0000000";
 
 pub trait RequestReleaseValidator {
     fn is_release_enabled(&self, package_name: &str) -> bool;
@@ -171,7 +173,7 @@ impl UpdateConfig {
 pub struct ChangelogRequest {
     /// When the new release is published. If unspecified, current date is used.
     pub release_date: Option<NaiveDate>,
-    pub changelog_config: Option<GitCliffConfig>,
+    pub changelog_config: Option<git_cliff_core::config::Config>,
 }
 
 fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {

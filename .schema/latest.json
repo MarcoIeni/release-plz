@@ -5,6 +5,24 @@
   "description": "You can find the documentation of the configuration file [here](https://release-plz.ieni.dev/docs/config).",
   "type": "object",
   "properties": {
+    "changelog": {
+      "default": {
+        "body": null,
+        "commit_parsers": null,
+        "commit_preprocessors": null,
+        "header": null,
+        "link_parsers": null,
+        "protect_breaking_commits": null,
+        "sort_commits": null,
+        "tag_pattern": null,
+        "trim": null
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/ChangelogCfg"
+        }
+      ]
+    },
     "package": {
       "title": "Package",
       "description": "Package-specific configuration. This overrides `workspace`. Not all settings of `workspace` can be overridden.",
@@ -45,6 +63,173 @@
   },
   "additionalProperties": false,
   "definitions": {
+    "ChangelogCfg": {
+      "type": "object",
+      "properties": {
+        "body": {
+          "description": "Template that represents a single release in the changelog. It contains the commit messages. This is a [tera](https://keats.github.io/tera/) template.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "commit_parsers": {
+          "description": "Commits that don't match any of the commit parsers are skipped.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/CommitParser"
+          }
+        },
+        "commit_preprocessors": {
+          "description": "An array of commit preprocessors for manipulating the commit messages before parsing/grouping them.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/TextProcessor"
+          }
+        },
+        "header": {
+          "description": "Text at the beginning of the changelog.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "link_parsers": {
+          "description": "An array of link parsers for extracting external references, and turning them into URLs, using regex.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/LinkParser"
+          }
+        },
+        "protect_breaking_commits": {
+          "description": "Whether to protect all breaking changes from being skipped by a commit parser.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "sort_commits": {
+          "description": "How to sort the commits inside the various sections.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Sorting"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tag_pattern": {
+          "description": "A regular expression for matching the git tags to add to the changelog.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "trim": {
+          "description": "If set to `true`, leading and trailing whitespace are removed from [`Self::body`].",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "CommitParser": {
+      "description": "Parser for grouping commits.",
+      "type": "object",
+      "properties": {
+        "body": {
+          "description": "Regex for matching the commit body.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "default_scope": {
+          "description": "Default scope of the commit.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "field": {
+          "description": "Field name of the commit to match the regex against.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "group": {
+          "description": "Group of the commit.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "message": {
+          "description": "Regex for matching the commit message.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pattern": {
+          "description": "Regex for matching the field value.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scope": {
+          "description": "Commit scope for overriding the default scope.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "skip": {
+          "description": "Whether to skip this commit group.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "LinkParser": {
+      "type": "object",
+      "required": [
+        "href",
+        "pattern"
+      ],
+      "properties": {
+        "href": {
+          "description": "The string used to generate the link URL.",
+          "type": "string"
+        },
+        "pattern": {
+          "description": "Regex for finding links in the commit message.",
+          "type": "string"
+        },
+        "text": {
+          "description": "The string used to generate the link text.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
     "PackageSpecificConfigWithName": {
       "description": "Config at the `[[package]]` level.",
       "type": "object",
@@ -187,6 +372,40 @@
           ]
         }
       ]
+    },
+    "Sorting": {
+      "type": "string",
+      "enum": [
+        "oldest",
+        "newest"
+      ]
+    },
+    "TextProcessor": {
+      "description": "Used for modifying commit messages.",
+      "type": "object",
+      "required": [
+        "pattern"
+      ],
+      "properties": {
+        "pattern": {
+          "description": "Regex for matching a text to replace.",
+          "type": "string"
+        },
+        "replace": {
+          "description": "Replacement text.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "replace_command": {
+          "description": "Command that will be run for replacing the commit message.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
     },
     "Workspace": {
       "description": "Config at the `[workspace]` level.",
