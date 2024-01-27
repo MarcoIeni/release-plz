@@ -117,7 +117,7 @@ You can access the footers in the template using the `commit.footers` array.
 Each object in the array has the following fields:
 
 - `token`, the name of the footer (preceding the separator character)
-- `separator`, the footer's separator string (either `: ` or ` #`)
+- `separator`, the footer's separator string (either `: ` or ` #`) <!-- markdownlint-disable MD038 -->
 - `value`, the value following the separator character
 - `breaking`, which is `true` if this is a `BREAKING CHANGE:` footer, and `false` otherwise
 
