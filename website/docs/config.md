@@ -501,6 +501,7 @@ body = """
 
 ...rest of the body...
 ```
+
 :::
 
 #### The `trim` field
@@ -513,7 +514,8 @@ Default: `true`.
 
 #### The `protect_breaking_commits` field
 
-If `true`, [commit_parsers](#the-commit_parsers-field) won't skip any commits with breaking changes, regardless of the filter.
+If `true`, [commit_parsers](#the-commit_parsers-field) won't skip any commits with breaking
+changes, regardless of the filter.
 
 Default: `false`.
 
@@ -535,6 +537,17 @@ Possible values:
 
 #### The `commit_preprocessors` field
 
+For example, to remove [gitmoji](https://gitmoji.dev/) from the commit messages, use:
+
+```toml
+commit_preprocessors = [
+  # Remove gitmoji, both actual UTF emoji and :emoji:
+  { pattern = ' *(:\w+:|[\p{Emoji_Presentation}\p{Extended_Pictographic}\u{200D}]) *', replace = "" },
+]
+```
+
+#### The `commit_parsers` field
+
 Default:
 
 ```toml
@@ -548,6 +561,34 @@ commit_parsers = [
 ]
 ```
 
+:::tip
+The groups come out in alphabetical order.
+To customize the order, use HTML comments:
+
+```toml
+commit_parsers = [
+    { message = "^feat*", group = "<!-- 0 -->:rocket: New features" },
+    { message = "^fix*", group = "<!-- 1 -->:bug: Bug fixes" },
+    { message = "^perf*", group = "<!-- 2 -->:zap: Performance" },
+    { message = "^chore*", group = "<!-- 3 -->:gear: Miscellaneous" },
+]
+```
+
+This produces the following order:
+
+- 🚀 New features
+- 🐛 Bug fixes
+- ⚡ Performance
+- ⚙️ Miscellaneous
+
+Then strip the tags in the template with this series of filters:
+
+```jinja2
+### {{ group | striptags | trim | upper_first }}
+```
+
+:::
+
 TODO:
 
 - Show how to replace REPO. git-cliff does it with the post-processors.
@@ -559,10 +600,9 @@ An array of link parsers for extracting external references, and turning them in
 Examples:
 
 - `{ pattern = "#(\\d+)", href = "https://github.com/orhun/git-cliff/issues/$1"}`
-  - Extract all GitLab issues and PRs and generate URLs linking to them. The link text will be the matching pattern.
+  - Extract all GitLab issues and PRs and generate URLs linking to them.
+  The link text will be the matching pattern.
 - `{ pattern = "RFC(\\d+)", text = "ietf-rfc$1", href = "https://datatracker.ietf.org/doc/html/rfc$1"}`,
   - Extract mentions of IETF RFCs and generate URLs linking to them. It also rewrites the text as "ietf-rfc...".
 
 These extracted links can be used in the [body](#the-body-field) with the `commits.links` variable.
-
-#### The `commit_parsers` field

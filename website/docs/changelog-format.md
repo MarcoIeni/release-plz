@@ -45,7 +45,6 @@ The context is the model that holds the required data for a template rendering. 
 
 ...
 
-
 ### Examples
 
 [Here](https://git-cliff.org/docs/templating/examples) you can find some examples of custom git-cliff templates.
@@ -55,4 +54,14 @@ If you want to contribute your cool template using the release-plz configuration
 
 ### Tips and tricks
 
-https://git-cliff.org/docs/tips-and-tricks
+#### Discard duplicate commits
+
+```jinja2
+{% for commit in commits | unique(attribute="message") %}
+```
+
+#### Filter merge commits
+
+```jinja2
+{% for group, commits in commits | filter(attribute="merge_commit", value=false) %}
+```
