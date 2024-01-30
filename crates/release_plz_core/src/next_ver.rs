@@ -488,9 +488,17 @@ fn override_packages_path(
     metadata: &Metadata,
     manifest_dir: &Path,
 ) -> Result<(), anyhow::Error> {
+    let canonicalized_workspace_root =
+        dunce::canonicalize(&metadata.workspace_root).with_context(|| {
+            format!(
+                "failed to canonicalize workspace root {:?}",
+                metadata.workspace_root
+            )
+        })?;
     for p in packages {
         let old_path = p.package_path()?;
-        let relative_package_path = strip_prefix(old_path, &metadata.workspace_root)?.to_path_buf();
+        let relative_package_path =
+            strip_prefix(old_path, &canonicalized_workspace_root)?.to_path_buf();
         p.manifest_path = cargo_metadata::camino::Utf8PathBuf::from_path_buf(
             manifest_dir.join(relative_package_path).join(CARGO_TOML),
         )
