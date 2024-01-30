@@ -50,14 +50,9 @@ impl TestContext {
     }
 
     pub fn run_release_pr(&self) -> Assert {
-        let log_level = if std::env::var("ENABLE_LOGS").is_ok() {
-            "DEBUG,hyper=INFO"
-        } else {
-            "ERROR"
-        };
         super::cmd::release_plz_cmd()
             .current_dir(&self.repo_dir())
-            .env("RUST_LOG", log_level)
+            .env("RUST_LOG", log_level())
             .arg("release-pr")
             .arg("--verbose")
             .arg("--git-token")
@@ -70,15 +65,9 @@ impl TestContext {
     }
 
     pub fn run_release(&self) -> Assert {
-        let log_level = if std::env::var("ENABLE_LOGS").is_ok() {
-            "DEBUG,hyper=INFO"
-        } else {
-            "ERROR"
-        };
-
         super::cmd::release_plz_cmd()
             .current_dir(&self.repo_dir())
-            .env("RUST_LOG", log_level)
+            .env("RUST_LOG", log_level())
             .arg("release")
             .arg("--verbose")
             .arg("--git-token")
@@ -98,6 +87,20 @@ impl TestContext {
 
     pub async fn opened_release_prs(&self) -> Vec<GitPr> {
         self.git_client.opened_prs(BRANCH_PREFIX).await.unwrap()
+    }
+
+    pub fn write_release_plz_toml(&self, content: &str) {
+        let release_plz_toml_path = self.repo_dir().join("release-plz.toml");
+        fs::write(release_plz_toml_path, content).unwrap();
+    }
+
+}
+
+fn log_level() -> &'static str {
+    if std::env::var("ENABLE_LOGS").is_ok() {
+        "DEBUG,hyper=INFO"
+    } else {
+        "ERROR"
     }
 }
 
