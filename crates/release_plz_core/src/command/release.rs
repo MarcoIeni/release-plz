@@ -523,7 +523,7 @@ pub struct GitReleaseInfo {
 ///   for bots like dependabot, secrets are not visible. So, there are PRs that don't
 ///   need a release that don't have the token set.
 /// - If the token is unset, the user might want to log in to the registry
-///   with `cargo login`.
+///   with `cargo login`. Don't throw an error in this case.
 fn verify_ci_cargo_registry_token() -> anyhow::Result<()> {
     let is_token_empty = std::env::var("CARGO_REGISTRY_TOKEN").map(|t| t.is_empty()) == Ok(true);
     let is_environment_github_actions = std::env::var("GITHUB_ACTIONS").is_ok();
