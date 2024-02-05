@@ -515,6 +515,25 @@ pub struct GitReleaseInfo {
     pub pre_release: bool,
 }
 
+fn verify_ci_cargo_registry_token() -> anyhow::Result<()> {
+    let token_error = match std::env::var("CARGO_REGISTRY_TOKEN").map(|t| t.as_str()) {
+        // The token is set to an empty string when the user forgets to set the
+        // secret in GitHub actions.
+        Ok("") => Some("set to empty string"),
+        // token is set correctly
+        Ok(_) => None,
+        Err(_) => Some("unset"),
+    };
+    let is_environment_github_actions = std::env::var("GITHUB_ACTIONS").is_ok();
+    if is_environment_github_actions {
+        if let Some(token_error) = token_error {
+            anyhow::bail!(
+                "$CARGO_REGISTRY_TOKEN environment variable is {token_error}. Please set your token in GitHub actions secrets. Docs: https://marcoieni.github.io/release-plz/github/index.html");
+        }
+    }
+    Ok(())
+}
+
 fn run_cargo_publish(
     package: &Package,
     input: &ReleaseRequest,
@@ -532,6 +551,8 @@ fn run_cargo_publish(
     if let Some(token) = &input.token {
         args.push("--token");
         args.push(token.expose_secret());
+    } else {
+        verify_ci_cargo_registry_token()?;
     }
     if input.dry_run {
         args.push("--dry-run");
