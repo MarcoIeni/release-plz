@@ -521,8 +521,8 @@ fn verify_ci_cargo_registry_token() -> anyhow::Result<()> {
         // If the token is set to an empty string, probably the user forgot to set the
         // secret in GitHub actions.
         // It is important to only check this before running a release because
-        // for bots like dependabot secrets are not visible. This is fine, since these
-        // PRs do not need a release.
+        // for bots like dependabot, secrets are not visible. So, there are PRs that don't
+        // need a release that don't have the token set.
         Some("") => Some("set to empty string"),
         // If the token is unset, the user might want to log in to the registry
         // with `cargo login`.
