@@ -515,15 +515,15 @@ pub struct GitReleaseInfo {
     pub pre_release: bool,
 }
 
-/// Return `Err` if the CARGO_REGISTRY_TOKEN environment variable is not set in GitHub actions.
+/// Return `Err` if the `CARGO_REGISTRY_TOKEN` environment variable is not set in GitHub actions.
 fn verify_ci_cargo_registry_token() -> anyhow::Result<()> {
-    let token_error = match std::env::var("CARGO_REGISTRY_TOKEN").map(|t| t.as_str()) {
+    let token_error = match std::env::var("CARGO_REGISTRY_TOKEN").ok().as_deref() {
         // The token is set to an empty string when the user forgets to set the
         // secret in GitHub actions.
-        Ok("") => Some("set to empty string"),
+        Some("") => Some("set to empty string"),
         // token is set correctly
-        Ok(_) => None,
-        Err(_) => Some("unset"),
+        Some(_) => None,
+        None => Some("unset"),
     };
     let is_environment_github_actions = std::env::var("GITHUB_ACTIONS").is_ok();
     if is_environment_github_actions {
