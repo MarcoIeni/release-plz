@@ -6,6 +6,7 @@ use cargo_metadata::{semver::Version, Package};
 use cargo_utils::upgrade_requirement;
 use cargo_utils::LocalManifest;
 use git_cmd::Repo;
+use std::iter;
 use std::{fs, path::Path};
 use tracing::{info, warn};
 
@@ -175,11 +176,20 @@ fn update_manifests(
 
         for (pkg, _) in workspace_pkgs {
             let package_path = pkg.package_path()?;
-            update_dependencies(all_packages, new_workspace_version, package_path)?;
+            update_dependencies(
+                all_packages,
+                new_workspace_version,
+                package_path,
+                local_manifest_path,
+            )?;
         }
     }
 
-    update_versions(all_packages, &PackagesUpdate::new(independent_pkgs))?;
+    update_versions(
+        all_packages,
+        &PackagesUpdate::new(independent_pkgs),
+        local_manifest_path,
+    )?;
     Ok(())
 }
 
@@ -187,10 +197,16 @@ fn update_manifests(
 fn update_versions(
     all_packages: &[Package],
     packages_to_update: &PackagesUpdate,
+    workspace_manifest: &Path,
 ) -> anyhow::Result<()> {
     for (package, update) in &packages_to_update.updates {
         let package_path = package.package_path()?;
-        set_version(all_packages, package_path, &update.version)?;
+        set_version(
+            all_packages,
+            package_path,
+            &update.version,
+            workspace_manifest,
+        )?;
     }
     Ok(())
 }
@@ -234,6 +250,7 @@ fn set_version(
     all_packages: &[Package],
     package_path: &Path,
     version: &Version,
+    workspace_manifest: &Path,
 ) -> anyhow::Result<()> {
     debug!("updating version");
     let mut local_manifest =
@@ -244,7 +261,7 @@ fn set_version(
         .with_context(|| format!("cannot update manifest {:?}", &local_manifest.path))?;
 
     let package_path = fs::canonicalize(crate::manifest_dir(&local_manifest.path)?)?;
-    update_dependencies(all_packages, version, &package_path)?;
+    update_dependencies(all_packages, version, &package_path, workspace_manifest)?;
     Ok(())
 }
 
@@ -257,9 +274,16 @@ fn set_version(
 /// ```
 ///
 /// to:
-
+///
 /// ```toml
 /// [dependencies]
+/// pkg1 = { path = "../pkg1", version = "1.2.4" }
+/// ```
+///
+/// Works also for the dependencies in a workspace:
+///
+/// ```toml
+/// [workspace.dependencies]
 /// pkg1 = { path = "../pkg1", version = "1.2.4" }
 /// ```
 ///
@@ -267,11 +291,16 @@ fn update_dependencies(
     all_packages: &[Package],
     version: &Version,
     package_path: &Path,
+    workspace_manifest: &Path,
 ) -> anyhow::Result<()> {
-    for member in all_packages {
-        let mut member_manifest = LocalManifest::try_new(member.manifest_path.as_std_path())?;
-        let member_dir = crate::manifest_dir(&member_manifest.path)?.to_owned();
-        let deps_to_update = member_manifest
+    for manifest in iter::once(workspace_manifest).chain(
+        all_packages
+            .iter()
+            .map(|pkg| pkg.manifest_path.as_std_path()),
+    ) {
+        let mut local_manifest = LocalManifest::try_new(manifest)?;
+        let manifest_dir = crate::manifest_dir(&local_manifest.path)?.to_owned();
+        let deps_to_update = local_manifest
             .get_dependency_tables_mut()
             .flat_map(|t| t.iter_mut().filter_map(|(_, d)| d.as_table_like_mut()))
             .filter(|d| d.contains_key("version"))
@@ -279,7 +308,7 @@ fn update_dependencies(
                 let dependency_path = d
                     .get("path")
                     .and_then(|i| i.as_str())
-                    .and_then(|relpath| fs::canonicalize(member_dir.join(relpath)).ok());
+                    .and_then(|relpath| fs::canonicalize(manifest_dir.join(relpath)).ok());
                 match dependency_path {
                     Some(dep_path) => dep_path == package_path,
                     None => false,
@@ -296,7 +325,7 @@ fn update_dependencies(
                 dep.insert("version", toml_edit::value(new_req));
             }
         }
-        member_manifest.write()?;
+        local_manifest.write()?;
     }
     Ok(())
 }
