@@ -516,25 +516,21 @@ pub struct GitReleaseInfo {
 }
 
 /// Return `Err` if the `CARGO_REGISTRY_TOKEN` environment variable is set to an empty string in CI.
+/// Reason:
+/// - If the token is set to an empty string, probably the user forgot to set the
+///   secret in GitHub actions.
+///   It is important to only check this before running a release because
+///   for bots like dependabot, secrets are not visible. So, there are PRs that don't
+///   need a release that don't have the token set.
+/// - If the token is unset, the user might want to log in to the registry
+///   with `cargo login`.
 fn verify_ci_cargo_registry_token() -> anyhow::Result<()> {
-    let token_error = match std::env::var("CARGO_REGISTRY_TOKEN").map(|t| t.is_empty()) {
-        // If the token is set to an empty string, probably the user forgot to set the
-        // secret in GitHub actions.
-        // It is important to only check this before running a release because
-        // for bots like dependabot, secrets are not visible. So, there are PRs that don't
-        // need a release that don't have the token set.
-        Ok(true) => Some("set to empty string"),
-        // If the token is unset, the user might want to log in to the registry
-        // with `cargo login`.
-        _ => None,
-    };
+    let is_token_empty = std::env::var("CARGO_REGISTRY_TOKEN").map(|t| t.is_empty()) == Ok(true);
     let is_environment_github_actions = std::env::var("GITHUB_ACTIONS").is_ok();
-    if is_environment_github_actions {
-        if let Some(token_error) = token_error {
-            anyhow::bail!(
-                "$CARGO_REGISTRY_TOKEN environment variable is {token_error}. Please set your token in GitHub actions secrets. Docs: https://marcoieni.github.io/release-plz/github/index.html");
-        }
-    }
+    anyhow::ensure!(
+        !(is_environment_github_actions && is_token_empty),
+        "CARGO_REGISTRY_TOKEN environment variable is set to empty string. Please set your token in GitHub actions secrets. Docs: https://marcoieni.github.io/release-plz/github/index.html"
+    );
     Ok(())
 }
 
