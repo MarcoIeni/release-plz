@@ -515,8 +515,8 @@ pub struct GitReleaseInfo {
     pub pre_release: bool,
 }
 
-/// Return `Err` if the `CARGO_REGISTRY_TOKEN` environment variable is set to an empty string.
-fn verify_cargo_registry_token() -> anyhow::Result<()> {
+/// Return `Err` if the `CARGO_REGISTRY_TOKEN` environment variable is set to an empty string in CI.
+fn verify_ci_cargo_registry_token() -> anyhow::Result<()> {
     let token_error = match std::env::var("CARGO_REGISTRY_TOKEN").ok().as_deref() {
         // If the token is set to an empty string, probably the user forgot to set the
         // secret in GitHub actions.
@@ -556,7 +556,7 @@ fn run_cargo_publish(
         args.push("--token");
         args.push(token.expose_secret());
     } else {
-        verify_cargo_registry_token()?;
+        verify_ci_cargo_registry_token()?;
     }
     if input.dry_run {
         args.push("--dry-run");
