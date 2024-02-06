@@ -70,6 +70,7 @@ the following sections:
   - [`release`](#the-release-field) - Enable the processing of the packages.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
+  - [`tag_name`](#the-tag_name-field) — Git tag name template.
 - [`[[package]]`](#the-package-section) — Package-specific configurations.
   - [`name`](#the-name-field) — Package name. *(Required)*.
   - [`changelog_include`](#the-changelog_include-field) — Include commits from other packages.
@@ -85,6 +86,7 @@ the following sections:
   - [`release`](#the-release-field-package-section) - Enable the processing of this package.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
     Don't verify package build.
+  - [`tag_name`](#the-tag_name-field-package-section) — Git tag name template.
 - [`[changelog]`](#the-changelog-section) — Changelog configuration.
   - [`header`](#the-header-field) — Changelog header.
   - [`body`](#the-body-field) — Changelog body.
