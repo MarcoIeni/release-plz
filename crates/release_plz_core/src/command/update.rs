@@ -293,11 +293,12 @@ fn update_dependencies(
     package_path: &Path,
     workspace_manifest: &Path,
 ) -> anyhow::Result<()> {
-    for manifest in iter::once(workspace_manifest).chain(
+    let all_manifests = iter::once(workspace_manifest).chain(
         all_packages
             .iter()
             .map(|pkg| pkg.manifest_path.as_std_path()),
-    ) {
+    );
+    for manifest in all_manifests {
         let mut local_manifest = LocalManifest::try_new(manifest)?;
         let manifest_dir = crate::manifest_dir(&local_manifest.path)?.to_owned();
         let deps_to_update = local_manifest
