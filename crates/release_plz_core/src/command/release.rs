@@ -481,7 +481,8 @@ async fn release_package(
         }
 
         if input.is_git_tag_enabled(&package.name) {
-            repo.tag(&git_tag)?;
+            let message = format!("release {git_tag}");
+            repo.tag(&git_tag, &message)?;
             repo.push(&git_tag)?;
         }
 
