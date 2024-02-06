@@ -26,6 +26,7 @@ pub struct TestContext {
     test_dir: TempDir,
     /// Release-plz git client. It's here just for code reuse.
     git_client: GitClient,
+    repo: Repo,
 }
 
 impl TestContext {
@@ -41,23 +42,19 @@ impl TestContext {
         let git_client = git_client(&repo_url, &gitea.token);
 
         let repo_dir = test_dir.path().join(&gitea.repo);
-        let _repo = commit_cargo_init(&repo_dir, &gitea);
+        let repo = commit_cargo_init(&repo_dir, &gitea);
         Self {
             gitea,
             test_dir,
             git_client,
+            repo,
         }
     }
 
     pub fn run_release_pr(&self) -> Assert {
-        let log_level = if std::env::var("ENABLE_LOGS").is_ok() {
-            "DEBUG,hyper=INFO"
-        } else {
-            "ERROR"
-        };
         super::cmd::release_plz_cmd()
             .current_dir(&self.repo_dir())
-            .env("RUST_LOG", log_level)
+            .env("RUST_LOG", log_level())
             .arg("release-pr")
             .arg("--verbose")
             .arg("--git-token")
@@ -70,15 +67,9 @@ impl TestContext {
     }
 
     pub fn run_release(&self) -> Assert {
-        let log_level = if std::env::var("ENABLE_LOGS").is_ok() {
-            "DEBUG,hyper=INFO"
-        } else {
-            "ERROR"
-        };
-
         super::cmd::release_plz_cmd()
             .current_dir(&self.repo_dir())
-            .env("RUST_LOG", log_level)
+            .env("RUST_LOG", log_level())
             .arg("release")
             .arg("--verbose")
             .arg("--git-token")
@@ -98,6 +89,21 @@ impl TestContext {
 
     pub async fn opened_release_prs(&self) -> Vec<GitPr> {
         self.git_client.opened_prs(BRANCH_PREFIX).await.unwrap()
+    }
+
+    pub fn write_release_plz_toml(&self, content: &str) {
+        let release_plz_toml_path = self.repo_dir().join("release-plz.toml");
+        fs::write(release_plz_toml_path, content).unwrap();
+        self.repo.add_all_and_commit("add config file").unwrap();
+        self.repo.git(&["push"]).unwrap();
+    }
+}
+
+fn log_level() -> &'static str {
+    if std::env::var("ENABLE_LOGS").is_ok() {
+        "DEBUG,hyper=INFO"
+    } else {
+        "ERROR"
     }
 }
 
@@ -125,7 +131,7 @@ fn commit_cargo_init(repo_dir: &Path, gitea: &GiteaContext) -> Repo {
         .assert()
         .success();
 
-    repo.add_all_and_commit("Initial commit").unwrap();
+    repo.add_all_and_commit("cargo init").unwrap();
     repo.git(&["push"]).unwrap();
     repo
 }

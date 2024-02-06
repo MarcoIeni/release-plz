@@ -66,6 +66,34 @@ impl GiteaContext {
             .await
             .unwrap()
     }
+
+    pub async fn get_file_content(&self, branch: &str, file_path: &str) -> String {
+        use base64::Engine as _;
+        let request_path = format!("{}/contents/{}", self.repo_url(), file_path);
+        let response = self
+            .client
+            .get(&request_path)
+            .basic_auth(&self.user.username, Some(&self.user.password))
+            .query(&[("ref", branch)])
+            .send()
+            .await
+            .unwrap()
+            .ok_if_2xx()
+            .await
+            .unwrap()
+            .json::<Contents>()
+            .await
+            .unwrap();
+        let content = base64::engine::general_purpose::STANDARD
+            .decode(response.content.as_bytes())
+            .unwrap();
+        String::from_utf8(content).unwrap()
+    }
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct Contents {
+    pub content: String,
 }
 
 #[derive(Debug, serde::Deserialize)]
