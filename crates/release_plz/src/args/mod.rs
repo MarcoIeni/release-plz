@@ -7,6 +7,7 @@ mod update;
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
+use cargo_metadata::Metadata;
 use release_plz_core::CARGO_TOML;
 use tracing::info;
 
@@ -59,7 +60,11 @@ fn local_manifest(project_manifest: Option<&Path>) -> PathBuf {
     }
 }
 
-fn parse_config(config_path: Option<&Path>) -> anyhow::Result<Config> {
+fn parse_config(
+    config_path: Option<&Path>,
+    project_manifest: Option<&Path>,
+    cargo_metadata: &Metadata,
+) -> anyhow::Result<Config> {
     let (config, path) = if let Some(config_path) = config_path {
         match std::fs::read_to_string(config_path) {
             Ok(config) => (config, config_path),
@@ -71,20 +76,64 @@ fn parse_config(config_path: Option<&Path>) -> anyhow::Result<Config> {
             },
         }
     } else {
-        match first_file_contents([
+        let file_contents = first_file_contents([
             Path::new("release-plz.toml"),
             Path::new(".release-plz.toml"),
-        ])? {
-            Some((config, path)) => (config, path),
-            None => {
-                info!("release-plz config file not found, using default configuration");
-                return Ok(Config::default());
-            }
+        ])?;
+        if let Some(project_manifest) = project_manifest
+            .or(Some(Path::new(CARGO_TOML)))
+            .filter(|v| v.exists())
+        {
+            return match parse_config_from_metadata(cargo_metadata)? {
+                Some(config) => {
+                    if file_contents.is_some() {
+                        return Err(anyhow::anyhow!(
+                            "configuration is both specified as file and metadata"
+                        ));
+                    }
+                    info!(
+                        "using configuration from metadata in {:?}",
+                        project_manifest
+                    );
+                    Ok(config)
+                }
+                None => Ok(Config::default()),
+            };
+        }
+        if let Some((config, path)) = file_contents {
+            (config, path)
+        } else {
+            info!("release-plz config file not found, using default configuration");
+            return Ok(Config::default());
         }
     };
 
     info!("using release-plz config file {}", path.display());
     toml::from_str(&config).with_context(|| format!("invalid config file {config_path:?}"))
+}
+
+fn parse_config_from_metadata(metadata: &Metadata) -> anyhow::Result<Option<Config>> {
+    // check both workspace and package metadata
+    for metadata in [
+        Some(metadata.clone().workspace_metadata),
+        metadata.packages.first().map(|v| v.metadata.clone()),
+    ]
+    .into_iter()
+    .filter(|v| v.clone().is_some_and(|v| !v.is_null()))
+    {
+        if let Some(metadata) = metadata
+            // safe to unwrap() since it is checked above
+            .unwrap()
+            .as_object()
+            .ok_or_else(|| anyhow::anyhow!("failed to convert metadata to object"))?
+            .get("release-plz")
+        {
+            let config: Config = serde_json::from_value(metadata.clone())
+                .context("failed to parse config from metadata")?;
+            return Ok(Some(config));
+        }
+    }
+    Ok(None)
 }
 
 /// Returns the contents of the first file that exists.
