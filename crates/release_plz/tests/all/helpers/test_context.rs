@@ -26,6 +26,7 @@ pub struct TestContext {
     test_dir: TempDir,
     /// Release-plz git client. It's here just for code reuse.
     git_client: GitClient,
+    repo: Repo,
 }
 
 impl TestContext {
@@ -41,11 +42,12 @@ impl TestContext {
         let git_client = git_client(&repo_url, &gitea.token);
 
         let repo_dir = test_dir.path().join(&gitea.repo);
-        let _repo = commit_cargo_init(&repo_dir, &gitea);
+        let repo = commit_cargo_init(&repo_dir, &gitea);
         Self {
             gitea,
             test_dir,
             git_client,
+            repo,
         }
     }
 
@@ -92,8 +94,8 @@ impl TestContext {
     pub fn write_release_plz_toml(&self, content: &str) {
         let release_plz_toml_path = self.repo_dir().join("release-plz.toml");
         fs::write(release_plz_toml_path, content).unwrap();
-        let repo = Repo::new(self.repo_dir()).unwrap();
-        repo.add_all_and_commit("add config file").unwrap();
+        self.repo.add_all_and_commit("add config file").unwrap();
+        self.repo.git(&["push"]).unwrap();
     }
 }
 
