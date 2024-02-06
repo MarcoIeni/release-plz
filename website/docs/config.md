@@ -315,6 +315,20 @@ Note that [cargo-semver-checks] only works with packages containing a library.
 
 This field can be overridden in the [`[package]`](#the-package-section) section.
 
+#### The `tag_name` field
+
+[Tera template](https://keats.github.io/tera/docs/#templates) of the git tags that release-plz creates.
+
+By default, it's:
+
+```toml
+tag_name = "{{ package }}v{{ version }}"
+```
+
+Where:
+- `{{ package }}` is the name of the package.
+- `{{ version }}` is the new version of the package.
+
 ### The `[[package]]` section
 
 In this section, you can override some of the `workspace` fields for specific packages.
@@ -417,8 +431,9 @@ Overrides the [`workspace.release`](#the-release-field) field.
 
 By default, release-plz runs [cargo-semver-checks] if the package is a library.
 
-[cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
-[git-cliff]: https://git-cliff.org
+#### The `tag_name` field (`package` section)
+
+Overrides the [`workspace.tag_name`](#the-tag_name-field) field.
 
 ### The `[changelog]` section
 
@@ -657,3 +672,6 @@ link_parsers = [
 ```
 
 The extracted links can be used in the [body](#the-body-field) with the `commits.links` variable.
+
+[cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
+[git-cliff]: https://git-cliff.org
