@@ -67,27 +67,33 @@ impl GiteaContext {
             .unwrap()
     }
 
-    pub async fn get_file_content_in_pr(
-        &self,
-        pr_number: u64,
-        file_path: &str,
-    ) -> anyhow::Result<String> {
+    pub async fn get_file_content(&self, branch: &str, file_path: &str) -> String {
+        use base64::Engine as _;
         let request_path = format!("{}/contents/{}", self.repo_url(), file_path);
         let response = self
             .client
             .get(&request_path)
             .basic_auth(&self.user.username, Some(&self.user.password))
-            .query(&[("ref", "todo: release-plz branch")])
+            .query(&[("ref", branch)])
             .send()
             .await
             .unwrap()
             .ok_if_2xx()
             .await
             .unwrap()
-            .json::<Vec<todo>>()
+            .json::<Contents>()
             .await
             .unwrap();
+        let content = base64::engine::general_purpose::STANDARD
+            .decode(response.content.as_bytes())
+            .unwrap();
+        String::from_utf8(content).unwrap()
     }
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct Contents {
+    pub content: String,
 }
 
 #[derive(Debug, serde::Deserialize)]

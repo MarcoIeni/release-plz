@@ -57,11 +57,10 @@ async fn release_plz_adds_custom_changelog() {
     let opened_prs = context.opened_release_prs().await;
     assert_eq!(opened_prs.len(), 1);
 
-    let changed_files = context
+    let changelog = context
         .gitea
-        .changed_files_in_pr(opened_prs[0].number)
+        .get_file_content(opened_prs[0].branch(), "CHANGELOG.md")
         .await;
-    assert_eq!(changed_files.len(), 1);
-    assert_eq!(changed_files[0].filename, "CHANGELOG.md");
-    // todo: assert that the changelog has the custom header.
+    expect_test::expect!["Changelog"]
+    .assert_eq(&changelog);
 }

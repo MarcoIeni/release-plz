@@ -92,8 +92,9 @@ impl TestContext {
     pub fn write_release_plz_toml(&self, content: &str) {
         let release_plz_toml_path = self.repo_dir().join("release-plz.toml");
         fs::write(release_plz_toml_path, content).unwrap();
+        let repo = Repo::new(self.repo_dir()).unwrap();
+        repo.add_all_and_commit("add config file").unwrap();
     }
-
 }
 
 fn log_level() -> &'static str {
