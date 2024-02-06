@@ -32,6 +32,11 @@ If there's already an open release PR:
   Release-plz also closes the release PR when it cannot update it
   (for example, the force-push fails due to merge conflicts).
 
+:::info
+`release-plz release-pr -p <package>` doesn't open a PR per package.
+Instead, release-plz overrides the existing release PR with the changes of the specified package.
+:::
+
 ## Gitea
 
 `release-plz release-pr` also supports creating PRs for repositories hosted on
