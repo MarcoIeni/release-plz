@@ -330,6 +330,7 @@ tag_name = "{{ package }}v{{ version }}"
 
 Where:
 - `{{ package }}` is the name of the package.
+  It is set to `""` if the workspace has only one package.
 - `{{ version }}` is the new version of the package.
 
 ### The `[[package]]` section
