@@ -61,6 +61,5 @@ async fn release_plz_adds_custom_changelog() {
         .gitea
         .get_file_content(opened_prs[0].branch(), "CHANGELOG.md")
         .await;
-    expect_test::expect!["Changelog"]
-    .assert_eq(&changelog);
+    expect_test::expect!["Changelog"].assert_eq(&changelog);
 }
