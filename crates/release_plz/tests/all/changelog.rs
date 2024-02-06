@@ -48,7 +48,21 @@ async fn release_plz_adds_custom_changelog() {
     let context = TestContext::new().await;
     let config = r#"
     [changelog]
-    header = "Changelog"
+    header = "Changelog\n\n"
+    body = """
+    == [{{ version }}]
+    {% for group, commits in commits | group_by(attribute="group") %}
+    === {{ group | upper_first }}
+    {% for commit in commits %}
+    {%- if commit.scope -%}
+    - *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
+    {% else -%}
+    - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
+    {% endif -%}
+    {% endfor -%}
+    {% endfor %}"
+    """
+    trim = true
     "#;
     context.write_release_plz_toml(config);
 
@@ -61,5 +75,16 @@ async fn release_plz_adds_custom_changelog() {
         .gitea
         .get_file_content(opened_prs[0].branch(), "CHANGELOG.md")
         .await;
-    expect_test::expect!["Changelog"].assert_eq(&changelog);
+    expect_test::expect![[r#"
+        Changelog
+
+        == [0.1.0]
+
+        === Other
+        - add config file
+        - cargo init
+        - Initial commit
+        "
+    "#]]
+    .assert_eq(&changelog);
 }

@@ -131,7 +131,7 @@ fn commit_cargo_init(repo_dir: &Path, gitea: &GiteaContext) -> Repo {
         .assert()
         .success();
 
-    repo.add_all_and_commit("Initial commit").unwrap();
+    repo.add_all_and_commit("cargo init").unwrap();
     repo.git(&["push"]).unwrap();
     repo
 }
