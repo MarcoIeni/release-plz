@@ -320,6 +320,7 @@ This field can be overridden in the [`[package]`](#the-package-section) section.
 #### The `tag_name` field
 
 [Tera template](https://keats.github.io/tera/docs/#templates) of the git tags that release-plz creates.
+Use this to customize the git tags name pattern.
 
 By default, it's:
 

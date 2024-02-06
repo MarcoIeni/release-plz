@@ -248,6 +248,9 @@ pub struct PackageConfig {
     /// # Release
     /// Used to toggle off the update/release process for a workspace or package.
     pub release: Option<bool>,
+    /// # Tag name
+    /// Template for the git tag created by release-plz.
+    pub tag_name: Option<String>,
 }
 
 impl From<PackageConfig> for release_plz_core::UpdateConfig {
@@ -256,6 +259,7 @@ impl From<PackageConfig> for release_plz_core::UpdateConfig {
             semver_check: config.semver_check != Some(false),
             changelog_update: config.changelog_update != Some(false),
             release: config.release != Some(false),
+            tag_name: config.tag_name
         }
     }
 }
@@ -285,6 +289,7 @@ impl PackageConfig {
             publish_no_verify: self.publish_no_verify.or(default.publish_no_verify),
             git_tag_enable: self.git_tag_enable.or(default.git_tag_enable),
             release: self.release.or(default.release),
+            tag_name: self.tag_name.or(default.tag_name),
         }
     }
 }

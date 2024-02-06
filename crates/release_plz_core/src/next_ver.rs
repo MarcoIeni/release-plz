@@ -116,6 +116,8 @@ pub struct UpdateConfig {
     pub changelog_update: bool,
     /// High-level toggle to process this package or ignore it.
     pub release: bool,
+    /// Template for the git tag created by release-plz.
+    pub tag_name: Option<String>,
 }
 
 /// Package-specific config
@@ -149,6 +151,7 @@ impl Default for UpdateConfig {
             semver_check: true,
             changelog_update: true,
             release: true,
+            tag_name: Some("{{ package }}v{{ version }}".to_string()),
         }
     }
 }
