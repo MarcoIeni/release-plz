@@ -37,13 +37,13 @@ use tracing::{debug, info, instrument, warn};
 pub(crate) const NO_COMMIT_ID: &str = "0000000";
 
 #[derive(Debug)]
-pub struct RequestReleaseMetadata {
+pub struct ReleaseMetadata {
     /// Template for the git tag created by release-plz.
     pub tag_name: Option<String>,
 }
 
-pub trait RequestReleaseMetadataBuilder {
-    fn get_release_metadata(&self, package_name: &str) -> Option<RequestReleaseMetadata>;
+pub trait ReleaseMetadataBuilder {
+    fn get_release_metadata(&self, package_name: &str) -> Option<ReleaseMetadata>;
 }
 
 #[derive(Debug, Clone)]
@@ -328,11 +328,11 @@ impl UpdateRequest {
     }
 }
 
-impl RequestReleaseMetadataBuilder for UpdateRequest {
-    fn get_release_metadata(&self, package_name: &str) -> Option<RequestReleaseMetadata> {
+impl ReleaseMetadataBuilder for UpdateRequest {
+    fn get_release_metadata(&self, package_name: &str) -> Option<ReleaseMetadata> {
         let config = self.get_package_config(package_name);
         if config.generic.release {
-            Some(RequestReleaseMetadata {
+            Some(ReleaseMetadata {
                 tag_name: config.generic.tag_name.clone(),
             })
         } else {
@@ -399,7 +399,7 @@ pub struct Project {
     /// Publishable packages.
     packages: Vec<Package>,
     /// Metadata for each release enabled package.
-    release_metadata: HashMap<String, RequestReleaseMetadata>,
+    release_metadata: HashMap<String, ReleaseMetadata>,
     /// Project root directory
     root: PathBuf,
     /// Directory containing the project manifest
@@ -415,7 +415,7 @@ impl Project {
         single_package: Option<&str>,
         overrides: HashSet<String>,
         metadata: &Metadata,
-        request_release_metadata_builder: &dyn RequestReleaseMetadataBuilder,
+        release_metadata_builder: &dyn ReleaseMetadataBuilder,
     ) -> anyhow::Result<Self> {
         let manifest = local_manifest;
         let manifest_dir = manifest_dir(manifest)?.to_path_buf();
@@ -431,7 +431,8 @@ impl Project {
         let mut all_packages_names = vec![];
         for package in workspace_packages(metadata)? {
             all_packages_names.push(package.name.clone());
-            if let Some(meta) = request_release_metadata_builder.get_release_metadata(&package.name) {
+            if let Some(meta) = release_metadata_builder.get_release_metadata(&package.name)
+            {
                 release_metadata.insert(package.name.clone(), meta);
                 packages.push(package);
             }
@@ -1174,7 +1175,7 @@ mod tests {
 
     use super::*;
     use super::{check_for_typos, Project};
-    use crate::RequestReleaseMetadataBuilder;
+    use crate::ReleaseMetadataBuilder;
     use std::{collections::HashSet, path::Path};
 
     fn get_project(
@@ -1186,7 +1187,7 @@ mod tests {
     ) -> anyhow::Result<Project> {
         let metadata = get_manifest_metadata(local_manifest).unwrap();
         let request_release_metadata_builder =
-            RequestReleaseMetadataBuilderStub::new(is_release_enabled, tag_name);
+            ReleaseMetadataBuilderStub::new(is_release_enabled, tag_name);
         Project::new(
             local_manifest,
             single_package,
@@ -1196,21 +1197,21 @@ mod tests {
         )
     }
 
-    struct RequestReleaseMetadataBuilderStub {
+    struct ReleaseMetadataBuilderStub {
         release: bool,
         tag_name: Option<String>,
     }
 
-    impl RequestReleaseMetadataBuilderStub {
+    impl ReleaseMetadataBuilderStub {
         pub fn new(release: bool, tag_name: Option<String>) -> Self {
             Self { release, tag_name }
         }
     }
 
-    impl RequestReleaseMetadataBuilder for RequestReleaseMetadataBuilderStub {
-        fn get_release_metadata(&self, _package_name: &str) -> Option<RequestReleaseMetadata> {
+    impl ReleaseMetadataBuilder for ReleaseMetadataBuilderStub {
+        fn get_release_metadata(&self, _package_name: &str) -> Option<ReleaseMetadata> {
             if self.release {
-                Some(RequestReleaseMetadata {
+                Some(ReleaseMetadata {
                     tag_name: self.tag_name.clone(),
                 })
             } else {
