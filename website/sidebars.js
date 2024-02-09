@@ -47,7 +47,7 @@ const sidebars = {
       label: "Extra",
       collapsed: false,
       link: { type: "doc", id: "extra/index" },
-      items: ["extra/releasing-binaries", "extra/single-changelog", "extra/yanked-packages"],
+      items: ["extra/releasing-binaries", "extra/single-changelog", "extra/single-tag", "extra/yanked-packages"],
     },
   ],
 };
