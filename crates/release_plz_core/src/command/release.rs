@@ -156,7 +156,7 @@ impl ReleaseRequest {
 }
 
 impl RequestReleaseMetadataBuilder for ReleaseRequest {
-    fn get_release_meta(&self, package_name: &str) -> Option<RequestReleaseMetadata> {
+    fn get_release_metadata(&self, package_name: &str) -> Option<RequestReleaseMetadata> {
         let config = self.get_package_config(package_name);
         if config.generic.release {
             Some(RequestReleaseMetadata {

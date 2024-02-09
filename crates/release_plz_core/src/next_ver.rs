@@ -43,7 +43,7 @@ pub struct RequestReleaseMetadata {
 }
 
 pub trait RequestReleaseMetadataBuilder {
-    fn get_release_meta(&self, package_name: &str) -> Option<RequestReleaseMetadata>;
+    fn get_release_metadata(&self, package_name: &str) -> Option<RequestReleaseMetadata>;
 }
 
 #[derive(Debug, Clone)]
@@ -329,7 +329,7 @@ impl UpdateRequest {
 }
 
 impl RequestReleaseMetadataBuilder for UpdateRequest {
-    fn get_release_meta(&self, package_name: &str) -> Option<RequestReleaseMetadata> {
+    fn get_release_metadata(&self, package_name: &str) -> Option<RequestReleaseMetadata> {
         let config = self.get_package_config(package_name);
         if config.generic.release {
             Some(RequestReleaseMetadata {
@@ -431,7 +431,7 @@ impl Project {
         let mut all_packages_names = vec![];
         for package in workspace_packages(metadata)? {
             all_packages_names.push(package.name.clone());
-            if let Some(meta) = request_release_validator.get_release_meta(&package.name) {
+            if let Some(meta) = request_release_validator.get_release_metadata(&package.name) {
                 release_metadata.insert(package.name.clone(), meta);
                 packages.push(package);
             }
@@ -1208,7 +1208,7 @@ mod tests {
     }
 
     impl RequestReleaseMetadataBuilder for RequestReleaseValidatorStub {
-        fn get_release_meta(&self, _package_name: &str) -> Option<RequestReleaseMetadata> {
+        fn get_release_metadata(&self, _package_name: &str) -> Option<RequestReleaseMetadata> {
             if self.release {
                 Some(RequestReleaseMetadata {
                     tag_name: self.tag_name.clone(),
