@@ -1194,14 +1194,14 @@ mod tests {
         tag_name: Option<String>,
     ) -> anyhow::Result<Project> {
         let metadata = get_manifest_metadata(local_manifest).unwrap();
-        let request_release_metadata_builder =
+        let release_metadata_builder =
             ReleaseMetadataBuilderStub::new(is_release_enabled, tag_name);
         Project::new(
             local_manifest,
             single_package,
             overrides,
             &metadata,
-            &request_release_metadata_builder,
+            &release_metadata_builder,
         )
     }
 
