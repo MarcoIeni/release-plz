@@ -61,6 +61,7 @@ the following sections:
   - [`git_release_type`](#the-git_release_type-field) — Publish mode for git release.
   - [`git_release_draft`](#the-git_release_draft-field) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field) — Enable git tag.
+  - [`git_tag_name`](#the-git_tag_name-field) — Customize git tag pattern.
   - [`pr_draft`](#the-pr_draft-field) — Open the release Pull Request as a draft.
   - [`pr_labels`](#the-pr_labels-field) — Add labels to the release Pull Request.
   - [`publish`](#the-publish-field) — Publish to cargo registry.
@@ -79,7 +80,7 @@ the following sections:
   - [`git_release_type`](#the-git_release_type-field-package-section) — Git release type.
   - [`git_release_draft`](#the-git_release_draft-field-package-section) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field-package-section) — Enable git tag.
-  - [`git_tag_name`](#the-git_tag_name-field) — Customize git tag by Tera template.
+  - [`git_tag_name`](#the-git_tag_name-field-package-section) — Customize git tag pattern.
   - [`publish`](#the-publish-field-package-section) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field-package-section) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field-package-section) — Don't verify package build.
@@ -207,9 +208,14 @@ Supported values are:
 [Tera template](https://keats.github.io/tera/docs/#templates) of the git tags that release-plz creates.
 Use this to customize the git tags name pattern.
 
-By default, it's: "{{ package }}-v{{ version }}" with workspace, or "v{{ version }}" with single project.
+By default, it's:
+
+- `"{{ package }}-v{{ version }}"` for workspaces containing more than one public package
+- `"v{{ version }}"` for projects containing a single crate or
+  workspaces containing just one public package.
 
 Where:
+
 - `{{ package }}` is the name of the package.
 - `{{ version }}` is the new version of the package.
 
