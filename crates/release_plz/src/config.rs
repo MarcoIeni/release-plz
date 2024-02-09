@@ -263,7 +263,7 @@ impl From<PackageConfig> for release_plz_core::UpdateConfig {
             semver_check: config.semver_check != Some(false),
             changelog_update: config.changelog_update != Some(false),
             release: config.release != Some(false),
-            tag_name: config.git_tag_name,
+            tag_name_template: config.git_tag_name,
         }
     }
 }

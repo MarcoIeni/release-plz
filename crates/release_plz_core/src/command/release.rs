@@ -159,7 +159,7 @@ impl ReleaseMetadataBuilder for ReleaseRequest {
         let config = self.get_package_config(package_name);
         if config.generic.release {
             Some(ReleaseMetadata {
-                tag_name: config.generic.git_tag.name_template.clone(),
+                tag_name_template: config.generic.git_tag.name_template.clone(),
             })
         } else {
             None

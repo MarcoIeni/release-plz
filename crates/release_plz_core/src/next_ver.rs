@@ -39,7 +39,7 @@ pub(crate) const NO_COMMIT_ID: &str = "0000000";
 #[derive(Debug)]
 pub struct ReleaseMetadata {
     /// Template for the git tag created by release-plz.
-    pub tag_name: Option<String>,
+    pub tag_name_template: Option<String>,
 }
 
 pub trait ReleaseMetadataBuilder {
@@ -123,7 +123,7 @@ pub struct UpdateConfig {
     /// High-level toggle to process this package or ignore it.
     pub release: bool,
     /// Template for the git tag created by release-plz.
-    pub tag_name: Option<String>,
+    pub tag_name_template: Option<String>,
 }
 
 /// Package-specific config
@@ -157,7 +157,7 @@ impl Default for UpdateConfig {
             semver_check: true,
             changelog_update: true,
             release: true,
-            tag_name: None,
+            tag_name_template: None,
         }
     }
 }
@@ -333,7 +333,7 @@ impl ReleaseMetadataBuilder for UpdateRequest {
         let config = self.get_package_config(package_name);
         if config.generic.release {
             Some(ReleaseMetadata {
-                tag_name: config.generic.tag_name.clone(),
+                tag_name_template: config.generic.tag_name_template.clone(),
             })
         } else {
             None
@@ -498,7 +498,7 @@ impl Project {
         let tag_template = self
             .release_metadata
             .get(package_name)
-            .and_then(|m| m.tag_name.as_deref())
+            .and_then(|m| m.tag_name_template.as_deref())
             .unwrap_or({
                 if self.contains_multiple_pub_packages {
                     "{{ package }}-v{{ version }}"
@@ -1218,7 +1218,7 @@ mod tests {
         fn get_release_metadata(&self, _package_name: &str) -> Option<ReleaseMetadata> {
             if self.release {
                 Some(ReleaseMetadata {
-                    tag_name: self.tag_name.clone(),
+                    tag_name_template: self.tag_name.clone(),
                 })
             } else {
                 None
