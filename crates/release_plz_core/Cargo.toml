@@ -46,6 +46,7 @@ serde_json.workspace = true
 strip-ansi-escapes.workspace = true
 tokio = { workspace = true, features = ["fs"] }
 http.workspace = true
+tera = "1.19.1"
 
 [dev-dependencies]
 git_cmd = { path = "../git_cmd", features = ["test_fixture"] }

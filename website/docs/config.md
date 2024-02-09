@@ -79,6 +79,7 @@ the following sections:
   - [`git_release_type`](#the-git_release_type-field-package-section) — Git release type.
   - [`git_release_draft`](#the-git_release_draft-field-package-section) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field-package-section) — Enable git tag.
+  - [`git_tag_name`](#the-git_tag_name-field) — Customize git tag by Tera template.
   - [`publish`](#the-publish-field-package-section) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field-package-section) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field-package-section) — Don't verify package build.
@@ -200,6 +201,17 @@ Supported values are:
 - If `true`, release-plz creates a git tag for the new package version. *(Default)*.
 - If `false`, release-plz doesn't create a git tag.
   Note: you can't create a git release without a git tag.
+
+#### The `git_tag_name` field
+
+[Tera template](https://keats.github.io/tera/docs/#templates) of the git tags that release-plz creates.
+Use this to customize the git tags name pattern.
+
+By default, it's: "{{ package }}-v{{ version }}" with workspace, or "v{{ version }}" with single project.
+
+Where:
+- `{{ package }}` is the name of the package.
+- `{{ version }}` is the new version of the package.
 
 #### The `pr_draft` field
 
@@ -392,6 +404,10 @@ Overrides the [`workspace.git_release_draft`](#the-git_release_draft-field) fiel
 #### The `git_tag_enable` field (`package` section)
 
 Overrides the [`workspace.git_tag_enable`](#the-git_tag_enable-field) field.
+
+#### The `git_tag_name` field (`package` section)
+
+Overrides the [`workspace.git_tag_name`](#the-git_tag_name-field) field.
 
 #### The `publish` field (`package` section)
 

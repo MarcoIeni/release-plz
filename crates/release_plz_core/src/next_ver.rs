@@ -36,8 +36,14 @@ use tracing::{debug, info, instrument, warn};
 // (Git-cliff assumes it's a valid commit ID).
 pub(crate) const NO_COMMIT_ID: &str = "0000000";
 
-pub trait RequestReleaseValidator {
-    fn is_release_enabled(&self, package_name: &str) -> bool;
+#[derive(Debug)]
+pub struct RequestReleaseMeta {
+    /// Template for the git tag created by release-plz.
+    pub tag_name: Option<String>,
+}
+
+pub trait RequestReleaseMetaBuilder {
+    fn get_release_meta(&self, package_name: &str) -> Option<RequestReleaseMeta>;
 }
 
 #[derive(Debug, Clone)]
@@ -116,6 +122,8 @@ pub struct UpdateConfig {
     pub changelog_update: bool,
     /// High-level toggle to process this package or ignore it.
     pub release: bool,
+    /// Template for the git tag created by release-plz.
+    pub tag_name: Option<String>,
 }
 
 /// Package-specific config
@@ -149,6 +157,7 @@ impl Default for UpdateConfig {
             semver_check: true,
             changelog_update: true,
             release: true,
+            tag_name: None,
         }
     }
 }
@@ -319,10 +328,16 @@ impl UpdateRequest {
     }
 }
 
-impl RequestReleaseValidator for UpdateRequest {
-    fn is_release_enabled(&self, package_name: &str) -> bool {
+impl RequestReleaseMetaBuilder for UpdateRequest {
+    fn get_release_meta(&self, package_name: &str) -> Option<RequestReleaseMeta> {
         let config = self.get_package_config(package_name);
-        config.generic.release
+        if config.generic.release {
+            Some(RequestReleaseMeta {
+                tag_name: config.generic.tag_name.clone(),
+            })
+        } else {
+            None
+        }
     }
 }
 
@@ -383,6 +398,8 @@ fn check_for_typos(packages: &HashSet<String>, overrides: &HashSet<String>) -> a
 pub struct Project {
     /// Publishable packages.
     packages: Vec<Package>,
+    /// Metadata for each release enabled package.
+    release_metadata: HashMap<String, RequestReleaseMeta>,
     /// Project root directory
     root: PathBuf,
     /// Directory containing the project manifest
@@ -398,7 +415,7 @@ impl Project {
         single_package: Option<&str>,
         overrides: HashSet<String>,
         metadata: &Metadata,
-        request_release_validator: &dyn RequestReleaseValidator,
+        request_release_validator: &dyn RequestReleaseMetaBuilder,
     ) -> anyhow::Result<Self> {
         let manifest = local_manifest;
         let manifest_dir = manifest_dir(manifest)?.to_path_buf();
@@ -409,13 +426,20 @@ impl Project {
             PathBuf::from(project_root)
         };
         debug!("project_root: {root:?}");
-        let mut packages = workspace_packages(metadata)?;
+        let mut packages = vec![];
+        let mut release_metadata = HashMap::new();
+        let mut all_packages_names = vec![];
+        for package in workspace_packages(metadata)? {
+            all_packages_names.push(package.name.clone());
+            if let Some(meta) = request_release_validator.get_release_meta(&package.name) {
+                release_metadata.insert(package.name.clone(), meta);
+                packages.push(package);
+            }
+        }
         override_packages_path(&mut packages, metadata, &manifest_dir)
             .context("failed to override packages path")?;
 
-        let packages_names: Vec<String> = packages.iter().map(|p| p.name.clone()).collect();
-        packages.retain(|p| request_release_validator.is_release_enabled(&p.name));
-        anyhow::ensure!(!packages.is_empty(), "no public packages found. Are there any public packages in your project? Analyzed packages: {packages_names:?}");
+        anyhow::ensure!(!packages.is_empty(), "no public packages found. Are there any public packages in your project? Analyzed packages: {all_packages_names:?}");
 
         check_overrides_typos(&packages, &overrides)?;
         let contains_multiple_pub_packages = packages.len() > 1;
@@ -431,6 +455,7 @@ impl Project {
 
         Ok(Self {
             packages,
+            release_metadata,
             root,
             manifest_dir,
             contains_multiple_pub_packages,
@@ -467,11 +492,28 @@ impl Project {
     }
 
     pub fn git_tag(&self, package_name: &str, version: &str) -> String {
-        if self.contains_multiple_pub_packages {
-            format!("{package_name}-v{version}")
+        let mut tera = tera::Tera::default();
+        let mut context = tera::Context::new();
+        context.insert("package", package_name);
+        context.insert("version", version);
+
+        if let Some(Some(tag_template)) =
+            self.release_metadata.get(package_name).map(|m| &m.tag_name)
+        {
+            tera.add_raw_template("tag_name", tag_template)
+                .expect("failed to add raw template");
         } else {
-            format!("v{version}")
+            if self.contains_multiple_pub_packages {
+                tera.add_raw_template("tag_name", "{{ package }}-v{{ version }}")
+                    .expect("failed to add raw template");
+            } else {
+                tera.add_raw_template("tag_name", "v{{ version }}")
+                    .expect("failed to add raw template");
+            }
         }
+
+        tera.render("tag_name", &context)
+            .expect("failed to render tag name")
     }
 
     pub fn cargo_lock_path(&self) -> PathBuf {
@@ -1134,7 +1176,7 @@ mod tests {
 
     use super::*;
     use super::{check_for_typos, Project};
-    use crate::RequestReleaseValidator;
+    use crate::RequestReleaseMetaBuilder;
     use std::{collections::HashSet, path::Path};
 
     fn get_project(
@@ -1142,9 +1184,11 @@ mod tests {
         single_package: Option<&str>,
         overrides: HashSet<String>,
         is_release_enabled: bool,
+        tag_name: Option<String>,
     ) -> anyhow::Result<Project> {
         let metadata = get_manifest_metadata(local_manifest).unwrap();
-        let request_release_validator = RequestReleaseValidatorStub::new(is_release_enabled);
+        let request_release_validator =
+            RequestReleaseValidatorStub::new(is_release_enabled, tag_name);
         Project::new(
             local_manifest,
             single_package,
@@ -1156,17 +1200,24 @@ mod tests {
 
     struct RequestReleaseValidatorStub {
         release: bool,
+        tag_name: Option<String>,
     }
 
     impl RequestReleaseValidatorStub {
-        pub fn new(release: bool) -> Self {
-            Self { release }
+        pub fn new(release: bool, tag_name: Option<String>) -> Self {
+            Self { release, tag_name }
         }
     }
 
-    impl RequestReleaseValidator for RequestReleaseValidatorStub {
-        fn is_release_enabled(&self, _: &str) -> bool {
-            self.release
+    impl RequestReleaseMetaBuilder for RequestReleaseValidatorStub {
+        fn get_release_meta(&self, _package_name: &str) -> Option<RequestReleaseMeta> {
+            if self.release {
+                Some(RequestReleaseMeta {
+                    tag_name: self.tag_name.clone(),
+                })
+            } else {
+                None
+            }
         }
     }
 
@@ -1184,7 +1235,7 @@ mod tests {
     #[test]
     fn test_empty_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
-        let result = get_project(local_manifest, None, HashSet::default(), true);
+        let result = get_project(local_manifest, None, HashSet::default(), true, None);
         assert!(result.is_ok());
     }
 
@@ -1192,7 +1243,7 @@ mod tests {
     fn test_successful_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let overrides = (["typo_test".to_string()]).into();
-        let result = get_project(local_manifest, None, overrides, true);
+        let result = get_project(local_manifest, None, overrides, true, None);
         assert!(result.is_ok());
     }
 
@@ -1201,7 +1252,7 @@ mod tests {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let single_package = None;
         let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
-        let result = get_project(local_manifest, single_package, overrides, true);
+        let result = get_project(local_manifest, single_package, overrides, true, None);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
@@ -1241,9 +1292,34 @@ mod tests {
     #[test]
     fn project_new_no_release_will_error() {
         let local_manifest = Path::new("../fake_package/Cargo.toml");
-        let result = get_project(local_manifest, None, HashSet::default(), false);
+        let result = get_project(local_manifest, None, HashSet::default(), false, None);
         assert!(result.is_err());
         expect_test::expect![[r#"no public packages found. Are there any public packages in your project? Analyzed packages: ["cargo_utils", "fake_package", "git_cmd", "test_logs", "next_version", "release-plz", "release_plz_core"]"#]]
         .assert_eq(&result.unwrap_err().to_string());
+    }
+
+    #[test]
+    fn project_tag_template_none() {
+        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let project =
+            get_project(local_manifest, None, HashSet::default(), true, None).expect("Should ok");
+        assert_eq!(project.git_tag("typo_test", "0.1.0"), "v0.1.0");
+    }
+
+    #[test]
+    fn project_tag_template_some() {
+        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let project = get_project(
+            local_manifest,
+            None,
+            HashSet::default(),
+            true,
+            Some("prefix-{{ package }}-middle-{{ version }}-postfix".to_string()),
+        )
+        .expect("Should ok");
+        assert_eq!(
+            project.git_tag("typo_test", "0.1.0"),
+            "prefix-typo_test-middle-0.1.0-postfix"
+        );
     }
 }

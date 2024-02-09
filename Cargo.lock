@@ -4228,6 +4228,7 @@ dependencies = [
  "serde_json",
  "strip-ansi-escapes",
  "tempfile",
+ "tera",
  "test_logs",
  "tokio",
  "toml 0.8.8",
