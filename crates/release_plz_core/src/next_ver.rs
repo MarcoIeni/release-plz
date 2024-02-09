@@ -502,14 +502,12 @@ impl Project {
         {
             tera.add_raw_template("tag_name", tag_template)
                 .expect("failed to add raw template");
+        } else if self.contains_multiple_pub_packages {
+            tera.add_raw_template("tag_name", "{{ package }}-v{{ version }}")
+                .expect("failed to add raw template");
         } else {
-            if self.contains_multiple_pub_packages {
-                tera.add_raw_template("tag_name", "{{ package }}-v{{ version }}")
-                    .expect("failed to add raw template");
-            } else {
-                tera.add_raw_template("tag_name", "v{{ version }}")
-                    .expect("failed to add raw template");
-            }
+            tera.add_raw_template("tag_name", "v{{ version }}")
+                .expect("failed to add raw template");
         }
 
         tera.render("tag_name", &context)
