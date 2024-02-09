@@ -37,13 +37,13 @@ use tracing::{debug, info, instrument, warn};
 pub(crate) const NO_COMMIT_ID: &str = "0000000";
 
 #[derive(Debug)]
-pub struct RequestReleaseMeta {
+pub struct RequestReleaseMetadata {
     /// Template for the git tag created by release-plz.
     pub tag_name: Option<String>,
 }
 
-pub trait RequestReleaseMetaBuilder {
-    fn get_release_meta(&self, package_name: &str) -> Option<RequestReleaseMeta>;
+pub trait RequestReleaseMetadataBuilder {
+    fn get_release_meta(&self, package_name: &str) -> Option<RequestReleaseMetadata>;
 }
 
 #[derive(Debug, Clone)]
@@ -328,11 +328,11 @@ impl UpdateRequest {
     }
 }
 
-impl RequestReleaseMetaBuilder for UpdateRequest {
-    fn get_release_meta(&self, package_name: &str) -> Option<RequestReleaseMeta> {
+impl RequestReleaseMetadataBuilder for UpdateRequest {
+    fn get_release_meta(&self, package_name: &str) -> Option<RequestReleaseMetadata> {
         let config = self.get_package_config(package_name);
         if config.generic.release {
-            Some(RequestReleaseMeta {
+            Some(RequestReleaseMetadata {
                 tag_name: config.generic.tag_name.clone(),
             })
         } else {
@@ -399,7 +399,7 @@ pub struct Project {
     /// Publishable packages.
     packages: Vec<Package>,
     /// Metadata for each release enabled package.
-    release_metadata: HashMap<String, RequestReleaseMeta>,
+    release_metadata: HashMap<String, RequestReleaseMetadata>,
     /// Project root directory
     root: PathBuf,
     /// Directory containing the project manifest
@@ -415,7 +415,7 @@ impl Project {
         single_package: Option<&str>,
         overrides: HashSet<String>,
         metadata: &Metadata,
-        request_release_validator: &dyn RequestReleaseMetaBuilder,
+        request_release_validator: &dyn RequestReleaseMetadataBuilder,
     ) -> anyhow::Result<Self> {
         let manifest = local_manifest;
         let manifest_dir = manifest_dir(manifest)?.to_path_buf();
@@ -1174,7 +1174,7 @@ mod tests {
 
     use super::*;
     use super::{check_for_typos, Project};
-    use crate::RequestReleaseMetaBuilder;
+    use crate::RequestReleaseMetadataBuilder;
     use std::{collections::HashSet, path::Path};
 
     fn get_project(
@@ -1207,10 +1207,10 @@ mod tests {
         }
     }
 
-    impl RequestReleaseMetaBuilder for RequestReleaseValidatorStub {
-        fn get_release_meta(&self, _package_name: &str) -> Option<RequestReleaseMeta> {
+    impl RequestReleaseMetadataBuilder for RequestReleaseValidatorStub {
+        fn get_release_meta(&self, _package_name: &str) -> Option<RequestReleaseMetadata> {
             if self.release {
-                Some(RequestReleaseMeta {
+                Some(RequestReleaseMetadata {
                     tag_name: self.tag_name.clone(),
                 })
             } else {

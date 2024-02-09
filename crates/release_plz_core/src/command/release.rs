@@ -18,7 +18,7 @@ use crate::{
     changelog_parser,
     git::backend::GitClient,
     release_order::release_order,
-    GitBackend, PackagePath, Project, RequestReleaseMeta, RequestReleaseMetaBuilder,
+    GitBackend, PackagePath, Project, RequestReleaseMetadata, RequestReleaseMetadataBuilder,
     CHANGELOG_FILENAME,
 };
 
@@ -155,11 +155,11 @@ impl ReleaseRequest {
     }
 }
 
-impl RequestReleaseMetaBuilder for ReleaseRequest {
-    fn get_release_meta(&self, package_name: &str) -> Option<RequestReleaseMeta> {
+impl RequestReleaseMetadataBuilder for ReleaseRequest {
+    fn get_release_meta(&self, package_name: &str) -> Option<RequestReleaseMetadata> {
         let config = self.get_package_config(package_name);
         if config.generic.release {
-            Some(RequestReleaseMeta {
+            Some(RequestReleaseMetadata {
                 tag_name: config.generic.git_tag.name_template.clone(),
             })
         } else {
