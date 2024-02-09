@@ -303,7 +303,7 @@
         },
         "git_tag_name": {
           "title": "Git Tag Name",
-          "description": "The name of the tag. It can be a tera template.",
+          "description": "Tera template of the git tag name created by release-plz.",
           "type": [
             "string",
             "null"
@@ -490,7 +490,7 @@
         },
         "git_tag_name": {
           "title": "Git Tag Name",
-          "description": "The name of the tag. It can be a tera template.",
+          "description": "Tera template of the git tag name created by release-plz.",
           "type": [
             "string",
             "null"

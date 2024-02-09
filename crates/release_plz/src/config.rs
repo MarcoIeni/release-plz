@@ -237,7 +237,7 @@ pub struct PackageConfig {
     /// Enabled by default.
     pub git_tag_enable: Option<bool>,
     /// # Git Tag Name
-    /// The name of the tag. It can be a tera template.
+    /// Tera template of the git tag name created by release-plz.
     pub git_tag_name: Option<String>,
     /// # Publish
     /// If `Some(false)`, don't run `cargo publish`.
