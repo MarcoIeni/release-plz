@@ -426,20 +426,22 @@ impl Project {
             PathBuf::from(project_root)
         };
         debug!("project_root: {root:?}");
-        let mut packages = vec![];
+        let mut packages = workspace_packages(metadata)?;
         let mut release_metadata = HashMap::new();
-        let mut all_packages_names = vec![];
-        for package in workspace_packages(metadata)? {
-            all_packages_names.push(package.name.clone());
-            if let Some(meta) = release_metadata_builder.get_release_metadata(&package.name) {
-                release_metadata.insert(package.name.clone(), meta);
-                packages.push(package);
-            }
-        }
         override_packages_path(&mut packages, metadata, &manifest_dir)
             .context("failed to override packages path")?;
 
-        anyhow::ensure!(!packages.is_empty(), "no public packages found. Are there any public packages in your project? Analyzed packages: {all_packages_names:?}");
+        let packages_names: Vec<String> = packages.iter().map(|p| p.name.clone()).collect();
+        packages.retain(|p| {
+            let release_metadata =
+                release_metadata_builder
+                    .get_release_metadata(&p.name)
+                    .map(|m| {
+                        release_metadata.insert(p.name.clone(), m);
+                    });
+            release_metadata.is_some()
+        });
+        anyhow::ensure!(!packages.is_empty(), "no public packages found. Are there any public packages in your project? Analyzed packages: {packages_names:?}");
 
         check_overrides_typos(&packages, &overrides)?;
         let contains_multiple_pub_packages = packages.len() > 1;
