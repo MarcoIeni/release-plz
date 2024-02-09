@@ -18,7 +18,7 @@ use crate::{
     changelog_parser,
     git::backend::GitClient,
     release_order::release_order,
-    GitBackend, PackagePath, Project, RequestReleaseValidator, CHANGELOG_FILENAME,
+    GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, CHANGELOG_FILENAME,
 };
 
 #[derive(Debug)]
@@ -154,10 +154,16 @@ impl ReleaseRequest {
     }
 }
 
-impl RequestReleaseValidator for ReleaseRequest {
-    fn is_release_enabled(&self, package: &str) -> bool {
-        let config = self.get_package_config(package);
-        config.generic.release
+impl ReleaseMetadataBuilder for ReleaseRequest {
+    fn get_release_metadata(&self, package_name: &str) -> Option<ReleaseMetadata> {
+        let config = self.get_package_config(package_name);
+        if config.generic.release {
+            Some(ReleaseMetadata {
+                tag_name_template: config.generic.git_tag.name_template.clone(),
+            })
+        } else {
+            None
+        }
     }
 }
 
@@ -332,6 +338,7 @@ impl GitReleaseConfig {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GitTagConfig {
     enabled: bool,
+    name_template: Option<String>,
 }
 
 impl Default for GitTagConfig {
@@ -342,7 +349,15 @@ impl Default for GitTagConfig {
 
 impl GitTagConfig {
     pub fn enabled(enabled: bool) -> Self {
-        Self { enabled }
+        Self {
+            enabled,
+            name_template: None,
+        }
+    }
+
+    pub fn set_name_template(mut self, name_template: Option<String>) -> Self {
+        self.name_template = name_template;
+        self
     }
 
     pub fn is_enabled(&self) -> bool {

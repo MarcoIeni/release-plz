@@ -190,6 +190,7 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
             .map(|release_type| release_type.into())
             .unwrap_or_default();
         let is_git_tag_enabled = value.git_tag_enable != Some(false);
+        let git_tag_name = value.git_tag_name.clone();
         let release = value.release != Some(false);
         let mut cfg = Self::default()
             .with_publish(release_plz_core::PublishConfig::enabled(is_publish_enabled))
@@ -198,7 +199,10 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
                     .set_draft(is_git_release_draft)
                     .set_release_type(git_release_type),
             )
-            .with_git_tag(release_plz_core::GitTagConfig::enabled(is_git_tag_enabled))
+            .with_git_tag(
+                release_plz_core::GitTagConfig::enabled(is_git_tag_enabled)
+                    .set_name_template(git_tag_name),
+            )
             .with_release(release);
 
         if let Some(no_verify) = value.publish_no_verify {
@@ -232,6 +236,9 @@ pub struct PackageConfig {
     /// Publish the git tag for the new package version.
     /// Enabled by default.
     pub git_tag_enable: Option<bool>,
+    /// # Git Tag Name
+    /// Tera template of the git tag name created by release-plz.
+    pub git_tag_name: Option<String>,
     /// # Publish
     /// If `Some(false)`, don't run `cargo publish`.
     pub publish: Option<bool>,
@@ -256,6 +263,7 @@ impl From<PackageConfig> for release_plz_core::UpdateConfig {
             semver_check: config.semver_check != Some(false),
             changelog_update: config.changelog_update != Some(false),
             release: config.release != Some(false),
+            tag_name_template: config.git_tag_name,
         }
     }
 }
@@ -284,6 +292,7 @@ impl PackageConfig {
             publish_allow_dirty: self.publish_allow_dirty.or(default.publish_allow_dirty),
             publish_no_verify: self.publish_no_verify.or(default.publish_no_verify),
             git_tag_enable: self.git_tag_enable.or(default.git_tag_enable),
+            git_tag_name: self.git_tag_name.or(default.git_tag_name),
             release: self.release.or(default.release),
         }
     }

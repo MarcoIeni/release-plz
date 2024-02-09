@@ -44,6 +44,7 @@
         "git_release_enable": null,
         "git_release_type": null,
         "git_tag_enable": null,
+        "git_tag_name": null,
         "pr_draft": false,
         "pr_labels": [],
         "publish": null,
@@ -300,6 +301,14 @@
             "null"
           ]
         },
+        "git_tag_name": {
+          "title": "Git Tag Name",
+          "description": "Tera template of the git tag name created by release-plz.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "name": {
           "type": "string"
         },
@@ -476,6 +485,14 @@
           "description": "Publish the git tag for the new package version. Enabled by default.",
           "type": [
             "boolean",
+            "null"
+          ]
+        },
+        "git_tag_name": {
+          "title": "Git Tag Name",
+          "description": "Tera template of the git tag name created by release-plz.",
+          "type": [
+            "string",
             "null"
           ]
         },

@@ -26,7 +26,7 @@ pub struct TestContext {
     test_dir: TempDir,
     /// Release-plz git client. It's here just for code reuse.
     git_client: GitClient,
-    repo: Repo,
+    pub repo: Repo,
 }
 
 impl TestContext {
