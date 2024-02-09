@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.44](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.43...release-plz-v0.3.44) - 2024-02-09
+
+### Added
+- allow customizing git tag name with tera template ([#1256](https://github.com/MarcoIeni/release-plz/pull/1256))
+
 ## [0.3.43](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.42...release-plz-v0.3.43) - 2024-02-06
 
 ### Added
