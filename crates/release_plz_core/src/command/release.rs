@@ -531,6 +531,25 @@ pub struct GitReleaseInfo {
     pub pre_release: bool,
 }
 
+/// Return `Err` if the `CARGO_REGISTRY_TOKEN` environment variable is set to an empty string in CI.
+/// Reason:
+/// - If the token is set to an empty string, probably the user forgot to set the
+///   secret in GitHub actions.
+///   It is important to only check this before running a release because
+///   for bots like dependabot, secrets are not visible. So, there are PRs that don't
+///   need a release that don't have the token set.
+/// - If the token is unset, the user might want to log in to the registry
+///   with `cargo login`. Don't throw an error in this case.
+fn verify_ci_cargo_registry_token() -> anyhow::Result<()> {
+    let is_token_empty = std::env::var("CARGO_REGISTRY_TOKEN").map(|t| t.is_empty()) == Ok(true);
+    let is_environment_github_actions = std::env::var("GITHUB_ACTIONS").is_ok();
+    anyhow::ensure!(
+        !(is_environment_github_actions && is_token_empty),
+        "CARGO_REGISTRY_TOKEN environment variable is set to empty string. Please set your token in GitHub actions secrets. Docs: https://marcoieni.github.io/release-plz/github/index.html"
+    );
+    Ok(())
+}
+
 fn run_cargo_publish(
     package: &Package,
     input: &ReleaseRequest,
@@ -548,6 +567,8 @@ fn run_cargo_publish(
     if let Some(token) = &input.token {
         args.push("--token");
         args.push(token.expose_secret());
+    } else {
+        verify_ci_cargo_registry_token()?;
     }
     if input.dry_run {
         args.push("--dry-run");

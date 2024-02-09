@@ -169,11 +169,12 @@ impl<'a> ChangelogBuilder<'a> {
     }
 
     pub fn build(self) -> Changelog<'a> {
-        let git_config = self
+        let mut git_config = self
             .config
             .clone()
             .map(|c| c.git)
             .unwrap_or_else(default_git_config);
+        git_config = apply_defaults_to_git_config(git_config);
         let release_date = self.release_timestamp();
         let mut commits: Vec<_> = self
             .commits

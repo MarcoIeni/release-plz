@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.17.0...release_plz_core-v0.17.1) - 2024-02-06
+
+### Fixed
+- apply default changelog git config ([#1243](https://github.com/MarcoIeni/release-plz/pull/1243))
+- update local dependencies specified in the workspace manifest ([#1251](https://github.com/MarcoIeni/release-plz/pull/1251))
+- check cargo token only when publishing ([#1250](https://github.com/MarcoIeni/release-plz/pull/1250))
+
+### Other
+- fix tests on mac ([#1242](https://github.com/MarcoIeni/release-plz/pull/1242))
+
 ## [0.17.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.16.2...release_plz_core-v0.17.0) - 2024-01-26
 
 ### Added
