@@ -415,7 +415,7 @@ impl Project {
         single_package: Option<&str>,
         overrides: HashSet<String>,
         metadata: &Metadata,
-        request_release_validator: &dyn RequestReleaseMetadataBuilder,
+        request_release_metadata_builder: &dyn RequestReleaseMetadataBuilder,
     ) -> anyhow::Result<Self> {
         let manifest = local_manifest;
         let manifest_dir = manifest_dir(manifest)?.to_path_buf();
@@ -431,7 +431,7 @@ impl Project {
         let mut all_packages_names = vec![];
         for package in workspace_packages(metadata)? {
             all_packages_names.push(package.name.clone());
-            if let Some(meta) = request_release_validator.get_release_metadata(&package.name) {
+            if let Some(meta) = request_release_metadata_builder.get_release_metadata(&package.name) {
                 release_metadata.insert(package.name.clone(), meta);
                 packages.push(package);
             }
@@ -1185,29 +1185,29 @@ mod tests {
         tag_name: Option<String>,
     ) -> anyhow::Result<Project> {
         let metadata = get_manifest_metadata(local_manifest).unwrap();
-        let request_release_validator =
-            RequestReleaseValidatorStub::new(is_release_enabled, tag_name);
+        let request_release_metadata_builder =
+            RequestReleaseMetadataBuilderStub::new(is_release_enabled, tag_name);
         Project::new(
             local_manifest,
             single_package,
             overrides,
             &metadata,
-            &request_release_validator,
+            &request_release_metadata_builder,
         )
     }
 
-    struct RequestReleaseValidatorStub {
+    struct RequestReleaseMetadataBuilderStub {
         release: bool,
         tag_name: Option<String>,
     }
 
-    impl RequestReleaseValidatorStub {
+    impl RequestReleaseMetadataBuilderStub {
         pub fn new(release: bool, tag_name: Option<String>) -> Self {
             Self { release, tag_name }
         }
     }
 
-    impl RequestReleaseMetadataBuilder for RequestReleaseValidatorStub {
+    impl RequestReleaseMetadataBuilder for RequestReleaseMetadataBuilderStub {
         fn get_release_metadata(&self, _package_name: &str) -> Option<RequestReleaseMetadata> {
             if self.release {
                 Some(RequestReleaseMetadata {
