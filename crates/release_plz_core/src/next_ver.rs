@@ -431,8 +431,7 @@ impl Project {
         let mut all_packages_names = vec![];
         for package in workspace_packages(metadata)? {
             all_packages_names.push(package.name.clone());
-            if let Some(meta) = release_metadata_builder.get_release_metadata(&package.name)
-            {
+            if let Some(meta) = release_metadata_builder.get_release_metadata(&package.name) {
                 release_metadata.insert(package.name.clone(), meta);
                 packages.push(package);
             }
@@ -494,22 +493,22 @@ impl Project {
 
     pub fn git_tag(&self, package_name: &str, version: &str) -> String {
         let mut tera = tera::Tera::default();
-        let mut context = tera::Context::new();
-        context.insert("package", package_name);
-        context.insert("version", version);
+        let context = tera_context(package_name, version);
 
-        if let Some(Some(tag_template)) =
-            self.release_metadata.get(package_name).map(|m| &m.tag_name)
-        {
-            tera.add_raw_template("tag_name", tag_template)
-                .expect("failed to add raw template");
-        } else if self.contains_multiple_pub_packages {
-            tera.add_raw_template("tag_name", "{{ package }}-v{{ version }}")
-                .expect("failed to add raw template");
-        } else {
-            tera.add_raw_template("tag_name", "v{{ version }}")
-                .expect("failed to add raw template");
-        }
+        let tag_template = self
+            .release_metadata
+            .get(package_name)
+            .and_then(|m| m.tag_name.as_deref())
+            .unwrap_or({
+                if self.contains_multiple_pub_packages {
+                    "{{ package }}-v{{ version }}"
+                } else {
+                    "v{{ version }}"
+                }
+            });
+
+        tera.add_raw_template("tag_name", tag_template)
+            .expect("failed to add raw template");
 
         tera.render("tag_name", &context)
             .expect("failed to render tag name")
@@ -518,6 +517,13 @@ impl Project {
     pub fn cargo_lock_path(&self) -> PathBuf {
         self.root.join("Cargo.lock")
     }
+}
+
+fn tera_context(package_name: &str, version: &str) -> tera::Context {
+    let mut context = tera::Context::new();
+    context.insert("package", package_name);
+    context.insert("version", version);
+    context
 }
 
 /// Cargo metadata contains package paths of the original user project.
