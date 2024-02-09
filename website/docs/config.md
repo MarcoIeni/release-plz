@@ -210,7 +210,7 @@ Use this to customize the git tags name pattern.
 
 By default, it's:
 
-- `"{{ package }}-v{{ version }}"` for workspaces containing more than one public package
+- `"{{ package }}-v{{ version }}"` for workspaces containing more than one public package.
 - `"v{{ version }}"` for projects containing a single crate or
   workspaces containing just one public package.
 
