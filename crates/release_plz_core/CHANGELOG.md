@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.19.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.18.0...release_plz_core-v0.19.0) - 2024-02-11
 
 ### Added
-- custom git-release-name by tera template. [#677](https://github.com/MarcoIeni/release-plz/pull/677) ([#1260](https://github.com/MarcoIeni/release-plz/pull/1260))
+- allow customizing git release name with tera template. [#677](https://github.com/MarcoIeni/release-plz/pull/677) ([#1260](https://github.com/MarcoIeni/release-plz/pull/1260))
 
 ## [0.18.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.17.1...release_plz_core-v0.18.0) - 2024-02-09
 
