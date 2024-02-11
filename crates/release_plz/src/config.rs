@@ -189,6 +189,7 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
             .git_release_type
             .map(|release_type| release_type.into())
             .unwrap_or_default();
+        let git_release_name = value.git_release_name.clone();
         let is_git_tag_enabled = value.git_tag_enable != Some(false);
         let git_tag_name = value.git_tag_name.clone();
         let release = value.release != Some(false);
@@ -197,7 +198,8 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
             .with_git_release(
                 release_plz_core::GitReleaseConfig::enabled(is_git_release_enabled)
                     .set_draft(is_git_release_draft)
-                    .set_release_type(git_release_type),
+                    .set_release_type(git_release_type)
+                    .set_name_template(git_release_name),
             )
             .with_git_tag(
                 release_plz_core::GitTagConfig::enabled(is_git_tag_enabled)
@@ -232,6 +234,9 @@ pub struct PackageConfig {
     /// # Git Release Draft
     /// If true, will not auto-publish the release.
     pub git_release_draft: Option<bool>,
+    /// # Git Release Name
+    /// Tera template of the git release name created by release-plz.
+    pub git_release_name: Option<String>,
     /// # Git Tag Enable
     /// Publish the git tag for the new package version.
     /// Enabled by default.
@@ -264,6 +269,7 @@ impl From<PackageConfig> for release_plz_core::UpdateConfig {
             changelog_update: config.changelog_update != Some(false),
             release: config.release != Some(false),
             tag_name_template: config.git_tag_name,
+            release_name_template: config.git_release_name,
         }
     }
 }
@@ -287,6 +293,7 @@ impl PackageConfig {
             git_release_enable: self.git_release_enable.or(default.git_release_enable),
             git_release_type: self.git_release_type.or(default.git_release_type),
             git_release_draft: self.git_release_draft.or(default.git_release_draft),
+            git_release_name: self.git_release_name.or(default.git_release_name),
 
             publish: self.publish.or(default.publish),
             publish_allow_dirty: self.publish_allow_dirty.or(default.publish_allow_dirty),

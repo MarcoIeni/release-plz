@@ -58,6 +58,7 @@ the following sections:
   - [`changelog_update`](#the-changelog_update-field) — Update changelog.
   - [`dependencies_update`](#the-dependencies_update-field) — Update all dependencies.
   - [`git_release_enable`](#the-git_release_enable-field) — Enable git release.
+  - [`git_release_name`](#the-git_release_name-field) — Customize git release name pattern.
   - [`git_release_type`](#the-git_release_type-field) — Publish mode for git release.
   - [`git_release_draft`](#the-git_release_draft-field) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field) — Enable git tag.
@@ -77,6 +78,7 @@ the following sections:
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
   - [`changelog_update`](#the-changelog_update-field-package-section) — Update changelog.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
+  - [`git_release_name`](#the-git_release_name-field-package-section) — Customize git release name pattern.
   - [`git_release_type`](#the-git_release_type-field-package-section) — Git release type.
   - [`git_release_draft`](#the-git_release_draft-field-package-section) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field-package-section) — Enable git tag.
@@ -174,6 +176,22 @@ The supported git releases are:
 - [GitHub](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
 - [Gitea](https://docs.gitea.io/en-us/)
 - [GitLab](https://docs.gitlab.com/ee/user/project/releases/#releases)
+
+#### The `git_release_name` field
+
+[Tera template](https://keats.github.io/tera/docs/#templates) of the git release name that release-plz creates.
+Use this to customize the git release name pattern.
+
+By default, it's:
+
+- `"{{ package }}-v{{ version }}"` for workspaces containing more than one public package.
+- `"v{{ version }}"` for projects containing a single crate or
+  workspaces containing just one public package.
+
+Where:
+
+- `{{ package }}` is the name of the package.
+- `{{ version }}` is the new version of the package.
 
 #### The `git_release_type` field
 
@@ -398,6 +416,10 @@ This field cannot be set in the `[workspace]` section.
 #### The `git_release_enable` field (`package` section)
 
 Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) field.
+
+#### The `git_release_name` field (`package` section)
+
+Overrides the [`workspace.git_release_name`](#the-git_release_name-field) field.
 
 #### The `git_release_type` field (`package` section)
 

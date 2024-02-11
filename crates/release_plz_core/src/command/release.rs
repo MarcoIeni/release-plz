@@ -160,6 +160,7 @@ impl ReleaseMetadataBuilder for ReleaseRequest {
         if config.generic.release {
             Some(ReleaseMetadata {
                 tag_name_template: config.generic.git_tag.name_template.clone(),
+                release_name_template: config.generic.git_release.name_template.clone(),
             })
         } else {
             None
@@ -295,6 +296,7 @@ pub struct GitReleaseConfig {
     enabled: bool,
     draft: bool,
     release_type: ReleaseType,
+    name_template: Option<String>,
 }
 
 impl Default for GitReleaseConfig {
@@ -309,6 +311,7 @@ impl GitReleaseConfig {
             enabled,
             draft: false,
             release_type: ReleaseType::default(),
+            name_template: None,
         }
     }
 
@@ -323,6 +326,11 @@ impl GitReleaseConfig {
 
     pub fn set_release_type(mut self, release_type: ReleaseType) -> Self {
         self.release_type = release_type;
+        self
+    }
+
+    pub fn set_name_template(mut self, name_template: Option<String>) -> Self {
+        self.name_template = name_template;
         self
     }
 
@@ -404,6 +412,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     for package in release_order {
         let repo = Repo::new(&input.metadata.workspace_root)?;
         let git_tag = project.git_tag(&package.name, &package.version.to_string());
+        let release_name = project.release_name(&package.name, &package.version.to_string());
         if repo.tag_exists(&git_tag)? {
             info!(
                 "{} {}: Already published - Tag {} already exists",
@@ -421,9 +430,15 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
                 info!("{} {}: already published", package.name, package.version);
                 continue;
             }
-            release_package(&mut index, package, input, git_tag.clone())
-                .await
-                .context("failed to release package")?;
+            release_package(
+                &mut index,
+                package,
+                input,
+                git_tag.clone(),
+                release_name.clone(),
+            )
+            .await
+            .context("failed to release package")?;
         }
     }
     Ok(())
@@ -468,6 +483,7 @@ async fn release_package(
     package: &Package,
     input: &ReleaseRequest,
     git_tag: String,
+    release_name: String,
 ) -> anyhow::Result<()> {
     let workspace_root = &input.metadata.workspace_root;
 
@@ -510,6 +526,7 @@ async fn release_package(
             let is_pre_release = release_config.is_pre_release(&package.version);
             let release_info = GitReleaseInfo {
                 git_tag,
+                release_name,
                 release_body,
                 draft: release_config.draft,
                 pre_release: is_pre_release,
@@ -525,6 +542,7 @@ async fn release_package(
 
 pub struct GitReleaseInfo {
     pub git_tag: String,
+    pub release_name: String,
     pub release_body: String,
     pub draft: bool,
     pub pre_release: bool,
