@@ -91,6 +91,7 @@ impl Config {
 
 /// Config at the `[workspace]` level.
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct Workspace {
     /// Configuration applied at the `[[package]]` level, too.
     #[serde(flatten)]
@@ -135,6 +136,7 @@ impl Workspace {
 
 /// Config at the `[[package]]` level.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct PackageSpecificConfig {
     /// Configuration that can be specified at the `[workspace]` level, too.
     #[serde(flatten)]
@@ -549,5 +551,74 @@ mod tests {
             changelog_include = ["pkg1"]
         "#]]
         .assert_eq(&toml::to_string(&config).unwrap());
+    }
+
+    #[test]
+    fn wrong_config_section_is_not_deserialized() {
+        let config = "[unknown]";
+
+        let error = toml::from_str::<Config>(config).unwrap_err().to_string();
+        expect_test::expect![[r#"
+            TOML parse error at line 1, column 2
+              |
+            1 | [unknown]
+              |  ^^^^^^^
+            unknown field `unknown`, expected one of `workspace`, `changelog`, `package`
+        "#]]
+        .assert_eq(&error);
+    }
+
+    #[test]
+    fn wrong_workspace_section_is_not_deserialized() {
+        let config = r#"
+[workspace]
+unknown = false
+allow_dirty = true"#;
+
+        let error = toml::from_str::<Config>(config).unwrap_err().to_string();
+        expect_test::expect![[r#"
+            TOML parse error at line 2, column 1
+              |
+            2 | [workspace]
+              | ^^^^^^^^^^^
+            unknown field `unknown`
+        "#]]
+        .assert_eq(&error);
+    }
+
+    #[test]
+    fn wrong_changelog_section_is_not_deserialized() {
+        let config = r#"
+[changelog]
+trim = true
+unknown = false"#;
+
+        let error = toml::from_str::<Config>(config).unwrap_err().to_string();
+        expect_test::expect![[r#"
+            TOML parse error at line 4, column 1
+              |
+            4 | unknown = false
+              | ^^^^^^^
+            unknown field `unknown`, expected one of `header`, `body`, `trim`, `commit_preprocessors`, `sort_commits`, `link_parsers`, `commit_parsers`, `protect_breaking_commits`, `tag_pattern`
+        "#]]
+        .assert_eq(&error);
+    }
+
+    #[test]
+    fn wrong_package_section_is_not_deserialized() {
+        let config = r#"
+[[package]]
+name = "crate1"
+unknown = false"#;
+
+        let error = toml::from_str::<Config>(config).unwrap_err().to_string();
+        expect_test::expect![[r#"
+            TOML parse error at line 2, column 1
+              |
+            2 | [[package]]
+              | ^^^^^^^^^^^
+            unknown field `unknown`
+        "#]]
+        .assert_eq(&error);
     }
 }

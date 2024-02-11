@@ -144,7 +144,8 @@
             "null"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "CommitParser": {
       "description": "Parser for grouping commits.",

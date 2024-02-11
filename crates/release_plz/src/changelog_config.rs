@@ -5,6 +5,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct ChangelogCfg {
     /// Text at the beginning of the changelog.
     pub header: Option<String>,
