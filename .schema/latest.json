@@ -42,6 +42,7 @@
         "dependencies_update": null,
         "git_release_draft": null,
         "git_release_enable": null,
+        "git_release_name": null,
         "git_release_type": null,
         "git_tag_enable": null,
         "git_tag_name": null,
@@ -281,6 +282,14 @@
             "null"
           ]
         },
+        "git_release_name": {
+          "title": "Git Release Name",
+          "description": "Tera template of the git release name created by release-plz.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "git_release_type": {
           "title": "Git Release Type",
           "description": "Whether to mark the created release as not ready for production.",
@@ -465,6 +474,14 @@
           "description": "Publish the GitHub/Gitea release for the created git tag. Enabled by default.",
           "type": [
             "boolean",
+            "null"
+          ]
+        },
+        "git_release_name": {
+          "title": "Git Release Name",
+          "description": "Tera template of the git release name created by release-plz.",
+          "type": [
+            "string",
             "null"
           ]
         },

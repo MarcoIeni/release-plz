@@ -40,6 +40,8 @@ pub(crate) const NO_COMMIT_ID: &str = "0000000";
 pub struct ReleaseMetadata {
     /// Template for the git tag created by release-plz.
     pub tag_name_template: Option<String>,
+    /// Template for the git release name created by release-plz.
+    pub release_name_template: Option<String>,
 }
 
 pub trait ReleaseMetadataBuilder {
@@ -124,6 +126,8 @@ pub struct UpdateConfig {
     pub release: bool,
     /// Template for the git tag created by release-plz.
     pub tag_name_template: Option<String>,
+    /// Template for the git release name created by release-plz.
+    pub release_name_template: Option<String>,
 }
 
 /// Package-specific config
@@ -158,6 +162,7 @@ impl Default for UpdateConfig {
             changelog_update: true,
             release: true,
             tag_name_template: None,
+            release_name_template: None,
         }
     }
 }
@@ -334,6 +339,7 @@ impl ReleaseMetadataBuilder for UpdateRequest {
         if config.generic.release {
             Some(ReleaseMetadata {
                 tag_name_template: config.generic.tag_name_template.clone(),
+                release_name_template: None,
             })
         } else {
             None
@@ -510,10 +516,33 @@ impl Project {
             });
 
         tera.add_raw_template("tag_name", tag_template)
-            .expect("failed to add raw template");
+            .expect("failed to add tag_name raw template");
 
         tera.render("tag_name", &context)
             .expect("failed to render tag name")
+    }
+
+    pub fn release_name(&self, package_name: &str, version: &str) -> String {
+        let mut tera = tera::Tera::default();
+        let context = tera_context(package_name, version);
+
+        let tag_template = self
+            .release_metadata
+            .get(package_name)
+            .and_then(|m| m.release_name_template.as_deref())
+            .unwrap_or({
+                if self.contains_multiple_pub_packages {
+                    "{{ package }}-v{{ version }}"
+                } else {
+                    "v{{ version }}"
+                }
+            });
+
+        tera.add_raw_template("release_name", tag_template)
+            .expect("failed to add release_name raw template");
+
+        tera.render("release_name", &context)
+            .expect("failed to render release name")
     }
 
     pub fn cargo_lock_path(&self) -> PathBuf {
@@ -1192,10 +1221,11 @@ mod tests {
         overrides: HashSet<String>,
         is_release_enabled: bool,
         tag_name: Option<String>,
+        release_name: Option<String>,
     ) -> anyhow::Result<Project> {
         let metadata = get_manifest_metadata(local_manifest).unwrap();
         let release_metadata_builder =
-            ReleaseMetadataBuilderStub::new(is_release_enabled, tag_name);
+            ReleaseMetadataBuilderStub::new(is_release_enabled, tag_name, release_name);
         Project::new(
             local_manifest,
             single_package,
@@ -1208,11 +1238,16 @@ mod tests {
     struct ReleaseMetadataBuilderStub {
         release: bool,
         tag_name: Option<String>,
+        release_name: Option<String>,
     }
 
     impl ReleaseMetadataBuilderStub {
-        pub fn new(release: bool, tag_name: Option<String>) -> Self {
-            Self { release, tag_name }
+        pub fn new(release: bool, tag_name: Option<String>, release_name: Option<String>) -> Self {
+            Self {
+                release,
+                tag_name,
+                release_name,
+            }
         }
     }
 
@@ -1221,6 +1256,7 @@ mod tests {
             if self.release {
                 Some(ReleaseMetadata {
                     tag_name_template: self.tag_name.clone(),
+                    release_name_template: self.release_name.clone(),
                 })
             } else {
                 None
@@ -1242,7 +1278,7 @@ mod tests {
     #[test]
     fn test_empty_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
-        let result = get_project(local_manifest, None, HashSet::default(), true, None);
+        let result = get_project(local_manifest, None, HashSet::default(), true, None, None);
         assert!(result.is_ok());
     }
 
@@ -1250,7 +1286,7 @@ mod tests {
     fn test_successful_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let overrides = (["typo_test".to_string()]).into();
-        let result = get_project(local_manifest, None, overrides, true, None);
+        let result = get_project(local_manifest, None, overrides, true, None, None);
         assert!(result.is_ok());
     }
 
@@ -1259,7 +1295,7 @@ mod tests {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let single_package = None;
         let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
-        let result = get_project(local_manifest, single_package, overrides, true, None);
+        let result = get_project(local_manifest, single_package, overrides, true, None, None);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
@@ -1299,7 +1335,7 @@ mod tests {
     #[test]
     fn project_new_no_release_will_error() {
         let local_manifest = Path::new("../fake_package/Cargo.toml");
-        let result = get_project(local_manifest, None, HashSet::default(), false, None);
+        let result = get_project(local_manifest, None, HashSet::default(), false, None, None);
         assert!(result.is_err());
         expect_test::expect![[r#"no public packages found. Are there any public packages in your project? Analyzed packages: ["cargo_utils", "fake_package", "git_cmd", "test_logs", "next_version", "release-plz", "release_plz_core"]"#]]
         .assert_eq(&result.unwrap_err().to_string());
@@ -1308,13 +1344,13 @@ mod tests {
     #[test]
     fn project_tag_template_none() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
-        let project =
-            get_project(local_manifest, None, HashSet::default(), true, None).expect("Should ok");
+        let project = get_project(local_manifest, None, HashSet::default(), true, None, None)
+            .expect("Should ok");
         assert_eq!(project.git_tag("typo_test", "0.1.0"), "v0.1.0");
     }
 
     #[test]
-    fn project_tag_template_some() {
+    fn project_release_and_tag_template_some() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let project = get_project(
             local_manifest,
@@ -1322,11 +1358,16 @@ mod tests {
             HashSet::default(),
             true,
             Some("prefix-{{ package }}-middle-{{ version }}-postfix".to_string()),
+            Some("release-prefix-{{ package }}-middle-{{ version }}-postfix".to_string()),
         )
         .expect("Should ok");
         assert_eq!(
             project.git_tag("typo_test", "0.1.0"),
             "prefix-typo_test-middle-0.1.0-postfix"
+        );
+        assert_eq!(
+            project.release_name("typo_test", "0.1.0"),
+            "release-prefix-typo_test-middle-0.1.0-postfix"
         );
     }
 }
