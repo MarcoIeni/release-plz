@@ -516,7 +516,7 @@ impl Project {
             });
 
         tera.add_raw_template("tag_name", tag_template)
-            .expect("failed to add raw template");
+            .expect("failed to add tag_name raw template");
 
         tera.render("tag_name", &context)
             .expect("failed to render tag name")
@@ -538,11 +538,11 @@ impl Project {
                 }
             });
 
-        tera.add_raw_template("tag_name", tag_template)
-            .expect("failed to add raw template");
+        tera.add_raw_template("release_name", tag_template)
+            .expect("failed to add release_name raw template");
 
-        tera.render("tag_name", &context)
-            .expect("failed to render tag name")
+        tera.render("release_name", &context)
+            .expect("failed to render release name")
     }
 
     pub fn cargo_lock_path(&self) -> PathBuf {
