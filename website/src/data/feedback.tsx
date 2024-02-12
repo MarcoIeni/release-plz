@@ -36,7 +36,7 @@ const TWEETS: TweetItem[] = [
   {
     url: 'https://www.reddit.com/r/rust/comments/13he55f/comment/jkckcx9/?utm_source=share&utm_medium=web2x&context=3',
     handle: 'XAMPPRocky',
-    name: 'Livia Prima',
+    name: 'Erin Power',
     date: 'May 16, 2023',
     content: (
       <>
