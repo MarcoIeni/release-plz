@@ -140,12 +140,6 @@ impl Repo {
         Ok(())
     }
 
-    #[instrument(skip(self))]
-    pub fn checkout_head(&self) -> anyhow::Result<()> {
-        self.checkout(&self.original_branch)?;
-        Ok(())
-    }
-
     /// Branch name before running any git operation.
     /// I.e. when the [`Repo`] was created.
     pub fn original_branch(&self) -> &str {

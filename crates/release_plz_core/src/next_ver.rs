@@ -870,9 +870,6 @@ impl Updater<'_> {
         let package_path = get_package_path(package, repository, &self.project.root)
             .context("failed to determine package path")?;
 
-        repository
-            .checkout_head()
-            .context("can't checkout head to calculate diff")?;
         let registry_package = registry_packages.get_package(&package.name);
         let mut diff = Diff::new(registry_package.is_some());
         if let Err(err) = repository.checkout_last_commit_at_path(&package_path) {
@@ -982,9 +979,6 @@ impl Updater<'_> {
                 break;
             }
         }
-        repository
-            .checkout_head()
-            .context("can't checkout to head after calculating diff")?;
         Ok(diff)
     }
 
