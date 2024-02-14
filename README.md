@@ -57,6 +57,12 @@ Here you can find the public repositories using the release-plz GitHub action in
 - [cargo-smart-release](https://github.com/Byron/cargo-smart-release):
   Fearlessly release workspace crates and with beautiful semi-handcrafted changelogs.
 
+## 📽️ RustLab 23 talk
+
+In RustLab 23, I showed how release-plz simplifies releasing Rust packages, why I created it, and what lessons I learned:
+
+[![RustLab 23 talk](https://github.com/MarcoIeni/release-plz/assets/11428655/30e94b65-9077-454d-8ced-6f77d0344f0c)](https://www.youtube.com/watch?v=kXPBVGDkQSs)
+
 ## 🙏 Credits
 
 Parts of the codebase are inspired by:
