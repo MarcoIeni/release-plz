@@ -892,9 +892,6 @@ impl Updater<'_> {
             tag_commit,
             &mut diff,
         )?;
-        repository
-            .checkout_head()
-            .context("can't checkout to head after calculating diff")?;
         Ok(diff)
     }
 
@@ -984,10 +981,6 @@ impl Updater<'_> {
                     current_commit_hash,
                     current_commit_message.clone(),
                 ));
-            }
-            if let Err(_err) = repository.checkout_previous_commit_at_path(package_path) {
-                debug!("there are no other commits");
-                break;
             }
         }
         Ok(())
