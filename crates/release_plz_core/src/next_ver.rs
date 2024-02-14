@@ -899,6 +899,29 @@ impl Updater<'_> {
                 package.name, package.version, registry_package.version
             )
         }
+        self.get_package_diff(
+            &package_path,
+            package,
+            registry_package,
+            repository,
+            tag_commit,
+            &mut diff,
+        )?;
+        repository
+            .checkout_head()
+            .context("can't checkout to head after calculating diff")?;
+        Ok(diff)
+    }
+
+    fn get_package_diff(
+        &self,
+        package_path: &Path,
+        package: &Package,
+        registry_package: Option<&Package>,
+        repository: &Repo,
+        tag_commit: Option<String>,
+        diff: &mut Diff,
+    ) -> anyhow::Result<()> {
         loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
@@ -911,7 +934,7 @@ impl Updater<'_> {
                 let cargo_lock_path = self
                     .get_cargo_lock_path(repository)
                     .context("failed to determine Cargo.lock path")?;
-                let are_packages_equal = are_packages_equal(&package_path, registry_package_path)
+                let are_packages_equal = are_packages_equal(package_path, registry_package_path)
                     .context("cannot compare packages")?;
                 if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
                     // Revert any changes to `Cargo.lock`
@@ -977,15 +1000,12 @@ impl Updater<'_> {
                     current_commit_message.clone(),
                 ));
             }
-            if let Err(_err) = repository.checkout_previous_commit_at_path(&package_path) {
+            if let Err(_err) = repository.checkout_previous_commit_at_path(package_path) {
                 debug!("there are no other commits");
                 break;
             }
         }
-        repository
-            .checkout_head()
-            .context("can't checkout to head after calculating diff")?;
-        Ok(diff)
+        Ok(())
     }
 
     fn get_cargo_lock_path(&self, repository: &Repo) -> anyhow::Result<Option<String>> {
