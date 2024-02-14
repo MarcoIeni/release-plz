@@ -856,7 +856,6 @@ impl Updater<'_> {
         })
     }
 
-    /// This operation is not thread-safe, because we do `git checkout` on the repository.
     #[instrument(
         skip_all,
         fields(package = %package.name)
@@ -872,17 +871,6 @@ impl Updater<'_> {
 
         let registry_package = registry_packages.get_package(&package.name);
         let mut diff = Diff::new(registry_package.is_some());
-        if let Err(err) = repository.checkout_last_commit_at_path(&package_path) {
-            if err
-                .to_string()
-                .contains("Your local changes to the following files would be overwritten")
-            {
-                return Err(err.context("The allow-dirty option can't be used in this case"));
-            } else {
-                info!("{}: there are no commits", package.name);
-                return Ok(diff);
-            }
-        }
 
         let git_tag = self
             .project

@@ -184,13 +184,6 @@ impl Repo {
         Ok(())
     }
 
-    /// Checkout to the latest commit.
-    pub fn checkout_last_commit_at_path(&self, path: &Path) -> anyhow::Result<()> {
-        let previous_commit = self.last_commit_at_path(path)?;
-        self.checkout(&previous_commit)?;
-        Ok(())
-    }
-
     fn last_commit_at_path(&self, path: &Path) -> anyhow::Result<String> {
         self.nth_commit_at_path(1, path)
     }
