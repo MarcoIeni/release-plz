@@ -906,50 +906,68 @@ impl Updater<'_> {
         tag_commit: Option<String>,
         diff: &mut Diff,
     ) -> anyhow::Result<()> {
-        loop {
-            let current_commit_message = repository.current_commit_message()?;
-            let current_commit_hash = repository.current_commit_hash()?;
-            if let Some(registry_package) = registry_package {
-                debug!("package {} found in cargo registry", registry_package.name);
-                let registry_package_path = registry_package.package_path()?;
+        let mut latest_hash: Option<String> = None;
+        'outer: loop {
+            let last_10_commits =
+                repository.get_last_n_commits(10, latest_hash.as_deref(), package_path)?;
+            if last_10_commits.is_empty() {
+                info!("{}: there are no commits", package.name);
+                break;
+            }
+            for current_commit in last_10_commits {
+                latest_hash = Some(current_commit.hash.clone());
+                if let Some(registry_package) = registry_package {
+                    debug!("package {} found in cargo registry", registry_package.name);
+                    let registry_package_path = registry_package.package_path()?;
 
-                let are_packages_equal =
-                    self.check_package_equality(repository, package_path, registry_package_path)?;
-                if are_packages_equal
-                    || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
-                {
-                    debug!("next version calculated starting from commits after `{current_commit_hash}`");
-                    if diff.commits.is_empty() {
-                        self.add_dependencies_update_if_any(
-                            diff,
-                            registry_package,
-                            package,
-                            registry_package_path,
-                        )?;
+                    let are_packages_equal = self.check_package_equality(
+                        repository,
+                        package_path,
+                        registry_package_path,
+                    )?;
+                    if are_packages_equal
+                        || is_commit_too_old(
+                            repository,
+                            tag_commit.as_deref(),
+                            &current_commit.hash,
+                        )
+                    {
+                        debug!(
+                            "next version calculated starting from commits after `{}`",
+                            current_commit.hash
+                        );
+                        if diff.commits.is_empty() {
+                            self.add_dependencies_update_if_any(
+                                diff,
+                                registry_package,
+                                package,
+                                registry_package_path,
+                            )?;
+                        }
+                        // The local package is identical to the registry one, which means that
+                        // the package was published at this commit, so we will not count this commit
+                        // as part of the release.
+                        // We can process the next create.
+                        break 'outer;
+                    } else if registry_package.version != package.version {
+                        info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
+                        diff.set_version_unpublished();
+                        break 'outer;
+                    } else {
+                        debug!("packages are different");
+                        // At this point of the git history, the two packages are different,
+                        // which means that this commit is not present in the published package.
+                        diff.commits.push(Commit::new(
+                            current_commit.hash,
+                            current_commit.message.clone(),
+                        ));
                     }
-                    // The local package is identical to the registry one, which means that
-                    // the package was published at this commit, so we will not count this commit
-                    // as part of the release.
-                    // We can process the next create.
-                    break;
-                } else if registry_package.version != package.version {
-                    info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
-                    diff.set_version_unpublished();
-                    break;
                 } else {
-                    debug!("packages are different");
-                    // At this point of the git history, the two packages are different,
-                    // which means that this commit is not present in the published package.
                     diff.commits.push(Commit::new(
-                        current_commit_hash,
-                        current_commit_message.clone(),
+                        current_commit.hash,
+                        current_commit.message.clone(),
                     ));
                 }
-            } else {
-                diff.commits.push(Commit::new(
-                    current_commit_hash,
-                    current_commit_message.clone(),
-                ));
             }
         }
         Ok(())

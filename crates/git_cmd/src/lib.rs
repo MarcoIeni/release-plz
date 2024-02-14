@@ -11,6 +11,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Context};
+use itertools::Itertools;
 use tracing::{debug, instrument, trace, warn, Span};
 
 /// Repository
@@ -230,6 +231,42 @@ impl Repo {
         Ok(last_commit.to_string())
     }
 
+    /// Retrieve the last `n` commits.
+    pub fn get_last_n_commits(
+        &self,
+        n: usize,
+        most_recent_hash: Option<&str>,
+        directory: &Path,
+    ) -> anyhow::Result<Vec<GitCommit>> {
+        let separator = "@@git-cmd-separator@@";
+        let most_recent_hash = most_recent_hash.unwrap_or("");
+        let pretty_format = format!("--pretty=format:%H{separator}%B{separator}");
+        let commit_output = self.git(&[
+            "log",
+            &pretty_format,
+            "-n",
+            &format!("{n}"),
+            most_recent_hash,
+            "--",
+            &format!("{directory:?}"),
+        ])?;
+        commit_output
+            .split(separator)
+            .chunks(2)
+            .into_iter()
+            .flat_map(|mut parts| {
+                parts.next().and_then(|hash| {
+                    parts.next().map(|message| {
+                        Ok(GitCommit {
+                            hash: hash.trim().to_string(),
+                            message: message.trim().to_string(),
+                        })
+                    })
+                })
+            })
+            .collect()
+    }
+
     pub fn current_commit_message(&self) -> anyhow::Result<String> {
         self.git(&["log", "-1", "--pretty=format:%B"])
     }
@@ -282,6 +319,11 @@ impl Repo {
             .context("cannot determine if git tag exists")?;
         Ok(output.lines().count() >= 1)
     }
+}
+
+pub struct GitCommit {
+    pub hash: String,
+    pub message: String,
 }
 
 fn changed_files(output: &str, filter: impl FnMut(&&str) -> bool) -> Vec<String> {

@@ -19,6 +19,7 @@ test_fixture = []
 [dependencies]
 anyhow.workspace = true
 tracing.workspace = true
+itertools.workspace = true
 
 [dev-dependencies]
 git_cmd = { path = ".", features = ["test_fixture"]}
