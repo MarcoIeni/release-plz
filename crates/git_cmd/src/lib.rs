@@ -235,11 +235,10 @@ impl Repo {
     pub fn get_last_n_commits(
         &self,
         n: usize,
-        most_recent_hash: Option<&str>,
+        most_recent_hash: &str,
         directory: &Path,
     ) -> anyhow::Result<Vec<GitCommit>> {
         let separator = "@@git-cmd-separator@@";
-        let most_recent_hash = most_recent_hash.unwrap_or("");
         let pretty_format = format!("--pretty=format:%H{separator}%B{separator}");
         let commit_output = self.git(&[
             "log",
