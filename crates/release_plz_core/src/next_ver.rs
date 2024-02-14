@@ -929,52 +929,19 @@ impl Updater<'_> {
                 debug!("package {} found in cargo registry", registry_package.name);
                 let registry_package_path = registry_package.package_path()?;
 
-                // We run `cargo package` when comparing packages, which can edit files, such as `Cargo.lock`.
-                // Store its path so it can be reverted after comparison.
-                let cargo_lock_path = self
-                    .get_cargo_lock_path(repository)
-                    .context("failed to determine Cargo.lock path")?;
-                let are_packages_equal = are_packages_equal(package_path, registry_package_path)
-                    .context("cannot compare packages")?;
-                if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
-                    // Revert any changes to `Cargo.lock`
-                    repository
-                        .checkout(cargo_lock_path)
-                        .context("cannot revert changes introduced when comparing packages")?;
-                }
+                let are_packages_equal =
+                    self.check_package_equality(repository, package_path, registry_package_path)?;
                 if are_packages_equal
                     || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
                 {
-                    debug!(
-                    "next version calculated starting from commits after `{current_commit_hash}`"
-                );
+                    debug!("next version calculated starting from commits after `{current_commit_hash}`");
                     if diff.commits.is_empty() {
-                        let are_toml_dependencies_updated = || {
-                            are_toml_dependencies_updated(
-                                &registry_package.dependencies,
-                                &package.dependencies,
-                            )
-                        };
-                        let are_lock_dependencies_updated = || {
-                            lock_compare::are_lock_dependencies_updated(
-                                &self.project.cargo_lock_path(),
-                                registry_package_path,
-                            )
-                            .context("Can't check if Cargo.lock dependencies are up to date")
-                        };
-                        if are_toml_dependencies_updated() {
-                            diff.commits.push(Commit::new(
-                                NO_COMMIT_ID.to_string(),
-                                "chore: update Cargo.toml dependencies".to_string(),
-                            ));
-                        } else if are_lock_dependencies_updated()? {
-                            diff.commits.push(Commit::new(
-                                NO_COMMIT_ID.to_string(),
-                                "chore: update Cargo.lock dependencies".to_string(),
-                            ));
-                        } else {
-                            info!("{}: already up to date", package.name);
-                        }
+                        self.add_dependencies_update_if_any(
+                            diff,
+                            registry_package,
+                            package,
+                            registry_package_path,
+                        )?;
                     }
                     // The local package is identical to the registry one, which means that
                     // the package was published at this commit, so we will not count this commit
@@ -1004,6 +971,60 @@ impl Updater<'_> {
                 debug!("there are no other commits");
                 break;
             }
+        }
+        Ok(())
+    }
+
+    fn check_package_equality(
+        &self,
+        repository: &Repo,
+        package_path: &Path,
+        registry_package_path: &Path,
+    ) -> anyhow::Result<bool> {
+        // We run `cargo package` when comparing packages, which can edit files, such as `Cargo.lock`.
+        // Store its path so it can be reverted after comparison.
+        let cargo_lock_path = self
+            .get_cargo_lock_path(repository)
+            .context("failed to determine Cargo.lock path")?;
+        let are_packages_equal = are_packages_equal(package_path, registry_package_path)
+            .context("cannot compare packages")?;
+        if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
+            // Revert any changes to `Cargo.lock`
+            repository
+                .checkout(cargo_lock_path)
+                .context("cannot revert changes introduced when comparing packages")?;
+        }
+        Ok(are_packages_equal)
+    }
+
+    fn add_dependencies_update_if_any(
+        &self,
+        diff: &mut Diff,
+        registry_package: &Package,
+        package: &Package,
+        registry_package_path: &Path,
+    ) -> anyhow::Result<()> {
+        let are_toml_dependencies_updated =
+            || are_toml_dependencies_updated(&registry_package.dependencies, &package.dependencies);
+        let are_lock_dependencies_updated = || {
+            lock_compare::are_lock_dependencies_updated(
+                &self.project.cargo_lock_path(),
+                registry_package_path,
+            )
+            .context("Can't check if Cargo.lock dependencies are up to date")
+        };
+        if are_toml_dependencies_updated() {
+            diff.commits.push(Commit::new(
+                NO_COMMIT_ID.to_string(),
+                "chore: update Cargo.toml dependencies".to_string(),
+            ));
+        } else if are_lock_dependencies_updated()? {
+            diff.commits.push(Commit::new(
+                NO_COMMIT_ID.to_string(),
+                "chore: update Cargo.lock dependencies".to_string(),
+            ));
+        } else {
+            info!("{}: already up to date", package.name);
         }
         Ok(())
     }
