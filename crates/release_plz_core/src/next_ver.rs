@@ -856,6 +856,8 @@ impl Updater<'_> {
         })
     }
 
+    /// This operation is not thread-safe, because we do `git checkout Cargo.lock`
+    /// to revert `Cargo.lock` after we run `cargo package`.
     #[instrument(
         skip_all,
         fields(package = %package.name)
