@@ -417,6 +417,30 @@ mod tests {
     }
 
     #[test]
+    fn last_commit_is_retrieved() {
+        test_logs::init();
+        let repository_dir = tempdir().unwrap();
+        let repo = Repo::init(&repository_dir);
+        let file1 = repository_dir.as_ref().join("file1.txt");
+
+        let commit_message = r#"feat: my feature
+
+        message
+
+        footer: small note"#;
+
+        {
+            fs::write(file1, b"Hello, file1!").unwrap();
+            repo.add_all_and_commit(commit_message).unwrap();
+        }
+        let current_hash = repo.current_commit_hash().unwrap();
+        let commits = repo
+            .get_last_n_commits(3, &current_hash, repository_dir.as_ref())
+            .unwrap();
+        assert_eq!(commit_message, commits[0].message);
+    }
+
+    #[test]
     fn current_commit_is_retrieved() {
         test_logs::init();
         let repository_dir = tempdir().unwrap();
