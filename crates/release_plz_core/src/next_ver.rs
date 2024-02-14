@@ -908,6 +908,8 @@ impl Updater<'_> {
     ) -> anyhow::Result<()> {
         let mut latest_hash: Option<String> = None;
         'outer: loop {
+            // Reading 10 commits at a time, starting from the latest commit.
+            // We batch the commits for performance reasons: to avoid spawning too many git processes.
             let last_10_commits =
                 repository.get_last_n_commits(10, latest_hash.as_deref(), package_path)?;
             if last_10_commits.is_empty() {
