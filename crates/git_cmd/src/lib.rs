@@ -246,9 +246,9 @@ impl Repo {
         let separator = "@@git-cmd-separator@@";
         let pretty_format = format!("--pretty=format:%H{separator}%B{separator}");
         let (skip, n) = if most_recent_hash.is_some() {
-            (1, n)
+            (1, n + 1)
         } else {
-            (0, n + 1)
+            (0, n)
         };
         let n = n.to_string();
         let args = {
