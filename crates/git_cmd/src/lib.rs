@@ -231,13 +231,16 @@ impl Repo {
         Ok(last_commit.to_string())
     }
 
-    /// Retrieve the last `n` commits.
+    /// Retrieve the last `n` commits in the `path`.
     pub fn get_last_n_commits(
         &self,
         n: usize,
         most_recent_hash: &str,
-        directory: &Path,
+        path: &Path,
     ) -> anyhow::Result<Vec<GitCommit>> {
+        let path: &str = path
+            .to_str()
+            .ok_or_else(|| anyhow!("invalid path {path:?}"))?;
         let separator = "@@git-cmd-separator@@";
         let pretty_format = format!("--pretty=format:%H{separator}%B{separator}");
         let commit_output = self.git(&[
@@ -247,7 +250,7 @@ impl Repo {
             &format!("{n}"),
             most_recent_hash,
             "--",
-            &format!("{directory:?}"),
+            path,
         ])?;
         commit_output
             .split(separator)
@@ -435,7 +438,7 @@ mod tests {
         }
         let current_hash = repo.current_commit_hash().unwrap();
         let commits = repo
-            .get_last_n_commits(3, &current_hash, repository_dir.as_ref())
+            .get_last_n_commits(1, &current_hash, repository_dir.as_ref())
             .unwrap();
         assert_eq!(commit_message, commits[0].message);
     }
