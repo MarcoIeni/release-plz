@@ -232,10 +232,12 @@ impl Repo {
     }
 
     /// Retrieve the last `n` commits in the `path`.
+    /// `most_recent_hash` is the hash of the most recent commit you read.
+    /// This commit is not present in the result.
     pub fn get_last_n_commits(
         &self,
         n: usize,
-        most_recent_hash: &str,
+        most_recent_hash: Option<&str>,
         path: &Path,
     ) -> anyhow::Result<Vec<GitCommit>> {
         let path: &str = path
@@ -243,19 +245,23 @@ impl Repo {
             .ok_or_else(|| anyhow!("invalid path {path:?}"))?;
         let separator = "@@git-cmd-separator@@";
         let pretty_format = format!("--pretty=format:%H{separator}%B{separator}");
-        let commit_output = self.git(&[
-            "log",
-            &pretty_format,
-            "-n",
-            &format!("{n}"),
-            most_recent_hash,
-            "--",
-            path,
-        ])?;
+        let n = n.to_string();
+        let args = {
+            let mut args = vec!["log", &pretty_format, "-n", &n];
+            if let Some(hash) = most_recent_hash {
+                args.push(hash);
+            }
+            args.push("--");
+            args.push(path);
+            args
+        };
+        let skip = if most_recent_hash.is_some() { 1 } else { 0 };
+        let commit_output = self.git(&args)?;
         commit_output
             .split(separator)
             .chunks(2)
             .into_iter()
+            .skip(skip)
             .flat_map(|mut parts| {
                 parts.next().and_then(|hash| {
                     parts.next().map(|message| {
@@ -438,7 +444,7 @@ mod tests {
         }
         let current_hash = repo.current_commit_hash().unwrap();
         let commits = repo
-            .get_last_n_commits(1, &current_hash, repository_dir.as_ref())
+            .get_last_n_commits(1, Some(&current_hash), repository_dir.as_ref())
             .unwrap();
         assert_eq!(commit_message, commits[0].message);
     }

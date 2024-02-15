@@ -906,17 +906,18 @@ impl Updater<'_> {
         tag_commit: Option<String>,
         diff: &mut Diff,
     ) -> anyhow::Result<()> {
-        let mut latest_hash: String = repository.current_commit_hash()?;
+        let mut latest_hash: Option<String> = None;
         'outer: loop {
             // Reading 10 commits at a time, starting from the latest commit.
             // We batch the commits for performance reasons: to avoid spawning too many git processes.
-            let last_10_commits = repository.get_last_n_commits(10, &latest_hash, package_path)?;
+            let last_10_commits =
+                repository.get_last_n_commits(10, latest_hash.as_deref(), package_path)?;
             if last_10_commits.is_empty() {
                 info!("{}: there are no commits", package.name);
                 break;
             }
             for current_commit in last_10_commits {
-                latest_hash = current_commit.hash.clone();
+                latest_hash = Some(current_commit.hash.clone());
                 if let Some(registry_package) = registry_package {
                     debug!("package {} found in cargo registry", registry_package.name);
                     let registry_package_path = registry_package.package_path()?;
