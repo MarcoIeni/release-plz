@@ -446,9 +446,8 @@ mod tests {
             fs::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit(commit_message).unwrap();
         }
-        let current_hash = repo.current_commit_hash().unwrap();
         let commits = repo
-            .get_last_n_commits(1, Some(&current_hash), repository_dir.as_ref())
+            .get_last_n_commits(1, None, repository_dir.as_ref())
             .unwrap();
         assert_eq!(commit_message, commits[0].message);
     }
