@@ -245,6 +245,11 @@ impl Repo {
             .ok_or_else(|| anyhow!("invalid path {path:?}"))?;
         let separator = "@@git-cmd-separator@@";
         let pretty_format = format!("--pretty=format:%H{separator}%B{separator}");
+        let (skip, n) = if most_recent_hash.is_some() {
+            (1, n)
+        } else {
+            (0, n + 1)
+        };
         let n = n.to_string();
         let args = {
             let mut args = vec!["log", &pretty_format, "-n", &n];
@@ -255,7 +260,6 @@ impl Repo {
             args.push(path);
             args
         };
-        let skip = if most_recent_hash.is_some() { 1 } else { 0 };
         let commit_output = self.git(&args)?;
         commit_output
             .split(separator)
