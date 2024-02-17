@@ -537,7 +537,7 @@ body = """
 - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
 {% endif -%}
 {% endfor -%}
-{% endfor %}"#;
+{% endfor %}
 """
 ```
 
