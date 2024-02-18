@@ -75,7 +75,7 @@ pub struct UpdateRequest {
     repo_url: Option<RepoUrl>,
     /// Package-specific configurations.
     packages_config: PackagesConfig,
-    /// Release Comits
+    /// Release Commits
     /// Prepare release only if at least one commit respects a regex.
     release_commits: Option<Regex>,
     
