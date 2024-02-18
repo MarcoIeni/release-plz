@@ -75,6 +75,10 @@ pub struct UpdateRequest {
     repo_url: Option<RepoUrl>,
     /// Package-specific configurations.
     packages_config: PackagesConfig,
+    /// Release Comits
+    /// Prepare release only if at least one commit respects a regex.
+    release_commits: Option<Regex>,
+    
 }
 
 #[derive(Debug, Clone, Default)]
@@ -213,6 +217,7 @@ impl UpdateRequest {
             allow_dirty: false,
             repo_url: None,
             packages_config: PackagesConfig::default(),
+            release_commits: None,
         })
     }
 
@@ -294,6 +299,15 @@ impl UpdateRequest {
             repo_url: Some(repo_url),
             ..self
         }
+    }
+
+    pub fn with_release_commits(self, release_commits: String) -> anyhow::Result<Self> {
+        let regex = Regex::new(&release_commits).context("invalid release_commits regex pattern")?;
+
+        Ok(Self {
+            release_commits: Some(regex),
+            ..self
+        })
     }
 
     pub fn local_manifest_dir(&self) -> anyhow::Result<&Path> {
@@ -649,6 +663,9 @@ impl Updater<'_> {
         }
 
         for (p, diff) in packages_diffs {
+            if let Some(ref release_commits_regex) = self.req.release_commits {
+                if !diff.is_commit_message_present(release_commits_regex) { continue };
+            }
             // Calculate next version without taking into account workspace version
             let next_version = if let Some(max_workspace_version) = &new_workspace_version {
                 if workspace_version_pkgs.contains(p.name.as_str()) {
