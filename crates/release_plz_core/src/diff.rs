@@ -1,4 +1,5 @@
 use git_cliff_core::commit::Commit;
+use regex::Regex;
 
 use crate::semver_check::SemverCheck;
 
@@ -44,5 +45,43 @@ impl<'a> Diff<'a> {
                 self.commits.push(c.clone());
             }
         }
+    }
+
+    pub fn is_commit_message_present(&self, pattern: &Regex) -> bool {
+        for commit in self.commits.iter() {
+            if pattern.is_match(&commit.message) { return true }
+        }
+
+        false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    pub fn create_diff() -> Diff<'static> {
+        let mut diff = Diff::new(false);
+        diff.add_commits(&vec![Commit::new(
+            "1e6903d".to_string(),
+            "feature release".to_string()
+        )]);
+        diff
+    }
+
+    #[test]
+    fn test_is_commit_message_present_true() {
+        let diff = create_diff();
+        let pattern = Regex::new(r"^feat").unwrap();
+        let present = diff.is_commit_message_present(&pattern);
+        assert_eq!(present, true);
+    }
+
+    #[test]
+    fn test_is_commit_message_present_false() {
+        let diff = create_diff();
+        let pattern = Regex::new(r"mismatch").unwrap();
+        let present = diff.is_commit_message_present(&pattern);
+        assert_eq!(present, false);
     }
 }
