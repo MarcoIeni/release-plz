@@ -49,7 +49,9 @@ impl<'a> Diff<'a> {
 
     pub fn is_commit_message_present(&self, pattern: &Regex) -> bool {
         for commit in self.commits.iter() {
-            if pattern.is_match(&commit.message) { return true }
+            if pattern.is_match(&commit.message) {
+                return true;
+            }
         }
 
         false
@@ -64,7 +66,7 @@ mod tests {
         let mut diff = Diff::new(false);
         diff.add_commits(&vec![Commit::new(
             "1e6903d".to_string(),
-            "feature release".to_string()
+            "feature release".to_string(),
         )]);
         diff
     }
