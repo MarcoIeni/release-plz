@@ -123,8 +123,8 @@ pub struct Workspace {
     /// It is used to generate the changelog release link.
     /// It defaults to the url of the default remote.
     pub repo_url: Option<Url>,
-    /// # Release Comits
-    /// Prepare release only if at least one commit respects a regex.
+    /// # Release Commits
+    /// Prepare release only if at least one commit respects this regex.
     pub release_commits: Option<String>,
 }
 
