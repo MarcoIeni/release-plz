@@ -344,6 +344,7 @@ You can use this if you think it is too noisy to raise PRs on every commit.
 Examples:
 
 - With `release_commits = "^feat:"`, release-plz will update the package only if there's a new feature.
+- With `release_commits = "^(feat:|docs:)"`, release-plz will update the package only if there's a new feature or a documentation change.
 
 By default, release-plz updates the package on every commit.
 
