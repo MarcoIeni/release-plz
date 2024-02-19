@@ -76,7 +76,7 @@ mod tests {
         let diff = create_diff();
         let pattern = Regex::new(r"^feat").unwrap();
         let present = diff.is_commit_message_present(&pattern);
-        assert_eq!(present, true);
+        assert!(present);
     }
 
     #[test]
@@ -84,6 +84,6 @@ mod tests {
         let diff = create_diff();
         let pattern = Regex::new(r"mismatch").unwrap();
         let present = diff.is_commit_message_present(&pattern);
-        assert_eq!(present, false);
+        assert!(!present);
     }
 }
