@@ -344,8 +344,8 @@ You can use this if you think it is too noisy to raise PRs on every commit.
 Examples:
 
 - With `release_commits = "^feat:"`, release-plz will update the package only if there's a new feature.
-- With `release_commits = "^(?!chore)"`, release-plz will update the package only if there's at least one commit that isn't a `chore`.
 
+By default, release-plz updates the package on every commit.
 
 :::warning
 The filtered commits are still included in the changelog.
