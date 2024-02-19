@@ -47,14 +47,11 @@ impl<'a> Diff<'a> {
         }
     }
 
-    pub fn is_commit_message_present(&self, pattern: &Regex) -> bool {
-        for commit in self.commits.iter() {
-            if pattern.is_match(&commit.message) {
-                return true;
-            }
-        }
-
-        false
+    /// Return `true` if any commit message matches the given pattern.
+    pub fn any_commit_matches(&self, pattern: &Regex) -> bool {
+        self.commits
+            .iter()
+            .any(|commit| pattern.is_match(&commit.message))
     }
 }
 
@@ -75,7 +72,7 @@ mod tests {
     fn test_is_commit_message_present_true() {
         let diff = create_diff();
         let pattern = Regex::new(r"^feat").unwrap();
-        let present = diff.is_commit_message_present(&pattern);
+        let present = diff.any_commit_matches(&pattern);
         assert!(present);
     }
 
@@ -83,7 +80,7 @@ mod tests {
     fn test_is_commit_message_present_false() {
         let diff = create_diff();
         let pattern = Regex::new(r"mismatch").unwrap();
-        let present = diff.is_commit_message_present(&pattern);
+        let present = diff.any_commit_matches(&pattern);
         assert!(!present);
     }
 }

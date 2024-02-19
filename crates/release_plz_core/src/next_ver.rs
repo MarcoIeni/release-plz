@@ -664,7 +664,7 @@ impl Updater<'_> {
 
         for (p, diff) in packages_diffs {
             if let Some(ref release_commits_regex) = self.req.release_commits {
-                if !diff.is_commit_message_present(release_commits_regex) {
+                if !diff.any_commit_matches(release_commits_regex) {
                     continue;
                 };
             }
