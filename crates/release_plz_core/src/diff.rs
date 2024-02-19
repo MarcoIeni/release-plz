@@ -69,7 +69,7 @@ mod tests {
     }
 
     #[test]
-    fn test_is_commit_message_present_true() {
+    fn test_is_commit_message_matched() {
         let diff = create_diff();
         let pattern = Regex::new(r"^feat").unwrap();
         let present = diff.any_commit_matches(&pattern);
@@ -77,7 +77,7 @@ mod tests {
     }
 
     #[test]
-    fn test_is_commit_message_present_false() {
+    fn test_is_commit_message_not_matched() {
         let diff = create_diff();
         let pattern = Regex::new(r"mismatch").unwrap();
         let present = diff.any_commit_matches(&pattern);
