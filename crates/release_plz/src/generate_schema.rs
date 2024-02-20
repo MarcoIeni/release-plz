@@ -37,6 +37,7 @@ fn generate_schema_json() -> anyhow::Result<String> {
 #[cfg(test)]
 mod tests {
     use crate::generate_schema::{generate_schema_json, FILE, FOLDER};
+    use pretty_assertions::assert_eq;
     use std::path::Path;
     use std::{env, fs};
 
@@ -65,7 +66,8 @@ mod tests {
         // Windows-friendly comparison
         assert_eq!(
             existing_json.replace("\r\n", "\n"),
-            new_json.replace("\r\n", "\n")
+            new_json.replace("\r\n", "\n"),
+            "(Hint: if change is intentional run `cargo run -- generate-schema` to update schema.)"
         );
     }
 }

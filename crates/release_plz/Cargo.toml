@@ -49,6 +49,7 @@ url.workspace = true
 cargo_utils = { path = "../cargo_utils" }
 test_logs = { path = "../test_logs" }
 fake_package = { path = "../fake_package" }
+pretty_assertions = "1.4.0"
 
 assert_cmd.workspace = true
 async-trait.workspace = true
