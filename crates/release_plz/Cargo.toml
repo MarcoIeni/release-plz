@@ -54,6 +54,7 @@ assert_cmd.workspace = true
 async-trait.workspace = true
 fake.workspace = true
 expect-test.workspace = true
+pretty_assertions.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
 toml_edit.workspace = true
