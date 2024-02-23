@@ -433,6 +433,7 @@ impl Project {
         };
         debug!("project_root: {root:?}");
         let mut packages = workspace_packages(metadata)?;
+        check_overrides_typos(&packages, &overrides)?;
         let mut release_metadata = HashMap::new();
         override_packages_path(&mut packages, metadata, &manifest_dir)
             .context("failed to override packages path")?;
@@ -449,7 +450,6 @@ impl Project {
         });
         anyhow::ensure!(!packages.is_empty(), "no public packages found. Are there any public packages in your project? Analyzed packages: {packages_names:?}");
 
-        check_overrides_typos(&packages, &overrides)?;
         let contains_multiple_pub_packages = packages.len() > 1;
 
         if let Some(pac) = single_package {
