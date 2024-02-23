@@ -11,6 +11,10 @@ categories = ["development-tools"]
 [lints]
 workspace = true
 
+[features]
+default = ["all-static"]
+all-static = ["cargo/vendored-libgit2", "cargo/all-static"]
+
 [dependencies]
 base64.workspace = true
 cargo_utils = { path = "../cargo_utils", version = "0.1.37" }
@@ -19,7 +23,7 @@ next_version = { path = "../next_version", version = "0.2" }
 
 anyhow.workspace = true
 cargo_metadata.workspace = true
-cargo = { workspace = true, features = ["vendored-libgit2", "all-static"] }
+cargo = { workspace = true }
 chrono = { workspace = true, features = ["clock"] }
 crates-index.workspace = true
 dunce.workspace = true

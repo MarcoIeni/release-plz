@@ -14,13 +14,14 @@ categories = ["command-line-utilities", "development-tools"]
 workspace = true
 
 [features]
-default = ["docker-tests"]
+default = ["docker-tests", "all-static"]
 # Run tests that need a docker runtime to be executed
 docker-tests = []
+all-static = ["release_plz_core/all-static"]
 
 [dependencies]
 git_cmd = { path = "../git_cmd", version = "0.4.20" }
-release_plz_core = { path = "../release_plz_core", version = "0.19.0" }
+release_plz_core = { path = "../release_plz_core", version = "0.19.0", default-features = false }
 cargo_utils = { path = "../cargo_utils", version = "0.1" }
 
 anyhow.workspace = true
