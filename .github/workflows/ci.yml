@@ -34,25 +34,6 @@ jobs:
 
   test-no-docker:
     name: Test Suite (no Docker)
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Install cargo-semver-checks
-        uses: jaxxstorm/action-install-gh-release@v1.11.0
-        with:
-          repo: obi1kenobi/cargo-semver-checks
-          tag: v0.27.0
-          cache: enable
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - name: Run tests
-        run: cargo test --no-default-features --workspace
-
-  check:
-    name: Check
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
@@ -66,13 +47,21 @@ jobs:
             os: windows-2022
           - target: universal-apple-darwin
             os: macos-12
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Install cargo-semver-checks
+        uses: jaxxstorm/action-install-gh-release@v1.11.0
+        with:
+          repo: obi1kenobi/cargo-semver-checks
+          tag: v0.27.0
+          cache: enable
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
-      - name: Cargo check
-        run: cargo check --all-features --workspace
+      - uses: Swatinem/rust-cache@v2
+      - name: Run tests
+        run: cargo test --no-default-features -f all-static --workspace
 
   rustfmt:
     name: Rustfmt
