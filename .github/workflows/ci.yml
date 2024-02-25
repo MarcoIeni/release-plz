@@ -64,6 +64,8 @@ jobs:
             os: macos-12
           - target: x86_64-pc-windows-msvc
             os: windows-2022
+          - target: universal-apple-darwin
+            os: macos-12
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
