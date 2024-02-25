@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.46](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.45...release-plz-v0.3.46) - 2024-02-23
+
+### Added
+- add `all-static` feature ([#1287](https://github.com/MarcoIeni/release-plz/pull/1287))
+
+### Fixed
+- allow configuring the `release` flag ([#1290](https://github.com/MarcoIeni/release-plz/pull/1290))
+
+### Other
+- enhance test `schema_is_up_to_date` ([#1285](https://github.com/MarcoIeni/release-plz/pull/1285))
+
 ## [0.3.45](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.44...release-plz-v0.3.45) - 2024-02-11
 
 ### Added
