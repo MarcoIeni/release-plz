@@ -44,6 +44,14 @@ impl Repo {
         &self.directory
     }
 
+    pub fn is_file_ignored(&self, file: &Path) -> anyhow::Result<bool> {
+        let file = file.to_str().unwrap();
+        let output = self
+            .git(&["check-ignore", file])
+            .context("failed to execute git check-ignore")?;
+        Ok(!output.is_empty())
+    }
+
     fn get_current_remote_and_branch(
         directory: impl AsRef<Path>,
     ) -> anyhow::Result<(String, String)> {
