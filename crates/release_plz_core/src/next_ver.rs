@@ -385,7 +385,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     let repository = local_project
         .get_repo()
         .context("failed to determine local project repository")?;
-    check_if_cargo_lock_is_ignored(&repository.repo, &input.local_manifest)?;
+    check_if_cargo_lock_is_ignored(&local_project.root, &input.local_manifest)?;
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
@@ -394,9 +394,9 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     Ok((packages_to_update, repository))
 }
 
-fn check_if_cargo_lock_is_ignored(repo: &Repo, local_manifest: &Path) -> anyhow::Result<()> {
+fn check_if_cargo_lock_is_ignored(repo_path: &Path, local_manifest: &Path) -> anyhow::Result<()> {
     let cargo_lock_path = local_manifest.with_file_name("Cargo.lock");
-    let is_cargo_lock_ignored = repo.is_file_ignored(&cargo_lock_path)?;
+    let is_cargo_lock_ignored = git_cmd::is_file_ignored(repo_path, &cargo_lock_path)?;
     anyhow::ensure!(
         !(is_cargo_lock_ignored && cargo_lock_path.exists()),
         "Cargo.lock is present in your .gitignore and is also committed. Remove it from your repository or from your `.gitignore` file."

@@ -44,14 +44,6 @@ impl Repo {
         &self.directory
     }
 
-    pub fn is_file_ignored(&self, file: &Path) -> anyhow::Result<bool> {
-        let file = file.to_str().unwrap();
-        let output = self
-            .git(&["check-ignore", file])
-            .context("failed to execute git check-ignore")?;
-        Ok(!output.is_empty())
-    }
-
     fn get_current_remote_and_branch(
         directory: impl AsRef<Path>,
     ) -> anyhow::Result<(String, String)> {
@@ -303,6 +295,15 @@ impl Repo {
             .context("cannot determine if git tag exists")?;
         Ok(output.lines().count() >= 1)
     }
+}
+
+pub fn is_file_ignored(repo_path: &Path, file: &Path) -> anyhow::Result<bool> {
+    let file = file
+        .to_str()
+        .with_context(|| format!("cannot convert file path to string: {:?}", file))?;
+    let output = git_in_dir(repo_path, &["check-ignore", file])
+        .context("failed to execute git check-ignore")?;
+    Ok(!output.is_empty())
 }
 
 fn changed_files(output: &str, filter: impl FnMut(&&str) -> bool) -> Vec<String> {
