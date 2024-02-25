@@ -14,10 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - allow configuring the `release` flag ([#1290](https://github.com/MarcoIeni/release-plz/pull/1290))
 
-### Other
-- simplify get_package_diff function ([#1275](https://github.com/MarcoIeni/release-plz/pull/1275))
-- refactor diff function ([#1273](https://github.com/MarcoIeni/release-plz/pull/1273))
-
 ## [0.19.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.18.0...release_plz_core-v0.19.0) - 2024-02-11
 
 ### Added
