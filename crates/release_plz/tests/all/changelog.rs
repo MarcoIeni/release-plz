@@ -2,6 +2,33 @@ use crate::helpers::{test_context::TestContext, TEST_REGISTRY};
 
 #[tokio::test]
 #[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_plz_does_not_open_release_pr_if_there_are_no_release_commits() {
+    let context = TestContext::new().await;
+
+    let config = r#"
+    [workspace]
+    release_commits = "^feat:"
+    "#;
+    context.write_release_plz_toml(config);
+
+    context.run_release_pr().success();
+
+    let opened_prs = context.opened_release_prs().await;
+    // no features are present in the commits, so release-plz doesn't open the release PR
+    assert_eq!(opened_prs.len(), 0);
+
+    std::fs::write(context.repo_dir().join("new.rs"), "// hi").unwrap();
+    context.repo.add_all_and_commit("feat: new file").unwrap();
+
+    context.run_release_pr().success();
+
+    // we added a feature, so release-plz opened the release PR
+    let opened_prs = context.opened_release_prs().await;
+    assert_eq!(opened_prs.len(), 1);
+}
+
+#[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
 async fn release_plz_adds_changelog_on_new_project() {
     let context = TestContext::new().await;
 

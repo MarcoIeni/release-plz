@@ -25,6 +25,7 @@ pr_labels = ["release"] # add the `release` label to the release Pull Request
 publish_allow_dirty = true # add `--allow-dirty` to `cargo publish`
 semver_check = false # disable API breaking changes checks
 publish_timeout = "10m" # set a timeout for `cargo publish`
+release_commits = "^feat:" # prepare release only if at least one commit matches a regex
 
 [[package]] # the double square brackets define a TOML table array
 name = "package_a"
@@ -70,6 +71,7 @@ the following sections:
   - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
   - [`publish_timeout`](#the-publish_timeout-field) — `cargo publish` timeout.
   - [`release`](#the-release-field) - Enable the processing of the packages.
+  - [`release_commits`](#the-release_commits-field) - Customize which commits trigger a release.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
 - [`[[package]]`](#the-package-section) — Package-specific configurations.
@@ -331,6 +333,25 @@ Example:
 [workspace]
 release = false
 ```
+
+#### The `release_commits` field
+
+In `release-plz update` and `release-plz release-pr`, `release-plz` bumps the version and updates the changelog
+of the package only if at least one of the commits matches the `release_commits` regex.
+
+You can use this if you think it is too noisy to raise PRs on every commit.
+
+Examples:
+
+- With `release_commits = "^feat:"`, release-plz will update the package only if there's a new feature.
+- With `release_commits = "^(feat:|docs:)"`, release-plz will update the package only if there's a new feature or a documentation change.
+
+By default, release-plz updates the package on every commit.
+
+:::warning
+The filtered commits are still included in the changelog.
+To exclude certain commits from the changelog, use the [commit_parsers](#the-commit_parsers-field) field.
+:::
 
 #### The `repo_url` field
 

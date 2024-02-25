@@ -161,6 +161,9 @@ impl Update {
         if let Some(registry) = &self.registry {
             update = update.with_registry(registry.clone());
         }
+        if let Some(release_commits) = config.workspace.release_commits {
+            update = update.with_release_commits(release_commits.clone())?;
+        }
 
         Ok(update)
     }

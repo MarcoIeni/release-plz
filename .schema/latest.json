@@ -53,6 +53,7 @@
         "publish_no_verify": null,
         "publish_timeout": null,
         "release": null,
+        "release_commits": null,
         "repo_url": null,
         "semver_check": null
       },
@@ -566,6 +567,14 @@
           "description": "Used to toggle off the update/release process for a workspace or package.",
           "type": [
             "boolean",
+            "null"
+          ]
+        },
+        "release_commits": {
+          "title": "Release Commits",
+          "description": "Prepare release only if at least one commit respects this regex.",
+          "type": [
+            "string",
             "null"
           ]
         },
