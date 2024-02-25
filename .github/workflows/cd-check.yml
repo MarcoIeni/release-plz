@@ -1,8 +1,4 @@
-name: CD # Continuous Deployment
-
-permissions:
-  # TODO: once `releases: write` is supported, use it instead.
-  contents: write
+name: CD Check # Continuous Deployment
 
 on:
   push:
@@ -30,7 +26,6 @@ defaults:
 jobs:
   upload-assets:
     name: ${{ matrix.target }}
-    if: github.repository_owner == 'MarcoIeni' && startsWith(github.event.release.name, 'release-plz-v')
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
