@@ -48,7 +48,7 @@ tracing-log = "0.2.0"
 tracing-subscriber = "0.3.18"
 url = { version = "2.5.0", default-features = false }
 walkdir = "2.4.0"
-wiremock = "0.5.22"
+wiremock = "0.6.0"
 
 [workspace.lints.clippy]
 await_holding_lock = "warn"
