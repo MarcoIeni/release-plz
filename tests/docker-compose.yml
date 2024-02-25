@@ -4,7 +4,7 @@ services:
   # We use Gitea as a git server.
   # We test that release-plz can open PRs, create releases, etc.
   gitea:
-    image: gitea/gitea:1.20.5-rootless
+    image: gitea/gitea:1.21.6-rootless
     container_name: gitea
     restart: always
     environment:
@@ -27,7 +27,7 @@ services:
   # We use postgres as a database for Gitea.
   # With SqlLite I had problems related to database locks.
   db:
-    image: postgres:14
+    image: postgres:16
     restart: always
     environment:
       - POSTGRES_USER=gitea
