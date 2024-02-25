@@ -213,7 +213,7 @@ impl Repo {
 
     #[instrument(skip(self))]
     pub fn checkout(&self, object: &str) -> anyhow::Result<()> {
-        self.git(&["checkout", object])?;
+        self.git(&["checkout", "-f", object])?;
         Ok(())
     }
 
