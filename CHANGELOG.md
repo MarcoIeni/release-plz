@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.47](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.46...release-plz-v0.3.47) - 2024-02-25
+
+### Added
+- prepare release if commits respect the `release_commits` regex ([#1278](https://github.com/MarcoIeni/release-plz/pull/1278))
+
+### Other
+- update cargo to v0.77 ([#1296](https://github.com/MarcoIeni/release-plz/pull/1296))
+
 ## [0.3.46](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.45...release-plz-v0.3.46) - 2024-02-23
 
 ### Added

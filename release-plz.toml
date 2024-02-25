@@ -1,6 +1,5 @@
 [workspace]
 git_release_enable = false
-dependencies_update = true # run `cargo update` in the release PR
 
 [[package]] # the double square brackets define a TOML table array
 name = "release-plz" # name of the package to configure
