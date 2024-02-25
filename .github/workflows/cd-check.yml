@@ -5,8 +5,14 @@ permissions:
   contents: write
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "**.md"
 
 env:
   CARGO_INCREMENTAL: 0
@@ -67,4 +73,5 @@ jobs:
           target: ${{ matrix.target }}
           tar: all
           zip: windows
+          dry-run: false
           token: ${{ secrets.GITHUB_TOKEN }}

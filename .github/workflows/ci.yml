@@ -45,8 +45,6 @@ jobs:
             os: macos-13
           - target: x86_64-pc-windows-msvc
             os: windows-2022
-          - target: universal-apple-darwin
-            os: macos-13
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
