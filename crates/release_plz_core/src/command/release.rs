@@ -397,7 +397,7 @@ pub struct GitRelease {
 }
 
 /// Release the project as it is.
-#[instrument]
+#[instrument(skip(input))]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     let overrides = input.packages_config.overrides.keys().cloned().collect();
     let project = Project::new(
