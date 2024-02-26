@@ -123,6 +123,9 @@ pub struct Workspace {
     /// It is used to generate the changelog release link.
     /// It defaults to the url of the default remote.
     pub repo_url: Option<Url>,
+    /// # Release Commits
+    /// Prepare release only if at least one commit respects this regex.
+    pub release_commits: Option<String>,
 }
 
 impl Workspace {
@@ -361,6 +364,7 @@ mod tests {
         git_release_type = "prod"
         git_release_draft = false
         publish_timeout = "10m"
+        release_commits = "^feat:"
     "#;
 
     const BASE_PACKAGE_CONFIG: &str = r#"
@@ -387,6 +391,7 @@ mod tests {
                 pr_draft: false,
                 pr_labels: vec![],
                 publish_timeout: Some("10m".to_string()),
+                release_commits: Some("^feat:".to_string()),
             },
             package: [].into(),
         }
@@ -504,6 +509,7 @@ mod tests {
                     ..Default::default()
                 },
                 publish_timeout: Some("10m".to_string()),
+                release_commits: Some("^feat:".to_string()),
             },
             package: [PackageSpecificConfigWithName {
                 name: "crate1".to_string(),
@@ -536,6 +542,7 @@ mod tests {
             pr_labels = ["label1"]
             publish_timeout = "10m"
             repo_url = "https://github.com/MarcoIeni/release-plz"
+            release_commits = "^feat:"
 
             [changelog]
 

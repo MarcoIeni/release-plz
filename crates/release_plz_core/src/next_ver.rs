@@ -75,6 +75,9 @@ pub struct UpdateRequest {
     repo_url: Option<RepoUrl>,
     /// Package-specific configurations.
     packages_config: PackagesConfig,
+    /// Release Commits
+    /// Prepare release only if at least one commit respects a regex.
+    release_commits: Option<Regex>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -213,6 +216,7 @@ impl UpdateRequest {
             allow_dirty: false,
             repo_url: None,
             packages_config: PackagesConfig::default(),
+            release_commits: None,
         })
     }
 
@@ -294,6 +298,16 @@ impl UpdateRequest {
             repo_url: Some(repo_url),
             ..self
         }
+    }
+
+    pub fn with_release_commits(self, release_commits: String) -> anyhow::Result<Self> {
+        let regex =
+            Regex::new(&release_commits).context("invalid release_commits regex pattern")?;
+
+        Ok(Self {
+            release_commits: Some(regex),
+            ..self
+        })
     }
 
     pub fn local_manifest_dir(&self) -> anyhow::Result<&Path> {
@@ -433,6 +447,7 @@ impl Project {
         };
         debug!("project_root: {root:?}");
         let mut packages = workspace_packages(metadata)?;
+        check_overrides_typos(&packages, &overrides)?;
         let mut release_metadata = HashMap::new();
         override_packages_path(&mut packages, metadata, &manifest_dir)
             .context("failed to override packages path")?;
@@ -449,7 +464,6 @@ impl Project {
         });
         anyhow::ensure!(!packages.is_empty(), "no public packages found. Are there any public packages in your project? Analyzed packages: {packages_names:?}");
 
-        check_overrides_typos(&packages, &overrides)?;
         let contains_multiple_pub_packages = packages.len() > 1;
 
         if let Some(pac) = single_package {
@@ -649,6 +663,11 @@ impl Updater<'_> {
         }
 
         for (p, diff) in packages_diffs {
+            if let Some(ref release_commits_regex) = self.req.release_commits {
+                if !diff.any_commit_matches(release_commits_regex) {
+                    continue;
+                };
+            }
             // Calculate next version without taking into account workspace version
             let next_version = if let Some(max_workspace_version) = &new_workspace_version {
                 if workspace_version_pkgs.contains(p.name.as_str()) {
