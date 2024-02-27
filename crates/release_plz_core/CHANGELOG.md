@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.19.3...release_plz_core-v0.19.4) - 2024-02-27
+
+### Other
+- error if committed Cargo.lock is in `.gitignore` ([#1294](https://github.com/MarcoIeni/release-plz/pull/1294))
+
 ## [0.19.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.19.2...release_plz_core-v0.19.3) - 2024-02-25
 
 ### Other
