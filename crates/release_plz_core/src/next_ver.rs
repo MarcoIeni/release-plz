@@ -2,7 +2,7 @@ use crate::{
     changelog_parser::{self, ChangelogRelease},
     copy_dir::copy_dir,
     diff::Diff,
-    lock_compare,
+    is_readme_updated, lock_compare,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection},
@@ -954,8 +954,12 @@ impl Updater<'_> {
                 debug!("package {} found in cargo registry", registry_package.name);
                 let registry_package_path = registry_package.package_path()?;
 
-                let are_packages_equal =
-                    self.check_package_equality(repository, package_path, registry_package_path)?;
+                let are_packages_equal = self.check_package_equality(
+                    repository,
+                    package,
+                    package_path,
+                    registry_package_path,
+                )?;
                 if are_packages_equal
                     || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
                 {
@@ -1003,9 +1007,13 @@ impl Updater<'_> {
     fn check_package_equality(
         &self,
         repository: &Repo,
+        package: &Package,
         package_path: &Path,
         registry_package_path: &Path,
     ) -> anyhow::Result<bool> {
+        if is_readme_updated(package_path, package, registry_package_path)? {
+            return Ok(false);
+        }
         // We run `cargo package` when comparing packages, which can edit files, such as `Cargo.lock`.
         // Store its path so it can be reverted after comparison.
         let cargo_lock_path = self
