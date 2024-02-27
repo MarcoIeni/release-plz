@@ -147,7 +147,7 @@ pub fn is_readme_updated(
         }
         None => true,
     };
-    Ok(are_readmes_equal)
+    Ok(!are_readmes_equal)
 }
 
 fn are_files_equal(first: &Path, second: &Path) -> anyhow::Result<bool> {
