@@ -429,6 +429,16 @@ pub struct Project {
     contains_multiple_pub_packages: bool,
 }
 
+pub fn root_repo_path(local_manifest: &Path) -> anyhow::Result<PathBuf> {
+    let manifest_dir = manifest_dir(local_manifest)?;
+    root_repo_path_from_manifest_dir(manifest_dir)
+}
+
+fn root_repo_path_from_manifest_dir(manifest_dir: &Path) -> anyhow::Result<PathBuf> {
+    let root = git_cmd::git_in_dir(manifest_dir, &["rev-parse", "--show-toplevel"])?;
+    Ok(PathBuf::from(root))
+}
+
 impl Project {
     pub fn new(
         local_manifest: &Path,
@@ -440,11 +450,7 @@ impl Project {
         let manifest = local_manifest;
         let manifest_dir = manifest_dir(manifest)?.to_path_buf();
         debug!("manifest_dir: {manifest_dir:?}");
-        let root = {
-            let project_root =
-                git_cmd::git_in_dir(&manifest_dir, &["rev-parse", "--show-toplevel"])?;
-            PathBuf::from(project_root)
-        };
+        let root = root_repo_path_from_manifest_dir(&manifest_dir)?;
         debug!("project_root: {root:?}");
         let mut packages = workspace_packages(metadata)?;
         check_overrides_typos(&packages, &overrides)?;

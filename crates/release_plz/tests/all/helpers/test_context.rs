@@ -99,11 +99,11 @@ impl TestContext {
     }
 }
 
-fn log_level() -> &'static str {
+fn log_level() -> String {
     if std::env::var("ENABLE_LOGS").is_ok() {
-        "DEBUG,hyper=INFO"
+        std::env::var("RUST_LOG").unwrap_or("DEBUG,hyper=INFO".to_string())
     } else {
-        "ERROR"
+        "ERROR".to_string()
     }
 }
 

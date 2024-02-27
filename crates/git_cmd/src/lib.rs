@@ -297,6 +297,14 @@ impl Repo {
     }
 }
 
+pub fn is_file_ignored(repo_path: &Path, file: &Path) -> anyhow::Result<bool> {
+    let file = file
+        .to_str()
+        .with_context(|| format!("cannot convert file path to string: {:?}", file))?;
+    let is_ignored = git_in_dir(repo_path, &["check-ignore", "--no-index", file]).is_ok();
+    Ok(is_ignored)
+}
+
 fn changed_files(output: &str, filter: impl FnMut(&&str) -> bool) -> Vec<String> {
     output
         .lines()
@@ -324,7 +332,8 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
     if output.status.success() {
         Ok(stdout)
     } else {
-        let mut error = format!("error while running git with args `{args:?}");
+        let mut error =
+            format!("error while running git in directory `{dir:?}` with args `{args:?}");
         let stderr = cmd::string_from_bytes(output.stderr)?;
         if !stdout.is_empty() || !stderr.is_empty() {
             error.push(':');
