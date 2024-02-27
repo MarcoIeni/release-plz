@@ -1012,6 +1012,7 @@ impl Updater<'_> {
         registry_package_path: &Path,
     ) -> anyhow::Result<bool> {
         if is_readme_updated(package_path, package, registry_package_path)? {
+            debug!("{}: README updated", package.name);
             return Ok(false);
         }
         // We run `cargo package` when comparing packages, which can edit files, such as `Cargo.lock`.
