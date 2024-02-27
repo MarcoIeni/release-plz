@@ -301,7 +301,7 @@ pub fn is_file_ignored(repo_path: &Path, file: &Path) -> anyhow::Result<bool> {
     let file = file
         .to_str()
         .with_context(|| format!("cannot convert file path to string: {:?}", file))?;
-    let is_ignored = git_in_dir(repo_path, &["check-ignore", file]).is_ok();
+    let is_ignored = git_in_dir(repo_path, &["check-ignore", "--no-index", file]).is_ok();
     Ok(is_ignored)
 }
 
