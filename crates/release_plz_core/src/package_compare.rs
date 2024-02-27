@@ -123,7 +123,10 @@ fn are_cargo_toml_equal(local_package: &Path, registry_package: &Path) -> bool {
 }
 
 /// Returns true if the README file of the local package is the same as the one in the registry.
-/// Returns false if the README is the same or if the local package doesn't have a `readme` field in the `Cargo.toml`.
+/// Returns false if:
+/// - the README is the same
+/// - the local package doesn't have a `readme` field in the `Cargo.toml`.
+/// - the package doesn't have a README at all.
 pub fn is_readme_updated(
     local_package_path: &Path,
     package: &Package,
@@ -136,6 +139,9 @@ pub fn is_readme_updated(
     let are_readmes_equal = match local_package_readme_path {
         Some(local_package_readme_path) => {
             let registry_package_readme_path = registry_package_path.join("README.md");
+            if !registry_package_readme_path.exists() {
+                return Ok(true);
+            }
             are_files_equal(&local_package_readme_path, &registry_package_readme_path)
                 .context("cannot compare README files")?
         }
