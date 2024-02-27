@@ -385,23 +385,12 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     let repository = local_project
         .get_repo()
         .context("failed to determine local project repository")?;
-    check_if_cargo_lock_is_ignored(&local_project.root, &input.local_manifest)?;
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
     let packages_to_update =
         updater.packages_to_update(&registry_packages, &repository.repo, input.local_manifest())?;
     Ok((packages_to_update, repository))
-}
-
-fn check_if_cargo_lock_is_ignored(repo_path: &Path, local_manifest: &Path) -> anyhow::Result<()> {
-    let cargo_lock_path = local_manifest.with_file_name("Cargo.lock");
-    let is_cargo_lock_ignored = git_cmd::is_file_ignored(repo_path, &cargo_lock_path)?;
-    anyhow::ensure!(
-        !(is_cargo_lock_ignored && cargo_lock_path.exists()),
-        "Cargo.lock is present in your .gitignore and is also committed. Remove it from your repository or from your `.gitignore` file."
-    );
-    Ok(())
 }
 
 /// Check for typos in the package names based on the overrides
@@ -440,6 +429,16 @@ pub struct Project {
     contains_multiple_pub_packages: bool,
 }
 
+pub fn root_repo_path(local_manifest: &Path) -> anyhow::Result<PathBuf> {
+    let manifest_dir = manifest_dir(local_manifest)?;
+    root_repo_path_from_manifest_dir(manifest_dir)
+}
+
+fn root_repo_path_from_manifest_dir(manifest_dir: &Path) -> anyhow::Result<PathBuf> {
+    let root = git_cmd::git_in_dir(manifest_dir, &["rev-parse", "--show-toplevel"])?;
+    Ok(PathBuf::from(root))
+}
+
 impl Project {
     pub fn new(
         local_manifest: &Path,
@@ -451,11 +450,7 @@ impl Project {
         let manifest = local_manifest;
         let manifest_dir = manifest_dir(manifest)?.to_path_buf();
         debug!("manifest_dir: {manifest_dir:?}");
-        let root = {
-            let project_root =
-                git_cmd::git_in_dir(&manifest_dir, &["rev-parse", "--show-toplevel"])?;
-            PathBuf::from(project_root)
-        };
+        let root = root_repo_path_from_manifest_dir(&manifest_dir)?;
         debug!("project_root: {root:?}");
         let mut packages = workspace_packages(metadata)?;
         check_overrides_typos(&packages, &overrides)?;
