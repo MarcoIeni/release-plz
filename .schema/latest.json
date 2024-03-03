@@ -50,6 +50,7 @@
         "pr_labels": [],
         "publish": null,
         "publish_allow_dirty": null,
+        "publish_features": null,
         "publish_no_verify": null,
         "publish_timeout": null,
         "release": null,
@@ -339,6 +340,17 @@
             "null"
           ]
         },
+        "publish_features": {
+          "title": "Publish Features",
+          "description": "If `Some(vec![\"a\", \"b\", \"c\"])`, add the `--features=a,b,c` flag to the `cargo publish` command.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
         "publish_no_verify": {
           "title": "Publish No Verify",
           "description": "If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.",
@@ -545,6 +557,17 @@
             "boolean",
             "null"
           ]
+        },
+        "publish_features": {
+          "title": "Publish Features",
+          "description": "If `Some(vec![\"a\", \"b\", \"c\"])`, add the `--features=a,b,c` flag to the `cargo publish` command.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
         },
         "publish_no_verify": {
           "title": "Publish No Verify",

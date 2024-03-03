@@ -215,6 +215,9 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
         if let Some(no_verify) = value.publish_no_verify {
             cfg = cfg.with_no_verify(no_verify);
         }
+        if let Some(features) = value.publish_features {
+            cfg = cfg.with_features(features);
+        }
         if let Some(allow_dirty) = value.publish_allow_dirty {
             cfg = cfg.with_allow_dirty(allow_dirty);
         }
@@ -258,6 +261,9 @@ pub struct PackageConfig {
     /// # Publish No Verify
     /// If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.
     pub publish_no_verify: Option<bool>,
+    /// # Publish Features
+    /// If `Some(vec!["a", "b", "c"])`, add the `--features=a,b,c` flag to the `cargo publish` command.
+    pub publish_features: Option<Vec<String>>,
     /// # Semver Check
     /// Controls when to run cargo-semver-checks.
     /// If unspecified, run cargo-semver-checks if the package is a library.
@@ -303,6 +309,7 @@ impl PackageConfig {
             publish: self.publish.or(default.publish),
             publish_allow_dirty: self.publish_allow_dirty.or(default.publish_allow_dirty),
             publish_no_verify: self.publish_no_verify.or(default.publish_no_verify),
+            publish_features: self.publish_features.or(default.publish_features),
             git_tag_enable: self.git_tag_enable.or(default.git_tag_enable),
             git_tag_name: self.git_tag_name.or(default.git_tag_name),
             release: self.release.or(default.release),
