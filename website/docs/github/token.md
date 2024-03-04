@@ -159,7 +159,7 @@ in the following ways:
         - "*"
    ```
 
-This can be useful to announce the release on socials
+This can be useful to announce automatically the release on socials
 or to [release binaries](../extra/releasing-binaries.md).
 
 To learn more, see GitHub [docs](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows).
