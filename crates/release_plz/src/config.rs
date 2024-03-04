@@ -253,16 +253,16 @@ pub struct PackageConfig {
     /// Tera template of the git tag name created by release-plz.
     pub git_tag_name: Option<String>,
     /// # Publish
-    /// If `Some(false)`, don't run `cargo publish`.
+    /// If `false`, don't run `cargo publish`.
     pub publish: Option<bool>,
     /// # Publish Allow Dirty
-    /// If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.
+    /// If `true`, add the `--allow-dirty` flag to the `cargo publish` command.
     pub publish_allow_dirty: Option<bool>,
     /// # Publish No Verify
-    /// If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.
+    /// If `true`, add the `--no-verify` flag to the `cargo publish` command.
     pub publish_no_verify: Option<bool>,
     /// # Publish Features
-    /// If `Some(vec!["a", "b", "c"])`, add the `--features=a,b,c` flag to the `cargo publish` command.
+    /// If `["a", "b", "c"]`, add the `--features=a,b,c` flag to the `cargo publish` command.
     pub publish_features: Option<Vec<String>>,
     /// # Semver Check
     /// Controls when to run cargo-semver-checks.

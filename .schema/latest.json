@@ -326,7 +326,7 @@
         },
         "publish": {
           "title": "Publish",
-          "description": "If `Some(false)`, don't run `cargo publish`.",
+          "description": "If `false`, don't run `cargo publish`.",
           "type": [
             "boolean",
             "null"
@@ -334,7 +334,7 @@
         },
         "publish_allow_dirty": {
           "title": "Publish Allow Dirty",
-          "description": "If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.",
+          "description": "If `true`, add the `--allow-dirty` flag to the `cargo publish` command.",
           "type": [
             "boolean",
             "null"
@@ -342,7 +342,7 @@
         },
         "publish_features": {
           "title": "Publish Features",
-          "description": "If `Some(vec![\"a\", \"b\", \"c\"])`, add the `--features=a,b,c` flag to the `cargo publish` command.",
+          "description": "If `[\"a\", \"b\", \"c\"]`, add the `--features=a,b,c` flag to the `cargo publish` command.",
           "type": [
             "array",
             "null"
@@ -353,7 +353,7 @@
         },
         "publish_no_verify": {
           "title": "Publish No Verify",
-          "description": "If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.",
+          "description": "If `true`, add the `--no-verify` flag to the `cargo publish` command.",
           "type": [
             "boolean",
             "null"
@@ -544,7 +544,7 @@
         },
         "publish": {
           "title": "Publish",
-          "description": "If `Some(false)`, don't run `cargo publish`.",
+          "description": "If `false`, don't run `cargo publish`.",
           "type": [
             "boolean",
             "null"
@@ -552,7 +552,7 @@
         },
         "publish_allow_dirty": {
           "title": "Publish Allow Dirty",
-          "description": "If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.",
+          "description": "If `true`, add the `--allow-dirty` flag to the `cargo publish` command.",
           "type": [
             "boolean",
             "null"
@@ -560,7 +560,7 @@
         },
         "publish_features": {
           "title": "Publish Features",
-          "description": "If `Some(vec![\"a\", \"b\", \"c\"])`, add the `--features=a,b,c` flag to the `cargo publish` command.",
+          "description": "If `[\"a\", \"b\", \"c\"]`, add the `--features=a,b,c` flag to the `cargo publish` command.",
           "type": [
             "array",
             "null"
@@ -571,7 +571,7 @@
         },
         "publish_no_verify": {
           "title": "Publish No Verify",
-          "description": "If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.",
+          "description": "If `true`, add the `--no-verify` flag to the `cargo publish` command.",
           "type": [
             "boolean",
             "null"
