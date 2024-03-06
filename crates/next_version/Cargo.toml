@@ -1,9 +1,9 @@
 [package]
 name = "next_version"
 version = "0.2.14"
-edition = "2021"
+edition.workspace = true
 description = "Determine next semantic version based on conventional commits"
-license = "MIT OR Apache-2.0"
+license.workspace = true
 repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/next_version"
 keywords = ["semver", "semantic", "versioning", "conventional", "commits"]
 categories = ["development-tools", "parsing"]

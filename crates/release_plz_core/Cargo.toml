@@ -1,10 +1,10 @@
 [package]
 name = "release_plz_core"
 version = "0.19.5"
-edition = "2021"
+edition.workspace = true
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/release_plz_core"
-license = "MIT OR Apache-2.0"
+license.workspace = true
 keywords = ["release", "please", "semver", "conventional", "commits"]
 categories = ["development-tools"]
 

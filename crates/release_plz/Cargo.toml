@@ -1,11 +1,11 @@
 [package]
 name = "release-plz"
 version = "0.3.50"
-edition = "2021"
+edition.workspace = true
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz"
 homepage = "https://release-plz.ieni.dev/"
-license = "MIT OR Apache-2.0"
+license.workspace = true
 readme = "../../README.md"
 keywords = ["release", "please", "semver", "conventional", "commits"]
 categories = ["command-line-utilities", "development-tools"]

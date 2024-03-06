@@ -1,10 +1,10 @@
 [package]
 name = "git_cmd"
 version = "0.4.22"
-edition = "2021"
+edition.workspace = true
 description = "Wrapper around git cli"
 repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/git_cmd"
-license = "MIT OR Apache-2.0"
+license.workspace = true
 keywords = ["git", "command", "cli", "wrapper", "shell"]
 categories = ["development-tools", "filesystem"]
 
