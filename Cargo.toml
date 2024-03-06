@@ -6,7 +6,7 @@ members = ["crates/*"]
 anyhow = "1.0.80"
 assert_cmd = "2.0.14"
 async-trait = "0.1.77"
-base64 = "0.21.7"
+base64 = "0.22.0"
 cargo_metadata = "0.18.1"
 cargo = { version = "0.77.0", default-features = false }
 chrono = { version = "0.4.34", default-features = false }
@@ -31,7 +31,7 @@ rayon = "1.9.0"
 regex = "1.10.3"
 reqwest = "0.11.24"
 reqwest-middleware = "0.2.4"
-reqwest-retry = "0.3.0"
+reqwest-retry = "0.4.0"
 schemars = { version = "0.8.16", features = ["url"] }
 secrecy = "0.8.0"
 semver = "1.0.22"
