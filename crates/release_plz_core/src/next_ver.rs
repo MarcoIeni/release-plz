@@ -1180,7 +1180,7 @@ fn is_commit_too_old(
 
 fn pathbufs_to_check(package_path: &Path, package: &Package) -> Vec<PathBuf> {
     let mut paths = vec![package_path.to_path_buf()];
-    if let Some(readme_path) = local_readme_override(package, &package_path) {
+    if let Some(readme_path) = local_readme_override(package, package_path) {
         paths.push(readme_path);
     }
     paths
