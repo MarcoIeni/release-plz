@@ -2,7 +2,7 @@ use crate::{
     changelog_parser::{self, ChangelogRelease},
     copy_dir::copy_dir,
     diff::Diff,
-    is_readme_updated, lock_compare,
+    is_readme_updated, local_readme_override, lock_compare,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection},
@@ -900,7 +900,9 @@ impl Updater<'_> {
             .context("can't checkout head to calculate diff")?;
         let registry_package = registry_packages.get_package(&package.name);
         let mut diff = Diff::new(registry_package.is_some());
-        if let Err(err) = repository.checkout_last_commit_at_path(&package_path) {
+        let pathbufs_to_check = pathbufs_to_check(&package_path, package);
+        let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
+        if let Err(err) = repository.checkout_last_commit_at_paths(&paths_to_check) {
             if err
                 .to_string()
                 .contains("Your local changes to the following files would be overwritten")
@@ -947,6 +949,8 @@ impl Updater<'_> {
         tag_commit: Option<String>,
         diff: &mut Diff,
     ) -> anyhow::Result<()> {
+        let pathbufs_to_check = pathbufs_to_check(package_path, package);
+        let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
         loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
@@ -996,7 +1000,7 @@ impl Updater<'_> {
                     current_commit_message.clone(),
                 ));
             }
-            if let Err(_err) = repository.checkout_previous_commit_at_path(package_path) {
+            if let Err(_err) = repository.checkout_previous_commit_at_paths(&paths_to_check) {
                 debug!("there are no other commits");
                 break;
             }
@@ -1172,6 +1176,14 @@ fn is_commit_too_old(
         }
     }
     false
+}
+
+fn pathbufs_to_check(package_path: &Path, package: &Package) -> Vec<PathBuf> {
+    let mut paths = vec![package_path.to_path_buf()];
+    if let Some(readme_path) = local_readme_override(package, &package_path) {
+        paths.push(readme_path);
+    }
+    paths
 }
 
 /// Check if release-plz should check the semver compatibility of the package.

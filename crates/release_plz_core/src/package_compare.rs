@@ -9,7 +9,7 @@ use std::{
     fs::File,
     hash::{Hash, Hasher},
     io::{self, Read},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 /// Check if two packages are equal.
@@ -132,10 +132,7 @@ pub fn is_readme_updated(
     package: &Package,
     registry_package_path: &Path,
 ) -> anyhow::Result<bool> {
-    let local_package_readme_path = package
-        .readme
-        .as_ref()
-        .map(|readme| local_package_path.join(readme));
+    let local_package_readme_path = local_readme_override(package, local_package_path);
     let are_readmes_equal = match local_package_readme_path {
         Some(local_package_readme_path) => {
             let registry_package_readme_path = registry_package_path.join("README.md");
@@ -148,6 +145,13 @@ pub fn is_readme_updated(
         None => true,
     };
     Ok(!are_readmes_equal)
+}
+
+pub fn local_readme_override(package: &Package, local_package_path: &Path) -> Option<PathBuf> {
+    package
+        .readme
+        .as_ref()
+        .map(|readme| local_package_path.join(readme))
 }
 
 fn are_files_equal(first: &Path, second: &Path) -> anyhow::Result<bool> {

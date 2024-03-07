@@ -5,7 +5,6 @@ mod cmd;
 pub mod test_fixture;
 
 use std::{
-    fmt,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -191,22 +190,22 @@ impl Repo {
     }
 
     /// Checkout to the latest commit.
-    pub fn checkout_last_commit_at_path(&self, path: &Path) -> anyhow::Result<()> {
-        let previous_commit = self.last_commit_at_path(path)?;
+    pub fn checkout_last_commit_at_paths(&self, paths: &[&Path]) -> anyhow::Result<()> {
+        let previous_commit = self.last_commit_at_paths(paths)?;
         self.checkout(&previous_commit)?;
         Ok(())
     }
 
-    fn last_commit_at_path(&self, path: &Path) -> anyhow::Result<String> {
-        self.nth_commit_at_path(1, path)
+    fn last_commit_at_paths(&self, paths: &[&Path]) -> anyhow::Result<String> {
+        self.nth_commit_at_paths(1, paths)
     }
 
-    fn previous_commit_at_path(&self, path: &Path) -> anyhow::Result<String> {
-        self.nth_commit_at_path(2, path)
+    fn previous_commit_at_paths(&self, paths: &[&Path]) -> anyhow::Result<String> {
+        self.nth_commit_at_paths(2, paths)
     }
 
-    pub fn checkout_previous_commit_at_path(&self, path: &Path) -> anyhow::Result<()> {
-        let commit = self.previous_commit_at_path(path)?;
+    pub fn checkout_previous_commit_at_paths(&self, paths: &[&Path]) -> anyhow::Result<()> {
+        let commit = self.previous_commit_at_paths(paths)?;
         self.checkout(&commit)?;
         Ok(())
     }
@@ -224,17 +223,18 @@ impl Repo {
             nth_commit = tracing::field::Empty,
         )
     )]
-    fn nth_commit_at_path(
-        &self,
-        nth: usize,
-        path: impl AsRef<Path> + fmt::Debug,
-    ) -> anyhow::Result<String> {
+    fn nth_commit_at_paths(&self, nth: usize, paths: &[&Path]) -> anyhow::Result<String> {
         let nth_str = nth.to_string();
-        let path = path
-            .as_ref()
-            .to_str()
-            .ok_or_else(|| anyhow!("invalid path"))?;
-        let commit_list = self.git(&["log", "--format=%H", "-n", &nth_str, "--", path])?;
+
+        let git_args = {
+            let mut git_args = vec!["log", "--format=%H", "-n", &nth_str, "--"];
+            for p in paths {
+                git_args.push(p.to_str().expect("invalid path"));
+            }
+            git_args
+        };
+
+        let commit_list = self.git(&git_args)?;
         let mut commits = commit_list.lines();
         let last_commit = commits.nth(nth - 1).context("not enough commits")?;
 
@@ -375,7 +375,8 @@ mod tests {
         let repository_dir = tempdir().unwrap();
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
-        repo.checkout_previous_commit_at_path(&file1).unwrap_err();
+        repo.checkout_previous_commit_at_paths(&[&file1])
+            .unwrap_err();
     }
 
     #[test]
@@ -393,7 +394,7 @@ mod tests {
             fs::write(&file2, b"Hello, file2!-2").unwrap();
             repo.add_all_and_commit("file2-2").unwrap();
         }
-        repo.checkout_previous_commit_at_path(&file2).unwrap();
+        repo.checkout_previous_commit_at_paths(&[&file2]).unwrap();
         assert_eq!(repo.current_commit_message().unwrap(), "file2-1");
     }
 
