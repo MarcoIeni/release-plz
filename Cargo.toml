@@ -2,6 +2,10 @@
 resolver = "2"
 members = ["crates/*"]
 
+[workspace.package]
+license = "MIT OR Apache-2.0"
+edition = "2021"
+
 [workspace.dependencies]
 anyhow = "1.0.80"
 assert_cmd = "2.0.14"
