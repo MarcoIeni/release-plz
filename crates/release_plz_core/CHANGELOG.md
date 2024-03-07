@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.19.4...release_plz_core-v0.19.5) - 2024-03-06
+
+### Added
+- Add `publish_features` to pass feature list to `cargo publish` ([#1320](https://github.com/MarcoIeni/release-plz/pull/1320))
+
 ## [0.19.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.19.3...release_plz_core-v0.19.4) - 2024-02-27
 
 ### Other

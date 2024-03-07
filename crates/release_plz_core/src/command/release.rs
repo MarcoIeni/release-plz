@@ -152,6 +152,11 @@ impl ReleaseRequest {
         let config = self.get_package_config(package);
         config.generic.no_verify
     }
+
+    pub fn features(&self, package: &str) -> Vec<String> {
+        let config = self.get_package_config(package);
+        config.generic.features.clone()
+    }
 }
 
 impl ReleaseMetadataBuilder for ReleaseRequest {
@@ -205,6 +210,9 @@ pub struct ReleaseConfig {
     /// Allow dirty working directories to be packaged.
     /// If true, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
     allow_dirty: bool,
+    /// Features to be enabled when packaging the crate.
+    /// If non-empty, pass the `--features` flag to `cargo publish`.
+    features: Vec<String>,
     /// High-level toggle to process this package or ignore it
     release: bool,
 }
@@ -235,6 +243,11 @@ impl ReleaseConfig {
         self
     }
 
+    pub fn with_features(mut self, features: Vec<String>) -> Self {
+        self.features = features;
+        self
+    }
+
     pub fn with_release(mut self, release: bool) -> Self {
         self.release = release;
         self
@@ -257,6 +270,7 @@ impl Default for ReleaseConfig {
             git_tag: GitTagConfig::default(),
             no_verify: false,
             allow_dirty: false,
+            features: vec![],
             release: true,
         }
     }
@@ -595,6 +609,11 @@ fn run_cargo_publish(
     }
     if input.no_verify(&package.name) {
         args.push("--no-verify");
+    }
+    let features = input.features(&package.name).join(",");
+    if !features.is_empty() {
+        args.push("--features");
+        args.push(&features);
     }
     run_cargo(workspace_root, &args)
 }
