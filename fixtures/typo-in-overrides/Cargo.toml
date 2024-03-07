@@ -1,12 +1,8 @@
 [package]
 name = "typo_test"
 version = "0.1.0"
-edition.workspace = true
+edition = "2021"
 description = "Check for typos in overrides"
-license.workspace = true
-repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/next_version"
-keywords = ["semver", "semantic", "versioning", "conventional", "commits"]
-categories = ["development-tools", "parsing"]
 
 [workspace]
 
