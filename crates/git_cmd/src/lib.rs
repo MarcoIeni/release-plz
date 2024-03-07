@@ -229,7 +229,8 @@ impl Repo {
         let git_args = {
             let mut git_args = vec!["log", "--format=%H", "-n", &nth_str, "--"];
             for p in paths {
-                git_args.push(p.to_str().expect("invalid path"));
+                let path = p.to_str().expect("invalid path");
+                git_args.push(path);
             }
             git_args
         };
