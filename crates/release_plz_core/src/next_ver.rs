@@ -2,7 +2,7 @@ use crate::{
     changelog_parser::{self, ChangelogRelease},
     copy_dir::copy_dir,
     diff::Diff,
-    lock_compare,
+    is_readme_updated, local_readme_override, lock_compare,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection},
@@ -900,7 +900,9 @@ impl Updater<'_> {
             .context("can't checkout head to calculate diff")?;
         let registry_package = registry_packages.get_package(&package.name);
         let mut diff = Diff::new(registry_package.is_some());
-        if let Err(err) = repository.checkout_last_commit_at_path(&package_path) {
+        let pathbufs_to_check = pathbufs_to_check(&package_path, package);
+        let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
+        if let Err(err) = repository.checkout_last_commit_at_paths(&paths_to_check) {
             if err
                 .to_string()
                 .contains("Your local changes to the following files would be overwritten")
@@ -947,6 +949,8 @@ impl Updater<'_> {
         tag_commit: Option<String>,
         diff: &mut Diff,
     ) -> anyhow::Result<()> {
+        let pathbufs_to_check = pathbufs_to_check(package_path, package);
+        let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
         loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
@@ -954,8 +958,12 @@ impl Updater<'_> {
                 debug!("package {} found in cargo registry", registry_package.name);
                 let registry_package_path = registry_package.package_path()?;
 
-                let are_packages_equal =
-                    self.check_package_equality(repository, package_path, registry_package_path)?;
+                let are_packages_equal = self.check_package_equality(
+                    repository,
+                    package,
+                    package_path,
+                    registry_package_path,
+                )?;
                 if are_packages_equal
                     || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
                 {
@@ -992,7 +1000,7 @@ impl Updater<'_> {
                     current_commit_message.clone(),
                 ));
             }
-            if let Err(_err) = repository.checkout_previous_commit_at_path(package_path) {
+            if let Err(_err) = repository.checkout_previous_commit_at_paths(&paths_to_check) {
                 debug!("there are no other commits");
                 break;
             }
@@ -1003,9 +1011,14 @@ impl Updater<'_> {
     fn check_package_equality(
         &self,
         repository: &Repo,
+        package: &Package,
         package_path: &Path,
         registry_package_path: &Path,
     ) -> anyhow::Result<bool> {
+        if is_readme_updated(package_path, package, registry_package_path)? {
+            debug!("{}: README updated", package.name);
+            return Ok(false);
+        }
         // We run `cargo package` when comparing packages, which can edit files, such as `Cargo.lock`.
         // Store its path so it can be reverted after comparison.
         let cargo_lock_path = self
@@ -1163,6 +1176,14 @@ fn is_commit_too_old(
         }
     }
     false
+}
+
+fn pathbufs_to_check(package_path: &Path, package: &Package) -> Vec<PathBuf> {
+    let mut paths = vec![package_path.to_path_buf()];
+    if let Some(readme_path) = local_readme_override(package, package_path) {
+        paths.push(readme_path);
+    }
+    paths
 }
 
 /// Check if release-plz should check the semver compatibility of the package.

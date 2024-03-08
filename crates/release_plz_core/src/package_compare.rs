@@ -1,4 +1,5 @@
 use anyhow::Context;
+use cargo_metadata::Package;
 use tracing::debug;
 
 use crate::{cargo::run_cargo, CARGO_TOML};
@@ -8,7 +9,7 @@ use std::{
     fs::File,
     hash::{Hash, Hasher},
     io::{self, Read},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 /// Check if two packages are equal.
@@ -119,6 +120,38 @@ fn are_cargo_toml_equal(local_package: &Path, registry_package: &Path) -> bool {
         &registry_package.join(cargo_orig),
     )
     .unwrap_or(false)
+}
+
+/// Returns true if the README file of the local package is the same as the one in the registry.
+/// Returns false if:
+/// - the README is the same
+/// - the local package doesn't have a `readme` field in the `Cargo.toml`.
+/// - the package doesn't have a README at all.
+pub fn is_readme_updated(
+    local_package_path: &Path,
+    package: &Package,
+    registry_package_path: &Path,
+) -> anyhow::Result<bool> {
+    let local_package_readme_path = local_readme_override(package, local_package_path);
+    let are_readmes_equal = match local_package_readme_path {
+        Some(local_package_readme_path) => {
+            let registry_package_readme_path = registry_package_path.join("README.md");
+            if !registry_package_readme_path.exists() {
+                return Ok(true);
+            }
+            are_files_equal(&local_package_readme_path, &registry_package_readme_path)
+                .context("cannot compare README files")?
+        }
+        None => true,
+    };
+    Ok(!are_readmes_equal)
+}
+
+pub fn local_readme_override(package: &Package, local_package_path: &Path) -> Option<PathBuf> {
+    package
+        .readme
+        .as_ref()
+        .map(|readme| local_package_path.join(readme))
 }
 
 fn are_files_equal(first: &Path, second: &Path) -> anyhow::Result<bool> {
