@@ -526,7 +526,11 @@ async fn release_package(
         }
 
         if input.is_git_tag_enabled(&package.name) {
-            let message = format!("release {git_tag}");
+            // Use same tag message of cargo-release
+            let message = format!(
+                "chore: Release package {} version {}",
+                package.name, package.version
+            );
             repo.tag(&git_tag, &message)?;
             repo.push(&git_tag)?;
         }
