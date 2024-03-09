@@ -78,8 +78,6 @@ jobs:
             os: windows-2022
           - target: x86_64-unknown-freebsd
             os: ubuntu-22.04
-          - target: universal-apple-darwin
-            os: macos-12
     timeout-minutes: 60
     steps:
       - name: Checkout repository

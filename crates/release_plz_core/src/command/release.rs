@@ -18,7 +18,7 @@ use crate::{
     changelog_parser,
     git::backend::GitClient,
     release_order::release_order,
-    GitBackend, PackagePath, Project, RequestReleaseValidator, CHANGELOG_FILENAME,
+    GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, CHANGELOG_FILENAME,
 };
 
 #[derive(Debug)]
@@ -152,12 +152,24 @@ impl ReleaseRequest {
         let config = self.get_package_config(package);
         config.generic.no_verify
     }
+
+    pub fn features(&self, package: &str) -> Vec<String> {
+        let config = self.get_package_config(package);
+        config.generic.features.clone()
+    }
 }
 
-impl RequestReleaseValidator for ReleaseRequest {
-    fn is_release_enabled(&self, package: &str) -> bool {
-        let config = self.get_package_config(package);
-        config.generic.release
+impl ReleaseMetadataBuilder for ReleaseRequest {
+    fn get_release_metadata(&self, package_name: &str) -> Option<ReleaseMetadata> {
+        let config = self.get_package_config(package_name);
+        if config.generic.release {
+            Some(ReleaseMetadata {
+                tag_name_template: config.generic.git_tag.name_template.clone(),
+                release_name_template: config.generic.git_release.name_template.clone(),
+            })
+        } else {
+            None
+        }
     }
 }
 
@@ -198,6 +210,9 @@ pub struct ReleaseConfig {
     /// Allow dirty working directories to be packaged.
     /// If true, `release-plz` adds the `--allow-dirty` flag to `cargo publish`.
     allow_dirty: bool,
+    /// Features to be enabled when packaging the crate.
+    /// If non-empty, pass the `--features` flag to `cargo publish`.
+    features: Vec<String>,
     /// High-level toggle to process this package or ignore it
     release: bool,
 }
@@ -228,6 +243,11 @@ impl ReleaseConfig {
         self
     }
 
+    pub fn with_features(mut self, features: Vec<String>) -> Self {
+        self.features = features;
+        self
+    }
+
     pub fn with_release(mut self, release: bool) -> Self {
         self.release = release;
         self
@@ -250,6 +270,7 @@ impl Default for ReleaseConfig {
             git_tag: GitTagConfig::default(),
             no_verify: false,
             allow_dirty: false,
+            features: vec![],
             release: true,
         }
     }
@@ -289,6 +310,7 @@ pub struct GitReleaseConfig {
     enabled: bool,
     draft: bool,
     release_type: ReleaseType,
+    name_template: Option<String>,
 }
 
 impl Default for GitReleaseConfig {
@@ -303,6 +325,7 @@ impl GitReleaseConfig {
             enabled,
             draft: false,
             release_type: ReleaseType::default(),
+            name_template: None,
         }
     }
 
@@ -320,6 +343,11 @@ impl GitReleaseConfig {
         self
     }
 
+    pub fn set_name_template(mut self, name_template: Option<String>) -> Self {
+        self.name_template = name_template;
+        self
+    }
+
     pub fn is_pre_release(&self, version: &Version) -> bool {
         match self.release_type {
             ReleaseType::Pre => true,
@@ -332,6 +360,7 @@ impl GitReleaseConfig {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GitTagConfig {
     enabled: bool,
+    name_template: Option<String>,
 }
 
 impl Default for GitTagConfig {
@@ -342,7 +371,15 @@ impl Default for GitTagConfig {
 
 impl GitTagConfig {
     pub fn enabled(enabled: bool) -> Self {
-        Self { enabled }
+        Self {
+            enabled,
+            name_template: None,
+        }
+    }
+
+    pub fn set_name_template(mut self, name_template: Option<String>) -> Self {
+        self.name_template = name_template;
+        self
     }
 
     pub fn is_enabled(&self) -> bool {
@@ -374,7 +411,7 @@ pub struct GitRelease {
 }
 
 /// Release the project as it is.
-#[instrument]
+#[instrument(skip(input))]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     let overrides = input.packages_config.overrides.keys().cloned().collect();
     let project = Project::new(
@@ -389,6 +426,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     for package in release_order {
         let repo = Repo::new(&input.metadata.workspace_root)?;
         let git_tag = project.git_tag(&package.name, &package.version.to_string());
+        let release_name = project.release_name(&package.name, &package.version.to_string());
         if repo.tag_exists(&git_tag)? {
             info!(
                 "{} {}: Already published - Tag {} already exists",
@@ -406,9 +444,15 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
                 info!("{} {}: already published", package.name, package.version);
                 continue;
             }
-            release_package(&mut index, package, input, git_tag.clone())
-                .await
-                .context("failed to release package")?;
+            release_package(
+                &mut index,
+                package,
+                input,
+                git_tag.clone(),
+                release_name.clone(),
+            )
+            .await
+            .context("failed to release package")?;
         }
     }
     Ok(())
@@ -453,6 +497,7 @@ async fn release_package(
     package: &Package,
     input: &ReleaseRequest,
     git_tag: String,
+    release_name: String,
 ) -> anyhow::Result<()> {
     let workspace_root = &input.metadata.workspace_root;
 
@@ -496,6 +541,7 @@ async fn release_package(
             let is_pre_release = release_config.is_pre_release(&package.version);
             let release_info = GitReleaseInfo {
                 git_tag,
+                release_name,
                 release_body,
                 draft: release_config.draft,
                 pre_release: is_pre_release,
@@ -511,6 +557,7 @@ async fn release_package(
 
 pub struct GitReleaseInfo {
     pub git_tag: String,
+    pub release_name: String,
     pub release_body: String,
     pub draft: bool,
     pub pre_release: bool,
@@ -563,6 +610,11 @@ fn run_cargo_publish(
     }
     if input.no_verify(&package.name) {
         args.push("--no-verify");
+    }
+    let features = input.features(&package.name).join(",");
+    if !features.is_empty() {
+        args.push("--features");
+        args.push(&features);
     }
     run_cargo(workspace_root, &args)
 }

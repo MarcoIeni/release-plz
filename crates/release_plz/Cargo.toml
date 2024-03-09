@@ -1,11 +1,11 @@
 [package]
 name = "release-plz"
-version = "0.3.43"
-edition = "2021"
+version = "0.3.51"
+edition.workspace = true
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz"
 homepage = "https://release-plz.ieni.dev/"
-license = "MIT OR Apache-2.0"
+license.workspace = true
 readme = "../../README.md"
 keywords = ["release", "please", "semver", "conventional", "commits"]
 categories = ["command-line-utilities", "development-tools"]
@@ -14,13 +14,14 @@ categories = ["command-line-utilities", "development-tools"]
 workspace = true
 
 [features]
-default = ["docker-tests"]
+default = ["docker-tests", "all-static"]
 # Run tests that need a docker runtime to be executed
 docker-tests = []
+all-static = ["release_plz_core/all-static"]
 
 [dependencies]
-git_cmd = { path = "../git_cmd", version = "0.4.20" }
-release_plz_core = { path = "../release_plz_core", version = "0.17.1" }
+git_cmd = { path = "../git_cmd", version = "0.5.0" }
+release_plz_core = { path = "../release_plz_core", version = "0.19.6", default-features = false }
 cargo_utils = { path = "../cargo_utils", version = "0.1" }
 
 anyhow.workspace = true
@@ -54,6 +55,7 @@ assert_cmd.workspace = true
 async-trait.workspace = true
 fake.workspace = true
 expect-test.workspace = true
+pretty_assertions.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
 toml_edit.workspace = true

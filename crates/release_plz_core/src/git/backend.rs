@@ -192,7 +192,7 @@ impl GitClient {
         let create_release_options = CreateReleaseOption {
             tag_name: &release_info.git_tag,
             body: &release_info.release_body,
-            name: &release_info.git_tag,
+            name: &release_info.release_name,
             draft: &release_info.draft,
             prerelease: &release_info.pre_release,
         };
@@ -208,10 +208,12 @@ impl GitClient {
     pub async fn create_gitlab_release(&self, release_info: &GitReleaseInfo) -> anyhow::Result<()> {
         #[derive(Serialize)]
         pub struct GitlabReleaseOption<'a> {
+            name: &'a str,
             tag_name: &'a str,
             description: &'a str,
         }
         let gitlab_release_options = GitlabReleaseOption {
+            name: &release_info.release_name,
             tag_name: &release_info.git_tag,
             description: &release_info.release_body,
         };

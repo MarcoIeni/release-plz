@@ -25,6 +25,7 @@ pr_labels = ["release"] # add the `release` label to the release Pull Request
 publish_allow_dirty = true # add `--allow-dirty` to `cargo publish`
 semver_check = false # disable API breaking changes checks
 publish_timeout = "10m" # set a timeout for `cargo publish`
+release_commits = "^feat:" # prepare release only if at least one commit matches a regex
 
 [[package]] # the double square brackets define a TOML table array
 name = "package_a"
@@ -38,6 +39,7 @@ publish = false # disable `cargo publish` for `package_a`
 name = "package_b"
 semver_check = true # enable semver_check for `package_b`
 publish_no_verify = true # add `--no-verify` to `cargo publish` for `package_b`
+publish_features = ["a", "b"] # add `--features=a,b` to `cargo publish` for `package_b`
 
 [[package]]
 name = "package_c"
@@ -58,16 +60,20 @@ the following sections:
   - [`changelog_update`](#the-changelog_update-field) — Update changelog.
   - [`dependencies_update`](#the-dependencies_update-field) — Update all dependencies.
   - [`git_release_enable`](#the-git_release_enable-field) — Enable git release.
+  - [`git_release_name`](#the-git_release_name-field) — Customize git release name pattern.
   - [`git_release_type`](#the-git_release_type-field) — Publish mode for git release.
   - [`git_release_draft`](#the-git_release_draft-field) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field) — Enable git tag.
+  - [`git_tag_name`](#the-git_tag_name-field) — Customize git tag pattern.
   - [`pr_draft`](#the-pr_draft-field) — Open the release Pull Request as a draft.
   - [`pr_labels`](#the-pr_labels-field) — Add labels to the release Pull Request.
   - [`publish`](#the-publish-field) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
+  - [`publish_features`](#the-publish_features-field) — List of features to pass to `cargo publish`.
   - [`publish_timeout`](#the-publish_timeout-field) — `cargo publish` timeout.
   - [`release`](#the-release-field) - Enable the processing of the packages.
+  - [`release_commits`](#the-release_commits-field) - Customize which commits trigger a release.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
 - [`[[package]]`](#the-package-section) — Package-specific configurations.
@@ -76,12 +82,15 @@ the following sections:
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
   - [`changelog_update`](#the-changelog_update-field-package-section) — Update changelog.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
+  - [`git_release_name`](#the-git_release_name-field-package-section) — Customize git release name pattern.
   - [`git_release_type`](#the-git_release_type-field-package-section) — Git release type.
   - [`git_release_draft`](#the-git_release_draft-field-package-section) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field-package-section) — Enable git tag.
+  - [`git_tag_name`](#the-git_tag_name-field-package-section) — Customize git tag pattern.
   - [`publish`](#the-publish-field-package-section) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field-package-section) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field-package-section) — Don't verify package build.
+  - [`publish_features`](#the-publish_features-field-package-section) — List of features to pass to `cargo publish`.
   - [`release`](#the-release-field-package-section) - Enable the processing of this package.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
     Don't verify package build.
@@ -173,6 +182,22 @@ The supported git releases are:
 - [Gitea](https://docs.gitea.io/en-us/)
 - [GitLab](https://docs.gitlab.com/ee/user/project/releases/#releases)
 
+#### The `git_release_name` field
+
+[Tera template](https://keats.github.io/tera/docs/#templates) of the git release name that release-plz creates.
+Use this to customize the git release name pattern.
+
+By default, it's:
+
+- `"{{ package }}-v{{ version }}"` for workspaces containing more than one public package.
+- `"v{{ version }}"` for projects containing a single crate or
+  workspaces containing just one public package.
+
+Where:
+
+- `{{ package }}` is the name of the package.
+- `{{ version }}` is the new version of the package.
+
 #### The `git_release_type` field
 
 Define whether to label the release as production or non-production ready.
@@ -200,6 +225,22 @@ Supported values are:
 - If `true`, release-plz creates a git tag for the new package version. *(Default)*.
 - If `false`, release-plz doesn't create a git tag.
   Note: you can't create a git release without a git tag.
+
+#### The `git_tag_name` field
+
+[Tera template](https://keats.github.io/tera/docs/#templates) of the git tags that release-plz creates.
+Use this to customize the git tags name pattern.
+
+By default, it's:
+
+- `"{{ package }}-v{{ version }}"` for workspaces containing more than one public package.
+- `"v{{ version }}"` for projects containing a single crate or
+  workspaces containing just one public package.
+
+Where:
+
+- `{{ package }}` is the name of the package.
+- `{{ version }}` is the new version of the package.
 
 #### The `pr_draft` field
 
@@ -245,6 +286,14 @@ Don't verify the contents by building them.
 
 - If `true`, `release-plz` adds the `--no-verify` flag to `cargo publish`.
 - If `false`, `cargo publish` fails if your repository doesn't build. *(Default)*.
+
+### The `publish_features` field
+
+Pass a list of features to use for verification by `cargo publish`.
+
+- If set to a list of features (e.g. `["a", "b"]`), `release-plz` adds `--features=a,b` flag to
+  `cargo publish`.
+- If not set or if it is empty, no list of features will be passed to `cargo publish`.
 
 #### The `publish_timeout` field
 
@@ -295,6 +344,25 @@ Example:
 [workspace]
 release = false
 ```
+
+#### The `release_commits` field
+
+In `release-plz update` and `release-plz release-pr`, `release-plz` bumps the version and updates the changelog
+of the package only if at least one of the commits matches the `release_commits` regex.
+
+You can use this if you think it is too noisy to raise PRs on every commit.
+
+Examples:
+
+- With `release_commits = "^feat:"`, release-plz will update the package only if there's a new feature.
+- With `release_commits = "^(feat:|docs:)"`, release-plz will update the package only if there's a new feature or a documentation change.
+
+By default, release-plz updates the package on every commit.
+
+:::warning
+The filtered commits are still included in the changelog.
+To exclude certain commits from the changelog, use the [commit_parsers](#the-commit_parsers-field) field.
+:::
 
 #### The `repo_url` field
 
@@ -381,6 +449,10 @@ This field cannot be set in the `[workspace]` section.
 
 Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) field.
 
+#### The `git_release_name` field (`package` section)
+
+Overrides the [`workspace.git_release_name`](#the-git_release_name-field) field.
+
 #### The `git_release_type` field (`package` section)
 
 Overrides the [`workspace.git_release_type`](#the-git_release_type-field) field.
@@ -392,6 +464,10 @@ Overrides the [`workspace.git_release_draft`](#the-git_release_draft-field) fiel
 #### The `git_tag_enable` field (`package` section)
 
 Overrides the [`workspace.git_tag_enable`](#the-git_tag_enable-field) field.
+
+#### The `git_tag_name` field (`package` section)
+
+Overrides the [`workspace.git_tag_name`](#the-git_tag_name-field) field.
 
 #### The `publish` field (`package` section)
 
@@ -405,6 +481,10 @@ Overrides the
 #### The `publish_no_verify` field (`package` section)
 
 Overrides the [`workspace.publish_no_verify`](#the-publish_no_verify-field) field.
+
+### The `publish_features` field (`package` section)
+
+Overrides the [`workspace.publish_features`](#the-publish_features-field) field.
 
 #### The `release` field (`package` section)
 
@@ -493,7 +573,7 @@ body = """
 - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
 {% endif -%}
 {% endfor -%}
-{% endfor %}"#;
+{% endfor %}
 """
 ```
 

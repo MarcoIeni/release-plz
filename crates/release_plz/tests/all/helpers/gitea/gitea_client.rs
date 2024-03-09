@@ -67,6 +67,23 @@ impl GiteaContext {
             .unwrap()
     }
 
+    /// Get the Gitea release associated to the given `tag`.
+    pub async fn get_gitea_release(&self, tag: &str) -> GiteaRelase {
+        let request_path = format!("{}/releases/tags/{}", self.repo_url(), tag);
+        self.client
+            .get(&request_path)
+            .basic_auth(&self.user.username, Some(&self.user.password))
+            .send()
+            .await
+            .unwrap()
+            .ok_if_2xx()
+            .await
+            .unwrap()
+            .json::<GiteaRelase>()
+            .await
+            .unwrap()
+    }
+
     pub async fn get_file_content(&self, branch: &str, file_path: &str) -> String {
         use base64::Engine as _;
         let request_path = format!("{}/contents/{}", self.repo_url(), file_path);
@@ -89,6 +106,11 @@ impl GiteaContext {
             .unwrap();
         String::from_utf8(content).unwrap()
     }
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct GiteaRelase {
+    pub name: String,
 }
 
 #[derive(Debug, serde::Deserialize)]

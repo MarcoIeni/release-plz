@@ -139,9 +139,8 @@ Here's how to use a GitHub App to generate a GitHub token:
 
 ## Events that trigger workflows
 
-You can trigger workflows on different
-[events](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows).
-For example:
+You can further trigger workflows after `release-plz release` runs,
+in the following ways:
 
 - When a GitHub release is published:
 
@@ -159,3 +158,8 @@ For example:
       tags:
         - "*"
    ```
+
+This can be useful to announce automatically the release on socials
+or to [release binaries](../extra/releasing-binaries.md).
+
+To learn more, see GitHub [docs](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows).

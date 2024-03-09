@@ -201,13 +201,13 @@ where
         }
     }
 
-    let latest = summaries.iter().max_by_key(|s| s.version());
+    let latest = summaries.iter().max_by_key(|s| s.as_summary().version());
 
     let pkg = match latest {
         Some(l) => {
             config
                 .shell()
-                .note(format!("Downloading {} {}", name, l.version()))?;
+                .note(format!("Downloading {} {}", name, l.as_summary().version()))?;
             let pkg = Box::new(src).download_now(l.package_id(), config)?;
             Some(pkg)
         }

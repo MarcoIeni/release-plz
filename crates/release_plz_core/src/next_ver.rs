@@ -2,7 +2,7 @@ use crate::{
     changelog_parser::{self, ChangelogRelease},
     copy_dir::copy_dir,
     diff::Diff,
-    lock_compare,
+    is_readme_updated, local_readme_override, lock_compare,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection},
@@ -36,8 +36,16 @@ use tracing::{debug, info, instrument, warn};
 // (Git-cliff assumes it's a valid commit ID).
 pub(crate) const NO_COMMIT_ID: &str = "0000000";
 
-pub trait RequestReleaseValidator {
-    fn is_release_enabled(&self, package_name: &str) -> bool;
+#[derive(Debug)]
+pub struct ReleaseMetadata {
+    /// Template for the git tag created by release-plz.
+    pub tag_name_template: Option<String>,
+    /// Template for the git release name created by release-plz.
+    pub release_name_template: Option<String>,
+}
+
+pub trait ReleaseMetadataBuilder {
+    fn get_release_metadata(&self, package_name: &str) -> Option<ReleaseMetadata>;
 }
 
 #[derive(Debug, Clone)]
@@ -67,6 +75,9 @@ pub struct UpdateRequest {
     repo_url: Option<RepoUrl>,
     /// Package-specific configurations.
     packages_config: PackagesConfig,
+    /// Release Commits
+    /// Prepare release only if at least one commit respects a regex.
+    release_commits: Option<Regex>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -116,6 +127,10 @@ pub struct UpdateConfig {
     pub changelog_update: bool,
     /// High-level toggle to process this package or ignore it.
     pub release: bool,
+    /// Template for the git tag created by release-plz.
+    pub tag_name_template: Option<String>,
+    /// Template for the git release name created by release-plz.
+    pub release_name_template: Option<String>,
 }
 
 /// Package-specific config
@@ -149,6 +164,8 @@ impl Default for UpdateConfig {
             semver_check: true,
             changelog_update: true,
             release: true,
+            tag_name_template: None,
+            release_name_template: None,
         }
     }
 }
@@ -199,6 +216,7 @@ impl UpdateRequest {
             allow_dirty: false,
             repo_url: None,
             packages_config: PackagesConfig::default(),
+            release_commits: None,
         })
     }
 
@@ -282,6 +300,16 @@ impl UpdateRequest {
         }
     }
 
+    pub fn with_release_commits(self, release_commits: String) -> anyhow::Result<Self> {
+        let regex =
+            Regex::new(&release_commits).context("invalid release_commits regex pattern")?;
+
+        Ok(Self {
+            release_commits: Some(regex),
+            ..self
+        })
+    }
+
     pub fn local_manifest_dir(&self) -> anyhow::Result<&Path> {
         self.local_manifest
             .parent()
@@ -319,10 +347,17 @@ impl UpdateRequest {
     }
 }
 
-impl RequestReleaseValidator for UpdateRequest {
-    fn is_release_enabled(&self, package_name: &str) -> bool {
+impl ReleaseMetadataBuilder for UpdateRequest {
+    fn get_release_metadata(&self, package_name: &str) -> Option<ReleaseMetadata> {
         let config = self.get_package_config(package_name);
-        config.generic.release
+        if config.generic.release {
+            Some(ReleaseMetadata {
+                tag_name_template: config.generic.tag_name_template.clone(),
+                release_name_template: None,
+            })
+        } else {
+            None
+        }
     }
 }
 
@@ -383,6 +418,8 @@ fn check_for_typos(packages: &HashSet<String>, overrides: &HashSet<String>) -> a
 pub struct Project {
     /// Publishable packages.
     packages: Vec<Package>,
+    /// Metadata for each release enabled package.
+    release_metadata: HashMap<String, ReleaseMetadata>,
     /// Project root directory
     root: PathBuf,
     /// Directory containing the project manifest
@@ -392,32 +429,47 @@ pub struct Project {
     contains_multiple_pub_packages: bool,
 }
 
+pub fn root_repo_path(local_manifest: &Path) -> anyhow::Result<PathBuf> {
+    let manifest_dir = manifest_dir(local_manifest)?;
+    root_repo_path_from_manifest_dir(manifest_dir)
+}
+
+fn root_repo_path_from_manifest_dir(manifest_dir: &Path) -> anyhow::Result<PathBuf> {
+    let root = git_cmd::git_in_dir(manifest_dir, &["rev-parse", "--show-toplevel"])?;
+    Ok(PathBuf::from(root))
+}
+
 impl Project {
     pub fn new(
         local_manifest: &Path,
         single_package: Option<&str>,
         overrides: HashSet<String>,
         metadata: &Metadata,
-        request_release_validator: &dyn RequestReleaseValidator,
+        release_metadata_builder: &dyn ReleaseMetadataBuilder,
     ) -> anyhow::Result<Self> {
         let manifest = local_manifest;
         let manifest_dir = manifest_dir(manifest)?.to_path_buf();
         debug!("manifest_dir: {manifest_dir:?}");
-        let root = {
-            let project_root =
-                git_cmd::git_in_dir(&manifest_dir, &["rev-parse", "--show-toplevel"])?;
-            PathBuf::from(project_root)
-        };
+        let root = root_repo_path_from_manifest_dir(&manifest_dir)?;
         debug!("project_root: {root:?}");
         let mut packages = workspace_packages(metadata)?;
+        check_overrides_typos(&packages, &overrides)?;
+        let mut release_metadata = HashMap::new();
         override_packages_path(&mut packages, metadata, &manifest_dir)
             .context("failed to override packages path")?;
 
         let packages_names: Vec<String> = packages.iter().map(|p| p.name.clone()).collect();
-        packages.retain(|p| request_release_validator.is_release_enabled(&p.name));
+        packages.retain(|p| {
+            let release_metadata =
+                release_metadata_builder
+                    .get_release_metadata(&p.name)
+                    .map(|m| {
+                        release_metadata.insert(p.name.clone(), m);
+                    });
+            release_metadata.is_some()
+        });
         anyhow::ensure!(!packages.is_empty(), "no public packages found. Are there any public packages in your project? Analyzed packages: {packages_names:?}");
 
-        check_overrides_typos(&packages, &overrides)?;
         let contains_multiple_pub_packages = packages.len() > 1;
 
         if let Some(pac) = single_package {
@@ -431,6 +483,7 @@ impl Project {
 
         Ok(Self {
             packages,
+            release_metadata,
             root,
             manifest_dir,
             contains_multiple_pub_packages,
@@ -467,16 +520,61 @@ impl Project {
     }
 
     pub fn git_tag(&self, package_name: &str, version: &str) -> String {
-        if self.contains_multiple_pub_packages {
-            format!("{package_name}-v{version}")
-        } else {
-            format!("v{version}")
-        }
+        let mut tera = tera::Tera::default();
+        let context = tera_context(package_name, version);
+
+        let tag_template = self
+            .release_metadata
+            .get(package_name)
+            .and_then(|m| m.tag_name_template.as_deref())
+            .unwrap_or({
+                if self.contains_multiple_pub_packages {
+                    "{{ package }}-v{{ version }}"
+                } else {
+                    "v{{ version }}"
+                }
+            });
+
+        tera.add_raw_template("tag_name", tag_template)
+            .expect("failed to add tag_name raw template");
+
+        tera.render("tag_name", &context)
+            .expect("failed to render tag name")
+    }
+
+    pub fn release_name(&self, package_name: &str, version: &str) -> String {
+        let mut tera = tera::Tera::default();
+        let context = tera_context(package_name, version);
+
+        let tag_template = self
+            .release_metadata
+            .get(package_name)
+            .and_then(|m| m.release_name_template.as_deref())
+            .unwrap_or({
+                if self.contains_multiple_pub_packages {
+                    "{{ package }}-v{{ version }}"
+                } else {
+                    "v{{ version }}"
+                }
+            });
+
+        tera.add_raw_template("release_name", tag_template)
+            .expect("failed to add release_name raw template");
+
+        tera.render("release_name", &context)
+            .expect("failed to render release name")
     }
 
     pub fn cargo_lock_path(&self) -> PathBuf {
         self.root.join("Cargo.lock")
     }
+}
+
+fn tera_context(package_name: &str, version: &str) -> tera::Context {
+    let mut context = tera::Context::new();
+    context.insert("package", package_name);
+    context.insert("version", version);
+    context
 }
 
 /// Cargo metadata contains package paths of the original user project.
@@ -571,6 +669,11 @@ impl Updater<'_> {
         }
 
         for (p, diff) in packages_diffs {
+            if let Some(ref release_commits_regex) = self.req.release_commits {
+                if !diff.any_commit_matches(release_commits_regex) {
+                    continue;
+                };
+            }
             // Calculate next version without taking into account workspace version
             let next_version = if let Some(max_workspace_version) = &new_workspace_version {
                 if workspace_version_pkgs.contains(p.name.as_str()) {
@@ -797,7 +900,9 @@ impl Updater<'_> {
             .context("can't checkout head to calculate diff")?;
         let registry_package = registry_packages.get_package(&package.name);
         let mut diff = Diff::new(registry_package.is_some());
-        if let Err(err) = repository.checkout_last_commit_at_path(&package_path) {
+        let pathbufs_to_check = pathbufs_to_check(&package_path, package);
+        let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
+        if let Err(err) = repository.checkout_last_commit_at_paths(&paths_to_check) {
             if err
                 .to_string()
                 .contains("Your local changes to the following files would be overwritten")
@@ -821,6 +926,31 @@ impl Updater<'_> {
                 package.name, package.version, registry_package.version
             )
         }
+        self.get_package_diff(
+            &package_path,
+            package,
+            registry_package,
+            repository,
+            tag_commit,
+            &mut diff,
+        )?;
+        repository
+            .checkout_head()
+            .context("can't checkout to head after calculating diff")?;
+        Ok(diff)
+    }
+
+    fn get_package_diff(
+        &self,
+        package_path: &Path,
+        package: &Package,
+        registry_package: Option<&Package>,
+        repository: &Repo,
+        tag_commit: Option<String>,
+        diff: &mut Diff,
+    ) -> anyhow::Result<()> {
+        let pathbufs_to_check = pathbufs_to_check(package_path, package);
+        let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
         loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
@@ -828,52 +958,23 @@ impl Updater<'_> {
                 debug!("package {} found in cargo registry", registry_package.name);
                 let registry_package_path = registry_package.package_path()?;
 
-                // We run `cargo package` when comparing packages, which can edit files, such as `Cargo.lock`.
-                // Store its path so it can be reverted after comparison.
-                let cargo_lock_path = self
-                    .get_cargo_lock_path(repository)
-                    .context("failed to determine Cargo.lock path")?;
-                let are_packages_equal = are_packages_equal(&package_path, registry_package_path)
-                    .context("cannot compare packages")?;
-                if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
-                    // Revert any changes to `Cargo.lock`
-                    repository
-                        .checkout(cargo_lock_path)
-                        .context("cannot revert changes introduced when comparing packages")?;
-                }
+                let are_packages_equal = self.check_package_equality(
+                    repository,
+                    package,
+                    package_path,
+                    registry_package_path,
+                )?;
                 if are_packages_equal
                     || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
                 {
-                    debug!(
-                    "next version calculated starting from commits after `{current_commit_hash}`"
-                );
+                    debug!("next version calculated starting from commits after `{current_commit_hash}`");
                     if diff.commits.is_empty() {
-                        let are_toml_dependencies_updated = || {
-                            are_toml_dependencies_updated(
-                                &registry_package.dependencies,
-                                &package.dependencies,
-                            )
-                        };
-                        let are_lock_dependencies_updated = || {
-                            lock_compare::are_lock_dependencies_updated(
-                                &self.project.cargo_lock_path(),
-                                registry_package_path,
-                            )
-                            .context("Can't check if Cargo.lock dependencies are up to date")
-                        };
-                        if are_toml_dependencies_updated() {
-                            diff.commits.push(Commit::new(
-                                NO_COMMIT_ID.to_string(),
-                                "chore: update Cargo.toml dependencies".to_string(),
-                            ));
-                        } else if are_lock_dependencies_updated()? {
-                            diff.commits.push(Commit::new(
-                                NO_COMMIT_ID.to_string(),
-                                "chore: update Cargo.lock dependencies".to_string(),
-                            ));
-                        } else {
-                            info!("{}: already up to date", package.name);
-                        }
+                        self.add_dependencies_update_if_any(
+                            diff,
+                            registry_package,
+                            package,
+                            registry_package_path,
+                        )?;
                     }
                     // The local package is identical to the registry one, which means that
                     // the package was published at this commit, so we will not count this commit
@@ -899,15 +1000,71 @@ impl Updater<'_> {
                     current_commit_message.clone(),
                 ));
             }
-            if let Err(_err) = repository.checkout_previous_commit_at_path(&package_path) {
+            if let Err(_err) = repository.checkout_previous_commit_at_paths(&paths_to_check) {
                 debug!("there are no other commits");
                 break;
             }
         }
-        repository
-            .checkout_head()
-            .context("can't checkout to head after calculating diff")?;
-        Ok(diff)
+        Ok(())
+    }
+
+    fn check_package_equality(
+        &self,
+        repository: &Repo,
+        package: &Package,
+        package_path: &Path,
+        registry_package_path: &Path,
+    ) -> anyhow::Result<bool> {
+        if is_readme_updated(package_path, package, registry_package_path)? {
+            debug!("{}: README updated", package.name);
+            return Ok(false);
+        }
+        // We run `cargo package` when comparing packages, which can edit files, such as `Cargo.lock`.
+        // Store its path so it can be reverted after comparison.
+        let cargo_lock_path = self
+            .get_cargo_lock_path(repository)
+            .context("failed to determine Cargo.lock path")?;
+        let are_packages_equal = are_packages_equal(package_path, registry_package_path)
+            .context("cannot compare packages")?;
+        if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
+            // Revert any changes to `Cargo.lock`
+            repository
+                .checkout(cargo_lock_path)
+                .context("cannot revert changes introduced when comparing packages")?;
+        }
+        Ok(are_packages_equal)
+    }
+
+    fn add_dependencies_update_if_any(
+        &self,
+        diff: &mut Diff,
+        registry_package: &Package,
+        package: &Package,
+        registry_package_path: &Path,
+    ) -> anyhow::Result<()> {
+        let are_toml_dependencies_updated =
+            || are_toml_dependencies_updated(&registry_package.dependencies, &package.dependencies);
+        let are_lock_dependencies_updated = || {
+            lock_compare::are_lock_dependencies_updated(
+                &self.project.cargo_lock_path(),
+                registry_package_path,
+            )
+            .context("Can't check if Cargo.lock dependencies are up to date")
+        };
+        if are_toml_dependencies_updated() {
+            diff.commits.push(Commit::new(
+                NO_COMMIT_ID.to_string(),
+                "chore: update Cargo.toml dependencies".to_string(),
+            ));
+        } else if are_lock_dependencies_updated()? {
+            diff.commits.push(Commit::new(
+                NO_COMMIT_ID.to_string(),
+                "chore: update Cargo.lock dependencies".to_string(),
+            ));
+        } else {
+            info!("{}: already up to date", package.name);
+        }
+        Ok(())
     }
 
     fn get_cargo_lock_path(&self, repository: &Repo) -> anyhow::Result<Option<String>> {
@@ -1019,6 +1176,14 @@ fn is_commit_too_old(
         }
     }
     false
+}
+
+fn pathbufs_to_check(package_path: &Path, package: &Package) -> Vec<PathBuf> {
+    let mut paths = vec![package_path.to_path_buf()];
+    if let Some(readme_path) = local_readme_override(package, package_path) {
+        paths.push(readme_path);
+    }
+    paths
 }
 
 /// Check if release-plz should check the semver compatibility of the package.
@@ -1134,7 +1299,7 @@ mod tests {
 
     use super::*;
     use super::{check_for_typos, Project};
-    use crate::RequestReleaseValidator;
+    use crate::ReleaseMetadataBuilder;
     use std::{collections::HashSet, path::Path};
 
     fn get_project(
@@ -1142,31 +1307,47 @@ mod tests {
         single_package: Option<&str>,
         overrides: HashSet<String>,
         is_release_enabled: bool,
+        tag_name: Option<String>,
+        release_name: Option<String>,
     ) -> anyhow::Result<Project> {
         let metadata = get_manifest_metadata(local_manifest).unwrap();
-        let request_release_validator = RequestReleaseValidatorStub::new(is_release_enabled);
+        let release_metadata_builder =
+            ReleaseMetadataBuilderStub::new(is_release_enabled, tag_name, release_name);
         Project::new(
             local_manifest,
             single_package,
             overrides,
             &metadata,
-            &request_release_validator,
+            &release_metadata_builder,
         )
     }
 
-    struct RequestReleaseValidatorStub {
+    struct ReleaseMetadataBuilderStub {
         release: bool,
+        tag_name: Option<String>,
+        release_name: Option<String>,
     }
 
-    impl RequestReleaseValidatorStub {
-        pub fn new(release: bool) -> Self {
-            Self { release }
+    impl ReleaseMetadataBuilderStub {
+        pub fn new(release: bool, tag_name: Option<String>, release_name: Option<String>) -> Self {
+            Self {
+                release,
+                tag_name,
+                release_name,
+            }
         }
     }
 
-    impl RequestReleaseValidator for RequestReleaseValidatorStub {
-        fn is_release_enabled(&self, _: &str) -> bool {
-            self.release
+    impl ReleaseMetadataBuilder for ReleaseMetadataBuilderStub {
+        fn get_release_metadata(&self, _package_name: &str) -> Option<ReleaseMetadata> {
+            if self.release {
+                Some(ReleaseMetadata {
+                    tag_name_template: self.tag_name.clone(),
+                    release_name_template: self.release_name.clone(),
+                })
+            } else {
+                None
+            }
         }
     }
 
@@ -1184,7 +1365,7 @@ mod tests {
     #[test]
     fn test_empty_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
-        let result = get_project(local_manifest, None, HashSet::default(), true);
+        let result = get_project(local_manifest, None, HashSet::default(), true, None, None);
         assert!(result.is_ok());
     }
 
@@ -1192,7 +1373,7 @@ mod tests {
     fn test_successful_override() {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let overrides = (["typo_test".to_string()]).into();
-        let result = get_project(local_manifest, None, overrides, true);
+        let result = get_project(local_manifest, None, overrides, true, None, None);
         assert!(result.is_ok());
     }
 
@@ -1201,7 +1382,7 @@ mod tests {
         let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let single_package = None;
         let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
-        let result = get_project(local_manifest, single_package, overrides, true);
+        let result = get_project(local_manifest, single_package, overrides, true, None, None);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
@@ -1241,9 +1422,39 @@ mod tests {
     #[test]
     fn project_new_no_release_will_error() {
         let local_manifest = Path::new("../fake_package/Cargo.toml");
-        let result = get_project(local_manifest, None, HashSet::default(), false);
+        let result = get_project(local_manifest, None, HashSet::default(), false, None, None);
         assert!(result.is_err());
         expect_test::expect![[r#"no public packages found. Are there any public packages in your project? Analyzed packages: ["cargo_utils", "fake_package", "git_cmd", "test_logs", "next_version", "release-plz", "release_plz_core"]"#]]
         .assert_eq(&result.unwrap_err().to_string());
+    }
+
+    #[test]
+    fn project_tag_template_none() {
+        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let project = get_project(local_manifest, None, HashSet::default(), true, None, None)
+            .expect("Should ok");
+        assert_eq!(project.git_tag("typo_test", "0.1.0"), "v0.1.0");
+    }
+
+    #[test]
+    fn project_release_and_tag_template_some() {
+        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let project = get_project(
+            local_manifest,
+            None,
+            HashSet::default(),
+            true,
+            Some("prefix-{{ package }}-middle-{{ version }}-postfix".to_string()),
+            Some("release-prefix-{{ package }}-middle-{{ version }}-postfix".to_string()),
+        )
+        .expect("Should ok");
+        assert_eq!(
+            project.git_tag("typo_test", "0.1.0"),
+            "prefix-typo_test-middle-0.1.0-postfix"
+        );
+        assert_eq!(
+            project.release_name("typo_test", "0.1.0"),
+            "release-prefix-typo_test-middle-0.1.0-postfix"
+        );
     }
 }

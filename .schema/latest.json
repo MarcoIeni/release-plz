@@ -42,15 +42,19 @@
         "dependencies_update": null,
         "git_release_draft": null,
         "git_release_enable": null,
+        "git_release_name": null,
         "git_release_type": null,
         "git_tag_enable": null,
+        "git_tag_name": null,
         "pr_draft": false,
         "pr_labels": [],
         "publish": null,
         "publish_allow_dirty": null,
+        "publish_features": null,
         "publish_no_verify": null,
         "publish_timeout": null,
         "release": null,
+        "release_commits": null,
         "repo_url": null,
         "semver_check": null
       },
@@ -142,7 +146,8 @@
             "null"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "CommitParser": {
       "description": "Parser for grouping commits.",
@@ -280,6 +285,14 @@
             "null"
           ]
         },
+        "git_release_name": {
+          "title": "Git Release Name",
+          "description": "Tera template of the git release name created by release-plz.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "git_release_type": {
           "title": "Git Release Type",
           "description": "Whether to mark the created release as not ready for production.",
@@ -300,12 +313,20 @@
             "null"
           ]
         },
+        "git_tag_name": {
+          "title": "Git Tag Name",
+          "description": "Tera template of the git tag name created by release-plz.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "name": {
           "type": "string"
         },
         "publish": {
           "title": "Publish",
-          "description": "If `Some(false)`, don't run `cargo publish`.",
+          "description": "If `false`, don't run `cargo publish`.",
           "type": [
             "boolean",
             "null"
@@ -313,15 +334,26 @@
         },
         "publish_allow_dirty": {
           "title": "Publish Allow Dirty",
-          "description": "If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.",
+          "description": "If `true`, add the `--allow-dirty` flag to the `cargo publish` command.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "publish_features": {
+          "title": "Publish Features",
+          "description": "If `[\"a\", \"b\", \"c\"]`, add the `--features=a,b,c` flag to the `cargo publish` command.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
         "publish_no_verify": {
           "title": "Publish No Verify",
-          "description": "If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.",
+          "description": "If `true`, add the `--no-verify` flag to the `cargo publish` command.",
           "type": [
             "boolean",
             "null"
@@ -459,6 +491,14 @@
             "null"
           ]
         },
+        "git_release_name": {
+          "title": "Git Release Name",
+          "description": "Tera template of the git release name created by release-plz.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "git_release_type": {
           "title": "Git Release Type",
           "description": "Whether to mark the created release as not ready for production.",
@@ -479,6 +519,14 @@
             "null"
           ]
         },
+        "git_tag_name": {
+          "title": "Git Tag Name",
+          "description": "Tera template of the git tag name created by release-plz.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "pr_draft": {
           "title": "PR Draft",
           "description": "If `true`, the created release PR will be marked as a draft.",
@@ -496,7 +544,7 @@
         },
         "publish": {
           "title": "Publish",
-          "description": "If `Some(false)`, don't run `cargo publish`.",
+          "description": "If `false`, don't run `cargo publish`.",
           "type": [
             "boolean",
             "null"
@@ -504,15 +552,26 @@
         },
         "publish_allow_dirty": {
           "title": "Publish Allow Dirty",
-          "description": "If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.",
+          "description": "If `true`, add the `--allow-dirty` flag to the `cargo publish` command.",
           "type": [
             "boolean",
             "null"
           ]
         },
+        "publish_features": {
+          "title": "Publish Features",
+          "description": "If `[\"a\", \"b\", \"c\"]`, add the `--features=a,b,c` flag to the `cargo publish` command.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
         "publish_no_verify": {
           "title": "Publish No Verify",
-          "description": "If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.",
+          "description": "If `true`, add the `--no-verify` flag to the `cargo publish` command.",
           "type": [
             "boolean",
             "null"
@@ -531,6 +590,14 @@
           "description": "Used to toggle off the update/release process for a workspace or package.",
           "type": [
             "boolean",
+            "null"
+          ]
+        },
+        "release_commits": {
+          "title": "Release Commits",
+          "description": "Prepare release only if at least one commit respects this regex.",
+          "type": [
+            "string",
             "null"
           ]
         },

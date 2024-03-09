@@ -171,6 +171,7 @@ mod tests {
             [[package]]
             name = "aaa"
             publish_allow_dirty = true
+            publish_features = ["a", "b", "c"]
         "#;
 
         let release_args = default_args();
@@ -180,6 +181,7 @@ mod tests {
             .unwrap();
         assert!(actual_request.allow_dirty("aaa"));
         assert!(actual_request.no_verify("aaa"));
+        assert_eq!(actual_request.features("aaa"), &["a", "b", "c"]);
     }
 
     fn default_args() -> Release {

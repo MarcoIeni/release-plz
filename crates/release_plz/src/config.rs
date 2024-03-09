@@ -91,6 +91,7 @@ impl Config {
 
 /// Config at the `[workspace]` level.
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct Workspace {
     /// Configuration applied at the `[[package]]` level, too.
     #[serde(flatten)]
@@ -122,6 +123,9 @@ pub struct Workspace {
     /// It is used to generate the changelog release link.
     /// It defaults to the url of the default remote.
     pub repo_url: Option<Url>,
+    /// # Release Commits
+    /// Prepare release only if at least one commit respects this regex.
+    pub release_commits: Option<String>,
 }
 
 impl Workspace {
@@ -135,6 +139,7 @@ impl Workspace {
 
 /// Config at the `[[package]]` level.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct PackageSpecificConfig {
     /// Configuration that can be specified at the `[workspace]` level, too.
     #[serde(flatten)]
@@ -189,20 +194,29 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
             .git_release_type
             .map(|release_type| release_type.into())
             .unwrap_or_default();
+        let git_release_name = value.git_release_name.clone();
         let is_git_tag_enabled = value.git_tag_enable != Some(false);
+        let git_tag_name = value.git_tag_name.clone();
         let release = value.release != Some(false);
         let mut cfg = Self::default()
             .with_publish(release_plz_core::PublishConfig::enabled(is_publish_enabled))
             .with_git_release(
                 release_plz_core::GitReleaseConfig::enabled(is_git_release_enabled)
                     .set_draft(is_git_release_draft)
-                    .set_release_type(git_release_type),
+                    .set_release_type(git_release_type)
+                    .set_name_template(git_release_name),
             )
-            .with_git_tag(release_plz_core::GitTagConfig::enabled(is_git_tag_enabled))
+            .with_git_tag(
+                release_plz_core::GitTagConfig::enabled(is_git_tag_enabled)
+                    .set_name_template(git_tag_name),
+            )
             .with_release(release);
 
         if let Some(no_verify) = value.publish_no_verify {
             cfg = cfg.with_no_verify(no_verify);
+        }
+        if let Some(features) = value.publish_features {
+            cfg = cfg.with_features(features);
         }
         if let Some(allow_dirty) = value.publish_allow_dirty {
             cfg = cfg.with_allow_dirty(allow_dirty);
@@ -228,19 +242,28 @@ pub struct PackageConfig {
     /// # Git Release Draft
     /// If true, will not auto-publish the release.
     pub git_release_draft: Option<bool>,
+    /// # Git Release Name
+    /// Tera template of the git release name created by release-plz.
+    pub git_release_name: Option<String>,
     /// # Git Tag Enable
     /// Publish the git tag for the new package version.
     /// Enabled by default.
     pub git_tag_enable: Option<bool>,
+    /// # Git Tag Name
+    /// Tera template of the git tag name created by release-plz.
+    pub git_tag_name: Option<String>,
     /// # Publish
-    /// If `Some(false)`, don't run `cargo publish`.
+    /// If `false`, don't run `cargo publish`.
     pub publish: Option<bool>,
     /// # Publish Allow Dirty
-    /// If `Some(true)`, add the `--allow-dirty` flag to the `cargo publish` command.
+    /// If `true`, add the `--allow-dirty` flag to the `cargo publish` command.
     pub publish_allow_dirty: Option<bool>,
     /// # Publish No Verify
-    /// If `Some(true)`, add the `--no-verify` flag to the `cargo publish` command.
+    /// If `true`, add the `--no-verify` flag to the `cargo publish` command.
     pub publish_no_verify: Option<bool>,
+    /// # Publish Features
+    /// If `["a", "b", "c"]`, add the `--features=a,b,c` flag to the `cargo publish` command.
+    pub publish_features: Option<Vec<String>>,
     /// # Semver Check
     /// Controls when to run cargo-semver-checks.
     /// If unspecified, run cargo-semver-checks if the package is a library.
@@ -256,6 +279,8 @@ impl From<PackageConfig> for release_plz_core::UpdateConfig {
             semver_check: config.semver_check != Some(false),
             changelog_update: config.changelog_update != Some(false),
             release: config.release != Some(false),
+            tag_name_template: config.git_tag_name,
+            release_name_template: config.git_release_name,
         }
     }
 }
@@ -279,11 +304,14 @@ impl PackageConfig {
             git_release_enable: self.git_release_enable.or(default.git_release_enable),
             git_release_type: self.git_release_type.or(default.git_release_type),
             git_release_draft: self.git_release_draft.or(default.git_release_draft),
+            git_release_name: self.git_release_name.or(default.git_release_name),
 
             publish: self.publish.or(default.publish),
             publish_allow_dirty: self.publish_allow_dirty.or(default.publish_allow_dirty),
             publish_no_verify: self.publish_no_verify.or(default.publish_no_verify),
+            publish_features: self.publish_features.or(default.publish_features),
             git_tag_enable: self.git_tag_enable.or(default.git_tag_enable),
+            git_tag_name: self.git_tag_name.or(default.git_tag_name),
             release: self.release.or(default.release),
         }
     }
@@ -343,6 +371,7 @@ mod tests {
         git_release_type = "prod"
         git_release_draft = false
         publish_timeout = "10m"
+        release_commits = "^feat:"
     "#;
 
     const BASE_PACKAGE_CONFIG: &str = r#"
@@ -369,6 +398,7 @@ mod tests {
                 pr_draft: false,
                 pr_labels: vec![],
                 publish_timeout: Some("10m".to_string()),
+                release_commits: Some("^feat:".to_string()),
             },
             package: [].into(),
         }
@@ -486,6 +516,7 @@ mod tests {
                     ..Default::default()
                 },
                 publish_timeout: Some("10m".to_string()),
+                release_commits: Some("^feat:".to_string()),
             },
             package: [PackageSpecificConfigWithName {
                 name: "crate1".to_string(),
@@ -518,6 +549,7 @@ mod tests {
             pr_labels = ["label1"]
             publish_timeout = "10m"
             repo_url = "https://github.com/MarcoIeni/release-plz"
+            release_commits = "^feat:"
 
             [changelog]
 
@@ -533,5 +565,74 @@ mod tests {
             changelog_include = ["pkg1"]
         "#]]
         .assert_eq(&toml::to_string(&config).unwrap());
+    }
+
+    #[test]
+    fn wrong_config_section_is_not_deserialized() {
+        let config = "[unknown]";
+
+        let error = toml::from_str::<Config>(config).unwrap_err().to_string();
+        expect_test::expect![[r#"
+            TOML parse error at line 1, column 2
+              |
+            1 | [unknown]
+              |  ^^^^^^^
+            unknown field `unknown`, expected one of `workspace`, `changelog`, `package`
+        "#]]
+        .assert_eq(&error);
+    }
+
+    #[test]
+    fn wrong_workspace_section_is_not_deserialized() {
+        let config = r#"
+[workspace]
+unknown = false
+allow_dirty = true"#;
+
+        let error = toml::from_str::<Config>(config).unwrap_err().to_string();
+        expect_test::expect![[r#"
+            TOML parse error at line 2, column 1
+              |
+            2 | [workspace]
+              | ^^^^^^^^^^^
+            unknown field `unknown`
+        "#]]
+        .assert_eq(&error);
+    }
+
+    #[test]
+    fn wrong_changelog_section_is_not_deserialized() {
+        let config = r#"
+[changelog]
+trim = true
+unknown = false"#;
+
+        let error = toml::from_str::<Config>(config).unwrap_err().to_string();
+        expect_test::expect![[r#"
+            TOML parse error at line 4, column 1
+              |
+            4 | unknown = false
+              | ^^^^^^^
+            unknown field `unknown`, expected one of `header`, `body`, `trim`, `commit_preprocessors`, `sort_commits`, `link_parsers`, `commit_parsers`, `protect_breaking_commits`, `tag_pattern`
+        "#]]
+        .assert_eq(&error);
+    }
+
+    #[test]
+    fn wrong_package_section_is_not_deserialized() {
+        let config = r#"
+[[package]]
+name = "crate1"
+unknown = false"#;
+
+        let error = toml::from_str::<Config>(config).unwrap_err().to_string();
+        expect_test::expect![[r#"
+            TOML parse error at line 2, column 1
+              |
+            2 | [[package]]
+              | ^^^^^^^^^^^
+            unknown field `unknown`
+        "#]]
+        .assert_eq(&error);
     }
 }

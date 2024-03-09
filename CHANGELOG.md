@@ -6,6 +6,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.51](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.50...release-plz-v0.3.51) - 2024-03-08
+
+### Fixed
+- check diffs in Cargo.toml custom README path ([#1315](https://github.com/MarcoIeni/release-plz/pull/1315))
+
+### Other
+- use edition and license workspace ([#1329](https://github.com/MarcoIeni/release-plz/pull/1329))
+
+## [0.3.50](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.49...release-plz-v0.3.50) - 2024-03-06
+
+### Added
+- Add `publish_features` to pass feature list to `cargo publish` ([#1320](https://github.com/MarcoIeni/release-plz/pull/1320))
+
+## [0.3.49](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.48...release-plz-v0.3.49) - 2024-02-27
+
+### Other
+- error if committed Cargo.lock is in `.gitignore` ([#1294](https://github.com/MarcoIeni/release-plz/pull/1294))
+
+## [0.3.48](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.47...release-plz-v0.3.48) - 2024-02-25
+
+### Other
+- update Cargo.lock dependencies
+- don't log big release request ([#1300](https://github.com/MarcoIeni/release-plz/pull/1300))
+
+## [0.3.47](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.46...release-plz-v0.3.47) - 2024-02-25
+
+### Added
+- prepare release if commits respect the `release_commits` regex ([#1278](https://github.com/MarcoIeni/release-plz/pull/1278))
+
+### Other
+- update cargo to v0.77 ([#1296](https://github.com/MarcoIeni/release-plz/pull/1296))
+
+## [0.3.46](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.45...release-plz-v0.3.46) - 2024-02-23
+
+### Added
+- add `all-static` feature ([#1287](https://github.com/MarcoIeni/release-plz/pull/1287))
+
+### Fixed
+- allow configuring the `release` flag ([#1290](https://github.com/MarcoIeni/release-plz/pull/1290))
+
+### Other
+- enhance test `schema_is_up_to_date` ([#1285](https://github.com/MarcoIeni/release-plz/pull/1285))
+
+## [0.3.45](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.44...release-plz-v0.3.45) - 2024-02-11
+
+### Added
+- allow customizing git release name with tera template. [#677](https://github.com/MarcoIeni/release-plz/pull/677) ([#1260](https://github.com/MarcoIeni/release-plz/pull/1260))
+
+### Fixed
+- *(config)* deny unknown fields ([#1263](https://github.com/MarcoIeni/release-plz/pull/1263))
+
+## [0.3.44](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.43...release-plz-v0.3.44) - 2024-02-09
+
+### Added
+- allow customizing git tag name with tera template ([#1256](https://github.com/MarcoIeni/release-plz/pull/1256))
+
 ## [0.3.43](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.42...release-plz-v0.3.43) - 2024-02-06
 
 ### Added

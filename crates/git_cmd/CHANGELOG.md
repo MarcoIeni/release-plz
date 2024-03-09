@@ -6,6 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.4.22...git_cmd-v0.5.0) - 2024-03-08
+
+### Fixed
+- allow to checkout git history in multiple paths ([#1315](https://github.com/MarcoIeni/release-plz/pull/1315))
+
+### Other
+- use edition and license workspace ([#1329](https://github.com/MarcoIeni/release-plz/pull/1329))
+
+## [0.4.22](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.4.21...git_cmd-v0.4.22) - 2024-02-27
+
+### Other
+- error if committed Cargo.lock is in `.gitignore` ([#1294](https://github.com/MarcoIeni/release-plz/pull/1294))
+
+## [0.4.21](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.4.20...git_cmd-v0.4.21) - 2024-02-23
+
+### Other
+- update Cargo.toml dependencies
+
 ## [0.4.20](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.4.19...git_cmd-v0.4.20) - 2024-01-23
 
 ### Added
