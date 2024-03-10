@@ -1,7 +1,8 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
+use cargo_utils::to_utf8_pathbuf;
 
 pub fn strip_prefix(path: &Utf8Path, prefix: impl AsRef<Path>) -> anyhow::Result<&Utf8Path> {
     path.strip_prefix(prefix.as_ref())
@@ -10,13 +11,6 @@ pub fn strip_prefix(path: &Utf8Path, prefix: impl AsRef<Path>) -> anyhow::Result
 
 pub fn to_utf8_path(path: &Path) -> anyhow::Result<&Utf8Path> {
     Utf8Path::from_path(path).with_context(|| format!("cannot convert {:?} to Utf8Path", path))
-}
-
-pub fn to_utf8_pathbuf(path: PathBuf) -> anyhow::Result<Utf8PathBuf> {
-    match Utf8PathBuf::from_path_buf(path) {
-        Ok(p) => Ok(p),
-        Err(path) => Err(anyhow::anyhow!("cannot convert {:?} to Utf8Path", &path)),
-    }
 }
 
 pub fn current_directory() -> anyhow::Result<Utf8PathBuf> {

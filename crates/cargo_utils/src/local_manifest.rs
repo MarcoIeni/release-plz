@@ -11,7 +11,7 @@ use cargo_metadata::{
 };
 use semver::Version;
 
-use crate::{DepTable, Manifest};
+use crate::{to_utf8_pathbuf, DepTable, Manifest};
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum FeatureStatus {
@@ -48,7 +48,7 @@ impl LocalManifest {
     /// the user means.
     pub fn find(path: Option<&Path>) -> anyhow::Result<Self> {
         let canonicalized_path = dunce::canonicalize(find(path)?)?;
-        let path = Utf8PathBuf::try_from(canonicalized_path).context("invalid utf8 path")?;
+        let path = to_utf8_pathbuf(canonicalized_path).context("invalid utf8 path")?;
         Self::try_new(&path)
     }
 

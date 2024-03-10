@@ -1,6 +1,7 @@
 use anyhow::Context;
 use cargo_metadata::camino::Utf8Path;
-use release_plz_core::{fs_utils::to_utf8_pathbuf, ReleaseRequest, UpdateRequest};
+use cargo_utils::to_utf8_pathbuf;
+use release_plz_core::{ReleaseRequest, UpdateRequest};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf, time::Duration};
