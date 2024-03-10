@@ -1,7 +1,6 @@
 mod args;
 mod changelog_config;
 mod config;
-mod fs_utils;
 mod generate_schema;
 mod log;
 mod update_checker;

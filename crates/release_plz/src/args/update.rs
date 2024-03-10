@@ -5,9 +5,9 @@ use cargo_metadata::camino::Utf8Path;
 use chrono::NaiveDate;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use git_cliff_core::config::Config as GitCliffConfig;
-use release_plz_core::{ChangelogRequest, UpdateRequest};
+use release_plz_core::{fs_utils::to_utf8_path, ChangelogRequest, UpdateRequest};
 
-use crate::{config::Config, fs_utils::to_utf8_path};
+use crate::config::Config;
 
 use super::repo_command::RepoCommand;
 

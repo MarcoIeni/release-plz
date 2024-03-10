@@ -5,7 +5,7 @@ use clap::{
     builder::{NonEmptyStringValueParser, PathBufValueParser},
     ValueEnum,
 };
-use release_plz_core::{GitBackend, GitHub, GitLab, Gitea, ReleaseRequest};
+use release_plz_core::{fs_utils::to_utf8_path, GitBackend, GitHub, GitLab, Gitea, ReleaseRequest};
 use secrecy::SecretString;
 
 use crate::config::Config;
@@ -128,7 +128,7 @@ impl RepoCommand for Release {
     fn optional_project_manifest(&self) -> Option<&Utf8Path> {
         self.project_manifest
             .as_deref()
-            .map(|p| Utf8Path::from_path(p).expect("non-utf8 path"))
+            .map(|p| to_utf8_path(p).unwrap())
     }
 
     fn repo_url(&self) -> Option<&str> {
