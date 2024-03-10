@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.0...git_cmd-v0.6.1) - 2024-03-10
+
+### Other
+- use `camino` ([#1337](https://github.com/MarcoIeni/release-plz/pull/1337))
+
 ## [0.6.0](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.5.0...git_cmd-v0.6.0) - 2024-03-10
 
 ### Added

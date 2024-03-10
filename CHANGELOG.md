@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.53](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.52...release-plz-v0.3.53) - 2024-03-10
+
+### Fixed
+- allow rust project in subdir ([#1336](https://github.com/MarcoIeni/release-plz/pull/1336))
+
+### Other
+- use `camino` ([#1337](https://github.com/MarcoIeni/release-plz/pull/1337))
+- improve error message to suggest `--project-manifest` ([#1334](https://github.com/MarcoIeni/release-plz/pull/1334))
+
 ## [0.3.52](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.51...release-plz-v0.3.52) - 2024-03-10
 
 ### Added

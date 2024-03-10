@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.41](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.40...cargo_utils-v0.1.41) - 2024-03-10
+
+### Other
+- use `camino` ([#1337](https://github.com/MarcoIeni/release-plz/pull/1337))
+- improve error message to suggest `--project-manifest` ([#1334](https://github.com/MarcoIeni/release-plz/pull/1334))
+
 ## [0.1.40](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.39...cargo_utils-v0.1.40) - 2024-03-08
 
 ### Other
