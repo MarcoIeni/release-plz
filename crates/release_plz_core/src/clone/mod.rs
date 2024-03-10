@@ -15,8 +15,8 @@ use tracing::warn;
 
 use std::collections::HashSet;
 use std::fs;
-use std::path::Path;
-use std::path::PathBuf;
+
+
 use std::process::Command;
 
 use anyhow::{bail, Context};
@@ -269,7 +269,7 @@ fn clone_git_repo(repo: &str, to: &Utf8Path) -> CargoResult<()> {
     let status = Command::new("git")
         .arg("clone")
         .arg(repo)
-        .arg(to.to_string())
+        .arg(to)
         .status()
         .context("Failed to clone from git repo.")?;
 

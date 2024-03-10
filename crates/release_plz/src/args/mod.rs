@@ -4,7 +4,7 @@ mod release_pr;
 pub mod repo_command;
 mod update;
 
-use std::path::{Path, PathBuf};
+use std::path::{Path};
 
 use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};

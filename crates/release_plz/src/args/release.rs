@@ -1,6 +1,6 @@
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 
-use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
+use cargo_metadata::camino::{Utf8Path};
 use clap::{
     builder::{NonEmptyStringValueParser, PathBufValueParser},
     ValueEnum,

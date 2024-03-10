@@ -1,6 +1,5 @@
 use std::{
     fs,
-    path::{self, Path, PathBuf},
     process::Command,
     str::FromStr,
 };
@@ -14,7 +13,7 @@ use release_plz_core::{
     fs_utils::Utf8TempDir, GitBackend, GitClient, GitPr, Gitea, RepoUrl, BRANCH_PREFIX,
 };
 use secrecy::SecretString;
-use tempfile::TempDir;
+
 use tracing::info;
 
 use super::{

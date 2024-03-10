@@ -8,7 +8,7 @@ use cargo_utils::upgrade_requirement;
 use cargo_utils::LocalManifest;
 use git_cmd::Repo;
 use std::iter;
-use std::{fs, path::Path};
+use std::{fs};
 use tracing::{info, warn};
 
 use tracing::{debug, instrument};

@@ -25,7 +25,8 @@ pub fn current_directory() -> anyhow::Result<Utf8PathBuf> {
 
 #[derive(Debug)]
 pub struct Utf8TempDir {
-    temp_dir: tempfile::TempDir,
+    // temporary directory that will be deleted in the `Drop` method
+    _temp_dir: tempfile::TempDir,
     path: Utf8PathBuf,
 }
 
@@ -33,7 +34,10 @@ impl Utf8TempDir {
     pub fn new() -> anyhow::Result<Self> {
         let temp_dir = tempfile::tempdir().with_context(|| "cannot create temporary directory")?;
         let path = to_utf8_path(temp_dir.as_ref())?.to_path_buf();
-        Ok(Self { temp_dir, path })
+        Ok(Self {
+            _temp_dir: temp_dir,
+            path,
+        })
     }
 
     pub fn path(&self) -> &Utf8Path {

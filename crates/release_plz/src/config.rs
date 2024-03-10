@@ -1,5 +1,5 @@
 use anyhow::Context;
-use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
+use cargo_metadata::camino::{Utf8Path};
 use release_plz_core::{fs_utils::to_utf8_pathbuf, ReleaseRequest, UpdateRequest};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

@@ -2,7 +2,7 @@ use crate::{
     changelog_parser::{self, ChangelogRelease},
     copy_dir::copy_dir,
     diff::Diff,
-    fs_utils::{strip_prefix, to_utf8_path, Utf8TempDir},
+    fs_utils::{strip_prefix, Utf8TempDir},
     is_readme_updated, local_readme_override, lock_compare,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
@@ -1321,7 +1321,7 @@ mod tests {
     use super::*;
     use super::{check_for_typos, Project};
     use crate::ReleaseMetadataBuilder;
-    use std::{collections::HashSet, path::Path};
+    use std::{collections::HashSet};
 
     fn get_project(
         local_manifest: &Utf8Path,

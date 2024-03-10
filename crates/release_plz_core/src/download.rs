@@ -1,6 +1,6 @@
 //! Download packages from cargo registry, similar to the `git clone` behavior.
 
-use std::path::{Path, PathBuf};
+use std::path::{Path};
 
 use anyhow::{anyhow, Context};
 use cargo_metadata::{camino::Utf8PathBuf, Package};

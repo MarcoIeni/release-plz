@@ -1,4 +1,4 @@
-use std::path::Path;
+
 
 use cargo_metadata::camino::Utf8Path;
 use git_cmd::Repo;
@@ -6,7 +6,7 @@ use git_cmd::Repo;
 use anyhow::Context;
 use tracing::{info, instrument};
 
-use crate::fs_utils::to_utf8_path;
+
 use crate::git::backend::{contributors_from_commits, BackendType, GitClient, GitPr, PrEdit};
 use crate::git::github_graphql;
 use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};

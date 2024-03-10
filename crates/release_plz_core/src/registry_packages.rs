@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, path::PathBuf};
+use std::{collections::BTreeMap};
 
 use anyhow::Context;
 use cargo_metadata::{camino::Utf8Path, Package};

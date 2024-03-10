@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap};
 
 use anyhow::Context;
 use cargo_metadata::camino::Utf8Path;

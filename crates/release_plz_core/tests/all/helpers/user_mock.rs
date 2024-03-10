@@ -1,4 +1,4 @@
-use std::{fs, path::Path};
+use std::{fs};
 
 use cargo_metadata::camino::Utf8Path;
 use git_cmd::git_in_dir;
