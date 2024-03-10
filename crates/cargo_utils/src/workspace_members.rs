@@ -1,13 +1,13 @@
-use anyhow::Context;
 use cargo_metadata::{Metadata, Package};
 use std::path::Path;
 
-pub fn get_manifest_metadata(manifest_path: &Path) -> anyhow::Result<cargo_metadata::Metadata> {
+pub fn get_manifest_metadata(
+    manifest_path: &Path,
+) -> Result<cargo_metadata::Metadata, cargo_metadata::Error> {
     cargo_metadata::MetadataCommand::new()
         .no_deps()
         .manifest_path(manifest_path)
         .exec()
-        .with_context(|| format!("invalid manifest {manifest_path:?}"))
 }
 
 /// Lookup all members of the current workspace

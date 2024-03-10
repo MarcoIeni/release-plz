@@ -16,7 +16,16 @@ pub trait RepoCommand {
     }
 
     fn cargo_metadata(&self) -> anyhow::Result<cargo_metadata::Metadata> {
-        cargo_utils::get_manifest_metadata(&self.project_manifest())
+        let manifest = &self.project_manifest();
+        cargo_utils::get_manifest_metadata(manifest).map_err(|e| match e {
+            cargo_metadata::Error::CargoMetadata { stderr } => {
+                let stderr = stderr.trim();
+                anyhow::anyhow!("{stderr}. Use --project-manifest to specify the path to the manifest file if it's not in the current directory.")
+            }
+            _ => {
+                anyhow::anyhow!(e)
+            }
+        })
     }
 
     fn get_repo_url(&self, config: &Config) -> anyhow::Result<RepoUrl> {
