@@ -20,7 +20,7 @@ use cargo_metadata::{
     semver::Version,
     Metadata, Package,
 };
-use cargo_utils::{upgrade_requirement, LocalManifest};
+use cargo_utils::{to_utf8_pathbuf, upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
 use git_cliff_core::commit::Commit;
 use git_cmd::{self, Repo};
@@ -196,12 +196,12 @@ pub struct ChangelogRequest {
     pub changelog_config: Option<git_cliff_core::config::Config>,
 }
 
-fn canonical_local_manifest(local_manifest: &Path) -> io::Result<Utf8PathBuf> {
+fn canonical_local_manifest(local_manifest: &Path) -> anyhow::Result<Utf8PathBuf> {
     let mut local_manifest = dunce::canonicalize(local_manifest)?;
     if !local_manifest.ends_with(CARGO_TOML) {
         local_manifest.push(CARGO_TOML)
     }
-    let local_manifest = Utf8PathBuf::try_from(local_manifest).expect("non utf8 path");
+    let local_manifest = to_utf8_pathbuf(local_manifest)?;
     Ok(local_manifest)
 }
 
@@ -241,7 +241,7 @@ impl UpdateRequest {
         &self.metadata
     }
 
-    pub fn set_local_manifest(self, local_manifest: impl AsRef<Path>) -> io::Result<Self> {
+    pub fn set_local_manifest(self, local_manifest: impl AsRef<Path>) -> anyhow::Result<Self> {
         Ok(Self {
             local_manifest: canonical_local_manifest(local_manifest.as_ref())?,
             ..self
