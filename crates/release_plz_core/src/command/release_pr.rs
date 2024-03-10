@@ -1,16 +1,17 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use git_cmd::Repo;
 
-use anyhow::{anyhow, Context};
+use anyhow::Context;
 use tracing::{info, instrument};
 
 use crate::git::backend::{contributors_from_commits, BackendType, GitClient, GitPr, PrEdit};
 use crate::git::github_graphql;
 use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};
+use crate::strip_prefix::strip_prefix;
 use crate::{
-    copy_to_temp_dir, publishable_packages_from_manifest, update, GitBackend, PackagesUpdate,
-    UpdateRequest, CARGO_TOML,
+    copy_to_temp_dir, publishable_packages_from_manifest, root_repo_path_from_manifest_dir, update,
+    GitBackend, PackagesUpdate, UpdateRequest, CARGO_TOML,
 };
 
 #[derive(Debug)]
@@ -48,13 +49,16 @@ impl ReleasePrRequest {
 #[instrument(skip_all)]
 pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let manifest_dir = input.update_request.local_manifest_dir()?;
-    let tmp_project_root = copy_to_temp_dir(manifest_dir)?;
-    let manifest_dir_name = manifest_dir
-        .iter()
-        .last()
-        .ok_or_else(|| anyhow!("wrong local manifest path"))?;
-    let manifest_dir_name = PathBuf::from(manifest_dir_name);
-    let new_manifest_dir = tmp_project_root.as_ref().join(manifest_dir_name);
+    let original_project_root = root_repo_path_from_manifest_dir(manifest_dir)?;
+    let tmp_project_root = copy_to_temp_dir(&original_project_root)?;
+    let new_manifest_dir = {
+        let original_project_root_parent = original_project_root
+            .parent()
+            .context("cannot determine parent root")?;
+        let relative_manifest_dir = strip_prefix(manifest_dir, original_project_root_parent)?;
+        tmp_project_root.as_ref().join(relative_manifest_dir)
+    };
+
     let local_manifest = new_manifest_dir.join(CARGO_TOML);
     let new_update_request = input
         .update_request

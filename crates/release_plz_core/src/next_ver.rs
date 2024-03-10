@@ -434,7 +434,7 @@ pub fn root_repo_path(local_manifest: &Path) -> anyhow::Result<PathBuf> {
     root_repo_path_from_manifest_dir(manifest_dir)
 }
 
-fn root_repo_path_from_manifest_dir(manifest_dir: &Path) -> anyhow::Result<PathBuf> {
+pub fn root_repo_path_from_manifest_dir(manifest_dir: &Path) -> anyhow::Result<PathBuf> {
     let root = git_cmd::git_in_dir(manifest_dir, &["rev-parse", "--show-toplevel"])?;
     Ok(PathBuf::from(root))
 }
