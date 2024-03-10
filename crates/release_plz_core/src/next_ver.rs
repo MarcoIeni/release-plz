@@ -514,7 +514,7 @@ impl Project {
         debug!("tmp_manifest_dir: {tmp_manifest_dir:?}");
 
         let tmp_project_root = new_project_root(&self.root, tmp_project_root_parent.as_ref())?;
-        let repository = TempRepo::new(tmp_project_root_parent, &tmp_project_root)?;
+        let repository = TempRepo::new(tmp_project_root_parent, tmp_project_root)?;
         Ok(repository)
     }
 
