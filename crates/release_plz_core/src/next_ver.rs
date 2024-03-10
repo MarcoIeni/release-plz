@@ -434,7 +434,7 @@ pub fn root_repo_path(local_manifest: &Path) -> anyhow::Result<PathBuf> {
     root_repo_path_from_manifest_dir(manifest_dir)
 }
 
-fn root_repo_path_from_manifest_dir(manifest_dir: &Path) -> anyhow::Result<PathBuf> {
+pub fn root_repo_path_from_manifest_dir(manifest_dir: &Path) -> anyhow::Result<PathBuf> {
     let root = git_cmd::git_in_dir(manifest_dir, &["rev-parse", "--show-toplevel"])?;
     Ok(PathBuf::from(root))
 }
@@ -505,17 +505,16 @@ impl Project {
     /// Copy this project in a temporary repository and return the repository.
     /// We copy the project in another directory in order to avoid altering it.
     fn get_repo(&self) -> anyhow::Result<TempRepo> {
-        let tmp_project_root = copy_to_temp_dir(&self.root)?;
-        let tmp_manifest_dir = {
-            let parent_root = self.root.parent().context("cannot determine parent root")?;
-            let relative_manifest_dir = strip_prefix(&self.manifest_dir, parent_root)
-                .context("cannot strip prefix for manifest dir")?;
-            debug!("relative_manifest_dir: {relative_manifest_dir:?}");
-            tmp_project_root.as_ref().join(relative_manifest_dir)
-        };
-        debug!("tmp_manifest_dir: {tmp_manifest_dir:?}");
+        let tmp_project_root_parent = copy_to_temp_dir(&self.root)?;
+        let tmp_project_manifest_dir = new_manifest_dir_path(
+            &self.root,
+            &self.manifest_dir,
+            tmp_project_root_parent.as_ref(),
+        )?;
+        debug!("tmp_project_manifest_dir: {tmp_project_manifest_dir:?}");
 
-        let repository = TempRepo::new(tmp_project_root, &tmp_manifest_dir)?;
+        let tmp_project_root = new_project_root(&self.root, tmp_project_root_parent.as_ref())?;
+        let repository = TempRepo::new(tmp_project_root_parent, tmp_project_root)?;
         Ok(repository)
     }
 
@@ -568,6 +567,27 @@ impl Project {
     pub fn cargo_lock_path(&self) -> PathBuf {
         self.root.join("Cargo.lock")
     }
+}
+
+pub fn new_manifest_dir_path(
+    old_project_root: &Path,
+    old_manifest_dir: &Path,
+    new_project_root: &Path,
+) -> anyhow::Result<PathBuf> {
+    let parent_root = old_project_root.parent().unwrap_or(old_project_root);
+    let relative_manifest_dir = strip_prefix(old_manifest_dir, parent_root)
+        .context("cannot strip prefix for manifest dir")?;
+    Ok(new_project_root.join(relative_manifest_dir))
+}
+
+pub fn new_project_root(
+    original_project_root: &Path,
+    new_project_root_parent: &Path,
+) -> anyhow::Result<PathBuf> {
+    let project_root_dirname = original_project_root
+        .file_name()
+        .context("cannot get project root dirname")?;
+    Ok(new_project_root_parent.join(project_root_dirname))
 }
 
 fn tera_context(package_name: &str, version: &str) -> tera::Context {

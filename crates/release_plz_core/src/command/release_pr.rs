@@ -1,16 +1,17 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use git_cmd::Repo;
 
-use anyhow::{anyhow, Context};
+use anyhow::Context;
 use tracing::{info, instrument};
 
 use crate::git::backend::{contributors_from_commits, BackendType, GitClient, GitPr, PrEdit};
 use crate::git::github_graphql;
 use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};
 use crate::{
-    copy_to_temp_dir, publishable_packages_from_manifest, update, GitBackend, PackagesUpdate,
-    UpdateRequest, CARGO_TOML,
+    copy_to_temp_dir, new_manifest_dir_path, new_project_root, publishable_packages_from_manifest,
+    root_repo_path_from_manifest_dir, update, GitBackend, PackagesUpdate, UpdateRequest,
+    CARGO_TOML,
 };
 
 #[derive(Debug)]
@@ -48,14 +49,18 @@ impl ReleasePrRequest {
 #[instrument(skip_all)]
 pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let manifest_dir = input.update_request.local_manifest_dir()?;
-    let tmp_project_root = copy_to_temp_dir(manifest_dir)?;
-    let manifest_dir_name = manifest_dir
-        .iter()
-        .last()
-        .ok_or_else(|| anyhow!("wrong local manifest path"))?;
-    let manifest_dir_name = PathBuf::from(manifest_dir_name);
-    let new_manifest_dir = tmp_project_root.as_ref().join(manifest_dir_name);
-    let local_manifest = new_manifest_dir.join(CARGO_TOML);
+    let original_project_root = root_repo_path_from_manifest_dir(manifest_dir)?;
+    let tmp_project_root_parent = copy_to_temp_dir(&original_project_root)?;
+    let tmp_project_manifest_dir = new_manifest_dir_path(
+        &original_project_root,
+        manifest_dir,
+        tmp_project_root_parent.as_ref(),
+    )?;
+
+    let tmp_project_root =
+        new_project_root(&original_project_root, tmp_project_root_parent.as_ref())?;
+
+    let local_manifest = tmp_project_manifest_dir.join(CARGO_TOML);
     let new_update_request = input
         .update_request
         .clone()
@@ -65,7 +70,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         update(&new_update_request).context("failed to update packages")?;
     let git_client = GitClient::new(input.git.clone())?;
     if !packages_to_update.updates().is_empty() {
-        let repo = Repo::new(new_manifest_dir)?;
+        let repo = Repo::new(tmp_project_root)?;
         let there_are_commits_to_push = repo.is_clean().is_err();
         if there_are_commits_to_push {
             open_or_update_release_pr(
