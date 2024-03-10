@@ -6,7 +6,11 @@ use std::{
 
 use anyhow::Context;
 use cargo::util_semver::VersionExt;
-use cargo_metadata::{semver::Version, Metadata, Package};
+use cargo_metadata::{
+    camino::{Utf8Path, Utf8PathBuf},
+    semver::Version,
+    Metadata, Package,
+};
 use crates_index::{GitIndex, SparseIndex};
 use git_cmd::Repo;
 use secrecy::{ExposeSecret, SecretString};
@@ -62,8 +66,8 @@ impl ReleaseRequest {
     }
 
     /// The manifest of the project you want to release.
-    pub fn local_manifest(&self) -> PathBuf {
-        cargo_utils::workspace_manifest(&self.metadata).into_std_path_buf()
+    pub fn local_manifest(&self) -> Utf8PathBuf {
+        cargo_utils::workspace_manifest(&self.metadata)
     }
 
     pub fn with_registry(mut self, registry: impl Into<String>) -> Self {
@@ -111,11 +115,11 @@ impl ReleaseRequest {
         self
     }
 
-    pub fn changelog_path(&self, package: &Package) -> PathBuf {
+    pub fn changelog_path(&self, package: &Package) -> Utf8PathBuf {
         let config = self.get_package_config(&package.name);
         config
             .changelog_path
-            .map(|p| self.metadata.workspace_root.as_std_path().join(p))
+            .map(|p| self.metadata.workspace_root.join(p))
             .unwrap_or_else(|| {
                 package
                     .package_path()
@@ -401,7 +405,7 @@ pub struct PackageReleaseConfig {
     /// config that can be applied by default to all packages.
     pub generic: ReleaseConfig,
     /// The changelog path can only be specified for a single package.
-    pub changelog_path: Option<PathBuf>,
+    pub changelog_path: Option<Utf8PathBuf>,
 }
 
 #[derive(Debug)]
@@ -505,7 +509,7 @@ async fn release_package(
 
     let publish = input.is_publish_enabled(&package.name);
     if publish {
-        let output = run_cargo_publish(package, input, workspace_root.as_std_path())
+        let output = run_cargo_publish(package, input, workspace_root)
             .context("failed to run cargo publish")?;
         if !output.status.success()
             || !output.stderr.contains("Uploading")
@@ -589,7 +593,7 @@ fn verify_ci_cargo_registry_token() -> anyhow::Result<()> {
 fn run_cargo_publish(
     package: &Package,
     input: &ReleaseRequest,
-    workspace_root: &Path,
+    workspace_root: &Utf8Path,
 ) -> anyhow::Result<CmdOutput> {
     let mut args = vec!["publish"];
     args.push("--color");

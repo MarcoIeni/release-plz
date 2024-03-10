@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 
+use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 use clap::{
     builder::{NonEmptyStringValueParser, PathBufValueParser},
     ValueEnum,
@@ -124,8 +125,10 @@ impl Release {
 }
 
 impl RepoCommand for Release {
-    fn optional_project_manifest(&self) -> Option<&Path> {
-        self.project_manifest.as_deref()
+    fn optional_project_manifest(&self) -> Option<&Utf8Path> {
+        self.project_manifest
+            .as_deref()
+            .map(|p| Utf8Path::from_path(p).expect("non-utf8 path"))
     }
 
     fn repo_url(&self) -> Option<&str> {

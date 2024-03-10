@@ -1,10 +1,12 @@
 use std::path::Path;
 
+use cargo_metadata::camino::Utf8Path;
 use git_cmd::Repo;
 
 use anyhow::Context;
 use tracing::{info, instrument};
 
+use crate::fs_utils::to_utf8_path;
 use crate::git::backend::{contributors_from_commits, BackendType, GitClient, GitPr, PrEdit};
 use crate::git::github_graphql;
 use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};
@@ -54,11 +56,13 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let tmp_project_manifest_dir = new_manifest_dir_path(
         &original_project_root,
         manifest_dir,
-        tmp_project_root_parent.as_ref(),
+        to_utf8_path(tmp_project_root_parent.as_ref())?,
     )?;
 
-    let tmp_project_root =
-        new_project_root(&original_project_root, tmp_project_root_parent.as_ref())?;
+    let tmp_project_root = new_project_root(
+        &original_project_root,
+        to_utf8_path(tmp_project_root_parent.as_ref())?,
+    )?;
 
     let local_manifest = tmp_project_manifest_dir.join(CARGO_TOML);
     let new_update_request = input
@@ -89,7 +93,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
 }
 
 async fn open_or_update_release_pr(
-    local_manifest: &Path,
+    local_manifest: &Utf8Path,
     packages_to_update: &PackagesUpdate,
     git_client: &GitClient,
     repo: &Repo,

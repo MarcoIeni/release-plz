@@ -7,6 +7,7 @@ mod cloner_builder;
 mod source;
 
 use cargo::util::cache_lock::CacheLockMode;
+use cargo_metadata::camino::Utf8Path;
 pub use cloner_builder::*;
 pub use source::*;
 use tracing::warn;
@@ -32,7 +33,7 @@ pub use cargo::{
     util::{CargoResult, Config},
 };
 
-use crate::strip_prefix::strip_prefix;
+use crate::fs_utils::strip_prefix;
 
 /// Rust crate.
 #[derive(PartialEq, Eq, Debug)]
@@ -240,7 +241,8 @@ fn clone_directory(from: &Path, to: &Path) -> CargoResult<()> {
         let entry = entry.unwrap();
         let file_type = entry.file_type();
         let mut dest_path = to.to_owned();
-        dest_path.push(strip_prefix(entry.path(), from).unwrap());
+        let utf8_entry: &Utf8Path = entry.path().try_into()?;
+        dest_path.push(strip_prefix(utf8_entry, from).unwrap());
 
         if entry.file_name() == ".cargo-ok" {
             continue;

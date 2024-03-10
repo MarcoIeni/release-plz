@@ -4,19 +4,17 @@ mod cmd;
 #[cfg(feature = "test_fixture")]
 pub mod test_fixture;
 
-use std::{
-    path::{Path, PathBuf},
-    process::Command,
-};
+use std::{path::Path, process::Command};
 
 use anyhow::{anyhow, Context};
+use camino::{Utf8Path, Utf8PathBuf};
 use tracing::{debug, instrument, trace, warn, Span};
 
 /// Repository
 #[derive(Debug)]
 pub struct Repo {
     /// Directory where you want to run git operations
-    directory: PathBuf,
+    directory: Utf8PathBuf,
     /// Branch name before running any git operation
     original_branch: String,
     /// Remote name before running any git operation
@@ -26,7 +24,7 @@ pub struct Repo {
 impl Repo {
     /// Returns an error if the directory doesn't contain any commit
     #[instrument(skip_all)]
-    pub fn new(directory: impl AsRef<Path>) -> anyhow::Result<Self> {
+    pub fn new(directory: impl AsRef<Utf8Path>) -> anyhow::Result<Self> {
         debug!("initializing directory {:?}", directory.as_ref());
 
         let (current_remote, current_branch) = Self::get_current_remote_and_branch(&directory)
@@ -39,12 +37,12 @@ impl Repo {
         })
     }
 
-    pub fn directory(&self) -> &Path {
+    pub fn directory(&self) -> &Utf8Path {
         &self.directory
     }
 
     fn get_current_remote_and_branch(
-        directory: impl AsRef<Path>,
+        directory: impl AsRef<Utf8Path>,
     ) -> anyhow::Result<(String, String)> {
         match git_in_dir(
             directory.as_ref(),
@@ -298,12 +296,10 @@ impl Repo {
     }
 }
 
-pub fn is_file_ignored(repo_path: &Path, file: &Path) -> anyhow::Result<bool> {
-    let file = file
-        .to_str()
-        .with_context(|| format!("cannot convert file path to string: {:?}", file))?;
+pub fn is_file_ignored(repo_path: &Utf8Path, file: &Utf8Path) -> bool {
+    let file = file.as_str();
     let is_ignored = git_in_dir(repo_path, &["check-ignore", "--no-index", file]).is_ok();
-    Ok(is_ignored)
+    is_ignored
 }
 
 fn changed_files(output: &str, filter: impl FnMut(&&str) -> bool) -> Vec<String> {
@@ -318,7 +314,7 @@ fn changed_files(output: &str, filter: impl FnMut(&&str) -> bool) -> Vec<String>
 }
 
 #[instrument]
-pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
+pub fn git_in_dir(dir: &Utf8Path, args: &[&str]) -> anyhow::Result<String> {
     let args: Vec<&str> = args.iter().map(|s| s.trim()).collect();
     let output = Command::new("git")
         .arg("-C")
@@ -352,7 +348,7 @@ pub fn git_in_dir(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
 }
 
 /// Get the name of the current branch.
-fn get_current_branch(directory: impl AsRef<Path>) -> anyhow::Result<String> {
+fn get_current_branch(directory: impl AsRef<Utf8Path>) -> anyhow::Result<String> {
     git_in_dir(directory.as_ref(), &["rev-parse", "--abbrev-ref", "HEAD"]).map_err(|e| {
         if e.to_string().contains(
             "fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.",

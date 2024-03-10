@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, path::PathBuf};
 
 use anyhow::Context;
-use cargo_metadata::Package;
+use cargo_metadata::{camino::Utf8Path, Package};
 use tempfile::{tempdir, TempDir};
 
 use crate::{download, next_ver};
@@ -20,7 +20,7 @@ impl PackagesCollection {
 }
 
 pub fn get_registry_packages(
-    registry_manifest: Option<&PathBuf>,
+    registry_manifest: Option<&Utf8Path>,
     local_packages: &[&Package],
     registry: Option<&str>,
 ) -> anyhow::Result<PackagesCollection> {

@@ -2,6 +2,7 @@ use crate::semver_check::SemverCheck;
 use crate::{root_repo_path_from_manifest_dir, CARGO_TOML};
 use crate::{tmp_repo::TempRepo, PackagePath, UpdateRequest, UpdateResult};
 use anyhow::Context;
+use cargo_metadata::camino::Utf8Path;
 use cargo_metadata::{semver::Version, Package};
 use cargo_utils::upgrade_requirement;
 use cargo_utils::LocalManifest;
@@ -153,7 +154,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
 
 fn update_manifests(
     packages_to_update: &PackagesUpdate,
-    local_manifest_path: &Path,
+    local_manifest_path: &Utf8Path,
     all_packages: &[Package],
 ) -> anyhow::Result<()> {
     // Distinguish packages type to avoid updating the version of packages that inherit the workspace version
@@ -198,7 +199,7 @@ fn update_manifests(
 fn update_versions(
     all_packages: &[Package],
     packages_to_update: &PackagesUpdate,
-    workspace_manifest: &Path,
+    workspace_manifest: &Utf8Path,
 ) -> anyhow::Result<()> {
     for (package, update) in &packages_to_update.updates {
         let package_path = package.package_path()?;
@@ -228,7 +229,7 @@ fn update_changelogs(
 }
 
 #[instrument(skip_all)]
-fn update_cargo_lock(root: &Path, update_all_dependencies: bool) -> anyhow::Result<()> {
+fn update_cargo_lock(root: &Utf8Path, update_all_dependencies: bool) -> anyhow::Result<()> {
     let mut args = vec!["update"];
     if !update_all_dependencies {
         args.push("--workspace")
@@ -249,9 +250,9 @@ fn update_cargo_lock(root: &Path, update_all_dependencies: bool) -> anyhow::Resu
 #[instrument(skip(all_packages))]
 fn set_version(
     all_packages: &[Package],
-    package_path: &Path,
+    package_path: &Utf8Path,
     version: &Version,
-    workspace_manifest: &Path,
+    workspace_manifest: &Utf8Path,
 ) -> anyhow::Result<()> {
     debug!("updating version");
     let mut local_manifest =
@@ -261,7 +262,7 @@ fn set_version(
         .write()
         .with_context(|| format!("cannot update manifest {:?}", &local_manifest.path))?;
 
-    let package_path = fs::canonicalize(crate::manifest_dir(&local_manifest.path)?)?;
+    let package_path = Utf8Path::canonicalize_utf8(crate::manifest_dir(&local_manifest.path)?)?;
     update_dependencies(all_packages, version, &package_path, workspace_manifest)?;
     Ok(())
 }
@@ -291,14 +292,11 @@ fn set_version(
 fn update_dependencies(
     all_packages: &[Package],
     version: &Version,
-    package_path: &Path,
-    workspace_manifest: &Path,
+    package_path: &Utf8Path,
+    workspace_manifest: &Utf8Path,
 ) -> anyhow::Result<()> {
-    let all_manifests = iter::once(workspace_manifest).chain(
-        all_packages
-            .iter()
-            .map(|pkg| pkg.manifest_path.as_std_path()),
-    );
+    let all_manifests = iter::once(workspace_manifest)
+        .chain(all_packages.iter().map(|pkg| pkg.manifest_path.as_path()));
     for manifest in all_manifests {
         let mut local_manifest = LocalManifest::try_new(manifest)?;
         let manifest_dir = crate::manifest_dir(&local_manifest.path)?.to_owned();

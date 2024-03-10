@@ -3,6 +3,7 @@ use std::{collections::HashMap, path::Path};
 
 use anyhow::Result;
 use base64::prelude::*;
+use cargo_metadata::camino::Utf8PathBuf;
 use git_cmd::Repo;
 use serde_json::Value;
 use tokio::fs;
@@ -72,7 +73,7 @@ struct GithubCommit {
     current_head: String,
     deletions: Vec<String>,
     additions: Vec<String>,
-    repo_dir: PathBuf,
+    repo_dir: Utf8PathBuf,
 }
 
 impl GithubCommit {

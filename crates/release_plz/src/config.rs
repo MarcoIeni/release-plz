@@ -1,11 +1,15 @@
 use anyhow::Context;
+use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 use release_plz_core::{ReleaseRequest, UpdateRequest};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf, time::Duration};
 use url::Url;
 
-use crate::changelog_config::ChangelogCfg;
+use crate::{
+    changelog_config::ChangelogCfg,
+    fs_utils::{to_utf8_path, to_utf8_pathbuf},
+};
 
 /// You can find the documentation of the configuration file
 /// [here](https://release-plz.ieni.dev/docs/config).
@@ -165,6 +169,12 @@ impl PackageSpecificConfig {
             changelog_include: self.changelog_include,
         }
     }
+
+    pub fn changelog_path(&self) -> Option<&Utf8Path> {
+        self.changelog_path
+            .as_ref()
+            .map(|p| to_utf8_path(p.as_ref()).unwrap())
+    }
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, JsonSchema)]
@@ -180,7 +190,7 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
 
         Self {
             generic,
-            changelog_path: config.changelog_path,
+            changelog_path: config.changelog_path.map(|p| to_utf8_pathbuf(p).unwrap()),
         }
     }
 }
@@ -289,7 +299,7 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
     fn from(config: PackageSpecificConfig) -> Self {
         Self {
             generic: config.common.into(),
-            changelog_path: config.changelog_path,
+            changelog_path: config.changelog_path.map(|p| to_utf8_pathbuf(p).unwrap()),
             changelog_include: config.changelog_include.unwrap_or_default(),
         }
     }

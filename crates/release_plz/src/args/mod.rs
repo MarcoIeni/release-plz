@@ -7,10 +7,11 @@ mod update;
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
+use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 use release_plz_core::CARGO_TOML;
 use tracing::info;
 
-use crate::config::Config;
+use crate::{config::Config, fs_utils::to_utf8_pathbuf};
 
 use self::{
     generate_completions::GenerateCompletions, release::Release, release_pr::ReleasePr,
@@ -50,12 +51,15 @@ pub enum Command {
     GenerateSchema,
 }
 
-fn local_manifest(project_manifest: Option<&Path>) -> PathBuf {
+fn local_manifest(project_manifest: Option<&Utf8Path>) -> Utf8PathBuf {
     match project_manifest {
         Some(manifest) => manifest.to_path_buf(),
-        None => std::env::current_dir()
-            .expect("cannot retrieve current directory")
-            .join(CARGO_TOML),
+        None => to_utf8_pathbuf(
+            std::env::current_dir()
+                .expect("cannot retrieve current directory")
+                .join(CARGO_TOML),
+        )
+        .unwrap(),
     }
 }
 

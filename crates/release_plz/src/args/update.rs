@@ -1,12 +1,13 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
+use cargo_metadata::camino::Utf8Path;
 use chrono::NaiveDate;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
 use git_cliff_core::config::Config as GitCliffConfig;
 use release_plz_core::{ChangelogRequest, UpdateRequest};
 
-use crate::config::Config;
+use crate::{config::Config, fs_utils::to_utf8_path};
 
 use super::repo_command::RepoCommand;
 
@@ -91,8 +92,10 @@ pub struct Update {
 }
 
 impl RepoCommand for Update {
-    fn optional_project_manifest(&self) -> Option<&Path> {
-        self.project_manifest.as_deref()
+    fn optional_project_manifest(&self) -> Option<&Utf8Path> {
+        self.project_manifest
+            .as_deref()
+            .map(|p| Utf8Path::from_path(p).expect("non-utf8 path"))
     }
 
     fn repo_url(&self) -> Option<&str> {
@@ -134,8 +137,9 @@ impl Update {
         }
 
         if let Some(registry_project_manifest) = &self.registry_project_manifest {
+            let registry_project_manifest = to_utf8_path(registry_project_manifest)?;
             update = update
-                .with_registry_project_manifest(registry_project_manifest.clone())
+                .with_registry_project_manifest(registry_project_manifest.to_path_buf())
                 .with_context(|| {
                     format!("cannot find project manifest {registry_project_manifest:?}")
                 })?;
@@ -209,10 +213,10 @@ impl Update {
     }
 }
 
-fn check_if_cargo_lock_is_ignored(local_manifest: &Path) -> anyhow::Result<()> {
+fn check_if_cargo_lock_is_ignored(local_manifest: &Utf8Path) -> anyhow::Result<()> {
     let repo_path = release_plz_core::root_repo_path(local_manifest)?;
     let cargo_lock_path = local_manifest.with_file_name("Cargo.lock");
-    let is_cargo_lock_ignored = git_cmd::is_file_ignored(&repo_path, &cargo_lock_path)?;
+    let is_cargo_lock_ignored = git_cmd::is_file_ignored(&repo_path, &cargo_lock_path);
     anyhow::ensure!(
         !(is_cargo_lock_ignored && cargo_lock_path.exists()),
         "Cargo.lock is present in your .gitignore and is also committed. Remove it from your repository or from your `.gitignore` file."

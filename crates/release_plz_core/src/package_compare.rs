@@ -1,5 +1,8 @@
 use anyhow::Context;
-use cargo_metadata::Package;
+use cargo_metadata::{
+    camino::{Utf8Path, Utf8PathBuf},
+    Package,
+};
 use tracing::debug;
 
 use crate::{cargo::run_cargo, CARGO_TOML};
@@ -16,7 +19,10 @@ use std::{
 ///
 /// ## Args
 /// - `ignored_dirs`: Directories of the `local_package` to ignore when comparing packages.
-pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyhow::Result<bool> {
+pub fn are_packages_equal(
+    local_package: &Utf8Path,
+    registry_package: &Utf8Path,
+) -> anyhow::Result<bool> {
     debug!(
         "compare local package {:?} with registry package {:?}",
         local_package, registry_package
@@ -70,11 +76,11 @@ pub fn are_packages_equal(local_package: &Path, registry_package: &Path) -> anyh
             // such as the `README.md` file if the `Cargo.toml` specified a different path.
             || !file.exists()
             // Ignore `Cargo.lock` because the local one is different from the published one in workspaces.
-            || file.file_name() == Some(OsStr::new("Cargo.lock"))
+            || file.file_name() == Some("Cargo.lock")
             // Ignore `Cargo.toml` because we already checked it before.
-            || file.file_name() == Some(OsStr::new(CARGO_TOML))
+            || file.file_name() == Some(CARGO_TOML)
             // Ignore `Cargo.toml.orig` because it's auto generated.
-            || file.file_name() == Some(OsStr::new("Cargo.toml.orig")))
+            || file.file_name() == Some("Cargo.toml.orig"))
         });
 
     for local_path in local_files {
@@ -97,7 +103,7 @@ fn rename(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<()> {
     std::fs::rename(from, to).with_context(|| format!("cannot rename {from:?} to {to:?}"))
 }
 
-fn run_cargo_package(package: &Path) -> anyhow::Result<String> {
+fn run_cargo_package(package: &Utf8Path) -> anyhow::Result<String> {
     // we use `--allow-dirty` because we have `Cargo.toml.orig.orig`, which is an uncommitted change.
     let args = ["package", "--list", "--quiet", "--allow-dirty"];
     let output = run_cargo(package, &args).context("cannot run `cargo package`")?;
@@ -111,7 +117,7 @@ fn run_cargo_package(package: &Path) -> anyhow::Result<String> {
     Ok(output.stdout)
 }
 
-fn are_cargo_toml_equal(local_package: &Path, registry_package: &Path) -> bool {
+fn are_cargo_toml_equal(local_package: &Utf8Path, registry_package: &Utf8Path) -> bool {
     // When a package is published to a cargo registry, the original `Cargo.toml` file is stored as
     // `Cargo.toml.orig`
     let cargo_orig = format!("{CARGO_TOML}.orig");
@@ -128,9 +134,9 @@ fn are_cargo_toml_equal(local_package: &Path, registry_package: &Path) -> bool {
 /// - the local package doesn't have a `readme` field in the `Cargo.toml`.
 /// - the package doesn't have a README at all.
 pub fn is_readme_updated(
-    local_package_path: &Path,
+    local_package_path: &Utf8Path,
     package: &Package,
-    registry_package_path: &Path,
+    registry_package_path: &Utf8Path,
 ) -> anyhow::Result<bool> {
     let local_package_readme_path = local_readme_override(package, local_package_path);
     let are_readmes_equal = match local_package_readme_path {
@@ -147,21 +153,24 @@ pub fn is_readme_updated(
     Ok(!are_readmes_equal)
 }
 
-pub fn local_readme_override(package: &Package, local_package_path: &Path) -> Option<PathBuf> {
+pub fn local_readme_override(
+    package: &Package,
+    local_package_path: &Utf8Path,
+) -> Option<Utf8PathBuf> {
     package
         .readme
         .as_ref()
         .map(|readme| local_package_path.join(readme))
 }
 
-fn are_files_equal(first: &Path, second: &Path) -> anyhow::Result<bool> {
+fn are_files_equal(first: &Utf8Path, second: &Utf8Path) -> anyhow::Result<bool> {
     let hash1 = file_hash(first).with_context(|| format!("cannot determine hash of {first:?}"))?;
     let hash2 =
         file_hash(second).with_context(|| format!("cannot determine hash of {second:?}"))?;
     Ok(hash1 == hash2)
 }
 
-fn file_hash(file: &Path) -> io::Result<u64> {
+fn file_hash(file: &Utf8Path) -> io::Result<u64> {
     let buffer = &mut vec![];
     File::open(file)?.read_to_end(buffer)?;
     let mut hasher = DefaultHasher::new();

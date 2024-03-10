@@ -18,6 +18,7 @@ test_fixture = []
 
 [dependencies]
 anyhow.workspace = true
+camino.workspace = true
 tracing.workspace = true
 
 [dev-dependencies]
