@@ -1,5 +1,5 @@
 use crate::semver_check::SemverCheck;
-use crate::CARGO_TOML;
+use crate::{root_repo_path_from_manifest_dir, CARGO_TOML};
 use crate::{tmp_repo::TempRepo, PackagePath, UpdateRequest, UpdateResult};
 use anyhow::Context;
 use cargo_metadata::{semver::Version, Package};
@@ -141,7 +141,8 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
         let local_manifest_dir = input.local_manifest_dir()?;
         update_cargo_lock(local_manifest_dir, input.should_update_dependencies())?;
 
-        let there_are_commits_to_push = Repo::new(local_manifest_dir)?.is_clean().is_err();
+        let local_repo_root = root_repo_path_from_manifest_dir(local_manifest_dir)?;
+        let there_are_commits_to_push = Repo::new(local_repo_root)?.is_clean().is_err();
         if !there_are_commits_to_push {
             info!("the repository is already up-to-date");
         }

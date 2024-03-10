@@ -8,10 +8,10 @@ use tracing::{info, instrument};
 use crate::git::backend::{contributors_from_commits, BackendType, GitClient, GitPr, PrEdit};
 use crate::git::github_graphql;
 use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};
-use crate::strip_prefix::strip_prefix;
 use crate::{
-    copy_to_temp_dir, publishable_packages_from_manifest, root_repo_path_from_manifest_dir, update,
-    GitBackend, PackagesUpdate, UpdateRequest, CARGO_TOML,
+    copy_to_temp_dir, new_manifest_dir_path, new_project_root, publishable_packages_from_manifest,
+    root_repo_path_from_manifest_dir, update, GitBackend, PackagesUpdate, UpdateRequest,
+    CARGO_TOML,
 };
 
 #[derive(Debug)]
@@ -50,14 +50,15 @@ impl ReleasePrRequest {
 pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let manifest_dir = input.update_request.local_manifest_dir()?;
     let original_project_root = root_repo_path_from_manifest_dir(manifest_dir)?;
-    let tmp_project_root = copy_to_temp_dir(&original_project_root)?;
-    let new_manifest_dir = {
-        let original_project_root_parent = original_project_root
-            .parent()
-            .unwrap_or(&original_project_root);
-        let relative_manifest_dir = strip_prefix(manifest_dir, original_project_root_parent)?;
-        tmp_project_root.as_ref().join(relative_manifest_dir)
-    };
+    let tmp_project_root_parent = copy_to_temp_dir(&original_project_root)?;
+    let new_manifest_dir = new_manifest_dir_path(
+        &original_project_root,
+        manifest_dir,
+        tmp_project_root_parent.as_ref(),
+    )?;
+
+    let tmp_project_root =
+        new_project_root(&original_project_root, tmp_project_root_parent.as_ref())?;
 
     let local_manifest = new_manifest_dir.join(CARGO_TOML);
     let new_update_request = input
@@ -69,7 +70,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         update(&new_update_request).context("failed to update packages")?;
     let git_client = GitClient::new(input.git.clone())?;
     if !packages_to_update.updates().is_empty() {
-        let repo = Repo::new(new_manifest_dir)?;
+        let repo = Repo::new(tmp_project_root)?;
         let there_are_commits_to_push = repo.is_clean().is_err();
         if there_are_commits_to_push {
             open_or_update_release_pr(
