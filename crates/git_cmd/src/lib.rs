@@ -254,8 +254,8 @@ impl Repo {
     }
 
     /// Create a git tag
-    pub fn tag(&self, name: &str) -> anyhow::Result<String> {
-        self.git(&["tag", name])
+    pub fn tag(&self, name: &str, message: &str) -> anyhow::Result<String> {
+        self.git(&["tag", "-m", message, name])
     }
 
     /// Get the commit hash of the given tag
@@ -461,7 +461,7 @@ D  crates/git_cmd/CHANGELOG.md
             repo.add_all_and_commit("file1").unwrap();
         }
         let version = "v1.0.0";
-        repo.tag(version).unwrap();
+        repo.tag(version, "test").unwrap();
         assert!(repo.tag_exists(version).unwrap())
     }
 
@@ -475,7 +475,7 @@ D  crates/git_cmd/CHANGELOG.md
             fs::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit("file1").unwrap();
         }
-        repo.tag("v1.0.0").unwrap();
+        repo.tag("v1.0.0", "test").unwrap();
         assert!(!repo.tag_exists("v2.0.0").unwrap())
     }
 }
