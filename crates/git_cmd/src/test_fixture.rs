@@ -1,5 +1,6 @@
 use std::{fs, path::Path};
 
+use camino::Utf8Path;
 use tracing::{debug, instrument};
 
 use crate::{git_in_dir, Repo};
@@ -7,7 +8,7 @@ use crate::{git_in_dir, Repo};
 impl Repo {
     #[instrument(skip(directory))]
     pub fn init(directory: impl AsRef<Path>) -> Self {
-        let directory = directory.as_ref();
+        let directory = Utf8Path::from_path(directory.as_ref()).unwrap();
         git_in_dir(directory, &["init"]).unwrap();
 
         // configure author

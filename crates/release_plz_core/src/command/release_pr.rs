@@ -56,13 +56,11 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let tmp_project_manifest_dir = new_manifest_dir_path(
         &original_project_root,
         manifest_dir,
-        to_utf8_path(tmp_project_root_parent.as_ref())?,
+        tmp_project_root_parent.path(),
     )?;
 
-    let tmp_project_root = new_project_root(
-        &original_project_root,
-        to_utf8_path(tmp_project_root_parent.as_ref())?,
-    )?;
+    let tmp_project_root =
+        new_project_root(&original_project_root, tmp_project_root_parent.path())?;
 
     let local_manifest = tmp_project_manifest_dir.join(CARGO_TOML);
     let new_update_request = input

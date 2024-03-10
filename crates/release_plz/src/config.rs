@@ -1,6 +1,6 @@
 use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
-use release_plz_core::{ReleaseRequest, UpdateRequest};
+use release_plz_core::{fs_utils::to_utf8_pathbuf, ReleaseRequest, UpdateRequest};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf, time::Duration};
@@ -8,7 +8,7 @@ use url::Url;
 
 use crate::{
     changelog_config::ChangelogCfg,
-    fs_utils::{to_utf8_path, to_utf8_pathbuf},
+    fs_utils::{to_utf8_path},
 };
 
 /// You can find the documentation of the configuration file

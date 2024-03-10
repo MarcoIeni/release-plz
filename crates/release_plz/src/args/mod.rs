@@ -8,10 +8,10 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
-use release_plz_core::CARGO_TOML;
+use release_plz_core::{fs_utils::current_directory, CARGO_TOML};
 use tracing::info;
 
-use crate::{config::Config, fs_utils::to_utf8_pathbuf};
+use crate::config::Config;
 
 use self::{
     generate_completions::GenerateCompletions, release::Release, release_pr::ReleasePr,
@@ -54,12 +54,7 @@ pub enum Command {
 fn local_manifest(project_manifest: Option<&Utf8Path>) -> Utf8PathBuf {
     match project_manifest {
         Some(manifest) => manifest.to_path_buf(),
-        None => to_utf8_pathbuf(
-            std::env::current_dir()
-                .expect("cannot retrieve current directory")
-                .join(CARGO_TOML),
-        )
-        .unwrap(),
+        None => current_directory().unwrap().join(CARGO_TOML),
     }
 }
 

@@ -2,7 +2,7 @@ use crate::{
     changelog_parser::{self, ChangelogRelease},
     copy_dir::copy_dir,
     diff::Diff,
-    fs_utils::{strip_prefix, to_utf8_path},
+    fs_utils::{strip_prefix, to_utf8_path, Utf8TempDir},
     is_readme_updated, local_readme_override, lock_compare,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
@@ -30,9 +30,8 @@ use regex::Regex;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     fs, io,
-    path::{Path, PathBuf},
+    path::Path,
 };
-use tempfile::{tempdir, TempDir};
 use tracing::{debug, info, instrument, warn};
 
 // Used to indicate that this is a dummy commit with no corresponding ID available.
@@ -517,12 +516,11 @@ impl Project {
         let tmp_project_manifest_dir = new_manifest_dir_path(
             &self.root,
             &self.manifest_dir,
-            to_utf8_path(tmp_project_root_parent.as_ref())?,
+            tmp_project_root_parent.path(),
         )?;
         debug!("tmp_project_manifest_dir: {tmp_project_manifest_dir:?}");
 
-        let tmp_project_root =
-            new_project_root(&self.root, tmp_project_root_parent.as_ref().try_into()?)?;
+        let tmp_project_root = new_project_root(&self.root, tmp_project_root_parent.path())?;
         let repository = TempRepo::new(tmp_project_root_parent, tmp_project_root)?;
         Ok(repository)
     }
@@ -1259,9 +1257,9 @@ fn is_library(package: &Package) -> bool {
         .any(|t| t.kind.contains(&"lib".to_string()))
 }
 
-pub fn copy_to_temp_dir(target: &Utf8Path) -> anyhow::Result<TempDir> {
-    let tmp_dir = tempdir().context("cannot create temporary directory")?;
-    copy_dir(target, to_utf8_path(tmp_dir.as_ref())?)
+pub fn copy_to_temp_dir(target: &Utf8Path) -> anyhow::Result<Utf8TempDir> {
+    let tmp_dir = Utf8TempDir::new().context("cannot create temporary directory")?;
+    copy_dir(target, tmp_dir.path())
         .with_context(|| format!("cannot copy directory {target:?} to {tmp_dir:?}"))?;
     Ok(tmp_dir)
 }
@@ -1326,7 +1324,7 @@ mod tests {
     use std::{collections::HashSet, path::Path};
 
     fn get_project(
-        local_manifest: &Path,
+        local_manifest: &Utf8Path,
         single_package: Option<&str>,
         overrides: HashSet<String>,
         is_release_enabled: bool,
@@ -1387,14 +1385,15 @@ mod tests {
 
     #[test]
     fn test_empty_override() {
-        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let utf8_path = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = utf8_path;
         let result = get_project(local_manifest, None, HashSet::default(), true, None, None);
         assert!(result.is_ok());
     }
 
     #[test]
     fn test_successful_override() {
-        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let overrides = (["typo_test".to_string()]).into();
         let result = get_project(local_manifest, None, overrides, true, None, None);
         assert!(result.is_ok());
@@ -1402,7 +1401,7 @@ mod tests {
 
     #[test]
     fn test_typo_in_crate_names() {
-        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let single_package = None;
         let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
         let result = get_project(local_manifest, single_package, overrides, true, None, None);
@@ -1444,7 +1443,7 @@ mod tests {
 
     #[test]
     fn project_new_no_release_will_error() {
-        let local_manifest = Path::new("../fake_package/Cargo.toml");
+        let local_manifest = Utf8Path::new("../fake_package/Cargo.toml");
         let result = get_project(local_manifest, None, HashSet::default(), false, None, None);
         assert!(result.is_err());
         expect_test::expect![[r#"no public packages found. Are there any public packages in your project? Analyzed packages: ["cargo_utils", "fake_package", "git_cmd", "test_logs", "next_version", "release-plz", "release_plz_core"]"#]]
@@ -1453,7 +1452,7 @@ mod tests {
 
     #[test]
     fn project_tag_template_none() {
-        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let project = get_project(local_manifest, None, HashSet::default(), true, None, None)
             .expect("Should ok");
         assert_eq!(project.git_tag("typo_test", "0.1.0"), "v0.1.0");
@@ -1461,7 +1460,7 @@ mod tests {
 
     #[test]
     fn project_release_and_tag_template_some() {
-        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let project = get_project(
             local_manifest,
             None,

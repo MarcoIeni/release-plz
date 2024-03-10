@@ -3,7 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context};
-use cargo_metadata::Package;
+use cargo_metadata::{camino::Utf8PathBuf, Package};
 use tracing::{info, instrument, warn};
 
 use crate::{
@@ -16,7 +16,7 @@ pub struct PackageDownloader {
     packages: Vec<String>,
     directory: String,
     registry: Option<String>,
-    cargo_cwd: Option<PathBuf>,
+    cargo_cwd: Option<Utf8PathBuf>,
 }
 
 impl PackageDownloader {
@@ -39,7 +39,7 @@ impl PackageDownloader {
         }
     }
 
-    pub fn with_cargo_cwd(self, cargo_cwd: PathBuf) -> Self {
+    pub fn with_cargo_cwd(self, cargo_cwd: Utf8PathBuf) -> Self {
         Self {
             cargo_cwd: Some(cargo_cwd),
             ..self

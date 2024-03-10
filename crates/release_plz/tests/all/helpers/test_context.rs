@@ -7,9 +7,12 @@ use std::{
 
 use crate::helpers::gitea::CARGO_INDEX_REPO;
 use assert_cmd::assert::Assert;
+use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 use cargo_utils::LocalManifest;
 use git_cmd::Repo;
-use release_plz_core::{GitBackend, GitClient, GitPr, Gitea, RepoUrl, BRANCH_PREFIX};
+use release_plz_core::{
+    fs_utils::Utf8TempDir, GitBackend, GitClient, GitPr, Gitea, RepoUrl, BRANCH_PREFIX,
+};
 use secrecy::SecretString;
 use tempfile::TempDir;
 use tracing::info;
@@ -23,7 +26,7 @@ use super::{
 /// It contains the universe in which release-plz runs.
 pub struct TestContext {
     pub gitea: GiteaContext,
-    test_dir: TempDir,
+    test_dir: Utf8TempDir,
     /// Release-plz git client. It's here just for code reuse.
     git_client: GitClient,
     pub repo: Repo,
@@ -34,7 +37,7 @@ impl TestContext {
         test_logs::init();
         let repo_name = fake_utils::fake_id();
         let gitea = GiteaContext::new(repo_name).await;
-        let test_dir = tempfile::tempdir().unwrap();
+        let test_dir = Utf8TempDir::new().unwrap();
         info!("test directory: {:?}", test_dir.path());
         let repo_url = gitea.repo_clone_url();
         git_clone(test_dir.path(), &repo_url);
@@ -83,7 +86,7 @@ impl TestContext {
             .assert()
     }
 
-    pub fn repo_dir(&self) -> PathBuf {
+    pub fn repo_dir(&self) -> Utf8PathBuf {
         self.test_dir.path().join(&self.gitea.repo)
     }
 
@@ -107,7 +110,7 @@ fn log_level() -> String {
     }
 }
 
-fn commit_cargo_init(repo_dir: &Path, gitea: &GiteaContext) -> Repo {
+fn commit_cargo_init(repo_dir: &Utf8Path, gitea: &GiteaContext) -> Repo {
     let username = gitea.user.username();
     assert_cmd::Command::new("cargo")
         .current_dir(repo_dir)
@@ -136,7 +139,7 @@ fn commit_cargo_init(repo_dir: &Path, gitea: &GiteaContext) -> Repo {
     repo
 }
 
-fn edit_cargo_toml(repo_dir: &Path) {
+fn edit_cargo_toml(repo_dir: &Utf8Path) {
     let cargo_toml_path = repo_dir.join("Cargo.toml");
     let mut cargo_toml = LocalManifest::try_new(&cargo_toml_path).unwrap();
     let mut registry_array = toml_edit::Array::new();
@@ -146,7 +149,7 @@ fn edit_cargo_toml(repo_dir: &Path) {
     cargo_toml.write().unwrap();
 }
 
-fn create_cargo_config(repo_dir: &Path, username: &str) {
+fn create_cargo_config(repo_dir: &Utf8Path, username: &str) {
     let config_dir = repo_dir.join(".cargo");
     fs::create_dir(&config_dir).unwrap();
     let config_file = config_dir.join("config.toml");
@@ -185,7 +188,7 @@ fn git_client(repo_url: &str, token: &str) -> GitClient {
     GitClient::new(git_backend).unwrap()
 }
 
-fn git_clone(path: &path::Path, repo_url: &str) {
+fn git_clone(path: &Utf8Path, repo_url: &str) {
     let result = Command::new("git")
         .current_dir(path)
         .arg("clone")

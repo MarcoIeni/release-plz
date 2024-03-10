@@ -16,7 +16,7 @@ mod registry_packages;
 mod release_order;
 mod repo_url;
 mod semver_check;
-mod fs_utils;
+pub mod fs_utils;
 mod tmp_repo;
 mod toml_compare;
 mod version;

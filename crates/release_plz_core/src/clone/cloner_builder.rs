@@ -4,6 +4,9 @@ use std::{env, path::PathBuf};
 
 use anyhow::Context;
 use cargo::{core::Shell, util::homedir, CargoResult, Config};
+use cargo_metadata::camino::Utf8PathBuf;
+
+use crate::fs_utils::{current_directory, to_utf8_pathbuf};
 
 use super::{Cloner, ClonerSource};
 
@@ -11,10 +14,10 @@ use super::{Cloner, ClonerSource};
 #[derive(Debug, Default)]
 pub struct ClonerBuilder {
     config: Option<Config>,
-    directory: Option<PathBuf>,
+    directory: Option<Utf8PathBuf>,
     source: ClonerSource,
     /// Cargo current working directory. You can use it to point to the right `.cargo/config.toml`.
-    cargo_cwd: Option<PathBuf>,
+    cargo_cwd: Option<Utf8PathBuf>,
     use_git: bool,
 }
 
@@ -27,7 +30,7 @@ impl ClonerBuilder {
     }
 
     /// Clone into a different directory, instead of the current one.
-    pub fn with_directory(self, directory: impl Into<PathBuf>) -> Self {
+    pub fn with_directory(self, directory: impl Into<Utf8PathBuf>) -> Self {
         Self {
             directory: Some(directory.into()),
             ..self
@@ -40,7 +43,7 @@ impl ClonerBuilder {
     }
 
     /// Set cargo working directory.
-    pub fn with_cargo_cwd(self, path: PathBuf) -> Self {
+    pub fn with_cargo_cwd(self, path: Utf8PathBuf) -> Self {
         Self {
             cargo_cwd: Some(path),
             ..self
@@ -56,7 +59,7 @@ impl ClonerBuilder {
 
         let directory = match self.directory {
             Some(directory) => directory,
-            None => env::current_dir().context("Unable to get current directory.")?,
+            None => current_directory()?,
         };
 
         let srcid = self
@@ -74,15 +77,15 @@ impl ClonerBuilder {
     }
 }
 
-fn new_cargo_config(cwd: Option<PathBuf>) -> anyhow::Result<Config> {
+fn new_cargo_config(cwd: Option<Utf8PathBuf>) -> anyhow::Result<Config> {
     match cwd {
         Some(cwd) => {
             let shell = Shell::new();
-            let homedir = homedir(&cwd).context(
+            let homedir = homedir(cwd.as_std_path()).context(
                 "Cargo couldn't find your home directory. \
                  This probably means that $HOME was not set.",
             )?;
-            Ok(Config::new(shell, cwd, homedir))
+            Ok(Config::new(shell, cwd.into_std_path_buf(), homedir))
         }
         None => Config::default(),
     }

@@ -106,11 +106,13 @@ fn destination_path(
 
 #[cfg(test)]
 mod tests {
+    use crate::fs_utils::Utf8TempDir;
+
     use super::*;
 
     #[test]
     fn is_dir_copied_correctly() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = Utf8TempDir::new().unwrap();
         let subdir = "subdir";
         let subdir_path = temp.path().join(subdir);
         fs::create_dir(&subdir_path).unwrap();
@@ -120,7 +122,7 @@ mod tests {
         let file2 = subdir_path.join("file2");
         create_symlink(&file1, file2).unwrap();
 
-        let temp2 = tempfile::tempdir().unwrap();
+        let temp2 = Utf8TempDir::new().unwrap();
         println!("from: {:?} to temp2: {:?}", subdir_path, temp2.path());
         copy_dir(subdir_path, temp2.path()).unwrap();
         let temp2_subdir = temp2.path().join(subdir);
