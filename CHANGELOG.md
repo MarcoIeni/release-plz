@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.52](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.51...release-plz-v0.3.52) - 2024-03-10
+
+### Added
+- create annotated tags instead of lightweight ([#1255](https://github.com/MarcoIeni/release-plz/pull/1255))
+
 ## [0.3.51](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.50...release-plz-v0.3.51) - 2024-03-08
 
 ### Fixed

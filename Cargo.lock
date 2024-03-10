@@ -1048,9 +1048,9 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 
 [[package]]
 name = "erased-serde"
-version = "0.4.3"
+version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "388979d208a049ffdfb22fa33b9c81942215b940910bccfe258caeb25d125cb3"
+checksum = "2b73807008a3c7f171cc40312f37d95ef0396e048b5848d775f54b1a4dd4a0d3"
 dependencies = [
  "serde",
 ]
@@ -1329,7 +1329,7 @@ dependencies = [
  "git-conventional",
  "lazy-regex",
  "log",
- "next_version 0.2.14",
+ "next_version 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex",
  "rust-embed",
  "semver",
@@ -1396,7 +1396,7 @@ dependencies = [
 
 [[package]]
 name = "git_cmd"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "git_cmd",
@@ -3452,9 +3452,7 @@ dependencies = [
 
 [[package]]
 name = "next_version"
-version = "0.2.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e89336f42dd3f55a2041ded7aed8c305a3cd64059c227851279eb32775f0e04f"
+version = "0.2.15"
 dependencies = [
  "conventional_commit_parser",
  "semver",
@@ -3463,6 +3461,8 @@ dependencies = [
 [[package]]
 name = "next_version"
 version = "0.2.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d0b8566ec538405d0feb0a7bb8262daa997f4cee2a9f9a9b7ab81f1262110d59"
 dependencies = [
  "conventional_commit_parser",
  "semver",
@@ -4130,7 +4130,7 @@ checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 
 [[package]]
 name = "release-plz"
-version = "0.3.51"
+version = "0.3.52"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -4169,7 +4169,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.19.6"
+version = "0.19.7"
 dependencies = [
  "anyhow",
  "base64 0.22.0",
