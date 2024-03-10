@@ -54,7 +54,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let new_manifest_dir = {
         let original_project_root_parent = original_project_root
             .parent()
-            .context("cannot determine parent root")?;
+            .unwrap_or(&original_project_root);
         let relative_manifest_dir = strip_prefix(manifest_dir, original_project_root_parent)?;
         tmp_project_root.as_ref().join(relative_manifest_dir)
     };
