@@ -7,8 +7,8 @@ use cargo_metadata::{semver::Version, Package};
 use cargo_utils::upgrade_requirement;
 use cargo_utils::LocalManifest;
 use git_cmd::Repo;
+use std::fs;
 use std::iter;
-use std::{fs};
 use tracing::{info, warn};
 
 use tracing::{debug, instrument};

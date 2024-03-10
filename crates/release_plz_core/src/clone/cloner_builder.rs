@@ -1,12 +1,10 @@
 // Copied from [cargo-clone](https://github.com/JanLikar/cargo-clone/blob/89ba4da215663ffb3b8c93a674f3002937eafec4/cargo-clone-core/src/cloner_builder.rs)
 
-
-
 use anyhow::Context;
 use cargo::{core::Shell, util::homedir, CargoResult, Config};
 use cargo_metadata::camino::Utf8PathBuf;
 
-use crate::fs_utils::{current_directory};
+use crate::fs_utils::current_directory;
 
 use super::{Cloner, ClonerSource};
 

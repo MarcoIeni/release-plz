@@ -1,7 +1,4 @@
-use std::{
-    collections::BTreeMap,
-    time::Duration,
-};
+use std::{collections::BTreeMap, time::Duration};
 
 use anyhow::Context;
 use cargo::util_semver::VersionExt;

@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 use anyhow::Context;
 use cargo_metadata::camino::Utf8Path;
@@ -21,7 +21,10 @@ pub fn are_lock_dependencies_updated(
     are_dependencies_updated(local_lock, registry_lock)
 }
 
-fn are_dependencies_updated(local_lock: &Utf8Path, registry_lock: &Utf8Path) -> anyhow::Result<bool> {
+fn are_dependencies_updated(
+    local_lock: &Utf8Path,
+    registry_lock: &Utf8Path,
+) -> anyhow::Result<bool> {
     let local_lock: Lockfile = read_lockfile(local_lock)
         .with_context(|| format!("failed to load lockfile of local package {:?}", local_lock))?;
     let registry_lock = read_lockfile(registry_lock).with_context(|| {

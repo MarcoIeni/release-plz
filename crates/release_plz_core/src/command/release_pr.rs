@@ -1,11 +1,8 @@
-
-
 use cargo_metadata::camino::Utf8Path;
 use git_cmd::Repo;
 
 use anyhow::Context;
 use tracing::{info, instrument};
-
 
 use crate::git::backend::{contributors_from_commits, BackendType, GitClient, GitPr, PrEdit};
 use crate::git::github_graphql;

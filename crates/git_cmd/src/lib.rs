@@ -298,7 +298,7 @@ impl Repo {
 
 pub fn is_file_ignored(repo_path: &Utf8Path, file: &Utf8Path) -> bool {
     let file = file.as_str();
-    
+
     git_in_dir(repo_path, &["check-ignore", "--no-index", file]).is_ok()
 }
 

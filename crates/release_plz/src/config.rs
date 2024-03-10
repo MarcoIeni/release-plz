@@ -1,15 +1,12 @@
 use anyhow::Context;
-use cargo_metadata::camino::{Utf8Path};
+use cargo_metadata::camino::Utf8Path;
 use release_plz_core::{fs_utils::to_utf8_pathbuf, ReleaseRequest, UpdateRequest};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf, time::Duration};
 use url::Url;
 
-use crate::{
-    changelog_config::ChangelogCfg,
-    fs_utils::{to_utf8_path},
-};
+use crate::{changelog_config::ChangelogCfg, fs_utils::to_utf8_path};
 
 /// You can find the documentation of the configuration file
 /// [here](https://release-plz.ieni.dev/docs/config).

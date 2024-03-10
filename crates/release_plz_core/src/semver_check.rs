@@ -1,6 +1,4 @@
-use std::{
-    process::Command,
-};
+use std::process::Command;
 
 use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};

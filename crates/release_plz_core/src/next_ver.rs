@@ -1321,7 +1321,7 @@ mod tests {
     use super::*;
     use super::{check_for_typos, Project};
     use crate::ReleaseMetadataBuilder;
-    use std::{collections::HashSet};
+    use std::collections::HashSet;
 
     fn get_project(
         local_manifest: &Utf8Path,

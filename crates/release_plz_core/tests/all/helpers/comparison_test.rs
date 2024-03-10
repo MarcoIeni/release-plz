@@ -1,4 +1,4 @@
-use std::{fs};
+use std::fs;
 
 use crate::helpers::gitea_mock_server::GiteaMockServer;
 use anyhow::Context;

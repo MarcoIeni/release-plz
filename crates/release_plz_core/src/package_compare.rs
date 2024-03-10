@@ -11,7 +11,7 @@ use std::{
     fs::File,
     hash::{Hash, Hasher},
     io::{self, Read},
-    path::{Path},
+    path::Path,
 };
 
 /// Check if two packages are equal.
