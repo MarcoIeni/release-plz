@@ -95,7 +95,7 @@ impl RepoCommand for Update {
     fn optional_project_manifest(&self) -> Option<&Utf8Path> {
         self.project_manifest
             .as_deref()
-            .map(|p| Utf8Path::from_path(p).expect("non-utf8 path"))
+            .map(|p| to_utf8_path(p).unwrap())
     }
 
     fn repo_url(&self) -> Option<&str> {
