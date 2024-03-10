@@ -506,12 +506,12 @@ impl Project {
     /// We copy the project in another directory in order to avoid altering it.
     fn get_repo(&self) -> anyhow::Result<TempRepo> {
         let tmp_project_root_parent = copy_to_temp_dir(&self.root)?;
-        let tmp_manifest_dir = new_manifest_dir_path(
+        let tmp_project_manifest_dir = new_manifest_dir_path(
             &self.root,
             &self.manifest_dir,
             tmp_project_root_parent.as_ref(),
         )?;
-        debug!("tmp_manifest_dir: {tmp_manifest_dir:?}");
+        debug!("tmp_manifest_dir: {tmp_project_manifest_dir:?}");
 
         let tmp_project_root = new_project_root(&self.root, tmp_project_root_parent.as_ref())?;
         let repository = TempRepo::new(tmp_project_root_parent, tmp_project_root)?;

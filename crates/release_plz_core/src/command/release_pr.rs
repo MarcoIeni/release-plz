@@ -51,7 +51,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let manifest_dir = input.update_request.local_manifest_dir()?;
     let original_project_root = root_repo_path_from_manifest_dir(manifest_dir)?;
     let tmp_project_root_parent = copy_to_temp_dir(&original_project_root)?;
-    let new_manifest_dir = new_manifest_dir_path(
+    let tmp_project_manifest_dir = new_manifest_dir_path(
         &original_project_root,
         manifest_dir,
         tmp_project_root_parent.as_ref(),
@@ -60,7 +60,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let tmp_project_root =
         new_project_root(&original_project_root, tmp_project_root_parent.as_ref())?;
 
-    let local_manifest = new_manifest_dir.join(CARGO_TOML);
+    let local_manifest = tmp_project_manifest_dir.join(CARGO_TOML);
     let new_update_request = input
         .update_request
         .clone()
