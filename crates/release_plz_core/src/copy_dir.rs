@@ -1,9 +1,10 @@
 use std::{fs, io, path::Path};
 
 use anyhow::Context;
+use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 use tracing::{debug, trace};
 
-use crate::strip_prefix::strip_prefix;
+use crate::fs_utils::strip_prefix;
 
 pub(crate) fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(
     original: P,
@@ -24,14 +25,13 @@ pub(crate) fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(
 
 /// Copy directory preserving symlinks.
 /// `to` is created if it doesn't exist.
-pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<()> {
+pub fn copy_dir(from: impl AsRef<Utf8Path>, to: impl AsRef<Utf8Path>) -> anyhow::Result<()> {
     let from = from.as_ref();
     anyhow::ensure!(from.is_dir(), "not a directory: {:?}", from);
     let dir_name = from
         .components()
         .last()
-        .with_context(|| format!("invalid path {from:?}"))?
-        .as_os_str();
+        .with_context(|| format!("invalid path {from:?}"))?;
     let to = to.as_ref().join(dir_name);
     debug!("copying directory from {:?} to {:?}", from, to);
     if !to.exists() {
@@ -47,7 +47,7 @@ pub fn copy_dir(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<
 /// `to` must exist.
 #[tracing::instrument]
 #[allow(clippy::filetype_is_file)] // we want to distinguish between files and symlinks
-fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Error> {
+fn copy_directory(from: &Utf8Path, to: Utf8PathBuf) -> Result<(), anyhow::Error> {
     let walker = ignore::WalkBuilder::new(from)
         // Read hidden files
         .hidden(false)
@@ -67,7 +67,8 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
             fs::create_dir(&destination)
                 .with_context(|| format!("cannot create directory {destination:?}"))?;
         } else if file_type.is_symlink() {
-            let original_link = fs::read_link(entry.path())
+            let entry_utf8: &Utf8Path = entry.path().try_into()?;
+            let original_link = Utf8Path::read_link_utf8(entry_utf8)
                 .with_context(|| format!("cannot read link {:?}", entry.path()))?;
             debug!("found symlink {:?} -> {:?}", entry.path(), original_link);
             let original_link = if original_link.is_relative() {
@@ -93,23 +94,25 @@ fn copy_directory(from: &Path, to: std::path::PathBuf) -> Result<(), anyhow::Err
 }
 
 fn destination_path(
-    to: &Path,
+    to: &Utf8Path,
     entry: &ignore::DirEntry,
-    from: &Path,
-) -> anyhow::Result<std::path::PathBuf> {
+    from: &Utf8Path,
+) -> anyhow::Result<Utf8PathBuf> {
     let mut dest_path = to.to_path_buf();
-    let relative = strip_prefix(entry.path(), from)?;
+    let relative = strip_prefix(entry.path().try_into()?, from)?;
     dest_path.push(relative);
     Ok(dest_path)
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::fs_utils::Utf8TempDir;
+
     use super::*;
 
     #[test]
     fn is_dir_copied_correctly() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = Utf8TempDir::new().unwrap();
         let subdir = "subdir";
         let subdir_path = temp.path().join(subdir);
         fs::create_dir(&subdir_path).unwrap();
@@ -119,7 +122,7 @@ mod tests {
         let file2 = subdir_path.join("file2");
         create_symlink(&file1, file2).unwrap();
 
-        let temp2 = tempfile::tempdir().unwrap();
+        let temp2 = Utf8TempDir::new().unwrap();
         println!("from: {:?} to temp2: {:?}", subdir_path, temp2.path());
         copy_dir(subdir_path, temp2.path()).unwrap();
         let temp2_subdir = temp2.path().join(subdir);

@@ -11,6 +11,7 @@ anyhow = "1.0.80"
 assert_cmd = "2.0.14"
 async-trait = "0.1.77"
 base64 = "0.22.0"
+camino = "1.1.6"
 cargo_metadata = "0.18.1"
 cargo = { version = "0.77.0", default-features = false }
 chrono = { version = "0.4.34", default-features = false }

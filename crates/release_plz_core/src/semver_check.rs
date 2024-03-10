@@ -1,17 +1,15 @@
-use std::{
-    path::{Path, PathBuf},
-    process::Command,
-};
+use std::process::Command;
 
 use anyhow::Context;
+use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 
 use crate::CARGO_TOML;
 
-fn target_dir(path: &Path) -> PathBuf {
+fn target_dir(path: &Utf8Path) -> Utf8PathBuf {
     path.join("target")
 }
 
-fn cargo_lock(path: &Path) -> PathBuf {
+fn cargo_lock(path: &Utf8Path) -> Utf8PathBuf {
     path.join("Cargo.lock")
 }
 
@@ -45,8 +43,8 @@ impl SemverCheck {
 }
 
 pub fn run_semver_check(
-    local_package: &Path,
-    registry_package: &Path,
+    local_package: &Utf8Path,
+    registry_package: &Utf8Path,
 ) -> anyhow::Result<SemverCheck> {
     let local_cargo_lock = cargo_lock(local_package);
     let registry_cargo_lock = cargo_lock(registry_package);

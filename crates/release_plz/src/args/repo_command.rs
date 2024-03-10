@@ -1,5 +1,4 @@
-use std::path::{Path, PathBuf};
-
+use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 use git_cmd::Repo;
 use release_plz_core::RepoUrl;
 
@@ -7,11 +6,11 @@ use crate::config::Config;
 
 /// Command that acts on a repo.
 pub trait RepoCommand {
-    fn optional_project_manifest(&self) -> Option<&Path>;
+    fn optional_project_manifest(&self) -> Option<&Utf8Path>;
 
     fn repo_url(&self) -> Option<&str>;
 
-    fn project_manifest(&self) -> PathBuf {
+    fn project_manifest(&self) -> Utf8PathBuf {
         super::local_manifest(self.optional_project_manifest())
     }
 

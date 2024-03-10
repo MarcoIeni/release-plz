@@ -4,10 +4,11 @@ mod release_pr;
 pub mod repo_command;
 mod update;
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::Context;
-use release_plz_core::CARGO_TOML;
+use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
+use release_plz_core::{fs_utils::current_directory, CARGO_TOML};
 use tracing::info;
 
 use crate::config::Config;
@@ -50,12 +51,10 @@ pub enum Command {
     GenerateSchema,
 }
 
-fn local_manifest(project_manifest: Option<&Path>) -> PathBuf {
+fn local_manifest(project_manifest: Option<&Utf8Path>) -> Utf8PathBuf {
     match project_manifest {
         Some(manifest) => manifest.to_path_buf(),
-        None => std::env::current_dir()
-            .expect("cannot retrieve current directory")
-            .join(CARGO_TOML),
+        None => current_directory().unwrap().join(CARGO_TOML),
     }
 }
 

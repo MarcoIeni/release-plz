@@ -5,10 +5,13 @@ use std::{
 };
 
 use anyhow::Context;
-use cargo_metadata::{camino::Utf8PathBuf, Metadata};
+use cargo_metadata::{
+    camino::{Utf8Path, Utf8PathBuf},
+    Metadata,
+};
 use semver::Version;
 
-use crate::{DepTable, Manifest};
+use crate::{to_utf8_pathbuf, DepTable, Manifest};
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum FeatureStatus {
@@ -21,7 +24,7 @@ enum FeatureStatus {
 #[derive(Debug)]
 pub struct LocalManifest {
     /// Path to the manifest
-    pub path: PathBuf,
+    pub path: Utf8PathBuf,
     /// Manifest contents
     pub manifest: Manifest,
 }
@@ -44,14 +47,15 @@ impl LocalManifest {
     /// Construct a `LocalManifest`. If no path is provided, make an educated guess as to which one
     /// the user means.
     pub fn find(path: Option<&Path>) -> anyhow::Result<Self> {
-        let path = dunce::canonicalize(find(path)?)?;
+        let canonicalized_path = dunce::canonicalize(find(path)?)?;
+        let path = to_utf8_pathbuf(canonicalized_path)?;
         Self::try_new(&path)
     }
 
     /// Construct the `LocalManifest` corresponding to the `Path` provided.
-    pub fn try_new(path: &Path) -> anyhow::Result<Self> {
+    pub fn try_new(path: &Utf8Path) -> anyhow::Result<Self> {
         if !path.is_absolute() {
-            anyhow::bail!("can only edit absolute paths, got {}", path.display());
+            anyhow::bail!("can only edit absolute paths, got {}", path);
         }
         let data = std::fs::read_to_string(path)
             .with_context(|| format!("Failed to read manifest contents. Path: {:?}", path))?;

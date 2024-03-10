@@ -1,6 +1,7 @@
-use std::{fs::read_to_string, path::Path};
+use std::fs::read_to_string;
 
 use anyhow::Context;
+use cargo_metadata::camino::Utf8Path;
 use regex::Regex;
 
 /// Parse the header from a changelog.
@@ -25,7 +26,7 @@ pub fn parse_header(changelog: &str) -> Option<String> {
     None
 }
 
-pub fn last_changes(changelog: &Path) -> anyhow::Result<Option<String>> {
+pub fn last_changes(changelog: &Utf8Path) -> anyhow::Result<Option<String>> {
     let changelog = read_to_string(changelog).context("can't read changelog file")?;
     last_changes_from_str(&changelog)
 }

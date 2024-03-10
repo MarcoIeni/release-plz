@@ -1399,6 +1399,7 @@ name = "git_cmd"
 version = "0.6.0"
 dependencies = [
  "anyhow",
+ "camino",
  "git_cmd",
  "tempfile",
  "test_logs",

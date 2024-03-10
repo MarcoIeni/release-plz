@@ -1,23 +1,23 @@
-use std::{fs, path::PathBuf};
+use std::fs;
 
 use crate::helpers::gitea_mock_server::GiteaMockServer;
 use anyhow::Context;
+use cargo_metadata::camino::Utf8PathBuf;
 use cargo_utils::get_manifest_metadata;
 use chrono::NaiveDate;
 use release_plz_core::{
-    are_packages_equal, copy_to_temp_dir, ChangelogRequest, GitBackend, GitHub, Gitea,
-    ReleasePrRequest, RepoUrl, UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
+    are_packages_equal, copy_to_temp_dir, fs_utils::Utf8TempDir, ChangelogRequest, GitBackend,
+    GitHub, Gitea, ReleasePrRequest, RepoUrl, UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use secrecy::Secret;
-use tempfile::{tempdir, TempDir};
 use url::Url;
 
 use super::github_mock_server::GitHubMockServer;
 
 /// Compare local project with the one in cargo registry
 pub struct ComparisonTest {
-    local_project: TempDir,
-    registry_project: TempDir,
+    local_project: Utf8TempDir,
+    registry_project: Utf8TempDir,
     github_mock_server: GitHubMockServer,
     gitea_mock_server: GiteaMockServer,
 }
@@ -29,8 +29,8 @@ pub const REPO: &str = "repo";
 impl ComparisonTest {
     pub async fn new() -> Self {
         test_logs::init();
-        let local_project_dir = tempdir().unwrap();
-        let local_project = local_project_dir.as_ref().join(PROJECT_NAME);
+        let local_project_dir = Utf8TempDir::new().unwrap();
+        let local_project = local_project_dir.path().join(PROJECT_NAME);
         crate::init_project(&local_project);
 
         let registry_project = copy_to_temp_dir(&local_project).unwrap();
@@ -98,19 +98,19 @@ impl ComparisonTest {
         release_plz_core::release_pr(&release_pr_request).await
     }
 
-    pub fn local_project(&self) -> PathBuf {
-        self.local_project.as_ref().join(PROJECT_NAME)
+    pub fn local_project(&self) -> Utf8PathBuf {
+        self.local_project.path().join(PROJECT_NAME)
     }
 
-    fn registry_project(&self) -> PathBuf {
-        self.registry_project.as_ref().join(PROJECT_NAME)
+    fn registry_project(&self) -> Utf8PathBuf {
+        self.registry_project.path().join(PROJECT_NAME)
     }
 
-    pub fn local_project_manifest(&self) -> PathBuf {
+    pub fn local_project_manifest(&self) -> Utf8PathBuf {
         self.local_project().join(CARGO_TOML)
     }
 
-    pub fn registry_project_manfifest(&self) -> PathBuf {
+    pub fn registry_project_manfifest(&self) -> Utf8PathBuf {
         self.registry_project().join(CARGO_TOML)
     }
 
@@ -128,7 +128,7 @@ impl ComparisonTest {
         fs::read_to_string(changelog_path).unwrap()
     }
 
-    fn local_project_changelog_path(&self) -> PathBuf {
+    fn local_project_changelog_path(&self) -> Utf8PathBuf {
         self.local_project().join(CHANGELOG_FILENAME)
     }
 

@@ -7,14 +7,15 @@ mod cloner_builder;
 mod source;
 
 use cargo::util::cache_lock::CacheLockMode;
+use cargo_metadata::camino::Utf8Path;
+use cargo_metadata::camino::Utf8PathBuf;
 pub use cloner_builder::*;
 pub use source::*;
 use tracing::warn;
 
 use std::collections::HashSet;
 use std::fs;
-use std::path::Path;
-use std::path::PathBuf;
+
 use std::process::Command;
 
 use anyhow::{bail, Context};
@@ -32,7 +33,8 @@ pub use cargo::{
     util::{CargoResult, Config},
 };
 
-use crate::strip_prefix::strip_prefix;
+use crate::fs_utils::strip_prefix;
+use crate::fs_utils::to_utf8_path;
 
 /// Rust crate.
 #[derive(PartialEq, Eq, Debug)]
@@ -55,7 +57,7 @@ pub struct Cloner {
     pub(crate) config: Config,
     /// Directory where the crates will be cloned.
     /// Each crate is cloned into a subdirectory of this directory.
-    pub(crate) directory: PathBuf,
+    pub(crate) directory: Utf8PathBuf,
     /// Where the crates will be cloned from.
     pub(crate) srcid: SourceId,
     /// If true, use `git` to clone the git repository present in the manifest metadata.
@@ -74,7 +76,7 @@ impl Cloner {
     /// Each crate is cloned in a subdirectory named as the crate name.
     /// Returns the cloned crates and the path where they are cloned.
     /// If a crate doesn't exist, is not returned.
-    pub fn clone(&self, crates: &[Crate]) -> CargoResult<Vec<(Package, PathBuf)>> {
+    pub fn clone(&self, crates: &[Crate]) -> CargoResult<Vec<(Package, Utf8PathBuf)>> {
         let _lock = self
             .config
             .acquire_package_cache_lock(CacheLockMode::DownloadExclusive)?;
@@ -98,7 +100,7 @@ impl Cloner {
     fn clone_in<'a, T>(
         &self,
         crate_: &Crate,
-        dest_path: &Path,
+        dest_path: &Utf8Path,
         src: &mut T,
     ) -> CargoResult<Option<Package>>
     where
@@ -117,7 +119,7 @@ impl Cloner {
         if !is_empty {
             bail!(
                 "destination path '{}' already exists and is not an empty directory.",
-                dest_path.display()
+                dest_path
             );
         }
 
@@ -127,7 +129,7 @@ impl Cloner {
     fn clone_single<'a, T>(
         &self,
         crate_: &Crate,
-        dest_path: &Path,
+        dest_path: &Utf8Path,
         src: &mut T,
     ) -> CargoResult<Option<Package>>
     where
@@ -147,7 +149,8 @@ impl Cloner {
 
                     clone_git_repo(repo.as_ref().unwrap(), dest_path)?;
                 } else {
-                    clone_directory(pkg.root(), dest_path).context("failed to clone directory")?;
+                    clone_directory(to_utf8_path(pkg.root())?, dest_path)
+                        .context("failed to clone directory")?;
                 }
                 Some(pkg)
             }
@@ -232,15 +235,16 @@ fn package_from_query_err(err: anyhow::Error) -> CargoResult<Option<Package>> {
 
 // clone_directory copies the contents of one directory into another directory, which must
 // already exist.
-fn clone_directory(from: &Path, to: &Path) -> CargoResult<()> {
+fn clone_directory(from: &Utf8Path, to: &Utf8Path) -> CargoResult<()> {
     if !to.is_dir() {
-        bail!("Not a directory: {}", to.to_string_lossy());
+        bail!("Not a directory: {to}");
     }
     for entry in WalkDir::new(from) {
         let entry = entry.unwrap();
         let file_type = entry.file_type();
         let mut dest_path = to.to_owned();
-        dest_path.push(strip_prefix(entry.path(), from).unwrap());
+        let utf8_entry: &Utf8Path = entry.path().try_into()?;
+        dest_path.push(strip_prefix(utf8_entry, from).unwrap());
 
         if entry.file_name() == ".cargo-ok" {
             continue;
@@ -260,11 +264,11 @@ fn clone_directory(from: &Path, to: &Path) -> CargoResult<()> {
     Ok(())
 }
 
-fn clone_git_repo(repo: &str, to: &Path) -> CargoResult<()> {
+fn clone_git_repo(repo: &str, to: &Utf8Path) -> CargoResult<()> {
     let status = Command::new("git")
         .arg("clone")
         .arg(repo)
-        .arg(to.to_str().unwrap())
+        .arg(to)
         .status()
         .context("Failed to clone from git repo.")?;
 

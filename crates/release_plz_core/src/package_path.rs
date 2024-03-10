@@ -1,27 +1,25 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
+use anyhow::anyhow;
+use cargo_metadata::{
+    camino::{Utf8Path, Utf8PathBuf},
+    Package,
 };
 
-use anyhow::anyhow;
-use cargo_metadata::Package;
-
 pub trait PackagePath {
-    fn package_path(&self) -> anyhow::Result<&Path>;
+    fn package_path(&self) -> anyhow::Result<&Utf8Path>;
 
-    fn canonical_path(&self) -> anyhow::Result<PathBuf> {
-        let p = fs::canonicalize(self.package_path()?)?;
+    fn canonical_path(&self) -> anyhow::Result<Utf8PathBuf> {
+        let p = Utf8Path::canonicalize_utf8(self.package_path()?)?;
         Ok(p)
     }
 }
 
 impl PackagePath for Package {
-    fn package_path(&self) -> anyhow::Result<&Path> {
-        manifest_dir(self.manifest_path.as_std_path())
+    fn package_path(&self) -> anyhow::Result<&Utf8Path> {
+        manifest_dir(&self.manifest_path)
     }
 }
 
-pub fn manifest_dir(manifest: &Path) -> anyhow::Result<&Path> {
+pub fn manifest_dir(manifest: &Utf8Path) -> anyhow::Result<&Utf8Path> {
     let manifest_dir = manifest.parent().ok_or_else(|| {
         anyhow!(
             "Cannot find directory where manifest {:?} is located",

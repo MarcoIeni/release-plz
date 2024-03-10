@@ -1,12 +1,11 @@
 use anyhow::Context;
-use cargo_metadata::Package;
+use cargo_metadata::{camino::Utf8Path, Package};
 use crates_index::{Crate, GitIndex, SparseIndex};
 use tracing::{debug, info};
 
 use std::{
     env,
     io::{BufRead, BufReader},
-    path::Path,
     process::{Command, ExitStatus, Stdio},
     time::{Duration, Instant},
 };
@@ -21,7 +20,7 @@ fn cargo_cmd() -> Command {
     Command::new(cargo)
 }
 
-pub fn run_cargo(root: &Path, args: &[&str]) -> anyhow::Result<CmdOutput> {
+pub fn run_cargo(root: &Utf8Path, args: &[&str]) -> anyhow::Result<CmdOutput> {
     debug!("cargo {}", args.join(" "));
 
     let mut stderr_lines = vec![];

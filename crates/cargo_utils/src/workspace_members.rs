@@ -1,8 +1,7 @@
-use cargo_metadata::{Metadata, Package};
-use std::path::Path;
+use cargo_metadata::{camino::Utf8Path, Metadata, Package};
 
 pub fn get_manifest_metadata(
-    manifest_path: &Path,
+    manifest_path: &Utf8Path,
 ) -> Result<cargo_metadata::Metadata, cargo_metadata::Error> {
     cargo_metadata::MetadataCommand::new()
         .no_deps()

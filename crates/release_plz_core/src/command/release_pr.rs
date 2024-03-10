@@ -1,5 +1,4 @@
-use std::path::Path;
-
+use cargo_metadata::camino::Utf8Path;
 use git_cmd::Repo;
 
 use anyhow::Context;
@@ -54,11 +53,11 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
     let tmp_project_manifest_dir = new_manifest_dir_path(
         &original_project_root,
         manifest_dir,
-        tmp_project_root_parent.as_ref(),
+        tmp_project_root_parent.path(),
     )?;
 
     let tmp_project_root =
-        new_project_root(&original_project_root, tmp_project_root_parent.as_ref())?;
+        new_project_root(&original_project_root, tmp_project_root_parent.path())?;
 
     let local_manifest = tmp_project_manifest_dir.join(CARGO_TOML);
     let new_update_request = input
@@ -89,7 +88,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
 }
 
 async fn open_or_update_release_pr(
-    local_manifest: &Path,
+    local_manifest: &Utf8Path,
     packages_to_update: &PackagesUpdate,
     git_client: &GitClient,
     repo: &Repo,

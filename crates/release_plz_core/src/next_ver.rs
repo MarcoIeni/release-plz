@@ -2,21 +2,25 @@ use crate::{
     changelog_parser::{self, ChangelogRelease},
     copy_dir::copy_dir,
     diff::Diff,
+    fs_utils::{strip_prefix, Utf8TempDir},
     is_readme_updated, local_readme_override, lock_compare,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection},
     repo_url::RepoUrl,
     semver_check::{self, SemverCheck},
-    strip_prefix::strip_prefix,
     tmp_repo::TempRepo,
     toml_compare::are_toml_dependencies_updated,
     version::NextVersionFromDiff,
     ChangelogBuilder, PackagesToUpdate, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
 };
 use anyhow::Context;
-use cargo_metadata::{semver::Version, Metadata, Package};
-use cargo_utils::{upgrade_requirement, LocalManifest};
+use cargo_metadata::{
+    camino::{Utf8Path, Utf8PathBuf},
+    semver::Version,
+    Metadata, Package,
+};
+use cargo_utils::{to_utf8_pathbuf, upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
 use git_cliff_core::commit::Commit;
 use git_cmd::{self, Repo};
@@ -26,9 +30,8 @@ use regex::Regex;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     fs, io,
-    path::{Path, PathBuf},
+    path::Path,
 };
-use tempfile::{tempdir, TempDir};
 use tracing::{debug, info, instrument, warn};
 
 // Used to indicate that this is a dummy commit with no corresponding ID available.
@@ -51,11 +54,11 @@ pub trait ReleaseMetadataBuilder {
 #[derive(Debug, Clone)]
 pub struct UpdateRequest {
     /// The manifest of the project you want to update.
-    local_manifest: PathBuf,
+    local_manifest: Utf8PathBuf,
     /// Cargo metadata.
     metadata: Metadata,
     /// Manifest of the project containing packages at the versions published in the Cargo registry.
-    registry_manifest: Option<PathBuf>,
+    registry_manifest: Option<Utf8PathBuf>,
     /// Update just this package.
     single_package: Option<String>,
     /// Changelog options.
@@ -142,7 +145,7 @@ pub struct PackageUpdateConfig {
     /// I.e. it cannot be applied to `[workspace]` configuration.
     /// This path needs to be a relative path to the Cargo.toml of the project.
     /// I.e. if you have a workspace, it needs to be relative to the workspace root.
-    pub changelog_path: Option<PathBuf>,
+    pub changelog_path: Option<Utf8PathBuf>,
     /// List of package names.
     /// Include the changelogs of these packages in the changelog of the current package.
     pub changelog_include: Vec<String>,
@@ -193,11 +196,12 @@ pub struct ChangelogRequest {
     pub changelog_config: Option<git_cliff_core::config::Config>,
 }
 
-fn canonical_local_manifest(local_manifest: &Path) -> io::Result<PathBuf> {
+fn canonical_local_manifest(local_manifest: &Path) -> anyhow::Result<Utf8PathBuf> {
     let mut local_manifest = dunce::canonicalize(local_manifest)?;
     if !local_manifest.ends_with(CARGO_TOML) {
         local_manifest.push(CARGO_TOML)
     }
+    let local_manifest = to_utf8_pathbuf(local_manifest)?;
     Ok(local_manifest)
 }
 
@@ -220,7 +224,7 @@ impl UpdateRequest {
         })
     }
 
-    pub fn changelog_path(&self, package: &Package) -> PathBuf {
+    pub fn changelog_path(&self, package: &Package) -> Utf8PathBuf {
         let config = self.get_package_config(&package.name);
         config
             .changelog_path
@@ -237,15 +241,18 @@ impl UpdateRequest {
         &self.metadata
     }
 
-    pub fn set_local_manifest(self, local_manifest: impl AsRef<Path>) -> io::Result<Self> {
+    pub fn set_local_manifest(self, local_manifest: impl AsRef<Path>) -> anyhow::Result<Self> {
         Ok(Self {
             local_manifest: canonical_local_manifest(local_manifest.as_ref())?,
             ..self
         })
     }
 
-    pub fn with_registry_project_manifest(self, registry_manifest: PathBuf) -> io::Result<Self> {
-        let registry_manifest = fs::canonicalize(registry_manifest)?;
+    pub fn with_registry_project_manifest(
+        self,
+        registry_manifest: Utf8PathBuf,
+    ) -> io::Result<Self> {
+        let registry_manifest = Utf8Path::canonicalize_utf8(&registry_manifest)?;
         Ok(Self {
             registry_manifest: Some(registry_manifest),
             ..self
@@ -310,17 +317,17 @@ impl UpdateRequest {
         })
     }
 
-    pub fn local_manifest_dir(&self) -> anyhow::Result<&Path> {
+    pub fn local_manifest_dir(&self) -> anyhow::Result<&Utf8Path> {
         self.local_manifest
             .parent()
             .context("wrong local manifest path")
     }
 
-    pub fn local_manifest(&self) -> &Path {
+    pub fn local_manifest(&self) -> &Utf8Path {
         &self.local_manifest
     }
 
-    pub fn registry_manifest(&self) -> Option<&Path> {
+    pub fn registry_manifest(&self) -> Option<&Utf8Path> {
         self.registry_manifest.as_deref()
     }
 
@@ -377,7 +384,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
         req: input,
     };
     let registry_packages = registry_packages::get_registry_packages(
-        input.registry_manifest.as_ref(),
+        input.registry_manifest.as_deref(),
         &local_project.publishable_packages(),
         input.registry.as_deref(),
     )?;
@@ -421,27 +428,27 @@ pub struct Project {
     /// Metadata for each release enabled package.
     release_metadata: HashMap<String, ReleaseMetadata>,
     /// Project root directory
-    root: PathBuf,
+    root: Utf8PathBuf,
     /// Directory containing the project manifest
-    manifest_dir: PathBuf,
+    manifest_dir: Utf8PathBuf,
     /// The project contains more than one public package.
     /// Not affected by `single_package` option.
     contains_multiple_pub_packages: bool,
 }
 
-pub fn root_repo_path(local_manifest: &Path) -> anyhow::Result<PathBuf> {
+pub fn root_repo_path(local_manifest: &Utf8Path) -> anyhow::Result<Utf8PathBuf> {
     let manifest_dir = manifest_dir(local_manifest)?;
     root_repo_path_from_manifest_dir(manifest_dir)
 }
 
-pub fn root_repo_path_from_manifest_dir(manifest_dir: &Path) -> anyhow::Result<PathBuf> {
+pub fn root_repo_path_from_manifest_dir(manifest_dir: &Utf8Path) -> anyhow::Result<Utf8PathBuf> {
     let root = git_cmd::git_in_dir(manifest_dir, &["rev-parse", "--show-toplevel"])?;
-    Ok(PathBuf::from(root))
+    Ok(Utf8PathBuf::from(root))
 }
 
 impl Project {
     pub fn new(
-        local_manifest: &Path,
+        local_manifest: &Utf8Path,
         single_package: Option<&str>,
         overrides: HashSet<String>,
         metadata: &Metadata,
@@ -509,11 +516,11 @@ impl Project {
         let tmp_project_manifest_dir = new_manifest_dir_path(
             &self.root,
             &self.manifest_dir,
-            tmp_project_root_parent.as_ref(),
+            tmp_project_root_parent.path(),
         )?;
         debug!("tmp_project_manifest_dir: {tmp_project_manifest_dir:?}");
 
-        let tmp_project_root = new_project_root(&self.root, tmp_project_root_parent.as_ref())?;
+        let tmp_project_root = new_project_root(&self.root, tmp_project_root_parent.path())?;
         let repository = TempRepo::new(tmp_project_root_parent, tmp_project_root)?;
         Ok(repository)
     }
@@ -564,16 +571,16 @@ impl Project {
             .expect("failed to render release name")
     }
 
-    pub fn cargo_lock_path(&self) -> PathBuf {
+    pub fn cargo_lock_path(&self) -> Utf8PathBuf {
         self.root.join("Cargo.lock")
     }
 }
 
 pub fn new_manifest_dir_path(
-    old_project_root: &Path,
-    old_manifest_dir: &Path,
-    new_project_root: &Path,
-) -> anyhow::Result<PathBuf> {
+    old_project_root: &Utf8Path,
+    old_manifest_dir: &Utf8Path,
+    new_project_root: &Utf8Path,
+) -> anyhow::Result<Utf8PathBuf> {
     let parent_root = old_project_root.parent().unwrap_or(old_project_root);
     let relative_manifest_dir = strip_prefix(old_manifest_dir, parent_root)
         .context("cannot strip prefix for manifest dir")?;
@@ -581,9 +588,9 @@ pub fn new_manifest_dir_path(
 }
 
 pub fn new_project_root(
-    original_project_root: &Path,
-    new_project_root_parent: &Path,
-) -> anyhow::Result<PathBuf> {
+    original_project_root: &Utf8Path,
+    new_project_root_parent: &Utf8Path,
+) -> anyhow::Result<Utf8PathBuf> {
     let project_root_dirname = original_project_root
         .file_name()
         .context("cannot get project root dirname")?;
@@ -604,7 +611,7 @@ fn tera_context(package_name: &str, version: &str) -> tera::Context {
 fn override_packages_path(
     packages: &mut Vec<Package>,
     metadata: &Metadata,
-    manifest_dir: &Path,
+    manifest_dir: &Utf8Path,
 ) -> Result<(), anyhow::Error> {
     let canonicalized_workspace_root =
         dunce::canonicalize(&metadata.workspace_root).with_context(|| {
@@ -617,10 +624,7 @@ fn override_packages_path(
         let old_path = p.package_path()?;
         let relative_package_path =
             strip_prefix(old_path, &canonicalized_workspace_root)?.to_path_buf();
-        p.manifest_path = cargo_metadata::camino::Utf8PathBuf::from_path_buf(
-            manifest_dir.join(relative_package_path).join(CARGO_TOML),
-        )
-        .expect("can't create relative path");
+        p.manifest_path = manifest_dir.join(relative_package_path).join(CARGO_TOML);
     }
     Ok(())
 }
@@ -661,7 +665,7 @@ impl Updater<'_> {
         &self,
         registry_packages: &PackagesCollection,
         repository: &Repo,
-        local_manifest_path: &Path,
+        local_manifest_path: &Utf8Path,
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
@@ -962,7 +966,7 @@ impl Updater<'_> {
 
     fn get_package_diff(
         &self,
-        package_path: &Path,
+        package_path: &Utf8Path,
         package: &Package,
         registry_package: Option<&Package>,
         repository: &Repo,
@@ -1032,8 +1036,8 @@ impl Updater<'_> {
         &self,
         repository: &Repo,
         package: &Package,
-        package_path: &Path,
-        registry_package_path: &Path,
+        package_path: &Utf8Path,
+        registry_package_path: &Utf8Path,
     ) -> anyhow::Result<bool> {
         if is_readme_updated(package_path, package, registry_package_path)? {
             debug!("{}: README updated", package.name);
@@ -1060,7 +1064,7 @@ impl Updater<'_> {
         diff: &mut Diff,
         registry_package: &Package,
         package: &Package,
-        registry_package_path: &Path,
+        registry_package_path: &Utf8Path,
     ) -> anyhow::Result<()> {
         let are_toml_dependencies_updated =
             || are_toml_dependencies_updated(&registry_package.dependencies, &package.dependencies);
@@ -1092,10 +1096,7 @@ impl Updater<'_> {
         let relative_lock_path = strip_prefix(&project_cargo_lock, &self.project.root)?;
         let repository_cargo_lock = repository.directory().join(relative_lock_path);
         if repository_cargo_lock.exists() {
-            let cargo_lock_path = repository_cargo_lock
-                .to_str()
-                .context("can't convert Cargo.lock path to string")?;
-            Ok(Some(cargo_lock_path.to_string()))
+            Ok(Some(repository_cargo_lock.to_string()))
         } else {
             Ok(None)
         }
@@ -1103,7 +1104,7 @@ impl Updater<'_> {
 }
 
 fn new_workspace_version(
-    local_manifest_path: &Path,
+    local_manifest_path: &Utf8Path,
     packages_diffs: &[(&Package, Diff)],
     workspace_version_pkgs: &HashSet<String>,
 ) -> anyhow::Result<Option<Version>> {
@@ -1165,17 +1166,17 @@ fn get_changelog(
 fn get_package_path(
     package: &Package,
     repository: &Repo,
-    project_root: &Path,
-) -> anyhow::Result<PathBuf> {
+    project_root: &Utf8Path,
+) -> anyhow::Result<Utf8PathBuf> {
     let package_path = package.package_path()?;
     get_repo_path(package_path, repository, project_root)
 }
 
 fn get_repo_path(
-    old_path: &Path,
+    old_path: &Utf8Path,
     repository: &Repo,
-    project_root: &Path,
-) -> anyhow::Result<PathBuf> {
+    project_root: &Utf8Path,
+) -> anyhow::Result<Utf8PathBuf> {
     let relative_path =
         strip_prefix(old_path, project_root).context("error while retrieving package_path")?;
     let result_path = repository.directory().join(relative_path);
@@ -1198,7 +1199,7 @@ fn is_commit_too_old(
     false
 }
 
-fn pathbufs_to_check(package_path: &Path, package: &Package) -> Vec<PathBuf> {
+fn pathbufs_to_check(package_path: &Utf8Path, package: &Package) -> Vec<Utf8PathBuf> {
     let mut paths = vec![package_path.to_path_buf()];
     if let Some(readme_path) = local_readme_override(package, package_path) {
         paths.push(readme_path);
@@ -1218,7 +1219,7 @@ pub fn workspace_packages(metadata: &Metadata) -> anyhow::Result<Vec<Package>> {
 }
 
 pub fn publishable_packages_from_manifest(
-    manifest: impl AsRef<Path>,
+    manifest: impl AsRef<Utf8Path>,
 ) -> anyhow::Result<Vec<Package>> {
     let metadata = cargo_utils::get_manifest_metadata(manifest.as_ref())?;
     cargo_utils::workspace_members(&metadata)
@@ -1256,9 +1257,9 @@ fn is_library(package: &Package) -> bool {
         .any(|t| t.kind.contains(&"lib".to_string()))
 }
 
-pub fn copy_to_temp_dir(target: &Path) -> anyhow::Result<TempDir> {
-    let tmp_dir = tempdir().context("cannot create temporary directory")?;
-    copy_dir(target, tmp_dir.as_ref())
+pub fn copy_to_temp_dir(target: &Utf8Path) -> anyhow::Result<Utf8TempDir> {
+    let tmp_dir = Utf8TempDir::new().context("cannot create temporary directory")?;
+    copy_dir(target, tmp_dir.path())
         .with_context(|| format!("cannot copy directory {target:?} to {tmp_dir:?}"))?;
     Ok(tmp_dir)
 }
@@ -1276,7 +1277,7 @@ impl PackageDependencies for Package {
         &self,
         updated_packages: &'a [(&Package, &Version)],
     ) -> anyhow::Result<Vec<&'a Package>> {
-        let mut package_manifest = LocalManifest::try_new(self.manifest_path.as_std_path())?;
+        let mut package_manifest = LocalManifest::try_new(&self.manifest_path)?;
         let package_dir = manifest_dir(&package_manifest.path)?.to_owned();
 
         let mut deps_to_update: Vec<&Package> = vec![];
@@ -1320,10 +1321,10 @@ mod tests {
     use super::*;
     use super::{check_for_typos, Project};
     use crate::ReleaseMetadataBuilder;
-    use std::{collections::HashSet, path::Path};
+    use std::collections::HashSet;
 
     fn get_project(
-        local_manifest: &Path,
+        local_manifest: &Utf8Path,
         single_package: Option<&str>,
         overrides: HashSet<String>,
         is_release_enabled: bool,
@@ -1384,14 +1385,15 @@ mod tests {
 
     #[test]
     fn test_empty_override() {
-        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let utf8_path = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = utf8_path;
         let result = get_project(local_manifest, None, HashSet::default(), true, None, None);
         assert!(result.is_ok());
     }
 
     #[test]
     fn test_successful_override() {
-        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let overrides = (["typo_test".to_string()]).into();
         let result = get_project(local_manifest, None, overrides, true, None, None);
         assert!(result.is_ok());
@@ -1399,7 +1401,7 @@ mod tests {
 
     #[test]
     fn test_typo_in_crate_names() {
-        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let single_package = None;
         let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
         let result = get_project(local_manifest, single_package, overrides, true, None, None);
@@ -1441,7 +1443,7 @@ mod tests {
 
     #[test]
     fn project_new_no_release_will_error() {
-        let local_manifest = Path::new("../fake_package/Cargo.toml");
+        let local_manifest = Utf8Path::new("../fake_package/Cargo.toml");
         let result = get_project(local_manifest, None, HashSet::default(), false, None, None);
         assert!(result.is_err());
         expect_test::expect![[r#"no public packages found. Are there any public packages in your project? Analyzed packages: ["cargo_utils", "fake_package", "git_cmd", "test_logs", "next_version", "release-plz", "release_plz_core"]"#]]
@@ -1450,7 +1452,7 @@ mod tests {
 
     #[test]
     fn project_tag_template_none() {
-        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let project = get_project(local_manifest, None, HashSet::default(), true, None, None)
             .expect("Should ok");
         assert_eq!(project.git_tag("typo_test", "0.1.0"), "v0.1.0");
@@ -1458,7 +1460,7 @@ mod tests {
 
     #[test]
     fn project_release_and_tag_template_some() {
-        let local_manifest = Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let project = get_project(
             local_manifest,
             None,

@@ -1,5 +1,7 @@
 use anyhow::Context;
-use release_plz_core::{ReleaseRequest, UpdateRequest};
+use cargo_metadata::camino::Utf8Path;
+use cargo_utils::to_utf8_pathbuf;
+use release_plz_core::{fs_utils::to_utf8_path, ReleaseRequest, UpdateRequest};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf, time::Duration};
@@ -165,6 +167,12 @@ impl PackageSpecificConfig {
             changelog_include: self.changelog_include,
         }
     }
+
+    pub fn changelog_path(&self) -> Option<&Utf8Path> {
+        self.changelog_path
+            .as_ref()
+            .map(|p| to_utf8_path(p.as_ref()).unwrap())
+    }
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, JsonSchema)]
@@ -180,7 +188,7 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
 
         Self {
             generic,
-            changelog_path: config.changelog_path,
+            changelog_path: config.changelog_path.map(|p| to_utf8_pathbuf(p).unwrap()),
         }
     }
 }
@@ -289,7 +297,7 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
     fn from(config: PackageSpecificConfig) -> Self {
         Self {
             generic: config.common.into(),
-            changelog_path: config.changelog_path,
+            changelog_path: config.changelog_path.map(|p| to_utf8_pathbuf(p).unwrap()),
             changelog_include: config.changelog_include.unwrap_or_default(),
         }
     }
