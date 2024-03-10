@@ -48,7 +48,7 @@ impl LocalManifest {
     /// the user means.
     pub fn find(path: Option<&Path>) -> anyhow::Result<Self> {
         let canonicalized_path = dunce::canonicalize(find(path)?)?;
-        let path = to_utf8_pathbuf(canonicalized_path).context("invalid utf8 path")?;
+        let path = to_utf8_pathbuf(canonicalized_path)?;
         Self::try_new(&path)
     }
 
