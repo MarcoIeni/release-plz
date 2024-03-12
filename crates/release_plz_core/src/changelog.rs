@@ -3,7 +3,8 @@ use chrono::{NaiveDate, TimeZone, Utc};
 use git_cliff_core::{
     changelog::Changelog as GitCliffChangelog,
     commit::Commit,
-    config::{ChangelogConfig, CommitParser, Config, GitConfig},
+    config::{ChangelogConfig, CommitParser, Config, GitConfig, RemoteConfig},
+    github::GitHubReleaseMetadata,
     release::Release,
 };
 use regex::Regex;
@@ -68,6 +69,7 @@ impl Changelog<'_> {
                 release_link,
             ),
             git: apply_defaults_to_git_config(user_config.git),
+            remote: user_config.remote,
         }
     }
 }
@@ -116,6 +118,7 @@ fn default_git_cliff_config() -> Config {
     Config {
         changelog: ChangelogConfig::default(),
         git: GitConfig::default(),
+        remote: RemoteConfig::default(),
     }
 }
 
@@ -194,14 +197,21 @@ impl<'a> ChangelogBuilder<'a> {
             }
         }
 
+        // TODO: call
+        // <https://docs.rs/git-cliff-core/latest/git_cliff_core/release/struct.Release.html#method.update_github_metadata>
+        // for populating the GitHub data
         let previous = self.previous_version.map(|ver| Release {
             version: Some(ver),
             commits: vec![],
             commit_id: None,
             timestamp: 0,
             previous: None,
+            github: GitHubReleaseMetadata::default(),
         });
 
+        // TODO: call
+        // <https://docs.rs/git-cliff-core/latest/git_cliff_core/release/struct.Release.html#method.update_github_metadata>
+        // for populating the GitHub data
         Changelog {
             release: Release {
                 version: Some(self.version),
@@ -209,6 +219,7 @@ impl<'a> ChangelogBuilder<'a> {
                 commit_id: None,
                 timestamp: release_date,
                 previous: previous.map(Box::new),
+                github: GitHubReleaseMetadata::default(),
             },
             release_link: self.release_link,
             config: self.config,
@@ -255,6 +266,7 @@ fn commit_parser(regex: &str, group: &str) -> CommitParser {
         skip: None,
         field: None,
         pattern: None,
+        sha: None,
     }
 }
 
@@ -529,6 +541,7 @@ mod tests {
                     ..ChangelogConfig::default()
                 },
                 git: GitConfig::default(),
+                remote: RemoteConfig::default(),
             })
             .build();
 
@@ -555,6 +568,7 @@ mod tests {
                     sort_commits: Some("oldest".to_string()),
                     ..GitConfig::default()
                 },
+                remote: RemoteConfig::default(),
             })
             .build();
 
