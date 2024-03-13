@@ -48,6 +48,12 @@ Here you can find the public repositories using the release-plz GitHub action in
 - [GitHub search](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action%40)
 - [Dependency graph](https://github.com/MarcoIeni/release-plz-action/network/dependents)
 
+## 📽️ RustLab 23 talk
+
+In RustLab 23, I showed how release-plz simplifies releasing Rust packages, why I created it, and what lessons I learned:
+
+[![RustLab 23 talk](https://github.com/MarcoIeni/release-plz/assets/11428655/30e94b65-9077-454d-8ced-6f77d0344f0c)](https://www.youtube.com/watch?v=kXPBVGDkQSs)
+
 ## 🌓 Similar projects
 
 - [release-please](https://github.com/googleapis/release-please): release-plz is inspired by release-please,
@@ -56,12 +62,6 @@ Here you can find the public repositories using the release-plz GitHub action in
   Plus, release-plz doesn't need any configuration and is optimized for Rust projects.
 - [cargo-smart-release](https://github.com/Byron/cargo-smart-release):
   Fearlessly release workspace crates and with beautiful semi-handcrafted changelogs.
-
-## 📽️ RustLab 23 talk
-
-In RustLab 23, I showed how release-plz simplifies releasing Rust packages, why I created it, and what lessons I learned:
-
-[![RustLab 23 talk](https://github.com/MarcoIeni/release-plz/assets/11428655/30e94b65-9077-454d-8ced-6f77d0344f0c)](https://www.youtube.com/watch?v=kXPBVGDkQSs)
 
 ## 🙏 Credits
 
