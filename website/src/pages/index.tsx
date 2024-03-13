@@ -10,9 +10,10 @@ import styles from "./index.module.css";
 import Tweet from "../components/Tweet";
 import Translate from "@docusaurus/Translate";
 import Link from "@docusaurus/Link";
+import QuickStartCode from "./quickstart_code.mdx"
+import MDXContent from '@theme/MDXContent';
 
 function HomepageHeader() {
-  const { siteConfig } = useDocusaurusContext();
   return (
     <header className={clsx("hero hero--primary", styles.heroBanner)}>
       <div className="container">
@@ -23,7 +24,7 @@ function HomepageHeader() {
           style={{ maxHeight: 500, maxWidth: "100%" }}
         />
         <p className="hero__subtitle">
-          Release Rust crates from <b>CI</b> with a <b>Release PR</b> 🤖
+          Release Rust crates from <b>CI</b> with a <b>Release PR</b>
         </p>
         <div className={styles.buttons}>
           <Link
@@ -39,6 +40,21 @@ function HomepageHeader() {
   );
 }
 
+function QuickStartSection() {
+  return (
+      <div className={clsx(styles.section, styles.sectionAlt)}>
+        <div className="container">
+          <Heading as="h2" className={clsx('margin-bottom--lg', 'text--center')}>
+            It works locally, too 👩‍💻
+          </Heading>
+            <MDXContent>
+              <QuickStartCode />
+            </MDXContent>
+        </div>
+      </div>
+  );
+}
+
 export default function Home() {
   const { siteConfig } = useDocusaurusContext();
   return (
@@ -50,6 +66,7 @@ export default function Home() {
       <main>
         <HomepageFeatures />
       </main>
+      <QuickStartSection />
       <TweetsSection />
     </Layout>
   );
