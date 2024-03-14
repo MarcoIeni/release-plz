@@ -17,7 +17,6 @@ pub fn release_body_from_template(
     context.insert(CHANGELOG_VAR, changelog);
 
     let default_body_template = tera_var(CHANGELOG_VAR);
-    assert_eq!(default_body_template, "{{ changelog }}");
     let body_template = body_template.unwrap_or(&default_body_template);
 
     render_template(&mut tera, body_template, context, "release_body")
