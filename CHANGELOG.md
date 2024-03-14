@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.54](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.53...release-plz-v0.3.54) - 2024-03-14
+
+### Added
+- allow custom `git_release_body` ([#1341](https://github.com/MarcoIeni/release-plz/pull/1341))
+
+### Other
+- add getting started ([#1339](https://github.com/MarcoIeni/release-plz/pull/1339))
+
 ## [0.3.53](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.52...release-plz-v0.3.53) - 2024-03-10
 
 ### Fixed
