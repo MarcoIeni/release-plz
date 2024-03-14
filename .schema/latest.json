@@ -40,6 +40,7 @@
         "changelog_config": null,
         "changelog_update": null,
         "dependencies_update": null,
+        "git_release_body": null,
         "git_release_draft": null,
         "git_release_enable": null,
         "git_release_name": null,
@@ -269,6 +270,14 @@
             "null"
           ]
         },
+        "git_release_body": {
+          "title": "Git Release Body",
+          "description": "Tera template of the git release body created by release-plz.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "git_release_draft": {
           "title": "Git Release Draft",
           "description": "If true, will not auto-publish the release.",
@@ -472,6 +481,14 @@
           "description": "- If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`. - If `false` or [`Option::None`], only update the workspace packages by running `cargo update --workspace`.",
           "type": [
             "boolean",
+            "null"
+          ]
+        },
+        "git_release_body": {
+          "title": "Git Release Body",
+          "description": "Tera template of the git release body created by release-plz.",
+          "type": [
+            "string",
             "null"
           ]
         },

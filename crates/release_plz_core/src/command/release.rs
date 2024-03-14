@@ -311,6 +311,7 @@ pub struct GitReleaseConfig {
     draft: bool,
     release_type: ReleaseType,
     name_template: Option<String>,
+    body_template: Option<String>,
 }
 
 impl Default for GitReleaseConfig {
@@ -326,6 +327,7 @@ impl GitReleaseConfig {
             draft: false,
             release_type: ReleaseType::default(),
             name_template: None,
+            body_template: None,
         }
     }
 
@@ -345,6 +347,11 @@ impl GitReleaseConfig {
 
     pub fn set_name_template(mut self, name_template: Option<String>) -> Self {
         self.name_template = name_template;
+        self
+    }
+
+    pub fn set_body_template(mut self, body_template: Option<String>) -> Self {
+        self.body_template = body_template;
         self
     }
 
@@ -626,7 +633,7 @@ fn run_cargo_publish(
 /// Return an empty string if the changelog cannot be parsed.
 fn release_body(req: &ReleaseRequest, package: &Package) -> String {
     let changelog_path = req.changelog_path(package);
-    match changelog_parser::last_changes(&changelog_path) {
+    let changelog = match changelog_parser::last_changes(&changelog_path) {
         Ok(Some(changes)) => changes,
         Ok(None) => {
             warn!(
@@ -642,7 +649,18 @@ fn release_body(req: &ReleaseRequest, package: &Package) -> String {
             );
             String::new()
         }
-    }
+    };
+    let body_template = req
+        .get_package_config(&package.name)
+        .generic
+        .git_release
+        .body_template;
+    crate::tera::release_body_from_template(
+        &package.name,
+        &package.version.to_string(),
+        &changelog,
+        body_template.as_deref(),
+    )
 }
 
 async fn publish_git_release(

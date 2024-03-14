@@ -203,6 +203,7 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
             .map(|release_type| release_type.into())
             .unwrap_or_default();
         let git_release_name = value.git_release_name.clone();
+        let git_release_body = value.git_release_body.clone();
         let is_git_tag_enabled = value.git_tag_enable != Some(false);
         let git_tag_name = value.git_tag_name.clone();
         let release = value.release != Some(false);
@@ -212,7 +213,8 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
                 release_plz_core::GitReleaseConfig::enabled(is_git_release_enabled)
                     .set_draft(is_git_release_draft)
                     .set_release_type(git_release_type)
-                    .set_name_template(git_release_name),
+                    .set_name_template(git_release_name)
+                    .set_body_template(git_release_body),
             )
             .with_git_tag(
                 release_plz_core::GitTagConfig::enabled(is_git_tag_enabled)
@@ -244,6 +246,9 @@ pub struct PackageConfig {
     /// Publish the GitHub/Gitea release for the created git tag.
     /// Enabled by default.
     pub git_release_enable: Option<bool>,
+    /// # Git Release Body
+    /// Tera template of the git release body created by release-plz.
+    pub git_release_body: Option<String>,
     /// # Git Release Type
     /// Whether to mark the created release as not ready for production.
     pub git_release_type: Option<ReleaseType>,
@@ -288,7 +293,6 @@ impl From<PackageConfig> for release_plz_core::UpdateConfig {
             changelog_update: config.changelog_update != Some(false),
             release: config.release != Some(false),
             tag_name_template: config.git_tag_name,
-            release_name_template: config.git_release_name,
         }
     }
 }
@@ -313,6 +317,7 @@ impl PackageConfig {
             git_release_type: self.git_release_type.or(default.git_release_type),
             git_release_draft: self.git_release_draft.or(default.git_release_draft),
             git_release_name: self.git_release_name.or(default.git_release_name),
+            git_release_body: self.git_release_body.or(default.git_release_body),
 
             publish: self.publish.or(default.publish),
             publish_allow_dirty: self.publish_allow_dirty.or(default.publish_allow_dirty),

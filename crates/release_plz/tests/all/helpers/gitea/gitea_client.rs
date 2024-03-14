@@ -67,6 +67,38 @@ impl GiteaContext {
             .unwrap()
     }
 
+    pub async fn merge_pr_retrying(&self, pr_number: u64) {
+        let max_retries = 20;
+        let mut retries = 0;
+        loop {
+            match self.merge_pr(pr_number).await {
+                Ok(()) => break,
+                Err(e) => {
+                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                    retries += 1;
+                    if retries > max_retries {
+                        panic!("Failed to merge PR after {max_retries} retries. Error: {e:?}");
+                    }
+                }
+            }
+        }
+    }
+
+    async fn merge_pr(&self, pr_number: u64) -> anyhow::Result<()> {
+        let pr_url = format!("{}/merge", self.pull_url(pr_number));
+        self.client
+            .post(&pr_url)
+            .basic_auth(&self.user.username, Some(&self.user.password))
+            // set merge strategy
+            .json(&serde_json::json!({"Do": "squash"}))
+            .send()
+            .await
+            .unwrap()
+            .ok_if_2xx()
+            .await?;
+        Ok(())
+    }
+
     /// Get the Gitea release associated to the given `tag`.
     pub async fn get_gitea_release(&self, tag: &str) -> GiteaRelase {
         let request_path = format!("{}/releases/tags/{}", self.repo_url(), tag);
@@ -111,6 +143,7 @@ impl GiteaContext {
 #[derive(Debug, serde::Deserialize)]
 pub struct GiteaRelase {
     pub name: String,
+    pub body: String,
 }
 
 #[derive(Debug, serde::Deserialize)]

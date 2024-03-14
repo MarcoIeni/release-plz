@@ -9,6 +9,7 @@ use crate::{
     registry_packages::{self, PackagesCollection},
     repo_url::RepoUrl,
     semver_check::{self, SemverCheck},
+    tera::{tera_context, tera_var, PACKAGE_VAR, VERSION_VAR},
     tmp_repo::TempRepo,
     toml_compare::are_toml_dependencies_updated,
     version::NextVersionFromDiff,
@@ -132,8 +133,6 @@ pub struct UpdateConfig {
     pub release: bool,
     /// Template for the git tag created by release-plz.
     pub tag_name_template: Option<String>,
-    /// Template for the git release name created by release-plz.
-    pub release_name_template: Option<String>,
 }
 
 /// Package-specific config
@@ -168,7 +167,6 @@ impl Default for UpdateConfig {
             changelog_update: true,
             release: true,
             tag_name_template: None,
-            release_name_template: None,
         }
     }
 }
@@ -532,43 +530,35 @@ impl Project {
         let tag_template = self
             .release_metadata
             .get(package_name)
-            .and_then(|m| m.tag_name_template.as_deref())
+            .and_then(|m| m.tag_name_template.clone())
             .unwrap_or({
                 if self.contains_multiple_pub_packages {
-                    "{{ package }}-v{{ version }}"
+                    format!("{}-v{}", tera_var(PACKAGE_VAR), tera_var(VERSION_VAR))
                 } else {
-                    "v{{ version }}"
+                    format!("v{}", tera_var(VERSION_VAR))
                 }
             });
 
-        tera.add_raw_template("tag_name", tag_template)
-            .expect("failed to add tag_name raw template");
-
-        tera.render("tag_name", &context)
-            .expect("failed to render tag name")
+        crate::tera::render_template(&mut tera, &tag_template, context, "tag_name")
     }
 
     pub fn release_name(&self, package_name: &str, version: &str) -> String {
         let mut tera = tera::Tera::default();
         let context = tera_context(package_name, version);
 
-        let tag_template = self
+        let name_template = self
             .release_metadata
             .get(package_name)
-            .and_then(|m| m.release_name_template.as_deref())
+            .and_then(|m| m.release_name_template.clone())
             .unwrap_or({
                 if self.contains_multiple_pub_packages {
-                    "{{ package }}-v{{ version }}"
+                    format!("{}-v{}", tera_var(PACKAGE_VAR), tera_var(VERSION_VAR))
                 } else {
-                    "v{{ version }}"
+                    format!("v{}", tera_var(VERSION_VAR))
                 }
             });
 
-        tera.add_raw_template("release_name", tag_template)
-            .expect("failed to add release_name raw template");
-
-        tera.render("release_name", &context)
-            .expect("failed to render release name")
+        crate::tera::render_template(&mut tera, &name_template, context, "release_name")
     }
 
     pub fn cargo_lock_path(&self) -> Utf8PathBuf {
@@ -595,13 +585,6 @@ pub fn new_project_root(
         .file_name()
         .context("cannot get project root dirname")?;
     Ok(new_project_root_parent.join(project_root_dirname))
-}
-
-fn tera_context(package_name: &str, version: &str) -> tera::Context {
-    let mut context = tera::Context::new();
-    context.insert("package", package_name);
-    context.insert("version", version);
-    context
 }
 
 /// Cargo metadata contains package paths of the original user project.
