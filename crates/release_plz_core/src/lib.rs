@@ -20,6 +20,7 @@ mod semver_check;
 mod tmp_repo;
 mod toml_compare;
 mod version;
+mod tera;
 
 pub use changelog::*;
 pub use command::*;

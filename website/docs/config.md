@@ -61,6 +61,7 @@ the following sections:
   - [`dependencies_update`](#the-dependencies_update-field) — Update all dependencies.
   - [`git_release_enable`](#the-git_release_enable-field) — Enable git release.
   - [`git_release_name`](#the-git_release_name-field) — Customize git release name pattern.
+  - [`git_release_body`](#the-git_release_body-field) — Customize git release body pattern.
   - [`git_release_type`](#the-git_release_type-field) — Publish mode for git release.
   - [`git_release_draft`](#the-git_release_draft-field) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field) — Enable git tag.
@@ -83,6 +84,7 @@ the following sections:
   - [`changelog_update`](#the-changelog_update-field-package-section) — Update changelog.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
   - [`git_release_name`](#the-git_release_name-field-package-section) — Customize git release name pattern.
+  - [`git_release_body`](#the-git_release_body-field-package-section) — Customize git release body pattern.
   - [`git_release_type`](#the-git_release_type-field-package-section) — Git release type.
   - [`git_release_draft`](#the-git_release_draft-field-package-section) — Publish git release as draft.
   - [`git_tag_enable`](#the-git_tag_enable-field-package-section) — Enable git tag.
@@ -97,7 +99,7 @@ the following sections:
 - [`[changelog]`](#the-changelog-section) — Changelog configuration.
   - [`header`](#the-header-field) — Changelog header.
   - [`body`](#the-body-field) — Changelog body.
-  - [`trim`](#the-trim-field) — ...
+  - [`trim`](#the-trim-field) — Trim the changelog body.
   - [`protect_breaking_commits`](#the-protect_breaking_commits-field) — Never skip commits with breaking changes.
   - [`tag_pattern`](#the-tag_pattern-field) — Regex of tags to include in the changelog.
   - [`sort_commits`](#the-sort_commits-field) — How to sort commits.
@@ -197,6 +199,20 @@ Where:
 
 - `{{ package }}` is the name of the package.
 - `{{ version }}` is the new version of the package.
+
+#### The `git_release_body` field
+
+[Tera template](https://keats.github.io/tera/docs/#templates) of the git release body that release-plz creates.
+Use this to customize the git release body pattern.
+
+By default, it's `"{{ changelog }}"`.
+
+In `git_release_body`, you can use the following variables:
+
+- `{{ changelog }}`: the changelog body of the new release.
+- `{{ package }}`: the name of the package.
+- `{{ version }}`: the new version of the package.
+
 
 #### The `git_release_type` field
 
@@ -452,6 +468,10 @@ Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) fi
 #### The `git_release_name` field (`package` section)
 
 Overrides the [`workspace.git_release_name`](#the-git_release_name-field) field.
+
+#### The `git_release_body` field (`package` section)
+
+Overrides the [`workspace.git_release_body`](#the-git_release_body-field) field.
 
 #### The `git_release_type` field (`package` section)
 
