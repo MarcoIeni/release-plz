@@ -74,7 +74,6 @@ impl GiteaContext {
             match self.merge_pr(pr_number).await {
                 Ok(()) => break,
                 Err(e) => {
-                    // sleep 1 second
                     tokio::time::sleep(std::time::Duration::from_secs(1)).await;
                     retries += 1;
                     if retries > max_retries {
