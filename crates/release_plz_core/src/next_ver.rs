@@ -539,18 +539,14 @@ impl Project {
                 }
             });
 
-        tera.add_raw_template("tag_name", &tag_template)
-            .expect("failed to add tag_name raw template");
-
-        tera.render("tag_name", &context)
-            .expect("failed to render tag name")
+        crate::tera::render_template(&mut tera, &tag_template, context, "tag_name")
     }
 
     pub fn release_name(&self, package_name: &str, version: &str) -> String {
         let mut tera = tera::Tera::default();
         let context = tera_context(package_name, version);
 
-        let tag_template = self
+        let name_template = self
             .release_metadata
             .get(package_name)
             .and_then(|m| m.release_name_template.clone())
@@ -562,11 +558,7 @@ impl Project {
                 }
             });
 
-        tera.add_raw_template("release_name", &tag_template)
-            .expect("failed to add release_name raw template");
-
-        tera.render("release_name", &context)
-            .expect("failed to render release name")
+        crate::tera::render_template(&mut tera, &name_template, context, "release_name")
     }
 
     pub fn cargo_lock_path(&self) -> Utf8PathBuf {

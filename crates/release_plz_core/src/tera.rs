@@ -20,11 +20,20 @@ pub fn release_body_from_template(
     assert_eq!(default_body_template, "{{ changelog }}");
     let body_template = body_template.unwrap_or(&default_body_template);
 
-    tera.add_raw_template("release_body", body_template)
+    render_template(&mut tera, body_template, context, "release_body")
+}
+
+pub fn render_template(
+    tera: &mut tera::Tera,
+    template: &str,
+    context: tera::Context,
+    template_name: &str,
+) -> String {
+    tera.add_raw_template(template_name, template)
         .expect("failed to add release_body raw template");
 
-    tera.render("release_body", &context)
-        .expect("failed to render release body")
+    tera.render(template_name, &context)
+        .unwrap_or_else(|e| panic!("failed to render {template_name}: {e}"))
 }
 
 pub fn tera_context(package_name: &str, version: &str) -> tera::Context {
