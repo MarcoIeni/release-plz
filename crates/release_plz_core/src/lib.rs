@@ -17,10 +17,10 @@ mod registry_packages;
 mod release_order;
 mod repo_url;
 mod semver_check;
+mod tera;
 mod tmp_repo;
 mod toml_compare;
 mod version;
-mod tera;
 
 pub use changelog::*;
 pub use command::*;
