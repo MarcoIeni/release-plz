@@ -76,7 +76,6 @@ async fn release_plz_releases_after_release_pr_merged() {
 
     let gitea_release = context.gitea.get_gitea_release(expected_tag).await;
     assert_eq!(gitea_release.name, expected_release);
-    // There's no changelog, so {{ changelog }} should be empty
     expect_test::expect![[r#"
         Welcome to this new release! Changes:
 
