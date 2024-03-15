@@ -47,6 +47,8 @@ jobs:
             os: windows-2022
           - target: x86_64-apple-darwin
             os: macos-12
+          - target: x86_64-unknown-freebsd
+            os: ubuntu-22.04
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
