@@ -7,21 +7,21 @@ const ACTIONS_FILE: &str = ".github/workflows/release-plz.yml";
 pub fn init() -> anyhow::Result<()> {
     anyhow::ensure!(
         is_gh_installed(),
-        "gh cli is not installed. I need it to store GitHub actions repository secrets. Please install it from https://docs.github.com/en/github-cli/github-cli/quickstart");
-    println!("Paste your cargo registry token to store it in the GitHub actions repository secrets.
-Create a crates.io token on https://crates.io/settings/tokens/new, specifying the following scopes: \"publish-new\" and \"publish-update\".");
+        "❌ gh cli is not installed. I need it to store GitHub actions repository secrets. Please install it from https://docs.github.com/en/github-cli/github-cli/quickstart");
+    println!("👉 Paste your cargo registry token to store it in the GitHub actions repository secrets.
+💡 You can create a crates.io token on https://crates.io/settings/tokens/new, specifying the following scopes: \"publish-new\" and \"publish-update\".");
     store_secret("CARGO_REGISTRY_TOKEN")?;
 
     write_actions_yaml()?;
 
-    let should_create_token = ask_confirmation("Do you want release-plz to use a GitHub Personal Access Token (PAT)? It's required to run CI on release PRs and to run workflows on tags.")?;
+    let should_create_token = ask_confirmation("👉 Do you want release-plz to use a GitHub Personal Access Token (PAT)? It's required to run CI on release PRs and to run workflows on tags.")?;
 
     if should_create_token {
-        println!("Paste yout GitHub PAT. Create a GitHub PAT following these instructions: https://release-plz.ieni.dev/docs/github/token#use-a-personal-access-token");
+        println!("👉 Paste your GitHub PAT.
+💡 Create a GitHub PAT following these instructions: https://release-plz.ieni.dev/docs/github/token#use-a-personal-access-token");
         store_secret("RELEASE_PLZ_TOKEN")?;
     } else {
-        println!("Go to {} and enable the option \"Allow GitHub Actions to create and approve pull requests\".
-Type Enter when done.", actions_settings_url()?);
+        println!("👉 Go to {} and enable the option \"Allow GitHub Actions to create and approve pull requests\". Type Enter when done.", actions_settings_url()?);
         wait_enter()?;
     }
 
