@@ -2,18 +2,26 @@ use std::process::Command;
 
 use anyhow::Context;
 
+const ACTIONS_FILE: &str = ".github/workflows/release-plz.yml";
+
 pub fn init() -> anyhow::Result<()> {
     anyhow::ensure!(
         is_gh_installed(),
         "gh cli is not installed. I need it to store GitHub actions repository secrets. Please install it from https://docs.github.com/en/github-cli/github-cli/quickstart");
-    println!("Paste your cargo registry token to store it in the GitHub actions repository secrets. Create a crates.io token on https://crates.io/settings/tokens/new, specifying the following scopes: \"publish-new\" and \"publish-update\".");
+    println!("Paste your cargo registry token to store it in the GitHub actions repository secrets.
+Create a crates.io token on https://crates.io/settings/tokens/new, specifying the following scopes: \"publish-new\" and \"publish-update\".");
     store_secret("CARGO_REGISTRY_TOKEN")?;
 
-    fs_err::write(".github/workflows/release-plz.yml", action_yaml())
-        .context("error while writing GitHub action file")?;
+    write_actions_yaml()?;
+    println!("GitHub action file written to {ACTIONS_FILE}");
 
-    println!("GitHub action file written to .github/workflows/release-plz.yml");
+    Ok(())
+}
 
+fn write_actions_yaml() -> anyhow::Result<()> {
+    let action_yaml = action_yaml();
+    fs_err::create_dir_all(ACTIONS_FILE).context("failed to create actions yaml file")?;
+    fs_err::write(ACTIONS_FILE, action_yaml).context("error while writing GitHub action file")?;
     Ok(())
 }
 
