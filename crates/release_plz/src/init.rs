@@ -30,7 +30,7 @@ Type Enter when done.", actions_settings_url()?);
 - GitHub action file written to {ACTIONS_FILE}
 - GitHub action secrets stored
 
-Enjoy using release-plz! 🚀"
+Enjoy automated releases 🤖"
     );
     Ok(())
 }
