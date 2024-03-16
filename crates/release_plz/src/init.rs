@@ -26,7 +26,8 @@ pub fn init() -> anyhow::Result<()> {
     let should_create_token = ask_confirmation("👉 Do you want release-plz to use a GitHub Personal Access Token (PAT)? It's required to run CI on release PRs and to run workflows on tags.")?;
 
     if should_create_token {
-        println!("👉 Paste your GitHub PAT.
+        println!("
+👉 Paste your GitHub PAT.
 💡 Create a GitHub PAT following these instructions: https://release-plz.ieni.dev/docs/github/token#use-a-personal-access-token");
         store_secret("RELEASE_PLZ_TOKEN")?;
     } else {
