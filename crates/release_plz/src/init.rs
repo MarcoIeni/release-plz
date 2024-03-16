@@ -1,4 +1,4 @@
-use std::process::Command;
+use std::{io::Write, process::Command};
 
 use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
@@ -54,7 +54,8 @@ fn wait_enter() -> anyhow::Result<()> {
 }
 
 fn ask_confirmation(question: &str) -> anyhow::Result<bool> {
-    println!("{question} (Y/n)");
+    print!("{question} (Y/n) ");
+    std::io::stdout().flush().unwrap();
     let mut input = String::new();
     std::io::stdin()
         .read_line(&mut input)
@@ -114,6 +115,7 @@ fn store_secret(token_name: &str) -> anyhow::Result<()> {
         output.status.success(),
         "error while setting repository secret"
     );
+    println!();
     Ok(())
 }
 
