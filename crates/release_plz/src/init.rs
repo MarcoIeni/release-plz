@@ -30,7 +30,8 @@ pub fn init() -> anyhow::Result<()> {
 💡 Create a GitHub PAT following these instructions: https://release-plz.ieni.dev/docs/github/token#use-a-personal-access-token");
         store_secret("RELEASE_PLZ_TOKEN")?;
     } else {
-        println!("👉 Go to {} and enable the option \"Allow GitHub Actions to create and approve pull requests\". Type Enter when done.", actions_settings_url(&repo_url)?);
+        println!("
+👉 Go to {} and enable the option \"Allow GitHub Actions to create and approve pull requests\". Type Enter when done.", actions_settings_url(&repo_url)?);
         wait_enter()?;
     }
 
