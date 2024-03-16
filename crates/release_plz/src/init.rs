@@ -13,9 +13,44 @@ Create a crates.io token on https://crates.io/settings/tokens/new, specifying th
     store_secret("CARGO_REGISTRY_TOKEN")?;
 
     write_actions_yaml()?;
-    println!("GitHub action file written to {ACTIONS_FILE}");
 
+    let should_create_token = ask_confirmation("Do you want release-plz to use a GitHub Personal Access Token (PAT)? It's required to run CI on release PRs and to run workflows on tags.")?;
+
+    if should_create_token {
+        println!("Paste yout GitHub PAT. Create a GitHub PAT following these instructions: https://release-plz.ieni.dev/docs/github/token#use-a-personal-access-token");
+        store_secret("RELEASE_PLZ_TOKEN")?;
+    } else {
+        println!("Go to {} and enable the option \"Allow GitHub Actions to create and approve pull requests\".
+Type Enter when done.", actions_settings_url()?);
+        wait_enter()?;
+    }
+
+    println!(
+        "All done 🎉
+- GitHub action file written to {ACTIONS_FILE}
+- GitHub action secrets stored
+
+Enjoy using release-plz! 🚀"
+    );
     Ok(())
+}
+
+fn wait_enter() -> anyhow::Result<()> {
+    let mut input = String::new();
+    std::io::stdin()
+        .read_line(&mut input)
+        .context("error while reading user input")?;
+    Ok(())
+}
+
+fn ask_confirmation(question: &str) -> anyhow::Result<bool> {
+    println!("{question} (Y/n)");
+    let mut input = String::new();
+    std::io::stdin()
+        .read_line(&mut input)
+        .context("error while reading user input")?;
+    let input = input.trim().to_lowercase();
+    Ok(input != "n")
 }
 
 fn write_actions_yaml() -> anyhow::Result<()> {
@@ -78,4 +113,23 @@ pub fn is_gh_installed() -> bool {
         .output()
         .map(|output| output.status.success())
         .unwrap_or(false)
+}
+
+fn repo_url() -> anyhow::Result<String> {
+    let output = Command::new("gh")
+        .arg("repo")
+        .arg("view")
+        .arg("--json")
+        .arg("url")
+        .arg("-q")
+        .arg(".url")
+        .output()
+        .with_context(|| "error while running gh to retrieve current repository")?;
+    let url = String::from_utf8(output.stdout)?;
+    Ok(url.trim().to_string())
+}
+
+fn actions_settings_url() -> anyhow::Result<String> {
+    let url = format!("{}/settings/actions", repo_url()?);
+    Ok(url)
 }
