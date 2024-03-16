@@ -114,7 +114,6 @@ fn store_secret(token_name: &str) -> anyhow::Result<()> {
         output.status.success(),
         "error while setting repository secret"
     );
-    println!("✅ {} secret stored", token_name);
     Ok(())
 }
 
