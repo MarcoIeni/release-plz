@@ -1,8 +1,15 @@
 use std::process::Command;
 
 use anyhow::Context;
+use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 
-const ACTIONS_FILE: &str = ".github/workflows/release-plz.yml";
+fn actions_file_parent() -> Utf8PathBuf {
+    Utf8Path::new(".github").join("workflows")
+}
+
+fn actions_file() -> Utf8PathBuf {
+    actions_file_parent().join("release-plz.yml")
+}
 
 pub fn init() -> anyhow::Result<()> {
     anyhow::ensure!(
@@ -29,10 +36,11 @@ pub fn init() -> anyhow::Result<()> {
 
     println!(
         "All done 🎉
-- GitHub action file written to {ACTIONS_FILE}
+- GitHub action file written to {}
 - GitHub action secrets stored
 
-Enjoy automated releases 🤖"
+Enjoy automated releases 🤖",
+        actions_file()
     );
     Ok(())
 }
@@ -57,8 +65,8 @@ fn ask_confirmation(question: &str) -> anyhow::Result<bool> {
 
 fn write_actions_yaml() -> anyhow::Result<()> {
     let action_yaml = action_yaml();
-    fs_err::create_dir_all(ACTIONS_FILE).context("failed to create actions yaml file")?;
-    fs_err::write(ACTIONS_FILE, action_yaml).context("error while writing GitHub action file")?;
+    fs_err::create_dir_all(actions_file_parent()).context("failed to create actions yaml file")?;
+    fs_err::write(actions_file(), action_yaml).context("error while writing GitHub action file")?;
     Ok(())
 }
 
