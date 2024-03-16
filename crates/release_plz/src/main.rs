@@ -2,9 +2,9 @@ mod args;
 mod changelog_config;
 mod config;
 mod generate_schema;
+pub mod init;
 mod log;
 mod update_checker;
-pub mod init;
 
 use anyhow::Context;
 use clap::Parser;
