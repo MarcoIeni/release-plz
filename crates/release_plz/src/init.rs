@@ -11,7 +11,14 @@ fn actions_file() -> Utf8PathBuf {
     actions_file_parent().join("release-plz.yml")
 }
 
+fn ensure_running_in_rust_project() -> anyhow::Result<()> {
+    let manifest_path = Utf8Path::new("Cargo.toml");
+    cargo_utils::get_manifest_metadata(manifest_path)?;
+    Ok(())
+}
+
 pub fn init() -> anyhow::Result<()> {
+    ensure_running_in_rust_project()?;
     anyhow::ensure!(
         is_gh_installed(),
         "❌ gh cli is not installed. I need it to store GitHub actions repository secrets. Please install it from https://docs.github.com/en/github-cli/github-cli/quickstart");
