@@ -17,13 +17,17 @@ fn ensure_running_in_rust_project() -> anyhow::Result<()> {
     Ok(())
 }
 
+fn greet() {
+    println!("👋 This process will guide you in setting up release-plz in your GitHub repository, using `gh` (the GitHub CLI) to store the necessary tokens in your repository secrets.");
+}
+
 pub fn init() -> anyhow::Result<()> {
     ensure_running_in_rust_project()?;
     ensure_gh_is_installed()?;
+    greet();
 
     // get the repo url early to verify that the github repository is configured correctly
     let repo_url = repo_url()?;
-    println!("👋 This process will guide you in setting up release-plz in your GitHub repository, using `gh` (the GitHub CLI) to store the necessary tokens in your repository secrets.");
     println!("👉 Paste your cargo registry token to store it in the GitHub actions repository secrets.
 💡 You can create a crates.io token on https://crates.io/settings/tokens/new, specifying the following scopes: \"publish-new\" and \"publish-update\".");
     store_secret("CARGO_REGISTRY_TOKEN")?;
