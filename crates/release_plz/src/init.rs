@@ -6,6 +6,7 @@ use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 pub fn init() -> anyhow::Result<()> {
     ensure_running_in_rust_project()?;
     ensure_gh_is_installed()?;
+
     greet();
     store_cargo_token()?;
 
@@ -13,13 +14,10 @@ pub fn init() -> anyhow::Result<()> {
     let repo_url = repo_url()?;
 
     enable_pr_permissions(&repo_url)?;
-
     store_github_token()?;
-
     write_actions_yaml()?;
 
     print_recap(&repo_url);
-
     Ok(())
 }
 
