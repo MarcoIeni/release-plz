@@ -17,6 +17,7 @@ pub fn init() -> anyhow::Result<()> {
         "❌ gh cli is not installed. I need it to store GitHub actions repository secrets. Please install it from https://docs.github.com/en/github-cli/github-cli/quickstart");
     // get the repo url early to verify that the github repository is configured correctly
     let repo_url = repo_url()?;
+    println!("👋 This process will guide you in setting up release-plz in your GitHub repository, using `gh` (the GitHub CLI) to store the necessary tokens in your repository secrets.");
     println!("👉 Paste your cargo registry token to store it in the GitHub actions repository secrets.
 💡 You can create a crates.io token on https://crates.io/settings/tokens/new, specifying the following scopes: \"publish-new\" and \"publish-update\".");
     store_secret("CARGO_REGISTRY_TOKEN")?;
