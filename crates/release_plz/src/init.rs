@@ -3,6 +3,26 @@ use std::{io::Write, process::Command};
 use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 
+pub fn init() -> anyhow::Result<()> {
+    ensure_running_in_rust_project()?;
+    ensure_gh_is_installed()?;
+    greet();
+    store_cargo_token()?;
+
+    // get the repo url early to verify that the github repository is configured correctly
+    let repo_url = repo_url()?;
+
+    enable_pr_permissions(&repo_url)?;
+
+    store_github_token()?;
+
+    write_actions_yaml()?;
+
+    print_recap(&repo_url);
+
+    Ok(())
+}
+
 fn actions_file_parent() -> Utf8PathBuf {
     Utf8Path::new(".github").join("workflows")
 }
@@ -21,23 +41,21 @@ fn greet() {
     println!("👋 This process will guide you in setting up release-plz in your GitHub repository, using `gh` (the GitHub CLI) to store the necessary tokens in your repository secrets.");
 }
 
-pub fn init() -> anyhow::Result<()> {
-    ensure_running_in_rust_project()?;
-    ensure_gh_is_installed()?;
-    greet();
-
-    // get the repo url early to verify that the github repository is configured correctly
-    let repo_url = repo_url()?;
+fn store_cargo_token() -> anyhow::Result<()> {
     println!("👉 Paste your cargo registry token to store it in the GitHub actions repository secrets.
 💡 You can create a crates.io token on https://crates.io/settings/tokens/new, specifying the following scopes: \"publish-new\" and \"publish-update\".");
     store_secret("CARGO_REGISTRY_TOKEN")?;
+    Ok(())
+}
 
-    write_actions_yaml()?;
-
+fn enable_pr_permissions(repo_url: &str) -> anyhow::Result<()> {
     println!("
-👉 Go to {} and enable the option \"Allow GitHub Actions to create and approve pull requests\". Type Enter when done.", actions_settings_url(&repo_url));
+👉 Go to {} and enable the option \"Allow GitHub Actions to create and approve pull requests\". Type Enter when done.", actions_settings_url(repo_url));
     wait_enter()?;
+    Ok(())
+}
 
+fn store_github_token() -> anyhow::Result<()> {
     let should_create_token = ask_confirmation("👉 Do you want release-plz to use a GitHub Personal Access Token (PAT)? It's required to run CI on release PRs and to run workflows on tags.")?;
 
     if should_create_token {
@@ -46,7 +64,10 @@ pub fn init() -> anyhow::Result<()> {
 💡 Create a GitHub PAT following these instructions: https://release-plz.ieni.dev/docs/github/token#use-a-personal-access-token");
         store_secret("RELEASE_PLZ_TOKEN")?;
     }
+    Ok(())
+}
 
+fn print_recap(repo_url: &str) {
     println!(
         "All done 🎉
 - GitHub action file written to {}
@@ -54,9 +75,8 @@ pub fn init() -> anyhow::Result<()> {
 
 Enjoy automated releases 🤖",
         actions_file(),
-        actions_secret_url(&repo_url)
+        actions_secret_url(repo_url)
     );
-    Ok(())
 }
 
 fn wait_enter() -> anyhow::Result<()> {
