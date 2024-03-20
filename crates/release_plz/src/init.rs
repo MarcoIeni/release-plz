@@ -32,17 +32,18 @@ pub fn init() -> anyhow::Result<()> {
         store_secret("RELEASE_PLZ_TOKEN")?;
     } else {
         println!("
-👉 Go to {} and enable the option \"Allow GitHub Actions to create and approve pull requests\". Type Enter when done.", actions_settings_url(&repo_url)?);
+👉 Go to {} and enable the option \"Allow GitHub Actions to create and approve pull requests\". Type Enter when done.", actions_settings_url(&repo_url));
         wait_enter()?;
     }
 
     println!(
         "All done 🎉
 - GitHub action file written to {}
-- GitHub action secrets stored
+- GitHub action secrets stored. Review them at {}
 
 Enjoy automated releases 🤖",
-        actions_file()
+        actions_file(),
+        actions_secret_url(&repo_url)
     );
     Ok(())
 }
@@ -143,7 +144,14 @@ fn repo_url() -> anyhow::Result<String> {
     Ok(url.trim().to_string())
 }
 
-fn actions_settings_url(repo_url: &str) -> anyhow::Result<String> {
-    let url = format!("{}/settings/actions", repo_url);
-    Ok(url)
+fn actions_settings_url(repo_url: &str) -> String {
+    format!("{}/actions", repo_settings_url(repo_url))
+}
+
+fn actions_secret_url(repo_url: &str) -> String {
+    format!("{}/secrets/actions", repo_settings_url(repo_url))
+}
+
+fn repo_settings_url(repo_url: &str) -> String {
+    format!("{}/settings", repo_url)
 }
