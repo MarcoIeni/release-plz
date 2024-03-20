@@ -19,9 +19,8 @@ fn ensure_running_in_rust_project() -> anyhow::Result<()> {
 
 pub fn init() -> anyhow::Result<()> {
     ensure_running_in_rust_project()?;
-    anyhow::ensure!(
-        is_gh_installed(),
-        "❌ gh cli is not installed. I need it to store GitHub actions repository secrets. Please install it from https://docs.github.com/en/github-cli/github-cli/quickstart");
+    ensure_gh_is_installed()?;
+
     // get the repo url early to verify that the github repository is configured correctly
     let repo_url = repo_url()?;
     println!("👋 This process will guide you in setting up release-plz in your GitHub repository, using `gh` (the GitHub CLI) to store the necessary tokens in your repository secrets.");
@@ -130,7 +129,14 @@ fn store_secret(token_name: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn is_gh_installed() -> bool {
+fn ensure_gh_is_installed() -> anyhow::Result<()> {
+    anyhow::ensure!(
+        is_gh_installed(),
+        "❌ gh cli is not installed. I need it to store GitHub actions repository secrets. Please install it from https://docs.github.com/en/github-cli/github-cli/quickstart");
+    Ok(())
+}
+
+fn is_gh_installed() -> bool {
     Command::new("gh")
         .arg("version")
         .output()
