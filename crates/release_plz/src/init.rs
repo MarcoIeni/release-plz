@@ -30,6 +30,10 @@ pub fn init() -> anyhow::Result<()> {
 
     write_actions_yaml()?;
 
+    println!("
+👉 Go to {} and enable the option \"Allow GitHub Actions to create and approve pull requests\". Type Enter when done.", actions_settings_url(&repo_url));
+    wait_enter()?;
+
     let should_create_token = ask_confirmation("👉 Do you want release-plz to use a GitHub Personal Access Token (PAT)? It's required to run CI on release PRs and to run workflows on tags.")?;
 
     if should_create_token {
@@ -37,10 +41,6 @@ pub fn init() -> anyhow::Result<()> {
 👉 Paste your GitHub PAT.
 💡 Create a GitHub PAT following these instructions: https://release-plz.ieni.dev/docs/github/token#use-a-personal-access-token");
         store_secret("RELEASE_PLZ_TOKEN")?;
-    } else {
-        println!("
-👉 Go to {} and enable the option \"Allow GitHub Actions to create and approve pull requests\". Type Enter when done.", actions_settings_url(&repo_url));
-        wait_enter()?;
     }
 
     println!(
