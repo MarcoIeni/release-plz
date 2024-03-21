@@ -1,6 +1,8 @@
+use anyhow::anyhow;
 use cargo_metadata::semver::Version;
 use git_cmd::Repo;
 use regex::Regex;
+
 use std::collections::BTreeMap;
 
 lazy_static::lazy_static! {
@@ -26,51 +28,60 @@ impl RepoVersions {
 
 /// Gets sorted tags from `Repo` and returns:
 /// * `None` if there are no version tags
-/// * `RepoVersions::Single` if all verison tags are of the form 'v{version}' and
+/// * `RepoVersions::Single` if all version tags are of the form 'v{version}' and
 ///   `contains_multiple_pub_packages` is `false`
-/// * `RepoVersions::ByPackage` if all verison tags are of the form '{package}-v{version}' and
+/// * `RepoVersions::ByPackage` if all version tags are of the form '{package}-v{version}' and
 ///   `contains_multiple_pub_packages` is `true`
 /// * Panics otherwise.
 pub fn get_repo_versions(
     repo: &Repo,
     contains_multiple_pub_packages: bool,
-) -> Option<RepoVersions> {
-    repo.get_tags_version_sorted(true)
-        .map(|tags| {
-            assert!(!tags.is_empty());
-            let (with_package, no_package): (Vec<_>, Vec<_>) = tags
-                .iter()
-                .filter_map(|tag| VERSION_TAG_RE.captures(tag))
-                .partition(|caps| caps.get(1).is_some());
-            if with_package.is_empty() && no_package.is_empty() {
-                None
-            } else if !(with_package.is_empty() || no_package.is_empty()) {
-                panic!(
-                    "Found version tags with and without a package name in repo at: {:?}",
-                    repo.directory()
-                );
-            } else if !with_package.is_empty() && contains_multiple_pub_packages {
-                Some(RepoVersions::ByPackage(with_package.iter().fold(
-                    BTreeMap::new(),
-                    |mut map, caps| {
-                        let package = caps.get(1).unwrap().as_str();
-                        // The tag list is version-sorted in reverse, so the first tag we encounter
-                        // for each package is the most recent version.
-                        if !map.contains_key(package) {
-                            if let Ok(version) = Version::parse(caps.get(2).unwrap().as_str()) {
-                                map.insert(package.to_string(), version);
-                            }
-                        }
-                        map
-                    },
-                )))
-            } else if !no_package.is_empty() && !contains_multiple_pub_packages {
-                Version::parse(no_package.first().unwrap().get(2).unwrap().as_str())
-                    .map(|version| RepoVersions::Single(version))
-                    .ok()
-            } else {
-                panic!("Mismatch between version tag format and `contains_multiple_pub_packages`");
-            }
-        })
-        .flatten()
+) -> anyhow::Result<Option<RepoVersions>> {
+    let Some(tags) = repo.get_tags_version_sorted(true) else {
+        return Err(anyhow!("cannot get tags version sorted"));
+    };
+
+    let (with_package, no_package): (Vec<_>, Vec<_>) = tags
+        .iter()
+        .filter_map(|tag| VERSION_TAG_RE.captures(tag))
+        .partition(|caps| caps.get(1).is_some());
+
+    if with_package.is_empty() && no_package.is_empty() {
+        return Ok(None);
+    } else if !with_package.is_empty() && !no_package.is_empty() {
+        return Err(anyhow!(
+            "Found version tags with and without a package name in repo at: {:?}",
+            repo.directory()
+        ));
+    } else if !with_package.is_empty() && contains_multiple_pub_packages {
+        let versions_map: BTreeMap<String, Version> =
+            with_package.iter().fold(BTreeMap::new(), |mut map, caps| {
+                let package = caps.get(1).unwrap().as_str();
+                // The tag list is version-sorted in reverse, so the first tag we encounter
+                // for each package is the most recent version.
+                if !map.contains_key(package) {
+                    if let Ok(version) = Version::parse(caps.get(2).unwrap().as_str()) {
+                        map.insert(package.to_string(), version);
+                    }
+                }
+                map
+            });
+
+        return Ok(Some(RepoVersions::ByPackage(versions_map)));
+    } else if !no_package.is_empty() && !contains_multiple_pub_packages {
+        return Ok(Version::parse(
+            no_package
+                .first()
+                .expect("no_package is not empty")
+                .get(2)
+                .expect("regex capture was empty for index 2")
+                .as_str(),
+        )
+        .map(|version| RepoVersions::Single(version))
+        .ok());
+    } else {
+        return Err(anyhow!(
+            "Mismatch between version tag format and `contains_multiple_pub_packages`"
+        ));
+    }
 }

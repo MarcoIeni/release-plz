@@ -409,7 +409,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     let repository_packages = repo_versions::get_repo_versions(
         &repository.repo,
         local_project.contains_multiple_pub_packages,
-    );
+    )?;
 
     let packages_to_update = updater.packages_to_update(
         &registry_packages,
