@@ -3,7 +3,7 @@
 The `release-plz init` command initializes the necessary configurations and secrets for
 release-plz to work properly in your GitHub repository.
 
-Useful to initialize the GitHub action quickly, in an interactive way.
+Useful to initialize the GitHub action quickly and interactively.
 For a complete GitHub action setup guide, check out the
 [Quickstart](../github/quickstart.md) section.
 
