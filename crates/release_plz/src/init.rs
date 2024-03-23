@@ -168,6 +168,10 @@ fn repo_url() -> anyhow::Result<String> {
         .arg(".url")
         .output()
         .with_context(|| "error while running gh to retrieve current repository")?;
+    if !output.status.success() {
+        let stderr = String::from_utf8(output.stderr).unwrap_or_default();
+        anyhow::bail!("error while running gh to retrieve current repository. {stderr}");
+    }
     let url = String::from_utf8(output.stdout)?;
     Ok(url.trim().to_string())
 }
