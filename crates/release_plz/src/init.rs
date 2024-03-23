@@ -86,15 +86,16 @@ fn ask_confirmation(question: &str) -> anyhow::Result<bool> {
 }
 
 fn write_actions_yaml() -> anyhow::Result<()> {
-    let action_yaml = action_yaml();
+    let branch = default_branch()?;
+    let action_yaml = action_yaml(&branch);
     fs_err::create_dir_all(actions_file_parent())
         .context("failed to create GitHub actions workflows directory")?;
     fs_err::write(actions_file(), action_yaml).context("error while writing GitHub action file")?;
     Ok(())
 }
 
-fn action_yaml() -> &'static str {
-    r#"name: Release Plz
+fn action_yaml(branch: &str) -> String {
+    let head = r#"name: Release Plz
 
 permissions:
   pull-requests: write
@@ -103,7 +104,8 @@ permissions:
 on:
   push:
     branches:
-      - main
+      - "#;
+    let jobs = r#"
 
 jobs:
   release-plz:
@@ -121,7 +123,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-"#
+"#;
+    format!("{head}{branch}{jobs}")
 }
 
 /// Store secret reading it from stdin.
@@ -156,6 +159,24 @@ fn is_gh_installed() -> bool {
         .unwrap_or(false)
 }
 
+fn default_branch() -> anyhow::Result<String> {
+    let output = Command::new("gh")
+        .arg("repo")
+        .arg("view")
+        .arg("--json")
+        .arg("defaultBranchRef")
+        .arg("--jq")
+        .arg(".defaultBranchRef.name")
+        .output()
+        .with_context(|| "error while running gh to retrieve current branch")?;
+    if !output.status.success() {
+        let stderr = String::from_utf8(output.stderr).unwrap_or_default();
+        anyhow::bail!("error while running gh to retrieve current branch. {stderr}");
+    }
+    let url = String::from_utf8(output.stdout)?;
+    Ok(url.trim().to_string())
+}
+
 fn repo_url() -> anyhow::Result<String> {
     let output = Command::new("gh")
         .arg("repo")
@@ -168,7 +189,7 @@ fn repo_url() -> anyhow::Result<String> {
         .with_context(|| "error while running gh to retrieve current repository")?;
     if !output.status.success() {
         let stderr = String::from_utf8(output.stderr).unwrap_or_default();
-        anyhow::bail!("error while running gh to retrieve current repository. {stderr}");
+        anyhow::bail!("error while running gh to retrieve current repository url. {stderr}");
     }
     let url = String::from_utf8(output.stdout)?;
     Ok(url.trim().to_string())
@@ -184,4 +205,43 @@ fn actions_secret_url(repo_url: &str) -> String {
 
 fn repo_settings_url(repo_url: &str) -> String {
     format!("{}/settings", repo_url)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn actions_yaml_string_is_correct() {
+        expect_test::expect![[r#"
+            name: Release Plz
+
+            permissions:
+              pull-requests: write
+              contents: write
+
+            on:
+              push:
+                branches:
+                  - main
+
+            jobs:
+              release-plz:
+                name: Release-plz
+                runs-on: ubuntu-latest
+                steps:
+                  - name: Checkout repository
+                    uses: actions/checkout@v4
+                    with:
+                      fetch-depth: 0
+                  - name: Install Rust toolchain
+                    uses: dtolnay/rust-toolchain@stable
+                  - name: Run release-plz
+                    uses: MarcoIeni/release-plz-action@v0.5
+                    env:
+                      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        "#]]
+        .assert_eq(&action_yaml("main"));
+    }
 }
