@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use anyhow::Context;
-use cargo::util_semver::VersionExt;
+use cargo::util::VersionExt;
 use cargo_metadata::{
     camino::{Utf8Path, Utf8PathBuf},
     semver::Version,
