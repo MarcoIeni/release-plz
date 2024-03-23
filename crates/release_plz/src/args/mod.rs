@@ -49,6 +49,8 @@ pub enum Command {
     /// Write the JSON schema of the release-plz.toml configuration
     /// to .schema/latest.json
     GenerateSchema,
+    /// Initialize release-plz for the current GitHub repository, by storing the necessary tokens in the GitHub repository secrets and generating the release-plz.yml GitHub Actions workflow file.
+    Init,
 }
 
 fn local_manifest(project_manifest: Option<&Utf8Path>) -> Utf8PathBuf {

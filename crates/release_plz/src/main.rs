@@ -2,6 +2,7 @@ mod args;
 mod changelog_config;
 mod config;
 mod generate_schema;
+pub mod init;
 mod log;
 mod update_checker;
 
@@ -59,6 +60,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         Command::GenerateCompletions(cmd_args) => cmd_args.print(),
         Command::CheckUpdates => update_checker::check_update().await?,
         Command::GenerateSchema => generate_schema::generate_schema_to_disk()?,
+        Command::Init => init::init()?,
     }
     Ok(())
 }
