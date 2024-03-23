@@ -87,7 +87,8 @@ fn ask_confirmation(question: &str) -> anyhow::Result<bool> {
 
 fn write_actions_yaml() -> anyhow::Result<()> {
     let action_yaml = action_yaml();
-    fs_err::create_dir_all(actions_file_parent()).context("failed to create actions yaml file")?;
+    fs_err::create_dir_all(actions_file_parent())
+        .context("failed to create GitHub actions workflows directory")?;
     fs_err::write(actions_file(), action_yaml).context("error while writing GitHub action file")?;
     Ok(())
 }
