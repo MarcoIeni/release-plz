@@ -1,4 +1,6 @@
-use std::{io::Write, process::Command};
+mod gh;
+
+use std::io::Write;
 
 use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
@@ -6,7 +8,7 @@ use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 pub fn init() -> anyhow::Result<()> {
     ensure_gh_is_installed()?;
     // get the repo url early to verify that the github repository is configured correctly
-    let repo_url = repo_url()?;
+    let repo_url = gh::repo_url()?;
 
     greet();
     store_cargo_token()?;
@@ -34,7 +36,7 @@ fn greet() {
 fn store_cargo_token() -> anyhow::Result<()> {
     println!("👉 Paste your cargo registry token to store it in the GitHub actions repository secrets.
 💡 You can create a crates.io token on https://crates.io/settings/tokens/new, specifying the following scopes: \"publish-new\" and \"publish-update\".");
-    store_secret("CARGO_REGISTRY_TOKEN")?;
+    gh::store_secret("CARGO_REGISTRY_TOKEN")?;
     Ok(())
 }
 
@@ -52,7 +54,7 @@ fn store_github_token() -> anyhow::Result<()> {
         println!("
 👉 Paste your GitHub PAT.
 💡 Create a GitHub PAT following these instructions: https://release-plz.ieni.dev/docs/github/token#use-a-personal-access-token");
-        store_secret("RELEASE_PLZ_TOKEN")?;
+        gh::store_secret("RELEASE_PLZ_TOKEN")?;
     }
     Ok(())
 }
@@ -86,7 +88,7 @@ fn ask_confirmation(question: &str) -> anyhow::Result<bool> {
 }
 
 fn write_actions_yaml() -> anyhow::Result<()> {
-    let branch = default_branch()?;
+    let branch = gh::default_branch()?;
     let action_yaml = action_yaml(&branch);
     fs_err::create_dir_all(actions_file_parent())
         .context("failed to create GitHub actions workflows directory")?;
@@ -127,76 +129,11 @@ jobs:
     format!("{head}{branch}{jobs}")
 }
 
-/// Store secret reading it from stdin.
-fn store_secret(token_name: &str) -> anyhow::Result<()> {
-    let output = std::process::Command::new("gh")
-        .arg("secret")
-        .arg("set")
-        .arg(token_name)
-        .spawn()
-        .context("error while spawning gh to set repository secret")?
-        .wait_with_output()
-        .context("error while waiting gh to set repository secret")?;
-    get_stdout_if_success(output).context("error while setting repository secret")?;
-    println!();
-    Ok(())
-}
-
 fn ensure_gh_is_installed() -> anyhow::Result<()> {
     anyhow::ensure!(
-        is_gh_installed(),
+        gh::is_gh_installed(),
         "❌ gh cli is not installed. I need it to store GitHub actions repository secrets. Please install it from https://docs.github.com/en/github-cli/github-cli/quickstart");
     Ok(())
-}
-
-fn is_gh_installed() -> bool {
-    Command::new("gh")
-        .arg("version")
-        .output()
-        .map(|output| output.status.success())
-        .unwrap_or(false)
-}
-
-fn default_branch() -> anyhow::Result<String> {
-    let output = Command::new("gh")
-        .arg("repo")
-        .arg("view")
-        .arg("--json")
-        .arg("defaultBranchRef")
-        .arg("--jq")
-        .arg(".defaultBranchRef.name")
-        .output()
-        .with_context(|| "error while running gh to retrieve current branch")?;
-    let branch = get_stdout_if_success(output)
-        .context("error while running gh to retrieve current branch")?;
-    Ok(branch)
-}
-
-fn get_stdout_if_success(output: std::process::Output) -> anyhow::Result<String> {
-    if !output.status.success() {
-        let stderr = String::from_utf8(output.stderr).unwrap_or_default();
-        anyhow::bail!(stderr);
-    }
-    let stdout = String::from_utf8(output.stdout)
-        .context("can't read stdout")?
-        .trim()
-        .to_string();
-    Ok(stdout)
-}
-
-fn repo_url() -> anyhow::Result<String> {
-    let output = Command::new("gh")
-        .arg("repo")
-        .arg("view")
-        .arg("--json")
-        .arg("url")
-        .arg("-q")
-        .arg(".url")
-        .output()
-        .with_context(|| "error while running gh to retrieve current repository")?;
-    let url = get_stdout_if_success(output)
-        .context("error while running gh to retrieve current branch")?;
-    Ok(url)
 }
 
 fn actions_settings_url(repo_url: &str) -> String {
