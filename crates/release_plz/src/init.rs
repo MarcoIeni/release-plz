@@ -129,17 +129,15 @@ jobs:
 
 /// Store secret reading it from stdin.
 fn store_secret(token_name: &str) -> anyhow::Result<()> {
-    let mut command = std::process::Command::new("gh");
-    command.arg("secret").arg("set").arg(token_name);
-    let output = command
+    let output = std::process::Command::new("gh")
+        .arg("secret")
+        .arg("set")
+        .arg(token_name)
         .spawn()
         .context("error while spawning gh to set repository secret")?
         .wait_with_output()
         .context("error while waiting gh to set repository secret")?;
-    anyhow::ensure!(
-        output.status.success(),
-        "error while setting repository secret"
-    );
+    get_stdout_if_success(output).context("error while setting repository secret")?;
     println!();
     Ok(())
 }
@@ -169,12 +167,21 @@ fn default_branch() -> anyhow::Result<String> {
         .arg(".defaultBranchRef.name")
         .output()
         .with_context(|| "error while running gh to retrieve current branch")?;
+    let branch = get_stdout_if_success(output)
+        .context("error while running gh to retrieve current branch")?;
+    Ok(branch)
+}
+
+fn get_stdout_if_success(output: std::process::Output) -> anyhow::Result<String> {
     if !output.status.success() {
         let stderr = String::from_utf8(output.stderr).unwrap_or_default();
-        anyhow::bail!("error while running gh to retrieve current branch. {stderr}");
+        anyhow::bail!(stderr);
     }
-    let url = String::from_utf8(output.stdout)?;
-    Ok(url.trim().to_string())
+    let stdout = String::from_utf8(output.stdout)
+        .context("can't read stdout")?
+        .trim()
+        .to_string();
+    Ok(stdout)
 }
 
 fn repo_url() -> anyhow::Result<String> {
@@ -187,12 +194,9 @@ fn repo_url() -> anyhow::Result<String> {
         .arg(".url")
         .output()
         .with_context(|| "error while running gh to retrieve current repository")?;
-    if !output.status.success() {
-        let stderr = String::from_utf8(output.stderr).unwrap_or_default();
-        anyhow::bail!("error while running gh to retrieve current repository url. {stderr}");
-    }
-    let url = String::from_utf8(output.stdout)?;
-    Ok(url.trim().to_string())
+    let url = get_stdout_if_success(output)
+        .context("error while running gh to retrieve current branch")?;
+    Ok(url)
 }
 
 fn actions_settings_url(repo_url: &str) -> String {
