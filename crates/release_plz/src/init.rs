@@ -4,14 +4,12 @@ use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 
 pub fn init() -> anyhow::Result<()> {
-    ensure_running_in_rust_project()?;
     ensure_gh_is_installed()?;
+    // get the repo url early to verify that the github repository is configured correctly
+    let repo_url = repo_url()?;
 
     greet();
     store_cargo_token()?;
-
-    // get the repo url early to verify that the github repository is configured correctly
-    let repo_url = repo_url()?;
 
     enable_pr_permissions(&repo_url)?;
     store_github_token()?;
@@ -27,12 +25,6 @@ fn actions_file_parent() -> Utf8PathBuf {
 
 fn actions_file() -> Utf8PathBuf {
     actions_file_parent().join("release-plz.yml")
-}
-
-fn ensure_running_in_rust_project() -> anyhow::Result<()> {
-    let manifest_path = Utf8Path::new("Cargo.toml");
-    cargo_utils::get_manifest_metadata(manifest_path)?;
-    Ok(())
 }
 
 fn greet() {
