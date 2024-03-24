@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.56](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.55...release-plz-v0.3.56) - 2024-03-24
+
+### Added
+- add `init` command ([#1350](https://github.com/MarcoIeni/release-plz/pull/1350))
+
+### Fixed
+- *(init)* use correct github token ([#1359](https://github.com/MarcoIeni/release-plz/pull/1359))
+
+### Other
+- update dependencies ([#1358](https://github.com/MarcoIeni/release-plz/pull/1358))
+
 ## [0.3.55](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.54...release-plz-v0.3.55) - 2024-03-15
 
 ### Other
