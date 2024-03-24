@@ -1,5 +1,7 @@
 # Release-plz in the wild
 
+This page shows what projects use release-plz.
+
 ## Popular projects
 
 Here are some popular projects using release-plz:
