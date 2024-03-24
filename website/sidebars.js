@@ -50,6 +50,7 @@ const sidebars = {
       link: { type: "doc", id: "extra/index" },
       items: ["extra/releasing-binaries", "extra/single-changelog", "extra/single-tag", "extra/yanked-packages"],
     },
+    "release-plz-in-the-wild",
   ],
 };
 
