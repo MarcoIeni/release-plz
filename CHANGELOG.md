@@ -11,9 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - add `init` command ([#1350](https://github.com/MarcoIeni/release-plz/pull/1350))
 
-### Fixed
-- *(init)* use correct github token ([#1359](https://github.com/MarcoIeni/release-plz/pull/1359))
-
 ### Other
 - update dependencies ([#1358](https://github.com/MarcoIeni/release-plz/pull/1358))
 
