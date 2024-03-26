@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.57](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.56...release-plz-v0.3.57) - 2024-03-26
+
+### Other
+- fix cargo-binstall pkg-url ([#1364](https://github.com/MarcoIeni/release-plz/pull/1364))
+
 ## [0.3.56](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.55...release-plz-v0.3.56) - 2024-03-24
 
 ### Added
