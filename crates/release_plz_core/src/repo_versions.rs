@@ -46,7 +46,7 @@ pub fn get_repo_versions(
         .partition(|caps| caps.get(1).is_some());
 
     if with_package.is_empty() && no_package.is_empty() {
-        return Ok(None);
+        Ok(None)
     } else if !with_package.is_empty() && !no_package.is_empty() {
         return Err(anyhow!(
             "Found version tags with and without a package name in repo at: {:?}",
@@ -76,7 +76,7 @@ pub fn get_repo_versions(
                 .expect("regex capture was empty for index 2")
                 .as_str(),
         )
-        .map(|version| RepoVersions::Single(version))
+        .map(RepoVersions::Single)
         .ok());
     } else {
         return Err(anyhow!(

@@ -935,8 +935,7 @@ impl Updater<'_> {
             .context("can't checkout head to calculate diff")?;
         let registry_package = registry_packages.get_registry_package(&package.name);
         let repository_version = repository_packages
-            .map(|repo_versions| repo_versions.get_package_version(&package.name))
-            .flatten();
+            .and_then(|repo_versions| repo_versions.get_package_version(&package.name));
         let mut diff = Diff::new(if git_only {
             repository_version.is_some()
         } else {
