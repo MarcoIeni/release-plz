@@ -6,7 +6,6 @@ use regex::Regex;
 use std::collections::BTreeMap;
 
 lazy_static::lazy_static! {
-    // match PR/issue numbers, e.g. `#123`
     static ref VERSION_TAG_RE: Regex = Regex::new("(?:(.+)-)?v(.+)").unwrap();
 }
 
