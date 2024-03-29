@@ -10,6 +10,7 @@ use cargo_metadata::{
 use crates_index::{GitIndex, SparseIndex};
 use git_cmd::Repo;
 use secrecy::{ExposeSecret, SecretString};
+use serde::Serialize;
 use tracing::{info, instrument, warn};
 use url::Url;
 
@@ -417,6 +418,21 @@ pub struct GitRelease {
     pub backend: GitBackend,
 }
 
+pub struct Release {
+    packages: Vec<PackageRelease>,
+}
+
+#[derive(Serialize)]
+pub struct PackageRelease {
+    name: String,
+    version: Version,
+    /// Git tag name. It's not guaranteed that release-plz created the git tag.
+    /// In fact, users can disable git tag creation in the [`ReleaseRequest`].
+    /// We return the git tag name anyway, because users might use this to create
+    /// the tag by themselves.
+    tag: String,
+}
+
 /// Release the project as it is.
 #[instrument(skip(input))]
 pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
@@ -430,39 +446,55 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
     )?;
     let packages = project.publishable_packages();
     let release_order = release_order(&packages).context("cannot determine release order")?;
+    let mut package_releases: Vec<PackageRelease> = vec![];
     for package in release_order {
-        let repo = Repo::new(&input.metadata.workspace_root)?;
-        let git_tag = project.git_tag(&package.name, &package.version.to_string());
-        let release_name = project.release_name(&package.name, &package.version.to_string());
-        if repo.tag_exists(&git_tag)? {
-            info!(
-                "{} {}: Already published - Tag {} already exists",
-                package.name, package.version, &git_tag
-            );
-            continue;
-        }
-        let registry_indexes = registry_indexes(package, input.registry.clone())
-            .context("can't determine registry indexes")?;
-        for mut index in registry_indexes {
-            if is_published(&mut index, package, input.publish_timeout)
-                .await
-                .context("can't determine if package is published")?
-            {
-                info!("{} {}: already published", package.name, package.version);
-                continue;
-            }
-            release_package(
-                &mut index,
-                package,
-                input,
-                git_tag.clone(),
-                release_name.clone(),
-            )
-            .await
-            .context("failed to release package")?;
+        if let Some(pkg_release) = release_package_if_needed(input, &project, package).await? {
+            package_releases.push(pkg_release);
         }
     }
     Ok(())
+}
+
+async fn release_package_if_needed(
+    input: &ReleaseRequest,
+    project: &Project,
+    package: &Package,
+) -> anyhow::Result<Option<PackageRelease>> {
+    let repo = Repo::new(&input.metadata.workspace_root)?;
+    let git_tag = project.git_tag(&package.name, &package.version.to_string());
+    let release_name = project.release_name(&package.name, &package.version.to_string());
+    if repo.tag_exists(&git_tag)? {
+        info!(
+            "{} {}: Already published - Tag {} already exists",
+            package.name, package.version, &git_tag
+        );
+        return Ok(None);
+    }
+    let registry_indexes = registry_indexes(package, input.registry.clone())
+        .context("can't determine registry indexes")?;
+    for mut index in registry_indexes {
+        if is_published(&mut index, package, input.publish_timeout)
+            .await
+            .context("can't determine if package is published")?
+        {
+            info!("{} {}: already published", package.name, package.version);
+            continue;
+        }
+        release_package(
+            &mut index,
+            package,
+            input,
+            git_tag.clone(),
+            release_name.clone(),
+        )
+        .await
+        .context("failed to release package")?;
+    }
+    Ok(Some(PackageRelease {
+        name: package.name.clone(),
+        version: package.version.clone(),
+        tag: git_tag,
+    }))
 }
 
 /// Get the indexes where the package should be published.

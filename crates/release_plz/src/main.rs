@@ -49,7 +49,13 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let request = ReleasePrRequest::new(git, update_request)
                 .mark_as_draft(pr_draft)
                 .with_labels(pr_labels);
-            release_plz_core::release_pr(&request).await?;
+            let release_pr = release_plz_core::release_pr(&request).await?;
+            if let Some(release_pr) = release_pr {
+                match serde_json::to_string(&release_pr) {
+                    Ok(json) => println!("{json}"),
+                    Err(e) => tracing::error!("can't serialize release pr to json: {e}"),
+                }
+            }
         }
         Command::Release(cmd_args) => {
             let cargo_metadata = cmd_args.cargo_metadata()?;

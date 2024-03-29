@@ -2,7 +2,9 @@ use cargo_metadata::camino::Utf8Path;
 use git_cmd::Repo;
 
 use anyhow::Context;
+use serde::Serialize;
 use tracing::{info, instrument};
+use url::Url;
 
 use crate::git::backend::{contributors_from_commits, BackendType, GitClient, GitPr, PrEdit};
 use crate::git::github_graphql;
@@ -43,10 +45,24 @@ impl ReleasePrRequest {
         self
     }
 }
+/// Release pull request that release-plz opened/updated.
+#[derive(Serialize)]
+pub struct ReleasePr {
+    /// Branch
+    pub branch: String,
+    /// Number
+    pub number: u64,
+    /// Url. Users can open it in the browser to see an html representation of the PR.
+    pub html_url: Url,
+}
 
 /// Open a pull request with the next packages versions of a local rust project
+/// Returns:
+/// - [`ReleasePrOutcome`] if release-plz opened or updated a PR.
+/// - [`None`] if release-plz didn't open any pr. This happens when all packages
+///   are up-to-date.
 #[instrument(skip_all)]
-pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
+pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<ReleasePr>> {
     let manifest_dir = input.update_request.local_manifest_dir()?;
     let original_project_root = root_repo_path_from_manifest_dir(manifest_dir)?;
     let tmp_project_root_parent = copy_to_temp_dir(&original_project_root)?;
@@ -72,7 +88,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
         let repo = Repo::new(tmp_project_root)?;
         let there_are_commits_to_push = repo.is_clean().is_err();
         if there_are_commits_to_push {
-            open_or_update_release_pr(
+            let pr = open_or_update_release_pr(
                 &local_manifest,
                 &packages_to_update,
                 &git_client,
@@ -81,10 +97,11 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<()> {
                 input.labels.clone(),
             )
             .await?;
+            return Ok(Some(pr));
         }
     }
 
-    Ok(())
+    Ok(None)
 }
 
 async fn open_or_update_release_pr(
@@ -94,7 +111,7 @@ async fn open_or_update_release_pr(
     repo: &Repo,
     draft: bool,
     pr_labels: Vec<String>,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<ReleasePr> {
     let mut opened_release_prs = git_client
         .opened_prs(BRANCH_PREFIX)
         .await
@@ -131,51 +148,66 @@ async fn open_or_update_release_pr(
         .with_labels(pr_labels)
     };
     match opened_release_prs.first() {
-        Some(opened_pr) => {
-            let pr_commits = git_client
-                .pr_commits(opened_pr.number)
-                .await
-                .context("cannot get commits of release-plz pr")?;
-            let pr_contributors = contributors_from_commits(&pr_commits);
-            if pr_contributors.is_empty() {
-                // There are no contributors, so we can force-push
-                // in this PR, because we don't care about the git history.
-                let update_outcome =
-                    update_pr(git_client, opened_pr, pr_commits.len(), repo, &new_pr).await;
-                if let Err(e) = update_outcome {
-                    tracing::error!("cannot update release pr {}: {:?}. I'm closing the old release pr and opening a new one", opened_pr.number, e);
-                    git_client
-                        .close_pr(opened_pr.number)
-                        .await
-                        .context("cannot close old release-plz prs")?;
-                    create_pr(git_client, repo, &new_pr).await?
-                }
-            } else {
-                // There's a contributor, so we don't want to force-push in this PR.
-                // We close it because we want to save the contributor's work.
-                // TODO improvement: check how many lines the commit added, if no lines (for example a merge to update the branch),
-                //      then don't count it as a contributor.
-                info!("closing pr {} to preserve git history", opened_pr.html_url);
+        Some(opened_pr) => handle_opened_pr(git_client, opened_pr, repo, &new_pr).await,
+        None => create_pr(git_client, repo, &new_pr).await,
+    }
+}
+
+async fn handle_opened_pr(
+    git_client: &GitClient,
+    opened_pr: &GitPr,
+    repo: &Repo,
+    new_pr: &Pr,
+) -> Result<ReleasePr, anyhow::Error> {
+    let pr_commits = git_client
+        .pr_commits(opened_pr.number)
+        .await
+        .context("cannot get commits of release-plz pr")?;
+    let pr_contributors = contributors_from_commits(&pr_commits);
+    Ok(if pr_contributors.is_empty() {
+        // There are no contributors, so we can force-push
+        // in this PR, because we don't care about the git history.
+        match update_pr(git_client, opened_pr, pr_commits.len(), repo, new_pr).await {
+            Ok(()) => ReleasePr {
+                number: opened_pr.number,
+                branch: opened_pr.branch().to_string(),
+                html_url: opened_pr.html_url.clone(),
+            },
+            Err(e) => {
+                tracing::error!("cannot update release pr {}: {:?}. I'm closing the old release pr and opening a new one", opened_pr.number, e);
                 git_client
                     .close_pr(opened_pr.number)
                     .await
                     .context("cannot close old release-plz prs")?;
-                create_pr(git_client, repo, &new_pr).await?
+                create_pr(git_client, repo, new_pr).await?
             }
         }
-        None => create_pr(git_client, repo, &new_pr).await?,
-    }
-    Ok(())
+    } else {
+        // There's a contributor, so we don't want to force-push in this PR.
+        // We close it because we want to save the contributor's work.
+        // TODO improvement: check how many lines the commit added, if no lines (for example a merge to update the branch),
+        //      then don't count it as a contributor.
+        info!("closing pr {} to preserve git history", opened_pr.html_url);
+        git_client
+            .close_pr(opened_pr.number)
+            .await
+            .context("cannot close old release-plz prs")?;
+        create_pr(git_client, repo, new_pr).await?
+    })
 }
 
-async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Result<()> {
+async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Result<ReleasePr> {
     if matches!(git_client.backend, BackendType::Github) {
         github_create_release_branch(git_client, repo, &pr.branch).await?;
     } else {
         create_release_branch(repo, &pr.branch)?;
     }
-    git_client.open_pr(pr).await.context("Failed to open PR")?;
-    Ok(())
+    let git_pr = git_client.open_pr(pr).await.context("Failed to open PR")?;
+    Ok(ReleasePr {
+        number: git_pr.number,
+        branch: git_pr.branch().to_string(),
+        html_url: git_pr.html_url,
+    })
 }
 
 async fn update_pr(
