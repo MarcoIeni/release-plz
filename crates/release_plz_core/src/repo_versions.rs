@@ -31,7 +31,7 @@ impl RepoVersions {
 ///   `contains_multiple_pub_packages` is `false`
 /// * `RepoVersions::ByPackage` if all version tags are of the form '{package}-v{version}' and
 ///   `contains_multiple_pub_packages` is `true`
-/// * Panics otherwise.
+/// * `Err` otherwise
 pub fn get_repo_versions(
     repo: &Repo,
     contains_multiple_pub_packages: bool,

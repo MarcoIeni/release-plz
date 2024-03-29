@@ -409,7 +409,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     let repository_packages = repo_versions::get_repo_versions(
         &repository.repo,
         local_project.contains_multiple_pub_packages,
-    )?;
+    );
 
     let packages_to_update = updater.packages_to_update(
         &registry_packages,
@@ -935,7 +935,8 @@ impl Updater<'_> {
             .context("can't checkout head to calculate diff")?;
         let registry_package = registry_packages.get_registry_package(&package.name);
         let repository_version = repository_packages
-            .and_then(|repo_versions| repo_versions.get_package_version(&package.name));
+            .map(|repo_versions| repo_versions.get_package_version(&package.name))
+            .flatten();
         let mut diff = Diff::new(if git_only {
             repository_version.is_some()
         } else {
