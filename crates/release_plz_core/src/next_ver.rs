@@ -643,6 +643,120 @@ fn check_overrides_typos(
     Ok(())
 }
 
+fn get_cargo_lock_path(project: &Project, repository: &Repo) -> anyhow::Result<Option<String>> {
+    let project_cargo_lock = project.cargo_lock_path();
+    let relative_lock_path = strip_prefix(&project_cargo_lock, &project.root)?;
+    let repository_cargo_lock = repository.directory().join(relative_lock_path);
+    if repository_cargo_lock.exists() {
+        Ok(Some(repository_cargo_lock.to_string()))
+    } else {
+        Ok(None)
+    }
+}
+
+enum BasePackage<'a> {
+    Registry(&'a Package),
+    Repository { name: &'a str, version: &'a Version },
+}
+
+impl<'a> BasePackage<'a> {
+    pub fn get(
+        name: &str,
+        registry_packages: &PackagesCollection,
+        repository_packages: Option<&RepoVersions>,
+        git_only: bool,
+    ) -> Option<Self> {
+        if git_only {
+            repository_packages
+                .and_then(|repo_versions| repo_versions.get_package_version(name))
+                .map(|version| Self::Repository { name, version })
+        } else {
+            registry_packages
+                .get_package(name)
+                .map(|registry_package| Self::Registry(registry_package))
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        match self {
+            Self::Registry(registry_package) => &registry_package.name,
+            Self::Repository { name, version: _ } => name,
+        }
+    }
+
+    pub fn source(&self) -> &str {
+        match self {
+            Self::Registry(_) => "package registry",
+            Self::Repository {
+                name: _,
+                version: _,
+            } => "git repository",
+        }
+    }
+
+    pub fn version(&self) -> &Version {
+        match self {
+            Self::Registry(registry_package) => &registry_package.version,
+            Self::Repository { name: _, version } => version,
+        }
+    }
+
+    /// Compares `package` against this base package and returns `true` if they are equal.
+    fn is_equal_to(
+        &self,
+        package: &Package,
+        package_path: &Utf8Path,
+        repository: &Repo,
+        project: &Project,
+    ) -> anyhow::Result<bool> {
+        match self {
+            Self::Registry(registry_package) => {
+                let registry_package_path = registry_package.package_path()?;
+                if is_readme_updated(package_path, package, registry_package_path)? {
+                    debug!("{}: README updated", package.name);
+                    return Ok(false);
+                }
+                // We run `cargo package` when comparing packages, which can edit files, such as `Cargo.lock`.
+                // Store its path so it can be reverted after comparison.
+                let cargo_lock_path = get_cargo_lock_path(project, repository)
+                    .context("failed to determine Cargo.lock path")?;
+                let are_packages_equal = are_packages_equal(package_path, registry_package_path)
+                    .context("cannot compare packages")?;
+                if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
+                    // Revert any changes to `Cargo.lock`
+                    repository
+                        .checkout(cargo_lock_path)
+                        .context("cannot revert changes introduced when comparing packages")?;
+                }
+                Ok(are_packages_equal)
+            }
+            Self::Repository { name, version } => {}
+        }
+    }
+
+    /// Returns `true` if `package`'s `Cargo.toml` has been updated compared to this base package.
+    pub fn are_toml_dependencies_updated(&self, package: &Package) -> bool {
+        match self {
+            Self::Registry(registry_package) => {
+                are_toml_dependencies_updated(&registry_package.dependencies, &package.dependencies)
+            }
+            Self::Repository { name, version } => {}
+        }
+    }
+
+    /// Returns `true` if `package`'s `Cargo.lock` has been updated compared to this base package.
+    pub fn are_lock_dependencies_updated(&self, project: &Project) -> anyhow::Result<bool> {
+        match self {
+            Self::Registry(registry_package) => lock_compare::are_lock_dependencies_updated(
+                &project.cargo_lock_path(),
+                registry_package.package_path()?,
+            )
+            .context("Can't check if Cargo.lock dependencies are up to date"),
+            Self::Repository { name, version } => {}
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct UpdateResult {
     pub version: Version,
