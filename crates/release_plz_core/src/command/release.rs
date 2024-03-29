@@ -418,6 +418,7 @@ pub struct GitRelease {
     pub backend: GitBackend,
 }
 
+#[derive(Serialize)]
 pub struct Release {
     packages: Vec<PackageRelease>,
 }
@@ -435,7 +436,7 @@ pub struct PackageRelease {
 
 /// Release the project as it is.
 #[instrument(skip(input))]
-pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
+pub async fn release(input: &ReleaseRequest) -> anyhow::Result<Option<Release>> {
     let overrides = input.packages_config.overrides.keys().cloned().collect();
     let project = Project::new(
         &input.local_manifest(),
@@ -452,7 +453,14 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<()> {
             package_releases.push(pkg_release);
         }
     }
-    Ok(())
+    let release = if package_releases.is_empty() {
+        None
+    } else {
+        Some(Release {
+            packages: package_releases,
+        })
+    };
+    Ok(release)
 }
 
 async fn release_package_if_needed(
@@ -472,6 +480,7 @@ async fn release_package_if_needed(
     }
     let registry_indexes = registry_indexes(package, input.registry.clone())
         .context("can't determine registry indexes")?;
+    let mut package_was_released = true;
     for mut index in registry_indexes {
         if is_published(&mut index, package, input.publish_timeout)
             .await
@@ -480,21 +489,25 @@ async fn release_package_if_needed(
             info!("{} {}: already published", package.name, package.version);
             continue;
         }
-        release_package(
+        let package_was_released_at_index = release_package(
             &mut index,
             package,
             input,
             git_tag.clone(),
             release_name.clone(),
+            &repo,
         )
         .await
         .context("failed to release package")?;
+
+        package_was_released = package_was_released && package_was_released_at_index;
     }
-    Ok(Some(PackageRelease {
+    let package_release = package_was_released.then_some(PackageRelease {
         name: package.name.clone(),
         version: package.version.clone(),
         tag: git_tag,
-    }))
+    });
+    Ok(package_release)
 }
 
 /// Get the indexes where the package should be published.
@@ -531,16 +544,16 @@ fn registry_indexes(
     Ok(registry_indexes)
 }
 
+/// Return `true` if package was published, `false` otherwise.
 async fn release_package(
     index: &mut CargoIndex,
     package: &Package,
     input: &ReleaseRequest,
     git_tag: String,
     release_name: String,
-) -> anyhow::Result<()> {
+    repo: &Repo,
+) -> anyhow::Result<bool> {
     let workspace_root = &input.metadata.workspace_root;
-
-    let repo = Repo::new(workspace_root)?;
 
     let publish = input.is_publish_enabled(&package.name);
     if publish {
@@ -559,6 +572,7 @@ async fn release_package(
             "{} {}: aborting upload due to dry run",
             package.name, package.version
         );
+        Ok(false)
     } else {
         if publish {
             wait_until_published(index, package, input.publish_timeout).await?;
@@ -593,9 +607,8 @@ async fn release_package(
         }
 
         info!("published {} {}", package.name, package.version);
+        Ok(true)
     }
-
-    Ok(())
 }
 
 pub struct GitReleaseInfo {

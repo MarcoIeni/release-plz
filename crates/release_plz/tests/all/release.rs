@@ -18,7 +18,18 @@ async fn release_plz_releases_a_new_project_with_custom_tag_name() {
 
     assert!(!is_tag_created());
 
-    context.run_release().success();
+    let outcome = context.run_release().success();
+    let expected_stdout = serde_json::json!({
+        "packages":[
+            {
+                "name": crate_name,
+                "version": "0.1.0",
+                "tag": expected_tag,
+            }
+        ]
+    })
+    .to_string();
+    outcome.stdout(expected_stdout);
 
     assert!(is_tag_created());
 }
@@ -84,4 +95,30 @@ async fn release_plz_releases_after_release_pr_merged() {
         - cargo init
         - Initial commit"#]]
     .assert_eq(&gitea_release.body);
+}
+
+#[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_plz_does_not_releases_twice() {
+    let context = TestContext::new().await;
+
+    let crate_name = &context.gitea.repo;
+
+    // Running `release` the first time, releases the project
+    let outcome = context.run_release().success();
+    let expected_stdout = serde_json::json!({
+        "packages":[
+            {
+                "name": crate_name,
+                "version": "0.1.0",
+                "tag": "v0.1.0",
+            }
+        ]
+    })
+    .to_string();
+    outcome.stdout(expected_stdout);
+
+    // Running `release` the second time, releases nothing.
+    let outcome = context.run_release().success();
+    outcome.stdout("");
 }

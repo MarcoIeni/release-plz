@@ -47,3 +47,18 @@ Then you can run `release-plz release` in Gitlab CI with the following arguments
 `releases-plz` also supports creating releases on Gitea with the `--backend gitea` option.
 
 TODO: document how to create a token on Gitea.
+
+## Json output
+
+You can get info about the outcome of this command by appending `-o json` to the command.
+Stdout will contain info about the release:
+
+```json
+{
+  "packages": [
+        TODO
+  ]
+}
+```
+
+If release-plz didn't release any packages, the `packages` array will be empty.

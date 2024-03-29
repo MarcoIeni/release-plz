@@ -6,7 +6,7 @@ use clap::ValueEnum;
 use release_plz_core::{GitBackend, GitHub, Gitea, RepoUrl};
 use secrecy::SecretString;
 
-use super::update::Update;
+use super::{update::Update, OutputType};
 
 #[derive(clap::Parser, Debug)]
 pub struct ReleasePr {
@@ -18,6 +18,8 @@ pub struct ReleasePr {
     /// Kind of git host where your project is hosted.
     #[arg(long, value_enum, default_value_t = GitBackendKind::Github)]
     backend: GitBackendKind,
+    #[arg(short, long, value_enum)]
+    pub output: Option<OutputType>,
 }
 
 #[derive(ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]

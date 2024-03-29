@@ -10,7 +10,7 @@ use secrecy::SecretString;
 
 use crate::config::Config;
 
-use super::repo_command::RepoCommand;
+use super::{repo_command::RepoCommand, OutputType};
 
 #[derive(clap::Parser, Debug)]
 pub struct Release {
@@ -59,6 +59,8 @@ pub struct Release {
         value_parser = PathBufValueParser::new()
     )]
     config: Option<PathBuf>,
+    #[arg(short, long, value_enum)]
+    pub output: Option<OutputType>,
 }
 
 #[derive(ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]
@@ -199,6 +201,7 @@ mod tests {
             git_token: None,
             backend: ReleaseGitBackendKind::Github,
             config: None,
+            output: None,
         }
     }
 
