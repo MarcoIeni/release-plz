@@ -1091,9 +1091,9 @@ impl Updater<'_> {
             .project
             .git_tag(&package.name, &package.version.to_string());
         let tag_commit = repository.get_tag_commit(&git_tag);
-        match (tag_commit.clone(), base_package.clone()) {
+        match (tag_commit.as_ref(), base_package.as_ref()) {
             (Some(_), None) => {
-                base_package.clone().with_context(|| format!("package `{}` not found in the registry, but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish this package.", package.name))?;
+                base_package.as_ref().with_context(|| format!("package `{}` not found in the registry, but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish this package.", package.name))?;
             }
             (Some(_), Some(BasePackage::Registry(registry_package))) => {
                 anyhow::ensure!(
@@ -1106,38 +1106,41 @@ impl Updater<'_> {
         }
         self.get_package_diff(
             &package_path,
+            &paths_to_check,
             package,
-            registry_package,
+            base_package,
             repository,
             tag_commit,
             &mut diff,
         )?;
+
         repository
             .checkout_head()
             .context("can't checkout to head after calculating diff")?;
+
         Ok(diff)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn get_package_diff(
         &self,
         package_path: &Utf8Path,
+        paths_to_check: &[&Path],
         package: &Package,
         base_package: Option<BasePackage>,
         repository: &Repo,
         tag_commit: Option<String>,
         diff: &mut Diff,
     ) -> anyhow::Result<()> {
-        let pathbufs_to_check = pathbufs_to_check(package_path, package);
-        let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
-        loop {
+         loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
             if let Some(base_package) = &base_package {
                 debug!(
-                    "package {} found in cargo registry",
-                    registry_package.package.name
+                    "package {} found in {}",
+                    base_package.name(),
+                    base_package.source()
                 );
-                let registry_package_path = registry_package.package.package_path()?;
 
                 let are_packages_equal =
                     base_package.is_equal_to(package, package_path, repository, self.project)?;
@@ -1145,7 +1148,6 @@ impl Updater<'_> {
                     || is_commit_too_old(
                         repository,
                         tag_commit.as_deref(),
-                        registry_package.published_at_sha1(),
                         &current_commit_hash,
                     )
                 {
@@ -1158,7 +1160,7 @@ impl Updater<'_> {
                     // as part of the release.
                     // We can process the next create.
                     break;
-                } else if registry_package.package.version != package.version {
+                } else if base_package.version() != &package.version {
                     info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
                     diff.set_version_unpublished();
                     break;
@@ -1185,50 +1187,13 @@ impl Updater<'_> {
         Ok(())
     }
 
-    fn check_package_equality(
-        &self,
-        repository: &Repo,
-        package: &Package,
-        package_path: &Utf8Path,
-        registry_package_path: &Utf8Path,
-    ) -> anyhow::Result<bool> {
-        if is_readme_updated(package_path, package, registry_package_path)? {
-            debug!("{}: README updated", package.name);
-            return Ok(false);
-        }
-        // We run `cargo package` when comparing packages, which can edit files, such as `Cargo.lock`.
-        // Store its path so it can be reverted after comparison.
-        let cargo_lock_path = self
-            .get_cargo_lock_path(repository)
-            .context("failed to determine Cargo.lock path")?;
-        let are_packages_equal = are_packages_equal(package_path, registry_package_path)
-            .context("cannot compare packages")?;
-        if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
-            // Revert any changes to `Cargo.lock`
-            repository
-                .checkout(cargo_lock_path)
-                .context("cannot revert changes introduced when comparing packages")?;
-        }
-        Ok(are_packages_equal)
-    }
-
     fn add_dependencies_update_if_any(
         &self,
         diff: &mut Diff,
-        registry_package: &Package,
         package: &Package,
-        registry_package_path: &Utf8Path,
+        base_package: &BasePackage,
     ) -> anyhow::Result<()> {
-        let are_toml_dependencies_updated =
-            || are_toml_dependencies_updated(&registry_package.dependencies, &package.dependencies);
-        let are_lock_dependencies_updated = || {
-            lock_compare::are_lock_dependencies_updated(
-                &self.project.cargo_lock_path(),
-                registry_package_path,
-            )
-            .context("Can't check if Cargo.lock dependencies are up to date")
-        };
-        if are_toml_dependencies_updated() {
+        if base_package.are_toml_dependencies_updated(package) {
             diff.commits.push(Commit::new(
                 NO_COMMIT_ID.to_string(),
                 "chore: update Cargo.toml dependencies".to_string(),
@@ -1242,17 +1207,6 @@ impl Updater<'_> {
             info!("{}: already up to date", package.name);
         }
         Ok(())
-    }
-
-    fn get_cargo_lock_path(&self, repository: &Repo) -> anyhow::Result<Option<String>> {
-        let project_cargo_lock = self.project.cargo_lock_path();
-        let relative_lock_path = strip_prefix(&project_cargo_lock, &self.project.root)?;
-        let repository_cargo_lock = repository.directory().join(relative_lock_path);
-        if repository_cargo_lock.exists() {
-            Ok(Some(repository_cargo_lock.to_string()))
-        } else {
-            Ok(None)
-        }
     }
 }
 
