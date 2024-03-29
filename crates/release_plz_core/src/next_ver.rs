@@ -32,7 +32,7 @@ use regex::Regex;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     fs, io,
-    path::Path,
+    path::{Path, PathBuf},
 };
 use tracing::{debug, info, instrument, warn};
 
@@ -654,6 +654,7 @@ fn get_cargo_lock_path(project: &Project, repository: &Repo) -> anyhow::Result<O
     }
 }
 
+#[derive(Debug, Clone)]
 enum BasePackage<'a> {
     Registry(&'a Package),
     Repository { name: &'a str, version: &'a Version },
@@ -661,9 +662,9 @@ enum BasePackage<'a> {
 
 impl<'a> BasePackage<'a> {
     pub fn new(
-        name: &str,
-        registry_packages: &PackagesCollection,
-        repository_packages: Option<&RepoVersions>,
+        name: &'a str,
+        registry_packages: &'a PackagesCollection,
+        repository_packages: Option<&'a RepoVersions>,
         git_only: bool,
     ) -> Option<Self> {
         if git_only {
@@ -680,24 +681,21 @@ impl<'a> BasePackage<'a> {
     pub fn name(&self) -> &str {
         match self {
             Self::Registry(registry_package) => &registry_package.name,
-            Self::Repository { name, version: _ } => name,
+            Self::Repository { name, .. } => name,
         }
     }
 
     pub fn source(&self) -> &str {
         match self {
             Self::Registry(_) => "package registry",
-            Self::Repository {
-                name: _,
-                version: _,
-            } => "git repository",
+            Self::Repository { .. } => "git repository",
         }
     }
 
     pub fn version(&self) -> &Version {
         match self {
             Self::Registry(registry_package) => &registry_package.version,
-            Self::Repository { name: _, version } => version,
+            Self::Repository { version, .. } => version,
         }
     }
 
@@ -730,7 +728,9 @@ impl<'a> BasePackage<'a> {
                 }
                 Ok(are_packages_equal)
             }
-            Self::Repository { name, version } => {}
+            Self::Repository { name, version } => {
+                unimplemented!("implement logic to compare `package` against the base package")
+            }
         }
     }
 
@@ -740,7 +740,9 @@ impl<'a> BasePackage<'a> {
             Self::Registry(registry_package) => {
                 are_toml_dependencies_updated(&registry_package.dependencies, &package.dependencies)
             }
-            Self::Repository { name, version } => {}
+            Self::Repository { name, version } => {
+                unimplemented!("implement logic to compare `cargo.toml` against the base package")
+            }
         }
     }
 
@@ -752,7 +754,9 @@ impl<'a> BasePackage<'a> {
                 registry_package.package_path()?,
             )
             .context("Can't check if Cargo.lock dependencies are up to date"),
-            Self::Repository { name, version } => {}
+            Self::Repository { name, version } => {
+                unimplemented!("implement logic to compare `cargo.lock` against the base package")
+            }
         }
     }
 }
@@ -1058,10 +1062,12 @@ impl Updater<'_> {
         );
 
         let mut diff = Diff::new(base_package.is_some());
-        let paths_to_check: Vec<&Path> = pathbufs_to_check(&package_path, package)
+        let package_clone = package.clone();
+        let paths_to_check: Vec<PathBuf> = pathbufs_to_check(&package_path, &package_clone)
             .iter()
-            .map(|p| p.as_ref())
+            .map(|p| p.clone().into_std_path_buf())
             .collect();
+        let paths_to_check: Vec<&Path> = paths_to_check.iter().map(|p| p.as_path()).collect();
         if let Err(err) = repository.checkout_last_commit_at_paths(&paths_to_check) {
             if err
                 .to_string()
@@ -1078,13 +1084,18 @@ impl Updater<'_> {
             .project
             .git_tag(&package.name, &package.version.to_string());
         let tag_commit = repository.get_tag_commit(&git_tag);
-        if tag_commit.is_some() {
-            let registry_package = registry_package.with_context(|| format!("package `{}` not found in the registry, but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish this package.", package.name))?;
-            anyhow::ensure!(
-                registry_package.package.version == package.version,
-                "package `{}` has a different version ({}) with respect to the registry package ({}), but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish the new version of this package.",
-                package.name, package.version, registry_package.package.version
-            )
+        match (tag_commit.clone(), base_package.clone()) {
+            (Some(_), None) => {
+                base_package.clone().with_context(|| format!("package `{}` not found in the registry, but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish this package.", package.name))?;
+            }
+            (Some(_), Some(BasePackage::Registry(registry_package))) => {
+                anyhow::ensure!(
+                    registry_package.package.version == package.version,
+                    "package `{}` has a different version ({}) with respect to the registry package ({}), but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish the new version of this package.",
+                    package.name, package.version, registry_package.package.version
+                )
+            }
+            _ => (),
         }
         self.get_package_diff(
             &package_path,
@@ -1104,7 +1115,7 @@ impl Updater<'_> {
         &self,
         package_path: &Utf8Path,
         package: &Package,
-        registry_package: Option<&RegistryPackage>,
+        base_package: Option<BasePackage>,
         repository: &Repo,
         tag_commit: Option<String>,
         diff: &mut Diff,
@@ -1114,7 +1125,7 @@ impl Updater<'_> {
         loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
-            if let Some(registry_package) = registry_package {
+            if let Some(base_package) = &base_package {
                 debug!(
                     "package {} found in cargo registry",
                     registry_package.package.name
