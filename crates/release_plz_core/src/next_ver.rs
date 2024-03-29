@@ -672,9 +672,7 @@ impl<'a> BasePackage<'a> {
                 .and_then(|repo_versions| repo_versions.get_package_version(name))
                 .map(|version| Self::Repository { name, version })
         } else {
-            registry_packages
-                .get_package(name)
-                .map(|registry_package| Self::Registry(registry_package))
+            registry_packages.get_package(name).map(Self::Registry)
         }
     }
 
@@ -728,7 +726,10 @@ impl<'a> BasePackage<'a> {
                 }
                 Ok(are_packages_equal)
             }
-            Self::Repository { name, version } => {
+            Self::Repository {
+                name: _,
+                version: _,
+            } => {
                 unimplemented!("implement logic to compare `package` against the base package")
             }
         }
@@ -740,7 +741,10 @@ impl<'a> BasePackage<'a> {
             Self::Registry(registry_package) => {
                 are_toml_dependencies_updated(&registry_package.dependencies, &package.dependencies)
             }
-            Self::Repository { name, version } => {
+            Self::Repository {
+                name: _,
+                version: _,
+            } => {
                 unimplemented!("implement logic to compare `cargo.toml` against the base package")
             }
         }
@@ -754,7 +758,10 @@ impl<'a> BasePackage<'a> {
                 registry_package.package_path()?,
             )
             .context("Can't check if Cargo.lock dependencies are up to date"),
-            Self::Repository { name, version } => {
+            Self::Repository {
+                name: _,
+                version: _,
+            } => {
                 unimplemented!("implement logic to compare `cargo.lock` against the base package")
             }
         }
@@ -1132,12 +1139,8 @@ impl Updater<'_> {
                 );
                 let registry_package_path = registry_package.package.package_path()?;
 
-                let are_packages_equal = self.check_package_equality(
-                    repository,
-                    package,
-                    package_path,
-                    registry_package_path,
-                )?;
+                let are_packages_equal =
+                    base_package.is_equal_to(package, package_path, repository, self.project)?;
                 if are_packages_equal
                     || is_commit_too_old(
                         repository,
@@ -1148,12 +1151,7 @@ impl Updater<'_> {
                 {
                     debug!("next version calculated starting from commits after `{current_commit_hash}`");
                     if diff.commits.is_empty() {
-                        self.add_dependencies_update_if_any(
-                            diff,
-                            &registry_package.package,
-                            package,
-                            registry_package_path,
-                        )?;
+                        self.add_dependencies_update_if_any(diff, package, base_package)?;
                     }
                     // The local package is identical to the registry one, which means that
                     // the package was published at this commit, so we will not count this commit
@@ -1179,7 +1177,7 @@ impl Updater<'_> {
                     current_commit_message.clone(),
                 ));
             }
-            if let Err(_err) = repository.checkout_previous_commit_at_paths(&paths_to_check) {
+            if let Err(_err) = repository.checkout_previous_commit_at_paths(paths_to_check) {
                 debug!("there are no other commits");
                 break;
             }
@@ -1235,7 +1233,7 @@ impl Updater<'_> {
                 NO_COMMIT_ID.to_string(),
                 "chore: update Cargo.toml dependencies".to_string(),
             ));
-        } else if are_lock_dependencies_updated()? {
+        } else if base_package.are_lock_dependencies_updated(self.project)? {
             diff.commits.push(Commit::new(
                 NO_COMMIT_ID.to_string(),
                 "chore: update Cargo.lock dependencies".to_string(),
