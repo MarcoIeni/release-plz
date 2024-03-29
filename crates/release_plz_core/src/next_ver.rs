@@ -660,7 +660,7 @@ enum BasePackage<'a> {
 }
 
 impl<'a> BasePackage<'a> {
-    pub fn get(
+    pub fn new(
         name: &str,
         registry_packages: &PackagesCollection,
         repository_packages: Option<&RepoVersions>,
@@ -1041,23 +1041,27 @@ impl Updater<'_> {
     ) -> anyhow::Result<Diff> {
         let package_path = get_package_path(package, repository, &self.project.root)
             .context("failed to determine package path")?;
-        let package_config: PackageUpdateConfig = self.req.get_package_config(&package.name);
-        let git_only = package_config.git_only();
-
         repository
             .checkout_head()
             .context("can't checkout head to calculate diff")?;
-        let registry_package = registry_packages.get_registry_package(&package.name);
-        let repository_version = repository_packages
-            .map(|repo_versions| repo_versions.get_package_version(&package.name))
-            .flatten();
-        let mut diff = Diff::new(if git_only {
-            repository_version.is_some()
-        } else {
-            registry_package.is_some()
-        });
-        let pathbufs_to_check = pathbufs_to_check(&package_path, package);
-        let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
+
+        let package_config: PackageUpdateConfig = self.req.get_package_config(&package.name);
+        // if git_only is true, the diff is determined from the last tagged version in the
+        // repository, otherwise it is from the last released version.
+        let git_only = package_config.git_only();
+        // get the package to diff against
+        let base_package = BasePackage::new(
+            &package.name,
+            registry_packages,
+            repository_packages,
+            git_only,
+        );
+
+        let mut diff = Diff::new(base_package.is_some());
+        let paths_to_check: Vec<&Path> = pathbufs_to_check(&package_path, package)
+            .iter()
+            .map(|p| p.as_ref())
+            .collect();
         if let Err(err) = repository.checkout_last_commit_at_paths(&paths_to_check) {
             if err
                 .to_string()
