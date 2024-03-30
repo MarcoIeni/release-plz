@@ -53,9 +53,9 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
                 .with_labels(pr_labels);
             let release_pr = release_plz_core::release_pr(&request).await?;
             if let Some(release_pr) = release_pr {
-                cmd_args
-                    .output
-                    .map(|output_type| maybe_print_output(output_type, release_pr));
+                if let Some(output_type) = cmd_args.output {
+                    maybe_print_output(output_type, release_pr)
+                }
             }
         }
         Command::Release(cmd_args) => {
@@ -64,7 +64,9 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let cmd_args_output = cmd_args.output;
             let request: ReleaseRequest = cmd_args.release_request(config, cargo_metadata)?;
             if let Some(release) = release_plz_core::release(&request).await? {
-                cmd_args_output.map(|output_type| maybe_print_output(output_type, release));
+                if let Some(output_type) = cmd_args_output {
+                    maybe_print_output(output_type, release)
+                }
             }
         }
         Command::GenerateCompletions(cmd_args) => cmd_args.print(),
