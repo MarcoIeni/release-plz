@@ -4243,7 +4243,7 @@ dependencies = [
  "git-cliff-core",
  "git-url-parse",
  "git_cmd",
- "http 0.2.12",
+ "http 1.1.0",
  "ignore",
  "lazy_static",
  "next_version 0.2.15",

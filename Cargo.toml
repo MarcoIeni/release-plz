@@ -27,7 +27,7 @@ fake = "2.9.2"
 fs-err = "2.11.0"
 git-cliff-core = { version = "2.1.2", default-features = false }
 git-url-parse = "0.4.4"
-http = "0.2.12"
+http = "1.1.0"
 ignore = "0.4.22"
 lazy_static = "1.4.0"
 once_cell = "1.19.0"
