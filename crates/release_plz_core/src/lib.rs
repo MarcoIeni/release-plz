@@ -1,4 +1,5 @@
 mod cargo;
+mod cargo_vcs_info;
 mod changelog;
 mod changelog_parser;
 mod clone;
@@ -21,7 +22,6 @@ mod tera;
 mod tmp_repo;
 mod toml_compare;
 mod version;
-mod cargo_vcs_info;
 
 pub use changelog::*;
 pub use command::*;
