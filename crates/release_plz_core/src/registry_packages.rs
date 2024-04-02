@@ -94,7 +94,7 @@ fn initialize_registry_package(packages: Vec<Package>) -> anyhow::Result<Vec<Reg
         // cargo_vcs_info is only present if `cargo publish` wasn't used with
         // the `--allow-dirty` flag inside a git repo.
         let sha1 = if cargo_vcs_info_path.exists() {
-            let sha1 = cargo_vcs_info::read_sha1_from_cargo_vcs_info(package_path);
+            let sha1 = cargo_vcs_info::read_sha1_from_cargo_vcs_info(&cargo_vcs_info_path);
             // Remove the file, otherwise `cargo publish --list` fails
             fs_err::remove_file(cargo_vcs_info_path)?;
             sha1
