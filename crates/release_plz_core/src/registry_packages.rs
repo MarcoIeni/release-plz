@@ -2,9 +2,10 @@ use std::collections::BTreeMap;
 
 use anyhow::Context;
 use cargo_metadata::{camino::Utf8Path, Package};
+use git_cmd::git_in_dir;
 use tempfile::{tempdir, TempDir};
 
-use crate::{download, next_ver};
+use crate::{download, next_ver, PackagePath};
 
 pub struct PackagesCollection {
     packages: BTreeMap<String, Package>,
@@ -42,10 +43,15 @@ pub fn get_registry_packages(
             let registry_packages = downloader
                 .download()
                 .context("failed to download packages")?;
+
+            // After downloading the package, we initialize a git repo in the package.
+            // This is because if cargo doesn't find a git repo in the package, it doesn't
+            // show hidden files in `cargo package --list` output.
+            initialize_git_repo(&registry_packages)?;
             (Some(temp_dir), registry_packages)
         }
     };
-    let registry_packages = registry_packages
+    let registry_packages: BTreeMap<String, Package> = registry_packages
         .into_iter()
         .map(|c| {
             let package_name = c.name.clone();
@@ -56,4 +62,17 @@ pub fn get_registry_packages(
         _temp_dir: temp_dir,
         packages: registry_packages,
     })
+}
+
+fn initialize_git_repo<'a>(packages: &[Package]) -> anyhow::Result<()> {
+    for p in packages {
+        let package_path = p.package_path().unwrap();
+        let git_repo = package_path.join(".git");
+        if !git_repo.exists() {
+            git_in_dir(package_path, &["init"])?;
+            git_in_dir(package_path, &["add", "."])?;
+            git_in_dir(package_path, &["commit", "-m", "init"]).unwrap();
+        }
+    }
+    Ok(())
 }
