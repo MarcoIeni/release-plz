@@ -1193,7 +1193,7 @@ fn is_commit_too_old(
 
     if let Some(published_commit) = published_at_commit.as_ref() {
         if repository.is_ancestor(current_commit_hash, published_commit) {
-            debug!("stopping looking at git history because the current commit ({}) is an ancestor of the commit ({}) tagged with the previous version.", current_commit_hash, published_commit);
+            debug!("stopping looking at git history because the current commit ({}) is an ancestor of the commit ({}) where the previous version was published.", current_commit_hash, published_commit);
             return true;
         }
     }
