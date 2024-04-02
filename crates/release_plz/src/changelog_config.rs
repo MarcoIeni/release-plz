@@ -1,5 +1,5 @@
 use anyhow::Context;
-use git_cliff_core::config::{ChangelogConfig, RemoteConfig};
+use git_cliff_core::config::{Bump, ChangelogConfig, RemoteConfig};
 use regex::Regex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -206,6 +206,7 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
                 limit_commits: None,
             },
             remote: RemoteConfig::default(),
+            bump: Bump::default(),
         })
     }
 }
@@ -214,7 +215,7 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
 #[cfg(test)]
 mod tests {
     use crate::config::Config;
-    use git_cliff_core::config::RemoteConfig;
+    use git_cliff_core::config::{Bump, RemoteConfig};
 
     #[test]
     fn test_deserialize_toml() {
@@ -290,6 +291,7 @@ mod tests {
                 split_commits: None,
             },
             remote: RemoteConfig::default(),
+            bump: Bump::default(),
         };
 
         let expected_cliff_toml = toml::to_string(&expected_cliff_config).unwrap();
