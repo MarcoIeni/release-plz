@@ -14,7 +14,7 @@ base64 = "0.22.0"
 camino = "1.1.6"
 cargo_metadata = "0.18.1"
 cargo = { version = "0.78.0", default-features = false }
-chrono = { version = "0.4.35", default-features = false }
+chrono = { version = "0.4.37", default-features = false }
 clap = "4.5.3"
 clap_complete = "4.5.1"
 conventional_commit_parser = "0.9.4"
