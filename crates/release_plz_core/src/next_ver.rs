@@ -6,7 +6,7 @@ use crate::{
     is_readme_updated, local_readme_override, lock_compare,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
-    registry_packages::{self, PackagesCollection},
+    registry_packages::{self, PackagesCollection, RegistryPackage},
     repo_url::RepoUrl,
     semver_check::{self, SemverCheck},
     tera::{tera_context, tera_var, PACKAGE_VAR, VERSION_VAR},
@@ -905,7 +905,7 @@ impl Updater<'_> {
         repository
             .checkout_head()
             .context("can't checkout head to calculate diff")?;
-        let registry_package = registry_packages.get_package(&package.name);
+        let registry_package = registry_packages.get_registry_package(&package.name);
         let mut diff = Diff::new(registry_package.is_some());
         let pathbufs_to_check = pathbufs_to_check(&package_path, package);
         let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
@@ -928,9 +928,9 @@ impl Updater<'_> {
         if tag_commit.is_some() {
             let registry_package = registry_package.with_context(|| format!("package `{}` not found in the registry, but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish this package.", package.name))?;
             anyhow::ensure!(
-                registry_package.version == package.version,
+                registry_package.package.version == package.version,
                 "package `{}` has a different version ({}) with respect to the registry package ({}), but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish the new version of this package.",
-                package.name, package.version, registry_package.version
+                package.name, package.version, registry_package.package.version
             )
         }
         self.get_package_diff(
@@ -951,7 +951,7 @@ impl Updater<'_> {
         &self,
         package_path: &Utf8Path,
         package: &Package,
-        registry_package: Option<&Package>,
+        registry_package: Option<&RegistryPackage>,
         repository: &Repo,
         tag_commit: Option<String>,
         diff: &mut Diff,
@@ -962,8 +962,11 @@ impl Updater<'_> {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
             if let Some(registry_package) = registry_package {
-                debug!("package {} found in cargo registry", registry_package.name);
-                let registry_package_path = registry_package.package_path()?;
+                debug!(
+                    "package {} found in cargo registry",
+                    registry_package.package.name
+                );
+                let registry_package_path = registry_package.package.package_path()?;
 
                 let are_packages_equal = self.check_package_equality(
                     repository,
@@ -972,13 +975,18 @@ impl Updater<'_> {
                     registry_package_path,
                 )?;
                 if are_packages_equal
-                    || is_commit_too_old(repository, tag_commit.as_deref(), &current_commit_hash)
+                    || is_commit_too_old(
+                        repository,
+                        tag_commit.as_deref(),
+                        registry_package.published_at_sha1(),
+                        &current_commit_hash,
+                    )
                 {
                     debug!("next version calculated starting from commits after `{current_commit_hash}`");
                     if diff.commits.is_empty() {
                         self.add_dependencies_update_if_any(
                             diff,
-                            registry_package,
+                            &registry_package.package,
                             package,
                             registry_package_path,
                         )?;
@@ -988,7 +996,7 @@ impl Updater<'_> {
                     // as part of the release.
                     // We can process the next create.
                     break;
-                } else if registry_package.version != package.version {
+                } else if registry_package.package.version != package.version {
                     info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
                     diff.set_version_unpublished();
                     break;
@@ -1168,14 +1176,24 @@ fn get_repo_path(
 }
 
 /// Check if commit belongs to a previous version of the package.
+/// `tag_commit` is the commit hash of the tag of the previous version.
+/// `published_at_commit` is the commit hash where `cargo publish` ran.
 fn is_commit_too_old(
     repository: &Repo,
     tag_commit: Option<&str>,
+    published_at_commit: Option<&str>,
     current_commit_hash: &str,
 ) -> bool {
     if let Some(tag_commit) = tag_commit.as_ref() {
         if repository.is_ancestor(current_commit_hash, tag_commit) {
             debug!("stopping looking at git history because the current commit ({}) is an ancestor of the commit ({}) tagged with the previous version.", current_commit_hash, tag_commit);
+            return true;
+        }
+    }
+
+    if let Some(published_commit) = published_at_commit.as_ref() {
+        if repository.is_ancestor(current_commit_hash, published_commit) {
+            debug!("stopping looking at git history because the current commit ({}) is an ancestor of the commit ({}) where the previous version was published.", current_commit_hash, published_commit);
             return true;
         }
     }

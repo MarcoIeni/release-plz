@@ -4239,6 +4239,7 @@ dependencies = [
  "expect-test",
  "fake",
  "fake_package",
+ "fs-err",
  "git-cliff-core",
  "git-url-parse",
  "git_cmd",
