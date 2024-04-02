@@ -21,6 +21,7 @@ mod tera;
 mod tmp_repo;
 mod toml_compare;
 mod version;
+mod cargo_vcs_info;
 
 pub use changelog::*;
 pub use command::*;
