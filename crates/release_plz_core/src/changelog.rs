@@ -535,6 +535,7 @@ mod tests {
                 },
                 git: GitConfig::default(),
                 remote: RemoteConfig::default(),
+                bump: Bump::default(),
             })
             .build();
 
@@ -562,6 +563,7 @@ mod tests {
                     ..GitConfig::default()
                 },
                 remote: RemoteConfig::default(),
+                bump: Bump::default(),
             })
             .build();
 
