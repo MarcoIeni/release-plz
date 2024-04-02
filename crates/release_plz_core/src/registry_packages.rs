@@ -86,7 +86,7 @@ pub fn get_registry_packages(
     })
 }
 
-fn initialize_registry_package<'a>(packages: Vec<Package>) -> anyhow::Result<Vec<RegistryPackage>> {
+fn initialize_registry_package(packages: Vec<Package>) -> anyhow::Result<Vec<RegistryPackage>> {
     let mut registry_packages = vec![];
     for p in packages {
         let package_path = p.package_path().unwrap();
