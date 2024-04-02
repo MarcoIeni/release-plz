@@ -27,6 +27,7 @@ cargo = { workspace = true }
 chrono = { workspace = true, features = ["clock"] }
 crates-index.workspace = true
 dunce.workspace = true
+fs-err.workspace = true
 git-cliff-core.workspace = true
 git-url-parse.workspace = true
 ignore.workspace = true
