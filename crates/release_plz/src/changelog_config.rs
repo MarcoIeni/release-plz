@@ -1,5 +1,5 @@
 use anyhow::Context;
-use git_cliff_core::config::{ChangelogConfig, RemoteConfig};
+use git_cliff_core::config::{Bump, ChangelogConfig, RemoteConfig};
 use regex::Regex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -206,6 +206,7 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
                 limit_commits: None,
             },
             remote: RemoteConfig::default(),
+            bump: Bump::default(),
         })
     }
 }

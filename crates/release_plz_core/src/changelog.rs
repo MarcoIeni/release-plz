@@ -3,7 +3,7 @@ use chrono::{NaiveDate, TimeZone, Utc};
 use git_cliff_core::{
     changelog::Changelog as GitCliffChangelog,
     commit::Commit,
-    config::{ChangelogConfig, CommitParser, Config, GitConfig, RemoteConfig},
+    config::{Bump, ChangelogConfig, CommitParser, Config, GitConfig, RemoteConfig},
     release::Release,
 };
 use regex::Regex;
@@ -69,6 +69,7 @@ impl Changelog<'_> {
             ),
             git: apply_defaults_to_git_config(user_config.git),
             remote: user_config.remote,
+            bump: Bump::default(),
         }
     }
 }
@@ -118,6 +119,7 @@ fn default_git_cliff_config() -> Config {
         changelog: ChangelogConfig::default(),
         git: GitConfig::default(),
         remote: RemoteConfig::default(),
+        bump: Bump::default(),
     }
 }
 
