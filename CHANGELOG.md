@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.57](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.56...release-plz-v0.3.57) - 2024-04-02
+
+### Fixed
+- initialize git repo for downloaded packages ([#1377](https://github.com/MarcoIeni/release-plz/pull/1377))
+
+### Other
+- update dependencies ([#1379](https://github.com/MarcoIeni/release-plz/pull/1379))
+- *(deps)* bump git-cliff-core to v2 ([#1361](https://github.com/MarcoIeni/release-plz/pull/1361))
+- fix cargo-binstall pkg-url ([#1364](https://github.com/MarcoIeni/release-plz/pull/1364))
+- emit a warning on readme file mismatch ([#1363](https://github.com/MarcoIeni/release-plz/pull/1363))
+
 ## [0.3.56](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.55...release-plz-v0.3.56) - 2024-03-24
 
 ### Added
