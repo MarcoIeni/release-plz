@@ -144,8 +144,12 @@ pub fn is_readme_updated(
             if !registry_package_readme_path.exists() {
                 return Ok(true);
             }
-            are_files_equal(&local_package_readme_path, &registry_package_readme_path)
-                .context("cannot compare README files")?
+            if let Err(e) =
+                are_files_equal(&local_package_readme_path, &registry_package_readme_path)
+            {
+                tracing::warn!("cannot compare README files: {e}");
+            }
+            true
         }
         None => true,
     };

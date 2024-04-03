@@ -203,6 +203,13 @@
             "null"
           ]
         },
+        "sha": {
+          "description": "SHA1 of the commit.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "skip": {
           "description": "Whether to skip this commit group.",
           "type": [

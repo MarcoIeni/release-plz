@@ -1,5 +1,5 @@
 use anyhow::Context;
-use git_cliff_core::config::ChangelogConfig;
+use git_cliff_core::config::{Bump, ChangelogConfig, RemoteConfig};
 use regex::Regex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -116,6 +116,8 @@ pub struct CommitParser {
     pub field: Option<String>,
     /// Regex for matching the field value.
     pub pattern: Option<String>,
+    /// SHA1 of the commit.
+    pub sha: Option<String>,
 }
 
 impl TryFrom<CommitParser> for git_cliff_core::config::CommitParser {
@@ -131,6 +133,7 @@ impl TryFrom<CommitParser> for git_cliff_core::config::CommitParser {
             skip: cfg.skip,
             field: cfg.field,
             pattern: to_opt_regex(cfg.pattern.as_deref(), "pattern")?,
+            sha: cfg.sha,
         })
     }
 }
@@ -202,6 +205,8 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
                 sort_commits,
                 limit_commits: None,
             },
+            remote: RemoteConfig::default(),
+            bump: Bump::default(),
         })
     }
 }
@@ -210,6 +215,7 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
 #[cfg(test)]
 mod tests {
     use crate::config::Config;
+    use git_cliff_core::config::{Bump, RemoteConfig};
 
     #[test]
     fn test_deserialize_toml() {
@@ -266,6 +272,7 @@ mod tests {
                     skip: Some(true),
                     field: Some("field".to_string()),
                     pattern: Some(regex::Regex::new("pattern").unwrap()),
+                    sha: None,
                 }]),
                 link_parsers: Some(vec![git_cliff_core::config::LinkParser {
                     pattern: regex::Regex::new("pattern").unwrap(),
@@ -283,6 +290,8 @@ mod tests {
                 filter_unconventional: None,
                 split_commits: None,
             },
+            remote: RemoteConfig::default(),
+            bump: Bump::default(),
         };
 
         let expected_cliff_toml = toml::to_string(&expected_cliff_config).unwrap();

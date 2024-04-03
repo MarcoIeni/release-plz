@@ -25,7 +25,7 @@ duration-str = { version = "0.7.1", default-features = false }
 expect-test = "1.4.1"
 fake = "2.9.2"
 fs-err = "2.11.0"
-git-cliff-core = { version = "1.4.0", default-features = false }
+git-cliff-core = { version = "2.1.2", default-features = false }
 git-url-parse = "0.4.4"
 http = "0.2.12"
 ignore = "0.4.22"
@@ -46,7 +46,7 @@ serde_json = "1.0.114"
 strip-ansi-escapes = "0.2.0"
 tempfile = "3.10.1"
 tera = "1.19.1"
-tokio = "1.36.0"
+tokio = "1.37.0"
 toml = { version = "0.8.12" }
 toml_edit = { version = "0.22.9" }
 tracing = "0.1.40"
