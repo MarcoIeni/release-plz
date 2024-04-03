@@ -81,7 +81,7 @@ pub struct CreateReleaseOption<'a> {
     prerelease: &'a bool,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct GitPr {
     pub number: u64,
     pub html_url: Url,
@@ -96,7 +96,7 @@ impl GitPr {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Commit {
     #[serde(rename = "ref")]
     pub ref_field: String,

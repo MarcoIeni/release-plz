@@ -50,10 +50,10 @@ impl ReleasePrRequest {
 pub struct ReleasePr {
     /// Branch
     pub branch: String,
-    /// Number
-    pub number: u64,
     /// Url. Users can open it in the browser to see an html representation of the PR.
     pub html_url: Url,
+    /// Number
+    pub number: u64,
 }
 
 /// Open a pull request with the next packages versions of a local rust project

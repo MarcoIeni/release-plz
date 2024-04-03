@@ -23,13 +23,13 @@ async fn release_plz_releases_a_new_project_with_custom_tag_name() {
         "packages":[
             {
                 "name": crate_name,
-                "version": "0.1.0",
                 "tag": expected_tag,
+                "version": "0.1.0",
             }
         ]
     })
     .to_string();
-    outcome.stdout(expected_stdout);
+    outcome.stdout(format!("{expected_stdout}\n"));
 
     assert!(is_tag_created());
 }
@@ -110,13 +110,13 @@ async fn release_plz_does_not_releases_twice() {
         "packages":[
             {
                 "name": crate_name,
-                "version": "0.1.0",
                 "tag": "v0.1.0",
+                "version": "0.1.0",
             }
         ]
     })
     .to_string();
-    outcome.stdout(expected_stdout);
+    outcome.stdout(format!("{expected_stdout}\n"));
 
     // Running `release` the second time, releases nothing.
     let outcome = context.run_release().success();

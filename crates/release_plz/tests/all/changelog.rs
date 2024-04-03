@@ -41,11 +41,12 @@ async fn release_plz_adds_changelog_on_new_project() {
 
     let expected_stdout = serde_json::json!({
         "branch": opened_pr.branch(),
-        "number": opened_pr.number,
         "html_url": opened_pr.html_url,
+        "number": opened_pr.number,
     })
     .to_string();
-    outcome.stdout(expected_stdout);
+
+    outcome.stdout(format!("{expected_stdout}\n"));
 
     let changed_files = context.gitea.changed_files_in_pr(opened_pr.number).await;
     assert_eq!(changed_files.len(), 1);
