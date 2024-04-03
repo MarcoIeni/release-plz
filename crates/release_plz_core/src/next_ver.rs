@@ -406,14 +406,14 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
-    let repository_packages = repo_versions::get_repo_versions(
+    let repository_versions = repo_versions::get_repo_versions(
         &repository.repo,
         local_project.contains_multiple_pub_packages,
     )?;
 
     let packages_to_update = updater.packages_to_update(
         &registry_packages,
-        repository_packages.as_ref(),
+        repository_versions.as_ref(),
         &repository.repo,
         input.local_manifest(),
     )?;
@@ -657,20 +657,32 @@ fn get_cargo_lock_path(project: &Project, repository: &Repo) -> anyhow::Result<O
 #[derive(Debug, Clone)]
 enum BasePackage<'a> {
     Registry(&'a RegistryPackage),
-    Repository { name: &'a str, version: &'a Version },
+    Repository {
+        name: &'a str,
+        version: &'a Version,
+        package: &'a RegistryPackage,
+    },
 }
 
 impl<'a> BasePackage<'a> {
     pub fn new(
         name: &'a str,
         registry_packages: &'a PackagesCollection,
-        repository_packages: Option<&'a RepoVersions>,
+        repository_versions: Option<&'a RepoVersions>,
         git_only: bool,
     ) -> Option<Self> {
         if git_only {
-            repository_packages
+            repository_versions
                 .and_then(|repo_versions| repo_versions.get_package_version(name))
-                .map(|version| Self::Repository { name, version })
+                .and_then(|version| {
+                    registry_packages
+                        .get_registry_package(name)
+                        .map(|package| Self::Repository {
+                            name,
+                            version,
+                            package,
+                        })
+                })
         } else {
             registry_packages
                 .get_registry_package(name)
@@ -702,7 +714,7 @@ impl<'a> BasePackage<'a> {
     pub fn publish_commit(&self) -> Option<&str> {
         match self {
             Self::Registry(registry_package) => registry_package.published_at_sha1(),
-            Self::Repository { .. } => unimplemented!(),
+            Self::Repository { package, .. } => package.published_at_sha1(),
         }
     }
 
@@ -714,67 +726,56 @@ impl<'a> BasePackage<'a> {
         repository: &Repo,
         project: &Project,
     ) -> anyhow::Result<bool> {
-        match self {
-            Self::Registry(registry_package) => {
-                let registry_package_path = registry_package.package.package_path()?;
-                if is_readme_updated(package_path, package, registry_package_path)? {
-                    debug!("{}: README updated", package.name);
-                    return Ok(false);
-                }
-                // We run `cargo package` when comparing packages, which can edit files, such as `Cargo.lock`.
-                // Store its path so it can be reverted after comparison.
-                let cargo_lock_path = get_cargo_lock_path(project, repository)
-                    .context("failed to determine Cargo.lock path")?;
-                let are_packages_equal = are_packages_equal(package_path, registry_package_path)
-                    .context("cannot compare packages")?;
-                if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
-                    // Revert any changes to `Cargo.lock`
-                    repository
-                        .checkout(cargo_lock_path)
-                        .context("cannot revert changes introduced when comparing packages")?;
-                }
-                Ok(are_packages_equal)
-            }
-            Self::Repository {
-                name: _,
-                version: _,
-            } => {
-                unimplemented!("implement logic to compare `package` against the base package")
-            }
+        let registry_package = match self {
+            Self::Registry(registry_package) => registry_package,
+            Self::Repository { package, .. } => package,
+        };
+
+        let registry_package_path = registry_package.package.package_path()?;
+        if is_readme_updated(package_path, package, registry_package_path)? {
+            debug!("{}: README updated", package.name);
+            return Ok(false);
         }
+        // We run `cargo package` when comparing packages, which can edit files, such as `Cargo.lock`.
+        // Store its path so it can be reverted after comparison.
+        let cargo_lock_path = get_cargo_lock_path(project, repository)
+            .context("failed to determine Cargo.lock path")?;
+        let are_packages_equal = are_packages_equal(package_path, registry_package_path)
+            .context("cannot compare packages")?;
+        if let Some(cargo_lock_path) = cargo_lock_path.as_deref() {
+            // Revert any changes to `Cargo.lock`
+            repository
+                .checkout(cargo_lock_path)
+                .context("cannot revert changes introduced when comparing packages")?;
+        }
+        Ok(are_packages_equal)
     }
 
     /// Returns `true` if `package`'s `Cargo.toml` has been updated compared to this base package.
     pub fn are_toml_dependencies_updated(&self, package: &Package) -> bool {
-        match self {
-            Self::Registry(registry_package) => are_toml_dependencies_updated(
-                &registry_package.package.dependencies,
-                &package.dependencies,
-            ),
-            Self::Repository {
-                name: _,
-                version: _,
-            } => {
-                unimplemented!("implement logic to compare `cargo.toml` against the base package")
-            }
-        }
+        let registry_package = match self {
+            Self::Registry(registry_package) => registry_package,
+            Self::Repository { package, .. } => package,
+        };
+
+        are_toml_dependencies_updated(
+            &registry_package.package.dependencies,
+            &package.dependencies,
+        )
     }
 
     /// Returns `true` if `package`'s `Cargo.lock` has been updated compared to this base package.
     pub fn are_lock_dependencies_updated(&self, project: &Project) -> anyhow::Result<bool> {
-        match self {
-            Self::Registry(registry_package) => lock_compare::are_lock_dependencies_updated(
-                &project.cargo_lock_path(),
-                registry_package.package.package_path()?,
-            )
-            .context("Can't check if Cargo.lock dependencies are up to date"),
-            Self::Repository {
-                name: _,
-                version: _,
-            } => {
-                unimplemented!("implement logic to compare `cargo.lock` against the base package")
-            }
-        }
+        let registry_package = match self {
+            Self::Registry(registry_package) => registry_package,
+            Self::Repository { package, .. } => package,
+        };
+
+        lock_compare::are_lock_dependencies_updated(
+            &project.cargo_lock_path(),
+            registry_package.package.package_path()?,
+        )
+        .context("Can't check if Cargo.lock dependencies are up to date")
     }
 }
 
@@ -804,14 +805,14 @@ impl Updater<'_> {
     fn packages_to_update(
         &self,
         registry_packages: &PackagesCollection,
-        repository_packages: Option<&RepoVersions>,
+        repository_versions: Option<&RepoVersions>,
         repository: &Repo,
         local_manifest_path: &Utf8Path,
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
         let packages_diffs =
-            self.get_packages_diffs(registry_packages, repository_packages, repository)?;
+            self.get_packages_diffs(registry_packages, repository_versions, repository)?;
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate::default();
 
@@ -884,7 +885,7 @@ impl Updater<'_> {
     fn get_packages_diffs(
         &self,
         registry_packages: &PackagesCollection,
-        repository_packages: Option<&RepoVersions>,
+        repository_versions: Option<&RepoVersions>,
         repository: &Repo,
     ) -> anyhow::Result<Vec<(&Package, Diff)>> {
         // Store diff for each package. This operation is not thread safe, so we do it in one
@@ -895,7 +896,7 @@ impl Updater<'_> {
             .iter()
             .map(|&p| {
                 let diff = self
-                    .get_diff(p, registry_packages, repository_packages, repository)
+                    .get_diff(p, registry_packages, repository_versions, repository)
                     .context("failed to retrieve difference between packages")?;
                 Ok((p, diff))
             })
@@ -1057,7 +1058,7 @@ impl Updater<'_> {
         &self,
         package: &Package,
         registry_packages: &PackagesCollection,
-        repository_packages: Option<&RepoVersions>,
+        repository_versions: Option<&RepoVersions>,
         repository: &Repo,
     ) -> anyhow::Result<Diff> {
         let package_path = get_package_path(package, repository, &self.project.root)
@@ -1074,7 +1075,7 @@ impl Updater<'_> {
         let base_package = BasePackage::new(
             &package.name,
             registry_packages,
-            repository_packages,
+            repository_versions,
             git_only,
         );
 

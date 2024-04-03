@@ -63,11 +63,6 @@ pub struct PrCommit {
 }
 
 #[derive(Deserialize)]
-pub struct CommitParent {
-    pub sha: String,
-}
-
-#[derive(Deserialize)]
 pub struct Author {
     login: String,
 }
