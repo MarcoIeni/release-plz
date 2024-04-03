@@ -453,13 +453,9 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<Option<Release>> 
             package_releases.push(pkg_release);
         }
     }
-    let release = if package_releases.is_empty() {
-        None
-    } else {
-        Some(Release {
-            packages: package_releases,
-        })
-    };
+    let release = (!package_releases.is_empty()).then_some(Release {
+        packages: package_releases,
+    });
     Ok(release)
 }
 
