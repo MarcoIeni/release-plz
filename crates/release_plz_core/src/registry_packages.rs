@@ -14,6 +14,7 @@ pub struct PackagesCollection {
     _temp_dir: Option<TempDir>,
 }
 
+#[derive(Debug)]
 pub struct RegistryPackage {
     pub package: Package,
     /// The SHA1 hash of the commit when the package was published.

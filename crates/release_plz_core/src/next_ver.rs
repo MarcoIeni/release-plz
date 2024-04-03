@@ -6,7 +6,7 @@ use crate::{
     is_readme_updated, local_readme_override, lock_compare,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
-    registry_packages::{self, PackagesCollection},
+    registry_packages::{self, PackagesCollection, RegistryPackage},
     repo_url::RepoUrl,
     repo_versions::{self, RepoVersions},
     semver_check::{self, SemverCheck},
@@ -656,7 +656,7 @@ fn get_cargo_lock_path(project: &Project, repository: &Repo) -> anyhow::Result<O
 
 #[derive(Debug, Clone)]
 enum BasePackage<'a> {
-    Registry(&'a Package),
+    Registry(&'a RegistryPackage),
     Repository { name: &'a str, version: &'a Version },
 }
 
@@ -672,13 +672,15 @@ impl<'a> BasePackage<'a> {
                 .and_then(|repo_versions| repo_versions.get_package_version(name))
                 .map(|version| Self::Repository { name, version })
         } else {
-            registry_packages.get_package(name).map(Self::Registry)
+            registry_packages
+                .get_registry_package(name)
+                .map(Self::Registry)
         }
     }
 
     pub fn name(&self) -> &str {
         match self {
-            Self::Registry(registry_package) => &registry_package.name,
+            Self::Registry(registry_package) => &registry_package.package.name,
             Self::Repository { name, .. } => name,
         }
     }
@@ -692,8 +694,15 @@ impl<'a> BasePackage<'a> {
 
     pub fn version(&self) -> &Version {
         match self {
-            Self::Registry(registry_package) => &registry_package.version,
+            Self::Registry(registry_package) => &registry_package.package.version,
             Self::Repository { version, .. } => version,
+        }
+    }
+
+    pub fn publish_commit(&self) -> Option<&str> {
+        match self {
+            Self::Registry(registry_package) => registry_package.published_at_sha1(),
+            Self::Repository { .. } => unimplemented!(),
         }
     }
 
@@ -707,7 +716,7 @@ impl<'a> BasePackage<'a> {
     ) -> anyhow::Result<bool> {
         match self {
             Self::Registry(registry_package) => {
-                let registry_package_path = registry_package.package_path()?;
+                let registry_package_path = registry_package.package.package_path()?;
                 if is_readme_updated(package_path, package, registry_package_path)? {
                     debug!("{}: README updated", package.name);
                     return Ok(false);
@@ -738,9 +747,10 @@ impl<'a> BasePackage<'a> {
     /// Returns `true` if `package`'s `Cargo.toml` has been updated compared to this base package.
     pub fn are_toml_dependencies_updated(&self, package: &Package) -> bool {
         match self {
-            Self::Registry(registry_package) => {
-                are_toml_dependencies_updated(&registry_package.dependencies, &package.dependencies)
-            }
+            Self::Registry(registry_package) => are_toml_dependencies_updated(
+                &registry_package.package.dependencies,
+                &package.dependencies,
+            ),
             Self::Repository {
                 name: _,
                 version: _,
@@ -755,7 +765,7 @@ impl<'a> BasePackage<'a> {
         match self {
             Self::Registry(registry_package) => lock_compare::are_lock_dependencies_updated(
                 &project.cargo_lock_path(),
-                registry_package.package_path()?,
+                registry_package.package.package_path()?,
             )
             .context("Can't check if Cargo.lock dependencies are up to date"),
             Self::Repository {
@@ -1097,9 +1107,9 @@ impl Updater<'_> {
             }
             (Some(_), Some(BasePackage::Registry(registry_package))) => {
                 anyhow::ensure!(
-                    registry_package.version == package.version,
+                    registry_package.package.version == package.version,
                     "package `{}` has a different version ({}) with respect to the registry package ({}), but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish the new version of this package.",
-                    package.name, package.version, registry_package.version
+                    package.name, package.version, registry_package.package.version
                 )
             }
             _ => (),
@@ -1132,7 +1142,7 @@ impl Updater<'_> {
         tag_commit: Option<String>,
         diff: &mut Diff,
     ) -> anyhow::Result<()> {
-         loop {
+        loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
             if let Some(base_package) = &base_package {
@@ -1149,6 +1159,7 @@ impl Updater<'_> {
                     || is_commit_too_old(
                         repository,
                         tag_commit.as_deref(),
+                        base_package.publish_commit(),
                         &current_commit_hash,
                     )
                 {
