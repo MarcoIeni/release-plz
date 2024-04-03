@@ -428,7 +428,7 @@ pub struct PackageRelease {
     name: String,
     /// Git tag name. It's not guaranteed that release-plz created the git tag.
     /// In fact, users can disable git tag creation in the [`ReleaseRequest`].
-    /// We return the git tag name anyway, because users might use this to create
+    /// We return the git tag name anyway, because users might use it to create
     /// the tag by themselves.
     tag: String,
     version: Version,
