@@ -18,6 +18,8 @@ pub struct ReleasePr {
     /// Kind of git host where your project is hosted.
     #[arg(long, value_enum, default_value_t = GitBackendKind::Github)]
     backend: GitBackendKind,
+    /// Output format. If specified, prints the branch, URL and number of
+    /// the release PR, if any.
     #[arg(short, long, value_enum)]
     pub output: Option<OutputType>,
 }
