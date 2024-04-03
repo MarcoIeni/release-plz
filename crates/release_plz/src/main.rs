@@ -54,7 +54,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let release_pr = release_plz_core::release_pr(&request).await?;
             if let Some(release_pr) = release_pr {
                 if let Some(output_type) = cmd_args.output {
-                    maybe_print_output(output_type, release_pr)
+                    print_output(output_type, release_pr)
                 }
             }
         }
@@ -65,7 +65,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let request: ReleaseRequest = cmd_args.release_request(config, cargo_metadata)?;
             if let Some(release) = release_plz_core::release(&request).await? {
                 if let Some(output_type) = cmd_args_output {
-                    maybe_print_output(output_type, release)
+                    print_output(output_type, release)
                 }
             }
         }
@@ -77,7 +77,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn maybe_print_output(output_type: OutputType, output: impl Serialize) {
+fn print_output(output_type: OutputType, output: impl Serialize) {
     match output_type {
         OutputType::Json => match serde_json::to_string(&output) {
             Ok(json) => println!("{json}"),
