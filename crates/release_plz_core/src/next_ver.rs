@@ -6,7 +6,7 @@ use crate::{
     is_readme_updated, local_readme_override, lock_compare,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
-    registry_packages::{self, PackagesCollection, RegistryPackage},
+    registry_packages::{self, PackagesCollection},
     repo_url::RepoUrl,
     repo_versions::{self, RepoVersions},
     semver_check::{self, SemverCheck},
@@ -25,7 +25,7 @@ use cargo_metadata::{
 use cargo_utils::{to_utf8_pathbuf, upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
 use git_cliff_core::commit::Commit;
-use git_cmd::{self, Repo};
+use git_cmd::Repo;
 use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
@@ -409,7 +409,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     let repository_packages = repo_versions::get_repo_versions(
         &repository.repo,
         local_project.contains_multiple_pub_packages,
-    );
+    )?;
 
     let packages_to_update = updater.packages_to_update(
         &registry_packages,
@@ -1097,9 +1097,9 @@ impl Updater<'_> {
             }
             (Some(_), Some(BasePackage::Registry(registry_package))) => {
                 anyhow::ensure!(
-                    registry_package.package.version == package.version,
+                    registry_package.version == package.version,
                     "package `{}` has a different version ({}) with respect to the registry package ({}), but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish the new version of this package.",
-                    package.name, package.version, registry_package.package.version
+                    package.name, package.version, registry_package.version
                 )
             }
             _ => (),
@@ -1144,6 +1144,7 @@ impl Updater<'_> {
 
                 let are_packages_equal =
                     base_package.is_equal_to(package, package_path, repository, self.project)?;
+
                 if are_packages_equal
                     || is_commit_too_old(
                         repository,
