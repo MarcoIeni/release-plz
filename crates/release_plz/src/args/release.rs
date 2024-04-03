@@ -59,7 +59,7 @@ pub struct Release {
         value_parser = PathBufValueParser::new()
     )]
     config: Option<PathBuf>,
-    /// Output format. If specified, prints versions and the tags of the
+    /// Output format. If specified, prints the version and the tag of the
     /// released packages.
     #[arg(short, long, value_enum)]
     pub output: Option<OutputType>,
