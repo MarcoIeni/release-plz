@@ -11,7 +11,8 @@ async fn release_plz_does_not_open_release_pr_if_there_are_no_release_commits() 
     "#;
     context.write_release_plz_toml(config);
 
-    context.run_release_pr().success();
+    let outcome = context.run_release_pr().success();
+    outcome.stdout("");
 
     let opened_prs = context.opened_release_prs().await;
     // no features are present in the commits, so release-plz doesn't open the release PR
@@ -32,15 +33,22 @@ async fn release_plz_does_not_open_release_pr_if_there_are_no_release_commits() 
 async fn release_plz_adds_changelog_on_new_project() {
     let context = TestContext::new().await;
 
-    context.run_release_pr().success();
+    let outcome = context.run_release_pr().success();
 
     let opened_prs = context.opened_release_prs().await;
     assert_eq!(opened_prs.len(), 1);
+    let opened_pr = &opened_prs[0];
 
-    let changed_files = context
-        .gitea
-        .changed_files_in_pr(opened_prs[0].number)
-        .await;
+    let expected_stdout = serde_json::json!({
+        "branch": opened_pr.branch(),
+        "html_url": opened_pr.html_url,
+        "number": opened_pr.number,
+    })
+    .to_string();
+
+    outcome.stdout(format!("{expected_stdout}\n"));
+
+    let changed_files = context.gitea.changed_files_in_pr(opened_pr.number).await;
     assert_eq!(changed_files.len(), 1);
     assert_eq!(changed_files[0].filename, "CHANGELOG.md");
 }

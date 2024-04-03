@@ -8,6 +8,7 @@ use std::path::Path;
 
 use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
+use clap::ValueEnum;
 use release_plz_core::{fs_utils::current_directory, CARGO_TOML};
 use tracing::info;
 
@@ -51,6 +52,11 @@ pub enum Command {
     GenerateSchema,
     /// Initialize release-plz for the current GitHub repository, by storing the necessary tokens in the GitHub repository secrets and generating the release-plz.yml GitHub Actions workflow file.
     Init,
+}
+
+#[derive(ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]
+pub enum OutputType {
+    Json,
 }
 
 fn local_manifest(project_manifest: Option<&Utf8Path>) -> Utf8PathBuf {

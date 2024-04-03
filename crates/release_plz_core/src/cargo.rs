@@ -39,7 +39,7 @@ pub fn run_cargo(root: &Utf8Path, args: &[&str]) -> anyhow::Result<CmdOutput> {
         for line in BufReader::new(stderr).lines() {
             let line = line?;
 
-            eprintln!("{line}");
+            tracing::error!("{line}");
             stderr_lines.push(line);
         }
     }
