@@ -20,7 +20,7 @@ async fn release_plz_releases_a_new_project_with_custom_tag_name() {
 
     let outcome = context.run_release().success();
     let expected_stdout = serde_json::json!({
-        "packages":[
+        "packages": [
             {
                 "name": crate_name,
                 "tag": expected_tag,
@@ -107,7 +107,7 @@ async fn release_plz_does_not_releases_twice() {
     // Running `release` the first time, releases the project
     let outcome = context.run_release().success();
     let expected_stdout = serde_json::json!({
-        "packages":[
+        "packages": [
             {
                 "name": crate_name,
                 "tag": "v0.1.0",

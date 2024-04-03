@@ -61,9 +61,18 @@ You can get info about the outcome of this command by appending `-o json` to the
   ```json
   {
     "branch": "<pr_branch>",
-    "number": <pr_number>,
-    "html_url": "<html_url>"
+    "html_url": "<html_url>",
+    "number": <pr_number>
   }
   ```
+
+  Example:
+
+  ```json
+  {
+    "branch": "release-plz-2024-04-03T21-57-37Z",
+    "html_url": "http://localhost:3000/zodpwlgr/xcpayeoa/pulls/1",
+    "number": 1
+  }
 
 - If release-plz didn't open or update a release PR, stdout will be empty.

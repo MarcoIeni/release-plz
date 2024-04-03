@@ -56,9 +56,32 @@ Stdout will contain info about the release:
 ```json
 {
   "packages": [
-        TODO
+    {
+      "name": "<crate_name>",
+      "tag": "<tag_name>",
+      "version": "<version>"
+    }
   ]
 }
 ```
+
+Example:
+
+```json
+{
+  "packages": [
+      {
+        "name": "my_crate",
+        "tag": "v0.1.0",
+        "version": "0.1.0"
+      }
+  ]
+}
+```
+
+The `tag` field is present even if the user disabled the tag creation with the
+[`git_tag_enable`](../config.md#the-git_tag_enable-field) field.
+This is because the user might want to use the tag name to create the tag
+by themselves.
 
 If release-plz didn't release any packages, the `packages` array will be empty.
