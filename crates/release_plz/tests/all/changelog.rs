@@ -46,7 +46,7 @@ async fn release_plz_adds_changelog_on_new_project() {
     })
     .to_string();
 
-    outcome.stdout(format!("{expected_stdout}"));
+    outcome.stdout(expected_stdout.to_string());
 
     let changed_files = context.gitea.changed_files_in_pr(opened_pr.number).await;
     assert_eq!(changed_files.len(), 1);
