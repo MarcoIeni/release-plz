@@ -51,3 +51,28 @@ through the [GraphQL API](https://docs.github.com/en/graphql) rather
 than making a commit locally and pushing the changes.
 This allows having a [Verified](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
 commit without specifying a GPG signature.
+
+## Json output
+
+You can get info about the outcome of this command by appending `-o json` to the command:
+
+- If release-plz opened or updated a release PR, stdout will contain info about the release PR:
+
+  ```json
+  {
+    "branch": "<pr_branch>",
+    "html_url": "<html_url>",
+    "number": <pr_number>
+  }
+  ```
+
+  Example:
+
+  ```json
+  {
+    "branch": "release-plz-2024-04-03T21-57-37Z",
+    "html_url": "http://localhost:3000/zodpwlgr/xcpayeoa/pulls/1",
+    "number": 1
+  }
+
+- If release-plz didn't open or update a release PR, stdout will be empty.

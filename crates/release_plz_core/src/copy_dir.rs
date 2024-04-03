@@ -123,7 +123,6 @@ mod tests {
         create_symlink(&file1, file2).unwrap();
 
         let temp2 = Utf8TempDir::new().unwrap();
-        println!("from: {:?} to temp2: {:?}", subdir_path, temp2.path());
         copy_dir(subdir_path, temp2.path()).unwrap();
         let temp2_subdir = temp2.path().join(subdir);
         let new_file2 = temp2_subdir.join("file2");

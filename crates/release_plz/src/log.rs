@@ -12,6 +12,7 @@ pub fn init(verbose: bool) {
         }
         FmtSubscriber::builder()
             .with_env_filter(env_filter)
+            .with_writer(std::io::stderr)
             .event_format(event_fmt)
             .finish()
     };

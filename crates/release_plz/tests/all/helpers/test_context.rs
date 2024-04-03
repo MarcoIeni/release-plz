@@ -61,6 +61,8 @@ impl TestContext {
             .arg("gitea")
             .arg("--registry")
             .arg(TEST_REGISTRY)
+            .arg("--output")
+            .arg("json")
             .assert()
     }
 
@@ -78,6 +80,8 @@ impl TestContext {
             .arg(TEST_REGISTRY)
             .arg("--token")
             .arg(format!("Bearer {}", &self.gitea.token))
+            .arg("--output")
+            .arg("json")
             .assert()
     }
 

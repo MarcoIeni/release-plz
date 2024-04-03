@@ -76,7 +76,7 @@ pub struct CreateReleaseOption<'a> {
     prerelease: &'a bool,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct GitPr {
     pub number: u64,
     pub html_url: Url,
@@ -91,7 +91,7 @@ impl GitPr {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Commit {
     #[serde(rename = "ref")]
     pub ref_field: String,
@@ -305,7 +305,7 @@ impl GitClient {
     }
 
     #[instrument(skip(self, pr))]
-    pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<()> {
+    pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<GitPr> {
         debug!("Opening PR in {}", self.remote.owner_slash_repo());
         let git_pr: GitPr = self
             .client
@@ -328,7 +328,7 @@ impl GitClient {
         self.add_labels(pr, git_pr.number)
             .await
             .context("Failed to add labels")?;
-        Ok(())
+        Ok(git_pr)
     }
 
     #[instrument(skip(self, pr))]

@@ -7,8 +7,10 @@ mod log;
 mod update_checker;
 
 use anyhow::Context;
+use args::OutputType;
 use clap::Parser;
 use release_plz_core::{ReleasePrRequest, ReleaseRequest};
+use serde::Serialize;
 use tracing::error;
 
 use crate::args::{repo_command::RepoCommand as _, CliArgs, Command};
@@ -49,13 +51,23 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let request = ReleasePrRequest::new(git, update_request)
                 .mark_as_draft(pr_draft)
                 .with_labels(pr_labels);
-            release_plz_core::release_pr(&request).await?;
+            let release_pr = release_plz_core::release_pr(&request).await?;
+            if let Some(release_pr) = release_pr {
+                if let Some(output_type) = cmd_args.output {
+                    print_output(output_type, release_pr)
+                }
+            }
         }
         Command::Release(cmd_args) => {
             let cargo_metadata = cmd_args.cargo_metadata()?;
             let config = cmd_args.config()?;
+            let cmd_args_output = cmd_args.output;
             let request: ReleaseRequest = cmd_args.release_request(config, cargo_metadata)?;
-            release_plz_core::release(&request).await?;
+            if let Some(release) = release_plz_core::release(&request).await? {
+                if let Some(output_type) = cmd_args_output {
+                    print_output(output_type, release)
+                }
+            }
         }
         Command::GenerateCompletions(cmd_args) => cmd_args.print(),
         Command::CheckUpdates => update_checker::check_update().await?,
@@ -63,4 +75,13 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         Command::Init => init::init()?,
     }
     Ok(())
+}
+
+fn print_output(output_type: OutputType, output: impl Serialize) {
+    match output_type {
+        OutputType::Json => match serde_json::to_string(&output) {
+            Ok(json) => println!("{json}"),
+            Err(e) => tracing::error!("can't serialize release pr to json: {e}"),
+        },
+    }
 }

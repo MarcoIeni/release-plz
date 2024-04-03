@@ -80,7 +80,8 @@ impl ComparisonTest {
     pub async fn github_open_release_pr(&self) -> anyhow::Result<()> {
         let base_url = self.github_mock_server.base_url();
         let release_pr_request = self.github_release_pr_request(base_url);
-        release_plz_core::release_pr(&release_pr_request).await
+        release_plz_core::release_pr(&release_pr_request).await?;
+        Ok(())
     }
 
     fn gitea_release_pr_request(&self, base_url: Url) -> anyhow::Result<ReleasePrRequest> {
@@ -95,7 +96,8 @@ impl ComparisonTest {
         let release_pr_request = self
             .gitea_release_pr_request(base_url)
             .context("failed to run release-pr")?;
-        release_plz_core::release_pr(&release_pr_request).await
+        release_plz_core::release_pr(&release_pr_request).await?;
+        Ok(())
     }
 
     pub fn local_project(&self) -> Utf8PathBuf {
