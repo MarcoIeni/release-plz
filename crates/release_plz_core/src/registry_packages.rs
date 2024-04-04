@@ -37,6 +37,14 @@ impl PackagesCollection {
     }
 }
 
+/// Retrieve the latest version of the packages.
+///
+/// - If `registry_manifest` is provided, the packages are read from the local file system.
+///   This is useful when the packages are already downloaded.
+/// - Otherwise, the packages are downloaded from the cargo registry.
+///
+/// - If `registry` is provided, the packages are downloaded from the specified registry.
+/// - Otherwise, the packages are downloaded from crates.io.
 pub fn get_registry_packages(
     registry_manifest: Option<&Utf8Path>,
     local_packages: &[&Package],
