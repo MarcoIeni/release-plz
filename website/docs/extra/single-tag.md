@@ -17,7 +17,7 @@ git_tag_enable = false
 [[package]]
 name = "my_main_package"
 # (Optional) Customize the git tag name to remove the `my_main_package` prefix.
-git_tag_name = "v{{version}}"
+git_tag_name = "v{{ version }}"
 
 # Enable git tags for this package
 git_tag_enable = true
