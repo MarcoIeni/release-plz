@@ -91,8 +91,6 @@ Example:
 - `base_branch`: name of the branch the changes are pulled into.
   It is the default branch of the repository. E.g. `main`.
 
-
-
 :::info
 At the moment, the `release-plz release-pr` command doesn't support opening multiple PRs, but we
 plan to add this feature in the future.
