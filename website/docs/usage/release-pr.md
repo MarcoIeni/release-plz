@@ -61,7 +61,8 @@ Stdout will contain info about the release PR:
 {
   "prs": [
     {
-      "branch": "<pr_branch>",
+      "head_branch": "<head_branch>",
+      "base_branch": "<base_branch>",
       "html_url": "<html_url>",
       "number": <pr_number>
     }
@@ -75,7 +76,8 @@ Example:
 {
   "prs": [
     {
-      "branch": "release-plz-2024-04-03T21-57-37Z",
+      "head_branch": "release-plz-2024-04-03T21-57-37Z",
+      "base_branch": "main",
       "html_url": "http://localhost:3000/zodpwlgr/xcpayeoa/pulls/1",
       "number": 1
     }
@@ -83,7 +85,13 @@ Example:
 }
 ```
 
-If release-plz didn't open or update a release PR, the `prs` array will be empty.
+- `prs`: An array of objects representing the opened PRs.
+  If release-plz didn't open or update a release PR, the `prs` array will be empty.
+- `head_branch`: The name of the branch where the changes are implemented.
+- `base_branch`: name of the branch the changes are pulled into.
+  It is the default branch of the repository. E.g. `main`.
+
+
 
 :::info
 At the moment, the `release-plz release-pr` command doesn't support opening multiple PRs, but we
