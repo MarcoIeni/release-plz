@@ -9,10 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.20.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.20.2...release_plz_core-v0.20.3) - 2024-04-08
 
 ### Added
-- add json output ([#1368](https://github.com/MarcoIeni/release-plz/pull/1368))
+- add json output ([#1386](https://github.com/MarcoIeni/release-plz/pull/1386)) ([#1368](https://github.com/MarcoIeni/release-plz/pull/1368))
 
 ### Other
-- edit json format output ([#1386](https://github.com/MarcoIeni/release-plz/pull/1386))
 - document `get_registry_packages` function ([#1381](https://github.com/MarcoIeni/release-plz/pull/1381))
 
 ## [0.20.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.20.1...release_plz_core-v0.20.2) - 2024-04-02
