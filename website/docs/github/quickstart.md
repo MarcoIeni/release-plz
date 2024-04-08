@@ -214,7 +214,7 @@ The GitHub action accepts the following input variables:
 - `registry`: Registry where the packages are stored.
   The registry name needs to be present in the Cargo config.
   If unspecified, crates.io is used. (Defaults to crates.io).
-- `project_manifest`: Path to the Cargo.toml of the project you want to update.
+- `manifest_path`: Path to the Cargo.toml of the project you want to update.
   Both Cargo workspaces and single packages are supported. (Defaults to the root
   directory).
 - `version`: Release-plz version to use. It must be an existing git tag name.
@@ -242,7 +242,7 @@ jobs:
         with: # <--- Input variables
           command: release-pr
           registry: my-registry
-          project_manifest: rust-crates/my-crate/Cargo.toml
+          manifest_path: rust-crates/my-crate/Cargo.toml
           version: release-plz-v0.2.45
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
