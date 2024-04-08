@@ -420,12 +420,12 @@ pub struct GitRelease {
 
 #[derive(Serialize)]
 pub struct Release {
-    packages: Vec<PackageRelease>,
+    releases: Vec<PackageRelease>,
 }
 
 #[derive(Serialize)]
 pub struct PackageRelease {
-    name: String,
+    package_name: String,
     /// Git tag name. It's not guaranteed that release-plz created the git tag.
     /// In fact, users can disable git tag creation in the [`ReleaseRequest`].
     /// We return the git tag name anyway, because users might use it to create
@@ -454,7 +454,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<Option<Release>> 
         }
     }
     let release = (!package_releases.is_empty()).then_some(Release {
-        packages: package_releases,
+        releases: package_releases,
     });
     Ok(release)
 }
@@ -499,7 +499,7 @@ async fn release_package_if_needed(
         package_was_released = package_was_released && package_was_released_at_index;
     }
     let package_release = package_was_released.then_some(PackageRelease {
-        name: package.name.clone(),
+        package_name: package.name.clone(),
         version: package.version.clone(),
         tag: git_tag,
     });
