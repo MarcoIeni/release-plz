@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.58](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.57...release-plz-v0.3.58) - 2024-04-08
+
+### Added
+- add json output ([#1386](https://github.com/MarcoIeni/release-plz/pull/1386)) ([#1368](https://github.com/MarcoIeni/release-plz/pull/1368))
+
+### Other
+- document `get_registry_packages` function ([#1381](https://github.com/MarcoIeni/release-plz/pull/1381))
+
 ## [0.3.57](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.56...release-plz-v0.3.57) - 2024-04-02
 
 ### Fixed
