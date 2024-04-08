@@ -17,8 +17,8 @@
         "format:check": "prettier --check ."
     },
     "dependencies": {
-        "@docusaurus/core": "3.2.0",
-        "@docusaurus/preset-classic": "3.2.0",
+        "@docusaurus/core": "3.2.1",
+        "@docusaurus/preset-classic": "3.2.1",
         "@easyops-cn/docusaurus-search-local": "^0.40.1",
         "@mdx-js/react": "^3.0.1",
         "clsx": "^2.1.0",
@@ -28,7 +28,7 @@
         "react-dom": "^18.2.0"
     },
     "devDependencies": {
-        "@docusaurus/module-type-aliases": "3.2.0",
+        "@docusaurus/module-type-aliases": "3.2.1",
         "markdownlint-cli": "^0.39.0"
     },
     "browserslist": {
