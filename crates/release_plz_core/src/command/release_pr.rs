@@ -45,6 +45,7 @@ impl ReleasePrRequest {
         self
     }
 }
+
 /// Release pull request that release-plz opened/updated.
 #[derive(Serialize)]
 pub struct ReleasePr {

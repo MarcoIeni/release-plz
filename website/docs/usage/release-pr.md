@@ -55,24 +55,37 @@ commit without specifying a GPG signature.
 ## Json output
 
 You can get info about the outcome of this command by appending `-o json` to the command:
+Stdout will contain info about the release PR:
 
-- If release-plz opened or updated a release PR, stdout will contain info about the release PR:
+```json
+{
+  "prs": [
+    {
+      "branch": "<pr_branch>",
+      "html_url": "<html_url>",
+      "number": <pr_number>
+    }
+  ]
+}
+```
 
-  ```json
-  {
-    "branch": "<pr_branch>",
-    "html_url": "<html_url>",
-    "number": <pr_number>
-  }
-  ```
+Example:
 
-  Example:
+```json
+{
+  "prs": [
+    {
+      "branch": "release-plz-2024-04-03T21-57-37Z",
+      "html_url": "http://localhost:3000/zodpwlgr/xcpayeoa/pulls/1",
+      "number": 1
+    }
+  ]
+}
+```
 
-  ```json
-  {
-    "branch": "release-plz-2024-04-03T21-57-37Z",
-    "html_url": "http://localhost:3000/zodpwlgr/xcpayeoa/pulls/1",
-    "number": 1
-  }
+If release-plz didn't open or update a release PR, the `prs` array will be empty.
 
-- If release-plz didn't open or update a release PR, stdout will be empty.
+:::info
+At the moment, the `release-plz release-pr` command doesn't support opening multiple PRs, but we
+plan to add this feature in the future.
+:::
