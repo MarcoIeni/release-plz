@@ -40,9 +40,14 @@ async fn release_plz_adds_changelog_on_new_project() {
     let opened_pr = &opened_prs[0];
 
     let expected_stdout = serde_json::json!({
-        "branch": opened_pr.branch(),
-        "html_url": opened_pr.html_url,
-        "number": opened_pr.number,
+        "prs": [
+          {
+            "head_branch": opened_pr.branch(),
+            "base_branch": "main",
+            "html_url": opened_pr.html_url,
+            "number": opened_pr.number
+          }
+        ]
     })
     .to_string();
 

@@ -45,11 +45,15 @@ impl ReleasePrRequest {
         self
     }
 }
+
 /// Release pull request that release-plz opened/updated.
 #[derive(Serialize)]
 pub struct ReleasePr {
-    /// Branch
-    pub branch: String,
+    /// The name of the branch where the changes are implemented.
+    pub head_branch: String,
+    /// The name of the branch the changes are pulled into.
+    /// It is the default branch of the repository. E.g. `main`.
+    pub base_branch: String,
     /// Url. Users can open it in the browser to see an html representation of the PR.
     pub html_url: Url,
     /// Number
@@ -170,8 +174,9 @@ async fn handle_opened_pr(
         match update_pr(git_client, opened_pr, pr_commits.len(), repo, new_pr).await {
             Ok(()) => ReleasePr {
                 number: opened_pr.number,
-                branch: opened_pr.branch().to_string(),
+                head_branch: opened_pr.branch().to_string(),
                 html_url: opened_pr.html_url.clone(),
+                base_branch: new_pr.base_branch.clone(),
             },
             Err(e) => {
                 tracing::error!("cannot update release pr {}: {:?}. I'm closing the old release pr and opening a new one", opened_pr.number, e);
@@ -205,8 +210,9 @@ async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Resu
     let git_pr = git_client.open_pr(pr).await.context("Failed to open PR")?;
     Ok(ReleasePr {
         number: git_pr.number,
-        branch: git_pr.branch().to_string(),
+        head_branch: git_pr.branch().to_string(),
         html_url: git_pr.html_url,
+        base_branch: pr.base_branch.clone(),
     })
 }
 
