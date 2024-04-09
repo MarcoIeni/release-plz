@@ -23,7 +23,8 @@ jobs:
 [This](https://github.com/MarcoIeni/release-plz-action/blob/main/.github/workflows/update_main_version.yml)
 script updates this tag to whatever the latest `0.5.x` version is.
 This means that if the latest version of release-plz is 0.5.34, with `v0.5` you will use that version.
-If tomorrow, release-plz 0.5.35 is released, you will use that version without the need to update your workflow file.
+If tomorrow, release-plz 0.5.35 is released, you will use that version without the
+need to update your workflow file.
 
 While this is great for new features and bug fixes, it can also be a security risk.
 
