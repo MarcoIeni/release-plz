@@ -17,7 +17,7 @@ pub struct Release {
     /// Path to the Cargo.toml of the project you want to release.
     /// If not provided, release-plz will use the Cargo.toml of the current directory.
     /// Both Cargo workspaces and single packages are supported.
-    #[arg(long, value_parser = PathBufValueParser::new(), alias = "project_manifest")]
+    #[arg(long, value_parser = PathBufValueParser::new(), alias = "project-manifest")]
     manifest_path: Option<PathBuf>,
     /// Registry where you want to publish the packages.
     /// The registry name needs to be present in the Cargo config.

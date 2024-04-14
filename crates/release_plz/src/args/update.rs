@@ -19,7 +19,7 @@ pub struct Update {
     /// Path to the Cargo.toml of the project you want to update.
     /// If not provided, release-plz will use the Cargo.toml of the current directory.
     /// Both Cargo workspaces and single packages are supported.
-    #[arg(long, value_parser = PathBufValueParser::new(), alias = "project_manifest")]
+    #[arg(long, value_parser = PathBufValueParser::new(), alias = "project-manifest")]
     manifest_path: Option<PathBuf>,
     /// Path to the Cargo.toml contained in the released version of the project you want to update.
     /// If not provided, the packages of your project will be compared with the
@@ -28,7 +28,7 @@ pub struct Update {
     /// your project is already available locally.
     /// For example, it could be the path to the project with a `git checkout` on its latest tag.
     /// The git history of this project should be behind the one of the project you want to update.
-    #[arg(long, value_parser = PathBufValueParser::new(), alias = "registry_project_manifest")]
+    #[arg(long, value_parser = PathBufValueParser::new(), alias = "registry-project-manifest")]
     registry_manifest_path: Option<PathBuf>,
     /// Package to update. Use it when you want to update a single package rather than all the
     /// packages contained in the workspace.
