@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.60](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.59...release-plz-v0.3.60) - 2024-04-14
+
+### Fixed
+- correctly alias `project-manifest` ([#1396](https://github.com/MarcoIeni/release-plz/pull/1396))
+
 ## [0.3.59](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.58...release-plz-v0.3.59) - 2024-04-14
 
 ### Other
