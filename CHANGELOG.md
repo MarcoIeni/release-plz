@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.59](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.58...release-plz-v0.3.59) - 2024-04-14
+
+### Other
+- rename `--project-manifest` to `--manifest-path` in error messages ([#1395](https://github.com/MarcoIeni/release-plz/pull/1395))
+- Change the flag --project-manifest to --manifest-path [#1333](https://github.com/MarcoIeni/release-plz/pull/1333) ([#1390](https://github.com/MarcoIeni/release-plz/pull/1390))
+
 ## [0.3.58](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.57...release-plz-v0.3.58) - 2024-04-08
 
 ### Added
