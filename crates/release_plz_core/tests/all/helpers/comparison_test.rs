@@ -49,14 +49,14 @@ impl ComparisonTest {
     }
 
     fn update_request(&self) -> UpdateRequest {
-        let metadata = get_manifest_metadata(&self.local_project_manifest()).unwrap();
+        let metadata = get_manifest_metadata(&self.local_manifest_path()).unwrap();
         UpdateRequest::new(metadata)
             .unwrap()
             .with_changelog_req(ChangelogRequest {
                 release_date: NaiveDate::from_ymd_opt(2015, 5, 15),
                 changelog_config: None,
             })
-            .with_registry_project_manifest(self.registry_project_manfifest())
+            .with_registry_manifest_path(self.registry_project_manfifest())
             .unwrap()
     }
 
@@ -108,7 +108,7 @@ impl ComparisonTest {
         self.registry_project.path().join(PROJECT_NAME)
     }
 
-    pub fn local_project_manifest(&self) -> Utf8PathBuf {
+    pub fn local_manifest_path(&self) -> Utf8PathBuf {
         self.local_project().join(CARGO_TOML)
     }
 

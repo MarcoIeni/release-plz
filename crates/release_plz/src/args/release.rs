@@ -129,7 +129,7 @@ impl Release {
 }
 
 impl RepoCommand for Release {
-    fn optional_project_manifest(&self) -> Option<&Utf8Path> {
+    fn optional_manifest_path(&self) -> Option<&Utf8Path> {
         self.manifest_path
             .as_deref()
             .map(|p| to_utf8_path(p).unwrap())
