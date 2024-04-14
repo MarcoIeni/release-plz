@@ -19,8 +19,8 @@ pub struct Update {
     /// Path to the Cargo.toml of the project you want to update.
     /// If not provided, release-plz will use the Cargo.toml of the current directory.
     /// Both Cargo workspaces and single packages are supported.
-    #[arg(long, value_parser = PathBufValueParser::new())]
-    project_manifest: Option<PathBuf>,
+    #[arg(long, value_parser = PathBufValueParser::new(), alias = "project_manifest")]
+    manifest_path: Option<PathBuf>,
     /// Path to the Cargo.toml contained in the released version of the project you want to update.
     /// If not provided, the packages of your project will be compared with the
     /// ones published in the cargo registry.
@@ -93,7 +93,7 @@ pub struct Update {
 
 impl RepoCommand for Update {
     fn optional_project_manifest(&self) -> Option<&Utf8Path> {
-        self.project_manifest
+        self.manifest_path
             .as_deref()
             .map(|p| to_utf8_path(p).unwrap())
     }
@@ -233,7 +233,7 @@ mod tests {
     #[test]
     fn input_generates_correct_release_request() {
         let update_args = Update {
-            project_manifest: None,
+            manifest_path: None,
             registry_project_manifest: None,
             package: None,
             no_changelog: false,
