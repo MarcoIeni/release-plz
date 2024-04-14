@@ -59,8 +59,8 @@ pub enum OutputType {
     Json,
 }
 
-fn local_manifest(project_manifest: Option<&Utf8Path>) -> Utf8PathBuf {
-    match project_manifest {
+fn local_manifest(manifest_path: Option<&Utf8Path>) -> Utf8PathBuf {
+    match manifest_path {
         Some(manifest) => manifest.to_path_buf(),
         None => current_directory().unwrap().join(CARGO_TOML),
     }

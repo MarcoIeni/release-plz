@@ -246,10 +246,7 @@ impl UpdateRequest {
         })
     }
 
-    pub fn with_registry_project_manifest(
-        self,
-        registry_manifest: Utf8PathBuf,
-    ) -> io::Result<Self> {
+    pub fn with_registry_manifest_path(self, registry_manifest: Utf8PathBuf) -> io::Result<Self> {
         let registry_manifest = Utf8Path::canonicalize_utf8(&registry_manifest)?;
         Ok(Self {
             registry_manifest: Some(registry_manifest),
