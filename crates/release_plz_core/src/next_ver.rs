@@ -877,7 +877,7 @@ impl Updater<'_> {
                 })
                 .collect();
             changelog_req
-                .map(|r| get_changelog(commits, &version, Some(r), old_changelog, release_link))
+                .map(|r| get_changelog(commits, &version, Some(r), old_changelog, release_link, &package.name))
                 .transpose()
         }?;
 
@@ -1128,8 +1128,9 @@ fn get_changelog(
     changelog_req: Option<ChangelogRequest>,
     old_changelog: Option<String>,
     release_link: Option<String>,
+    package: &str,
 ) -> anyhow::Result<String> {
-    let mut changelog_builder = ChangelogBuilder::new(commits, next_version.to_string());
+    let mut changelog_builder = ChangelogBuilder::new(commits, next_version.to_string(), package);
     if let Some(changelog_req) = changelog_req {
         if let Some(release_date) = changelog_req.release_date {
             changelog_builder = changelog_builder.with_release_date(release_date)
@@ -1437,6 +1438,7 @@ mod tests {
             Some(changelog_req),
             Some(old.to_string()),
             None,
+            "my_pkg"
         )
         .unwrap();
         assert_eq!(old, new)

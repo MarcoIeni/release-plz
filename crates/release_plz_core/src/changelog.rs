@@ -26,14 +26,16 @@ pub struct Changelog<'a> {
     release: Release<'a>,
     config: Option<Config>,
     release_link: Option<String>,
+    package: String,
 }
 
 impl Changelog<'_> {
     /// Generate the full changelog.
     pub fn generate(self) -> String {
         let config = self.changelog_config(None, self.release_link.as_deref());
-        let changelog = GitCliffChangelog::new(vec![self.release], &config)
+        let mut changelog = GitCliffChangelog::new(vec![self.release], &config)
             .expect("error while building changelog");
+        changelog.add_context("package", self.package);
         let mut out = Vec::new();
         changelog
             .generate(&mut out)
@@ -50,8 +52,9 @@ impl Changelog<'_> {
         }
         let old_header = changelog_parser::parse_header(&old_changelog);
         let config = self.changelog_config(old_header, self.release_link.as_deref());
-        let changelog = GitCliffChangelog::new(vec![self.release], &config)
+        let mut changelog = GitCliffChangelog::new(vec![self.release], &config)
             .context("error while building changelog")?;
+        changelog.add_context("package", self.package);
         let mut out = Vec::new();
         changelog
             .prepend(old_changelog, &mut out)
@@ -130,10 +133,15 @@ pub struct ChangelogBuilder<'a> {
     config: Option<Config>,
     release_date: Option<NaiveDate>,
     release_link: Option<String>,
+    package: String,
 }
 
 impl<'a> ChangelogBuilder<'a> {
-    pub fn new(commits: Vec<Commit<'a>>, version: impl Into<String>) -> Self {
+    pub fn new(
+        commits: Vec<Commit<'a>>,
+        version: impl Into<String>,
+        package: impl Into<String>,
+    ) -> Self {
         Self {
             commits,
             version: version.into(),
@@ -141,6 +149,7 @@ impl<'a> ChangelogBuilder<'a> {
             config: None,
             release_date: None,
             release_link: None,
+            package: package.into(),
         }
     }
 
@@ -216,6 +225,7 @@ impl<'a> ChangelogBuilder<'a> {
             },
             release_link: self.release_link,
             config: self.config,
+            package: self.package,
         }
     }
 
@@ -319,7 +329,7 @@ mod tests {
             Commit::new(NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
             Commit::new(NO_COMMIT_ID.to_string(), "simple update".to_string()),
         ];
-        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+        let changelog = ChangelogBuilder::new(commits, "1.1.1", "my_pkg")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
 
@@ -349,7 +359,7 @@ mod tests {
             NO_COMMIT_ID.to_string(),
             "fix: myfix".to_string(),
         )];
-        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+        let changelog = ChangelogBuilder::new(commits, "1.1.1", "my_pkg")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .with_release_link("https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.24...release-plz-v0.2.25")
             .build();
@@ -377,7 +387,7 @@ mod tests {
             Commit::new(NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
             Commit::new(NO_COMMIT_ID.to_string(), "simple update".to_string()),
         ];
-        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+        let changelog = ChangelogBuilder::new(commits, "1.1.1", "my_pkg")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
 
@@ -387,7 +397,7 @@ mod tests {
             Commit::new(NO_COMMIT_ID.to_string(), "fix: myfix2".to_string()),
             Commit::new(NO_COMMIT_ID.to_string(), "complex update".to_string()),
         ];
-        let changelog = ChangelogBuilder::new(commits, "1.1.2")
+        let changelog = ChangelogBuilder::new(commits, "1.1.2", "my_pkg")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
 
@@ -425,7 +435,7 @@ mod tests {
             Commit::new(NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
             Commit::new(NO_COMMIT_ID.to_string(), "simple update".to_string()),
         ];
-        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+        let changelog = ChangelogBuilder::new(commits, "1.1.1", "my_pkg")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
         let old_body = r#"## [1.1.0] - 1970-01-01
@@ -472,7 +482,7 @@ mod tests {
             Commit::new(NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
             Commit::new(NO_COMMIT_ID.to_string(), "simple update".to_string()),
         ];
-        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+        let changelog = ChangelogBuilder::new(commits, "1.1.1", "my_pkg")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
         let old = r#"## [1.1.0] - 1970-01-01
@@ -520,7 +530,7 @@ mod tests {
                 "chore: something else".to_string(),
             ),
         ];
-        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+        let changelog = ChangelogBuilder::new(commits, "1.1.1", "my_pkg")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .with_config(Config {
                 changelog: ChangelogConfig {
@@ -554,7 +564,7 @@ mod tests {
             Commit::new("1111111".to_string(), "fix: myfix".to_string()),
             Commit::new("0000000".to_string(), "fix: another fix".to_string()),
         ];
-        let changelog = ChangelogBuilder::new(commits, "1.1.1")
+        let changelog = ChangelogBuilder::new(commits, "1.1.1", "my_pkg")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .with_config(Config {
                 changelog: default_changelog_config(None, None),
@@ -592,7 +602,7 @@ fn empty_changelog_is_updated() {
         Commit::new(crate::NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
         Commit::new(crate::NO_COMMIT_ID.to_string(), "simple update".to_string()),
     ];
-    let changelog = ChangelogBuilder::new(commits, "1.1.1")
+    let changelog = ChangelogBuilder::new(commits, "1.1.1", "my_pkg")
         .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
         .build();
     let new = changelog.prepend(CHANGELOG_HEADER);
