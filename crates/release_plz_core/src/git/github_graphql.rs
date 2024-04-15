@@ -115,21 +115,7 @@ impl GithubCommit {
             }
         });
 
-        const MUTATION: &str = r#"
-            mutation($input: CreateCommitOnBranchInput!) {
-              createCommitOnBranch(input: $input) {
-                commit {
-                  author {
-                    name,
-                    email
-                  }
-                }
-              }
-            }"#;
-
-        let inline_mutation = MUTATION.replace(|c: char| c.is_whitespace(), "");
-
-        Ok(json!({"query": inline_mutation, "variables": {"input": input}}))
+        Ok(json!({"query": mutation(), "variables": {"input": input}}))
     }
 
     async fn get_additions(&self) -> anyhow::Result<Vec<Value>> {
@@ -142,6 +128,22 @@ impl GithubCommit {
         }
         Ok(additions)
     }
+}
+
+fn mutation() -> String {
+    const MUTATION: &str = r#"
+            mutation($input: CreateCommitOnBranchInput!) {
+              createCommitOnBranch(input: $input) {
+                commit {
+                  author {
+                    name,
+                    email
+                  }
+                }
+              }
+            }"#;
+
+    MUTATION.replace(|c: char| c.is_whitespace(), "")
 }
 
 #[cfg(test)]
