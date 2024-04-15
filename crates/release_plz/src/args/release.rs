@@ -17,8 +17,8 @@ pub struct Release {
     /// Path to the Cargo.toml of the project you want to release.
     /// If not provided, release-plz will use the Cargo.toml of the current directory.
     /// Both Cargo workspaces and single packages are supported.
-    #[arg(long, value_parser = PathBufValueParser::new())]
-    project_manifest: Option<PathBuf>,
+    #[arg(long, value_parser = PathBufValueParser::new(), alias = "project-manifest")]
+    manifest_path: Option<PathBuf>,
     /// Registry where you want to publish the packages.
     /// The registry name needs to be present in the Cargo config.
     /// If unspecified, the `publish` field of the package manifest is used.
@@ -129,8 +129,8 @@ impl Release {
 }
 
 impl RepoCommand for Release {
-    fn optional_project_manifest(&self) -> Option<&Utf8Path> {
-        self.project_manifest
+    fn optional_manifest_path(&self) -> Option<&Utf8Path> {
+        self.manifest_path
             .as_deref()
             .map(|p| to_utf8_path(p).unwrap())
     }
@@ -195,7 +195,7 @@ mod tests {
         Release {
             allow_dirty: false,
             no_verify: false,
-            project_manifest: None,
+            manifest_path: None,
             registry: None,
             token: None,
             dry_run: false,

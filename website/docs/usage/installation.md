@@ -31,3 +31,12 @@ and it can be installed with an [AUR helper](https://wiki.archlinux.org/title/AU
 For example:
 
 * `paru -S release-plz-git`
+
+## Alpine Linux
+
+`release-plz` is available for [Alpine Edge](https://pkgs.alpinelinux.org/packages?name=release-plz&branch=edge).
+
+It can be installed via [apk](https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper) after
+enabling the [testing repository](https://wiki.alpinelinux.org/wiki/Repositories).
+
+* `apk add release-plz`

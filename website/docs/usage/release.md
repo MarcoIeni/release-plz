@@ -55,9 +55,9 @@ Stdout will contain info about the release:
 
 ```json
 {
-  "packages": [
+  "releases": [
     {
-      "name": "<crate_name>",
+      "package_name": "<package_name>",
       "tag": "<tag_name>",
       "version": "<version>"
     }
@@ -69,9 +69,9 @@ Example:
 
 ```json
 {
-  "packages": [
+  "releases": [
       {
-        "name": "my_crate",
+        "package_name": "my_crate",
         "tag": "v0.1.0",
         "version": "0.1.0"
       }

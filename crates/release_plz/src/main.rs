@@ -54,7 +54,10 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let release_pr = release_plz_core::release_pr(&request).await?;
             if let Some(release_pr) = release_pr {
                 if let Some(output_type) = cmd_args.output {
-                    print_output(output_type, release_pr)
+                    let out = serde_json::json!({
+                        "prs": [release_pr]
+                    });
+                    print_output(output_type, out)
                 }
             }
         }

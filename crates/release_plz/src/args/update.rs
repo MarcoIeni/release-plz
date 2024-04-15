@@ -19,8 +19,8 @@ pub struct Update {
     /// Path to the Cargo.toml of the project you want to update.
     /// If not provided, release-plz will use the Cargo.toml of the current directory.
     /// Both Cargo workspaces and single packages are supported.
-    #[arg(long, value_parser = PathBufValueParser::new())]
-    project_manifest: Option<PathBuf>,
+    #[arg(long, value_parser = PathBufValueParser::new(), alias = "project-manifest")]
+    manifest_path: Option<PathBuf>,
     /// Path to the Cargo.toml contained in the released version of the project you want to update.
     /// If not provided, the packages of your project will be compared with the
     /// ones published in the cargo registry.
@@ -28,8 +28,8 @@ pub struct Update {
     /// your project is already available locally.
     /// For example, it could be the path to the project with a `git checkout` on its latest tag.
     /// The git history of this project should be behind the one of the project you want to update.
-    #[arg(long, value_parser = PathBufValueParser::new())]
-    registry_project_manifest: Option<PathBuf>,
+    #[arg(long, value_parser = PathBufValueParser::new(), alias = "registry-project-manifest")]
+    registry_manifest_path: Option<PathBuf>,
     /// Package to update. Use it when you want to update a single package rather than all the
     /// packages contained in the workspace.
     #[arg(
@@ -53,7 +53,7 @@ pub struct Update {
     /// If unspecified, crates.io is used.
     #[arg(
         long,
-        conflicts_with("registry_project_manifest"),
+        conflicts_with("registry_manifest_path"),
         value_parser = NonEmptyStringValueParser::new()
     )]
     registry: Option<String>,
@@ -92,8 +92,8 @@ pub struct Update {
 }
 
 impl RepoCommand for Update {
-    fn optional_project_manifest(&self) -> Option<&Utf8Path> {
-        self.project_manifest
+    fn optional_manifest_path(&self) -> Option<&Utf8Path> {
+        self.manifest_path
             .as_deref()
             .map(|p| to_utf8_path(p).unwrap())
     }
@@ -121,11 +121,11 @@ impl Update {
         config: Config,
         cargo_metadata: cargo_metadata::Metadata,
     ) -> anyhow::Result<UpdateRequest> {
-        let project_manifest = self.project_manifest();
+        let project_manifest = self.manifest_path();
         check_if_cargo_lock_is_ignored(&project_manifest)?;
         let mut update = UpdateRequest::new(cargo_metadata)
             .with_context(|| {
-                format!("Cannot find file {project_manifest:?}. Make sure you are inside a rust project or that --project-manifest points to a valid Cargo.toml file.")
+                format!("Cannot find file {project_manifest:?}. Make sure you are inside a rust project or that --manifest-path points to a valid Cargo.toml file.")
             })?
             .with_dependencies_update(self.dependencies_update(&config))
             .with_allow_dirty(self.allow_dirty(&config));
@@ -136,12 +136,12 @@ impl Update {
             Err(e) => tracing::warn!("Cannot determine repo url. The changelog won't contain the release link. Error: {:?}", e),
         }
 
-        if let Some(registry_project_manifest) = &self.registry_project_manifest {
-            let registry_project_manifest = to_utf8_path(registry_project_manifest)?;
+        if let Some(registry_manifest_path) = &self.registry_manifest_path {
+            let registry_manifest_path = to_utf8_path(registry_manifest_path)?;
             update = update
-                .with_registry_project_manifest(registry_project_manifest.to_path_buf())
+                .with_registry_manifest_path(registry_manifest_path.to_path_buf())
                 .with_context(|| {
-                    format!("cannot find project manifest {registry_project_manifest:?}")
+                    format!("cannot find project manifest {registry_manifest_path:?}")
                 })?;
         }
         update = config.fill_update_config(self.no_changelog, update);
@@ -233,8 +233,8 @@ mod tests {
     #[test]
     fn input_generates_correct_release_request() {
         let update_args = Update {
-            project_manifest: None,
-            registry_project_manifest: None,
+            manifest_path: None,
+            registry_manifest_path: None,
             package: None,
             no_changelog: false,
             release_date: None,
