@@ -1,10 +1,8 @@
-use std::{collections::HashMap, path::Path};
-
 use anyhow::Result;
 use base64::prelude::*;
 use cargo_metadata::camino::Utf8PathBuf;
 use git_cmd::Repo;
-use serde_json::Value;
+use serde_json::{json, Value};
 use tokio::fs;
 use tracing::{debug, trace};
 use url::Url;
@@ -23,16 +21,14 @@ pub async fn commit_changes(
     let commit = GithubCommit::new(&client.remote.owner_slash_repo(), repo, message, branch)?;
     let graphql_endpoint = get_graphql_endpoint(&client.remote);
 
-    let commit_query = commit.format_query().await?;
+    let commit_query = commit.to_query_json().await?;
     debug!("Sending createCommitOnBranch to {}", graphql_endpoint);
     trace!("{}", commit_query);
-
-    let json_body: HashMap<&str, &str> = [("query", commit_query.as_str())].into();
 
     let res: Value = client
         .client
         .post(graphql_endpoint)
-        .json(&json_body)
+        .json(&commit_query)
         .send()
         .await?
         .json()
@@ -88,8 +84,8 @@ impl GithubCommit {
         })
     }
 
-    // format a graphql query to create commit on branch
-    async fn format_query(&self) -> Result<String> {
+    // format a graphql query json payload to create commit on branch
+    async fn to_query_json(&self) -> Result<serde_json::Value> {
         let GithubCommit {
             owner_slash_repo,
             branch,
@@ -97,85 +93,57 @@ impl GithubCommit {
             current_head,
             ..
         } = self;
-        let deletions = format_deletions(&self.deletions)?;
-        let additions = format_additions(&self.repo_dir, &self.additions).await?;
-        Ok(format!(
-            r#"mutation {{
-              createCommitOnBranch(input: {{
-                branch: {{
-                  repositoryNameWithOwner: "{owner_slash_repo}",
-                  branchName: "{branch}"
-                }},
-                message: {{ headline: "{message}" }},
-                expectedHeadOid: "{current_head}",
-                fileChanges: {{
-                  deletions: {deletions},
-                  additions: {additions}
-                }}
-              }}) {{
-                commit {{
-                  author {{
+
+        let deletions = self
+            .deletions
+            .iter()
+            .map(|path| json!({"path": path}))
+            .collect::<Vec<_>>();
+
+        let additions = self.get_additions().await?;
+
+        let input = json!({
+            "branch": {
+                "repositoryNameWithOwner": owner_slash_repo,
+                "branchName": branch,
+            },
+            "message": {"headline": message},
+            "expectedHeadOid": current_head,
+            "fileChanges": {
+                "deletions": deletions,
+                "additions": additions
+            }
+        });
+
+        Ok(json!({"query": mutation(), "variables": {"input": input}}))
+    }
+
+    async fn get_additions(&self) -> anyhow::Result<Vec<Value>> {
+        let mut additions = vec![];
+        for path in &self.additions {
+            let realpath = self.repo_dir.join(path);
+            let contents = BASE64_STANDARD.encode(fs::read(realpath).await?);
+
+            additions.push(json!({"path": path, "contents": contents}));
+        }
+        Ok(additions)
+    }
+}
+
+fn mutation() -> String {
+    const MUTATION: &str = r#"
+            mutation($input: CreateCommitOnBranchInput!) {
+              createCommitOnBranch(input: $input) {
+                commit {
+                  author {
                     name,
                     email
-                  }}
-                }}
-              }}
-            }}"#
-        ))
-    }
-}
+                  }
+                }
+              }
+            }"#;
 
-// format a list of deleted files for a commit query
-fn format_deletions(paths: &[impl AsRef<Path>]) -> Result<String> {
-    let mut deletions = String::new();
-    let mut has_previous = false;
-
-    deletions.push('[');
-
-    for path in paths {
-        if has_previous {
-            deletions.push_str(",\n");
-        }
-        deletions.push_str(&format!(r#"{{ path: "{}" }}"#, path.as_ref().display()));
-
-        has_previous = true;
-    }
-
-    deletions.push(']');
-
-    Ok(deletions)
-}
-
-// format a list of modified/added files for a commit query
-async fn format_additions(
-    repo_dir: impl AsRef<Path>,
-    paths: &[impl AsRef<Path>],
-) -> Result<String> {
-    let repo_dir = repo_dir.as_ref();
-    let mut additions = String::new();
-    let mut has_previous = false;
-
-    additions.push('[');
-
-    for path in paths {
-        if has_previous {
-            additions.push_str(",\n");
-        }
-
-        let realpath = repo_dir.join(path);
-        let content = BASE64_STANDARD.encode(fs::read(realpath).await?);
-
-        additions.push_str(&format!(
-            r#"{{ path: "{}", contents: "{content}" }}"#,
-            path.as_ref().display()
-        ));
-
-        has_previous = true;
-    }
-
-    additions.push(']');
-
-    Ok(additions)
+    MUTATION.replace(|c: char| c.is_whitespace(), "")
 }
 
 #[cfg(test)]
@@ -234,45 +202,33 @@ mod tests {
         let message = "message";
         let current_head = repo.current_commit_hash().unwrap();
 
-        let expected_query = format!(
-            r#"mutation {{
-              createCommitOnBranch(input: {{
-                branch: {{
-                  repositoryNameWithOwner: "{owner_slash_repo}",
-                  branchName: "{branch}"
-                }},
-                message: {{ headline: "{message}" }},
-                expectedHeadOid: "{current_head}",
-                fileChanges: {{
-                  deletions: [{{ path: "{removed}" }}],
-                  additions: [
-                      {{ path: "{changed}", contents: "{changed_base64_content}" }},
-                      {{ path: "{added}", contents: "{added_base64_content}" }}
-                  ]
-                }}
-              }}) {{
-                commit {{
-                  author {{
-                    name,
-                    email
-                  }}
-                }}
-              }}
-            }}"#
-        );
+        let expected_variables = json!({
+            "input": {
+                "branch": {
+                    "repositoryNameWithOwner": owner_slash_repo,
+                    "branchName": branch,
+                },
+                "message": {"headline": message},
+                "expectedHeadOid": current_head,
+                "fileChanges": {
+                    "deletions": [{"path": removed}],
+                    "additions": [
+                        {"path": changed, "contents": changed_base64_content},
+                        {"path": added, "contents": added_base64_content},
+                    ]
+                }
+            }
+        });
+
         let query = GithubCommit::new(owner_slash_repo, &repo, message, branch)
             .unwrap()
-            .format_query()
+            .to_query_json()
             .await
             .unwrap();
 
-        // remove all the whitespace from queries for comparison
-        let expected_query: String = expected_query
-            .chars()
-            .filter(|c| !c.is_whitespace())
-            .collect();
-        let query: String = query.chars().filter(|c| !c.is_whitespace()).collect();
+        assert_eq!(expected_variables, query["variables"]);
 
-        assert_eq!(expected_query, query);
+        expect_test::expect![[r#""mutation($input:CreateCommitOnBranchInput!){createCommitOnBranch(input:$input){commit{author{name,email}}}}""#]]
+        .assert_eq(&query["query"].to_string());
     }
 }
