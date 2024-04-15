@@ -675,6 +675,7 @@ impl Updater<'_> {
             packages_to_update.with_workspace_version(new_workspace_version.clone());
         }
 
+        let mut old_changelogs = OldChangelogs::new();
         for (p, diff) in packages_diffs {
             if let Some(ref release_commits_regex) = self.req.release_commits {
                 if !diff.any_commit_matches(release_commits_regex) {
@@ -700,8 +701,19 @@ impl Updater<'_> {
                     p.name,
                     diff.semver_check.outcome_str()
                 );
-                let update_result =
-                    self.update_result(diff.commits, next_version, p, diff.semver_check)?;
+                let changelog_path = self.req.changelog_path(p);
+                let old_changelog: Option<String> = old_changelogs.get(&changelog_path);
+
+                let update_result = self.update_result(
+                    diff.commits,
+                    next_version,
+                    p,
+                    diff.semver_check,
+                    old_changelog,
+                )?;
+                if let Some(changelog) = &update_result.changelog {
+                    old_changelogs.insert(changelog_path, changelog.clone());
+                }
 
                 packages_to_update
                     .updates_mut()
@@ -785,6 +797,7 @@ impl Updater<'_> {
         packages_to_check_for_deps: &[&Package],
         changed_packages: &[(&Package, &Version)],
     ) -> anyhow::Result<PackagesToUpdate> {
+        let mut old_changelogs = OldChangelogs::new();
         let packages_to_update = packages_to_check_for_deps
             .iter()
             .filter_map(|p| match p.dependencies_to_update(changed_packages) {
@@ -808,15 +821,19 @@ impl Updater<'_> {
                     "{}: dependencies changed. Next version is {next_version}",
                     p.name
                 );
-                Ok((
-                    p.clone(),
-                    self.update_result(
-                        vec![Commit::new(NO_COMMIT_ID.to_string(), change)],
-                        next_version,
-                        p,
-                        SemverCheck::Skipped,
-                    )?,
-                ))
+                let changelog_path = self.req.changelog_path(p);
+                let old_changelog: Option<String> = old_changelogs.get(&changelog_path);
+                let update_result = self.update_result(
+                    vec![Commit::new(NO_COMMIT_ID.to_string(), change)],
+                    next_version,
+                    p,
+                    SemverCheck::Skipped,
+                    old_changelog,
+                )?;
+                if let Some(changelog) = &update_result.changelog {
+                    old_changelogs.insert(changelog_path, changelog.clone());
+                }
+                Ok((p.clone(), update_result))
             })
             .collect::<anyhow::Result<Vec<_>>>()?;
         Ok(packages_to_update)
@@ -828,6 +845,7 @@ impl Updater<'_> {
         version: Version,
         package: &Package,
         semver_check: SemverCheck,
+        old_changelog: Option<String>,
     ) -> anyhow::Result<UpdateResult> {
         let release_link = {
             let prev_tag = self
@@ -851,7 +869,6 @@ impl Updater<'_> {
             let changelog_req = cfg
                 .should_update_changelog()
                 .then_some(self.req.changelog_req.clone());
-            let old_changelog = fs::read_to_string(self.req.changelog_path(package)).ok();
             let commits: Vec<Commit> = commits
                 .into_iter()
                 // If not conventional commit, only consider the first line of the commit message.
@@ -877,7 +894,16 @@ impl Updater<'_> {
                 })
                 .collect();
             changelog_req
-                .map(|r| get_changelog(commits, &version, Some(r), old_changelog, release_link, &package.name))
+                .map(|r| {
+                    get_changelog(
+                        commits,
+                        &version,
+                        Some(r),
+                        old_changelog,
+                        release_link,
+                        &package.name,
+                    )
+                })
                 .transpose()
         }?;
 
@@ -1091,6 +1117,29 @@ impl Updater<'_> {
         } else {
             Ok(None)
         }
+    }
+}
+
+struct OldChangelogs {
+    old_changelogs: HashMap<Utf8PathBuf, String>,
+}
+
+impl OldChangelogs {
+    fn new() -> Self {
+        Self {
+            old_changelogs: HashMap::new(),
+        }
+    }
+
+    fn get(&self, changelog_path: &Utf8PathBuf) -> Option<String> {
+        self.old_changelogs
+            .get(changelog_path)
+            .cloned()
+            .or(fs::read_to_string(changelog_path).ok())
+    }
+
+    fn insert(&mut self, changelog_path: Utf8PathBuf, changelog: String) {
+        self.old_changelogs.insert(changelog_path, changelog);
     }
 }
 
@@ -1438,7 +1487,7 @@ mod tests {
             Some(changelog_req),
             Some(old.to_string()),
             None,
-            "my_pkg"
+            "my_pkg",
         )
         .unwrap();
         assert_eq!(old, new)
