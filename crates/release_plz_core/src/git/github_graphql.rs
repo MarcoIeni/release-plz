@@ -125,10 +125,11 @@ impl GithubCommit {
                   }
                 }
               }
-            }
-        "#;
+            }"#;
 
-        Ok(json!({"query": MUTATION, "variables": {"input": input}}))
+        let inline_mutation = MUTATION.replace(|c: char| c.is_whitespace(), "");
+
+        Ok(json!({"query": inline_mutation, "variables": {"input": input}}))
     }
 
     async fn get_additions(&self) -> anyhow::Result<Vec<Value>> {
@@ -199,19 +200,21 @@ mod tests {
         let message = "message";
         let current_head = repo.current_commit_hash().unwrap();
 
-        let expected_input = json!({
-            "branch": {
-                "repositoryNameWithOwner": owner_slash_repo,
-                "branchName": branch,
-            },
-            "message": {"headline": message},
-            "expectedHeadOid": current_head,
-            "fileChanges": {
-                "deletions": [{"path": removed}],
-                "additions": [
-                    {"path": changed, "contents": changed_base64_content},
-                    {"path": added, "contents": added_base64_content},
-                ]
+        let expected_variables = json!({
+            "input": {
+                "branch": {
+                    "repositoryNameWithOwner": owner_slash_repo,
+                    "branchName": branch,
+                },
+                "message": {"headline": message},
+                "expectedHeadOid": current_head,
+                "fileChanges": {
+                    "deletions": [{"path": removed}],
+                    "additions": [
+                        {"path": changed, "contents": changed_base64_content},
+                        {"path": added, "contents": added_base64_content},
+                    ]
+                }
             }
         });
 
@@ -221,6 +224,9 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(expected_input, query["variables"]["input"]);
+        assert_eq!(expected_variables, query["variables"]);
+
+        expect_test::expect![[r#""mutation($input:CreateCommitOnBranchInput!){createCommitOnBranch(input:$input){commit{author{name,email}}}}""#]]
+        .assert_eq(&query["query"].to_string());
     }
 }
