@@ -100,13 +100,7 @@ impl GithubCommit {
             .map(|path| json!({"path": path}))
             .collect::<Vec<_>>();
 
-        let mut additions = vec![];
-        for path in &self.additions {
-            let realpath = self.repo_dir.join(path);
-            let contents = BASE64_STANDARD.encode(fs::read(realpath).await?);
-
-            additions.push(json!({"path": path, "contents": contents}));
-        }
+        let additions = self.get_additions().await?;
 
         let input = json!({
             "branch": {
@@ -135,6 +129,17 @@ impl GithubCommit {
         "#;
 
         Ok(json!({"query": MUTATION, "variables": {"input": input}}))
+    }
+
+    async fn get_additions(&self) -> anyhow::Result<Vec<Value>> {
+        let mut additions = vec![];
+        for path in &self.additions {
+            let realpath = self.repo_dir.join(path);
+            let contents = BASE64_STANDARD.encode(fs::read(realpath).await?);
+
+            additions.push(json!({"path": path, "contents": contents}));
+        }
+        Ok(additions)
     }
 }
 
