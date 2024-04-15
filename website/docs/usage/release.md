@@ -84,4 +84,4 @@ The `tag` field is present even if the user disabled the tag creation with the
 This is because the user might want to use the tag name to create the tag
 by themselves.
 
-If release-plz didn't release any packages, the `packages` array will be empty.
+If release-plz didn't release any packages, the `releases` array will be empty.
