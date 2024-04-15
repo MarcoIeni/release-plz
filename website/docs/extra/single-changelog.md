@@ -54,7 +54,25 @@ changelog_path = "./CHANGELOG.md"
 name = "package_b"
 changelog_update = true
 changelog_path = "./CHANGELOG.md"
+
+[changelog]
+body = """
+
+## `{{package}}` - [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | upper_first }}
+{% for commit in commits %}
+{%- if commit.scope -%}
+- *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
+{% else -%}
+- {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
+{% endif -%}
+{% endfor -%}
+{% endfor %}
+"""
 ```
+
+The difference with the default changelog body configuration is that the header now also contains the `{{package}}`.
 
 In this way, `package_a` and `package_b` changelogs are in the same file.
 Note that the changelog will contain duplicate changes.
