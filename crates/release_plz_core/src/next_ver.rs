@@ -901,7 +901,7 @@ impl Updater<'_> {
                         Some(r),
                         old_changelog,
                         release_link,
-                        &package.name,
+                        package,
                     )
                 })
                 .transpose()
@@ -1177,9 +1177,10 @@ fn get_changelog(
     changelog_req: Option<ChangelogRequest>,
     old_changelog: Option<String>,
     release_link: Option<String>,
-    package: &str,
+    package: &Package,
 ) -> anyhow::Result<String> {
-    let mut changelog_builder = ChangelogBuilder::new(commits, next_version.to_string(), package);
+    let mut changelog_builder =
+        ChangelogBuilder::new(commits, next_version.to_string(), package.name.clone());
     if let Some(changelog_req) = changelog_req {
         if let Some(release_date) = changelog_req.release_date {
             changelog_builder = changelog_builder.with_release_date(release_date)
@@ -1191,9 +1192,11 @@ fn get_changelog(
             changelog_builder = changelog_builder.with_release_link(link)
         }
         if let Some(old_changelog) = &old_changelog {
-            if let Ok(Some(last_version)) = changelog_parser::last_version_from_str(old_changelog) {
-                changelog_builder = changelog_builder.with_previous_version(last_version)
-            }
+            let last_version = changelog_parser::last_version_from_str(old_changelog)
+                .ok()
+                .flatten()
+                .unwrap_or(package.version.to_string());
+            changelog_builder = changelog_builder.with_previous_version(last_version)
         }
     }
     let new_changelog = changelog_builder.build();
@@ -1487,7 +1490,7 @@ mod tests {
             Some(changelog_req),
             Some(old.to_string()),
             None,
-            "my_pkg",
+            &fake_package::FakePackage::new("my_package").into(),
         )
         .unwrap();
         assert_eq!(old, new)
