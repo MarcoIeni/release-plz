@@ -163,14 +163,10 @@ impl ReleaseRequest {
 impl ReleaseMetadataBuilder for ReleaseRequest {
     fn get_release_metadata(&self, package_name: &str) -> Option<ReleaseMetadata> {
         let config = self.get_package_config(package_name);
-        if config.generic.release {
-            Some(ReleaseMetadata {
-                tag_name_template: config.generic.git_tag.name_template.clone(),
-                release_name_template: config.generic.git_release.name_template.clone(),
-            })
-        } else {
-            None
-        }
+        config.generic.release.then(|| ReleaseMetadata {
+            tag_name_template: config.generic.git_tag.name_template.clone(),
+            release_name_template: config.generic.git_release.name_template.clone(),
+        })
     }
 }
 

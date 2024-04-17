@@ -352,14 +352,10 @@ impl UpdateRequest {
 impl ReleaseMetadataBuilder for UpdateRequest {
     fn get_release_metadata(&self, package_name: &str) -> Option<ReleaseMetadata> {
         let config = self.get_package_config(package_name);
-        if config.generic.release {
-            Some(ReleaseMetadata {
-                tag_name_template: config.generic.tag_name_template.clone(),
-                release_name_template: None,
-            })
-        } else {
-            None
-        }
+        config.generic.release.then(|| ReleaseMetadata {
+            tag_name_template: config.generic.tag_name_template.clone(),
+            release_name_template: None,
+        })
     }
 }
 
@@ -1362,14 +1358,10 @@ mod tests {
 
     impl ReleaseMetadataBuilder for ReleaseMetadataBuilderStub {
         fn get_release_metadata(&self, _package_name: &str) -> Option<ReleaseMetadata> {
-            if self.release {
-                Some(ReleaseMetadata {
-                    tag_name_template: self.tag_name.clone(),
-                    release_name_template: self.release_name.clone(),
-                })
-            } else {
-                None
-            }
+            self.release.then(|| ReleaseMetadata {
+                tag_name_template: self.tag_name.clone(),
+                release_name_template: self.release_name.clone(),
+            })
         }
     }
 
