@@ -36,7 +36,6 @@ mod tests {
         .assert_eq(&new_header);
     }
 
-
     #[test]
     fn unreleased_link_isnt_inserted_if_not_markdown_link() {
         let header = "# Changelog\n## Unreleased";
