@@ -36,6 +36,7 @@ pub struct ReleaseRequest {
     token: Option<SecretString>,
     /// Perform all checks without uploading.
     dry_run: bool,
+    /// If true, release on every commit.
     /// If false, release only on Release PR merge.
     release_always: bool,
     /// Publishes GitHub release.
