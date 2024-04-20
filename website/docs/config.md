@@ -304,7 +304,7 @@ Don't verify the contents by building them.
 - If `true`, `release-plz` adds the `--no-verify` flag to `cargo publish`.
 - If `false`, `cargo publish` fails if your repository doesn't build. *(Default)*.
 
-### The `publish_features` field
+#### The `publish_features` field
 
 Pass a list of features to use for verification by `cargo publish`.
 
@@ -370,12 +370,18 @@ release = false
   Note that in this case, every package is published as soon as you commit it.
   :::
 
-- If false, `release-plz release` will try release your packages only when you merge the
-  release pr.
-  Use this if you want to commit your packages and publish them later.
-  To determine if a pr is a release-pr, release-plz will check if the branch of the PR starts with
+- If false, `release-plz release` will try to release your packages only when you merge the
+  release PR.
+  Use `release_always = false` if you want to commit your packages and publish them later,
+  instead of publishing them as soon as you commit them.
+  :::info
+  To do this, release-plz checks if the latest commit is
+  [associated](https://docs.github.com/en/rest/commits/commits?apiVersion=2022-11-28#list-pull-requests-associated-with-a-commit)
+  to a release PR.
+  To determine if a PR is a release-pr, release-plz will check if the branch of the PR starts with
   `release-plz-`. So if you want to create a PR that should trigger a release
   (e.g. when you fix the CI), use this branch name format (e.g. `release-plz-fix-ci`).
+  :::
   :::info
   Note that the release pr is opened only when a file of the package is updated.
   To verify your packaged files, run `cargo package --list`.
@@ -529,7 +535,7 @@ Overrides the
 
 Overrides the [`workspace.publish_no_verify`](#the-publish_no_verify-field) field.
 
-### The `publish_features` field (`package` section)
+#### The `publish_features` field (`package` section)
 
 Overrides the [`workspace.publish_features`](#the-publish_features-field) field.
 
