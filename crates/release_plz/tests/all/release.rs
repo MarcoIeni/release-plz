@@ -1,3 +1,5 @@
+use release_plz_core::fs_utils::Utf8TempDir;
+
 use crate::helpers::test_context::TestContext;
 
 #[tokio::test]
@@ -32,6 +34,27 @@ async fn release_plz_releases_a_new_project_with_custom_tag_name() {
     outcome.stdout(format!("{expected_stdout}\n"));
 
     assert!(is_tag_created());
+}
+
+#[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_plz_does_not_release_a_new_project_if_release_always_is_false() {
+    let context = TestContext::new().await;
+
+    let config = r#"
+    [workspace]
+    release_always = false
+    "#;
+    context.write_release_plz_toml(config);
+
+    // Running `release` doesn't release the project
+    // because the last commit doesn't belong to a release PR.
+    let outcome = context.run_release().success();
+    outcome.stdout("");
+
+    let dest_dir = Utf8TempDir::new().unwrap();
+    let packages = context.download_package(&dest_dir.path());
+    assert!(packages.is_empty());
 }
 
 #[tokio::test]

@@ -128,6 +128,16 @@ pub struct Workspace {
     /// # Release Commits
     /// Prepare release only if at least one commit respects this regex.
     pub release_commits: Option<String>,
+    /// # Release always
+    /// - If true, release-plz release will try to release your packages every time you run it
+    ///   (e.g. on every commit in the main branch). *(Default)*.
+    /// - If false, `release-plz release` will try release your packages only when you merge the
+    ///   release pr.
+    ///   Use this if you want to commit your packages and publish them later.
+    ///   To determine if a pr is a release-pr, release-plz will check if the branch of the PR starts with
+    ///   `release-plz-`. So if you want to create a PR that should trigger a release
+    ///   (e.g. when you fix the CI), use this branch name format (e.g. `release-plz-fix-ci`).
+    pub release_always: Option<bool>,
 }
 
 impl Workspace {
@@ -412,6 +422,7 @@ mod tests {
                 pr_labels: vec![],
                 publish_timeout: Some("10m".to_string()),
                 release_commits: Some("^feat:".to_string()),
+                release_always: None,
             },
             package: [].into(),
         }
@@ -530,6 +541,7 @@ mod tests {
                 },
                 publish_timeout: Some("10m".to_string()),
                 release_commits: Some("^feat:".to_string()),
+                release_always: None
             },
             package: [PackageSpecificConfigWithName {
                 name: "crate1".to_string(),

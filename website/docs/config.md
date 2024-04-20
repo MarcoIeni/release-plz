@@ -74,6 +74,7 @@ the following sections:
   - [`publish_features`](#the-publish_features-field) — List of features to pass to `cargo publish`.
   - [`publish_timeout`](#the-publish_timeout-field) — `cargo publish` timeout.
   - [`release`](#the-release-field) - Enable the processing of the packages.
+  - [`release_always`](#the-release_always-field) - Release always or when you merge the release PR only.
   - [`release_commits`](#the-release_commits-field) - Customize which commits trigger a release.
   - [`repo_url`](#the-repo_url-field) — Repository URL.
   - [`semver_check`](#the-semver_check-field) — Run [cargo-semver-checks].
@@ -359,6 +360,32 @@ Example:
 ```toml
 [workspace]
 release = false
+```
+
+#### The `release_always` field
+
+- If true, release-plz release will try to release your packages every time you run it
+  (e.g. on every commit in the main branch). *(Default)*.
+  :::warning
+  Note that in this case, every package is published as soon as you commit it.
+  :::
+
+- If false, `release-plz release` will try release your packages only when you merge the
+  release pr.
+  Use this if you want to commit your packages and publish them later.
+  To determine if a pr is a release-pr, release-plz will check if the branch of the PR starts with
+  `release-plz-`. So if you want to create a PR that should trigger a release
+  (e.g. when you fix the CI), use this branch name format (e.g. `release-plz-fix-ci`).
+  :::info
+  Note that the release pr is opened only when a file of the package is updated.
+  To verify your packaged files, run `cargo package --list`.
+  :::
+
+Example:
+
+```toml
+[workspace]
+release_always = false
 ```
 
 #### The `release_commits` field
