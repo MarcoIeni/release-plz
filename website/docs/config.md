@@ -394,6 +394,10 @@ Example:
 release_always = false
 ```
 
+:::info
+Supported on Gitea >= 1.22 and GitHub.
+:::
+
 #### The `release_commits` field
 
 In `release-plz update` and `release-plz release-pr`, `release-plz` bumps the version and updates the changelog
