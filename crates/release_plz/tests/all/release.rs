@@ -53,8 +53,8 @@ async fn release_plz_does_not_release_a_new_project_if_release_always_is_false()
     outcome.stdout("");
 
     let dest_dir = Utf8TempDir::new().unwrap();
-    let packages = context.download_package(dest_dir.path());
-    assert!(packages.is_empty());
+    let packages = || context.download_package(dest_dir.path());
+    assert!(packages().is_empty());
 
     context.run_release_pr().success();
     let opened_prs = context.opened_release_prs().await;
@@ -65,8 +65,7 @@ async fn release_plz_does_not_release_a_new_project_if_release_always_is_false()
     // Running `release` releases the project
     // because the last commit belongs to a release PR.
     context.run_release().success();
-    let packages = context.download_package(dest_dir.path());
-    assert_eq!(packages.len(), 1);
+    assert_eq!(packages().len(), 1);
 }
 
 #[tokio::test]
