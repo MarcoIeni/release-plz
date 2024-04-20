@@ -367,6 +367,41 @@ impl GitClient {
             .await
             .context("can't parse commits")
     }
+
+    pub async fn associated_prs(&self, commit: &str) -> anyhow::Result<Vec<GitPr>> {
+        let url = match self.backend {
+            BackendType::Github => {
+                format!("{}/commits/{}/pulls", self.repo_url(), commit)
+            }
+            BackendType::Gitea => {
+                format!("{}/commits/{}/pull", self.repo_url(), commit)
+            }
+            BackendType::Gitlab => {
+                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
+            }
+        };
+
+        let response = self.client.get(url).send().await?.error_for_status()?;
+
+        let prs = match self.backend {
+            BackendType::Github => {
+                let prs: Vec<GitPr> = response
+                    .json()
+                    .await
+                    .context("can't parse associated PRs")?;
+                prs
+            }
+            BackendType::Gitea => {
+                let pr: GitPr = response.json().await.context("can't parse associated PR")?;
+                vec![pr]
+            }
+            BackendType::Gitlab => {
+                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
+            }
+        };
+
+        Ok(prs)
+    }
 }
 
 /// Returns the list of contributors for the given commits,

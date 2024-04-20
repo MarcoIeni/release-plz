@@ -528,10 +528,8 @@ async fn should_release(
     if input.release_always {
         return Ok(true);
     }
-    let _last_commit = repo.current_commit_hash()?;
-    let prs = git_client
-        .opened_prs("todo: get prs associated to last commit")
-        .await?;
+    let last_commit = repo.current_commit_hash()?;
+    let prs = git_client.associated_prs(&last_commit).await?;
     let is_current_commit_from_release_pr =
         prs.iter().any(|pr| pr.branch().starts_with(BRANCH_PREFIX));
     Ok(is_current_commit_from_release_pr)
