@@ -53,7 +53,7 @@ async fn release_plz_does_not_release_a_new_project_if_release_always_is_false()
     outcome.stdout("");
 
     let dest_dir = Utf8TempDir::new().unwrap();
-    let packages = context.download_package(&dest_dir.path());
+    let packages = context.download_package(dest_dir.path());
     assert!(packages.is_empty());
 }
 

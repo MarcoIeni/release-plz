@@ -541,7 +541,7 @@ mod tests {
                 },
                 publish_timeout: Some("10m".to_string()),
                 release_commits: Some("^feat:".to_string()),
-                release_always: None
+                release_always: None,
             },
             package: [PackageSpecificConfigWithName {
                 name: "crate1".to_string(),

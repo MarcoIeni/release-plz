@@ -184,7 +184,8 @@ impl GitClient {
                 self.create_github_release(release_info).await
             }
             BackendType::Gitlab => self.create_gitlab_release(release_info).await,
-        }.context("Failed to create release")
+        }
+        .context("Failed to create release")
     }
 
     /// Same as Gitea.

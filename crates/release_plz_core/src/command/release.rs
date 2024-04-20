@@ -19,8 +19,8 @@ use crate::{
     changelog_parser,
     git::backend::GitClient,
     release_order::release_order,
-    GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder,
-    BRANCH_PREFIX, CHANGELOG_FILENAME,
+    GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, BRANCH_PREFIX,
+    CHANGELOG_FILENAME,
 };
 
 #[derive(Debug)]
@@ -480,7 +480,7 @@ async fn release_package_if_needed(
         return Ok(None);
     }
 
-    let git_client = get_git_client(&input)?;
+    let git_client = get_git_client(input)?;
 
     if !should_release(input, &repo, &git_client).await? {
         return Ok(None);
@@ -527,7 +527,7 @@ async fn should_release(
     if input.release_always {
         return Ok(true);
     }
-    let last_commit = repo.current_commit_hash()?;
+    let _last_commit = repo.current_commit_hash()?;
     let prs = git_client
         .opened_prs("todo: get prs associated to last commit")
         .await?;
