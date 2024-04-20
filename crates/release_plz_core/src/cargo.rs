@@ -5,8 +5,7 @@ use tracing::{debug, info};
 
 use std::{
     env,
-    io::{BufRead, BufReader},
-    process::{Command, ExitStatus, Stdio},
+    process::{Command, ExitStatus},
     time::{Duration, Instant},
 };
 
@@ -23,29 +22,14 @@ fn cargo_cmd() -> Command {
 pub fn run_cargo(root: &Utf8Path, args: &[&str]) -> anyhow::Result<CmdOutput> {
     debug!("cargo {}", args.join(" "));
 
-    let mut stderr_lines = vec![];
-
-    let mut child = cargo_cmd()
+    let output = cargo_cmd()
         .current_dir(root)
         .args(args)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
+        .output()
         .context("cannot run cargo")?;
 
-    {
-        let stderr = child.stderr.as_mut().expect("cannot get child stderr");
-
-        for line in BufReader::new(stderr).lines() {
-            let line = line?;
-            stderr_lines.push(line);
-        }
-    }
-
-    let output = child.wait_with_output()?;
-
     let output_stdout = String::from_utf8(output.stdout)?;
-    let output_stderr = stderr_lines.join("\n");
+    let output_stderr = String::from_utf8(output.stderr)?;
 
     debug!("cargo stderr: {}", output_stderr);
     debug!("cargo stdout: {}", output_stdout);
