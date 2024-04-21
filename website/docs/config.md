@@ -396,6 +396,9 @@ release_always = false
 
 :::info
 Supported on GitHub only.
+Gitea should work when they implement the
+`/repos/{owner}/{repo}/commits/{sha}/pull`
+API (maybe in Gitea 1.22?).
 :::
 
 #### The `release_commits` field

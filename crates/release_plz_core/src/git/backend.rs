@@ -368,6 +368,9 @@ impl GitClient {
             .context("can't parse commits")
     }
 
+    /// Only works for GitHub.
+    /// From my tests, Gitea doesn't work yet,
+    /// but this implementation should be correct.
     pub async fn associated_prs(&self, commit: &str) -> anyhow::Result<Vec<GitPr>> {
         let url = match self.backend {
             BackendType::Github => {
