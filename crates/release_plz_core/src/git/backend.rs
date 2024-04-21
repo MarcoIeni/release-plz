@@ -383,9 +383,10 @@ impl GitClient {
 
         let response = self.client.get(url).send().await?;
         if response.status() == 404 {
-            // No PRs associated with this commit
+            debug!("No associated PRs for commit {commit}");
             return Ok(vec![]);
         }
+        debug!("Associated PR found. Status: {}", response.status());
         let response = response.error_for_status()?;
 
         let prs = match self.backend {
