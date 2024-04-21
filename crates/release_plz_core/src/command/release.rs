@@ -451,11 +451,19 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<Option<Release>> 
         &input.metadata,
         input,
     )?;
+    let repo = Repo::new(&input.metadata.workspace_root)?;
+    let git_client = get_git_client(input)?;
+    if !should_release(input, &repo, &git_client).await? {
+        return Ok(None);
+    }
+
     let packages = project.publishable_packages();
     let release_order = release_order(&packages).context("cannot determine release order")?;
     let mut package_releases: Vec<PackageRelease> = vec![];
     for package in release_order {
-        if let Some(pkg_release) = release_package_if_needed(input, &project, package).await? {
+        if let Some(pkg_release) =
+            release_package_if_needed(input, &project, package, &repo, &git_client).await?
+        {
             package_releases.push(pkg_release);
         }
     }
@@ -469,8 +477,9 @@ async fn release_package_if_needed(
     input: &ReleaseRequest,
     project: &Project,
     package: &Package,
+    repo: &Repo,
+    git_client: &GitClient,
 ) -> anyhow::Result<Option<PackageRelease>> {
-    let repo = Repo::new(&input.metadata.workspace_root)?;
     let git_tag = project.git_tag(&package.name, &package.version.to_string());
     let release_name = project.release_name(&package.name, &package.version.to_string());
     if repo.tag_exists(&git_tag)? {
@@ -478,12 +487,6 @@ async fn release_package_if_needed(
             "{} {}: Already published - Tag {} already exists",
             package.name, package.version, &git_tag
         );
-        return Ok(None);
-    }
-
-    let git_client = get_git_client(input)?;
-
-    if !should_release(input, &repo, &git_client).await? {
         return Ok(None);
     }
 
