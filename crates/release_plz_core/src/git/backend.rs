@@ -81,7 +81,7 @@ pub struct CreateReleaseOption<'a> {
     prerelease: &'a bool,
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct GitPr {
     pub number: u64,
     pub html_url: Url,
@@ -96,7 +96,7 @@ impl GitPr {
     }
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct Commit {
     #[serde(rename = "ref")]
     pub ref_field: String,
@@ -381,7 +381,12 @@ impl GitClient {
             }
         };
 
-        let response = self.client.get(url).send().await?.error_for_status()?;
+        let response = self.client.get(url).send().await?;
+        if response.status() == 404 {
+            // No PRs associated with this commit
+            return Ok(vec![]);
+        }
+        let response = response.error_for_status()?;
 
         let prs = match self.backend {
             BackendType::Github => {
