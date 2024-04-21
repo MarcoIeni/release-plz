@@ -64,7 +64,8 @@ async fn release_plz_does_not_release_a_new_project_if_release_always_is_false()
 
     // Running `release` releases the project
     // because the last commit belongs to a release PR.
-    context.run_release().success();
+    let outcome = context.run_release().success();
+    outcome.success();
     assert_eq!(packages().len(), 1);
 }
 

@@ -11,7 +11,7 @@ use crates_index::{GitIndex, SparseIndex};
 use git_cmd::Repo;
 use secrecy::{ExposeSecret, SecretString};
 use serde::Serialize;
-use tracing::{info, instrument, warn};
+use tracing::{debug, info, instrument, warn};
 use url::Url;
 
 use crate::{

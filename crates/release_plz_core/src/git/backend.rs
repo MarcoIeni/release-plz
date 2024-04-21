@@ -406,6 +406,7 @@ impl GitClient {
             }
         };
 
+        debug!("Associated PRs for commit {commit}: {:?}", prs);
         Ok(prs)
     }
 }
