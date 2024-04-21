@@ -40,11 +40,24 @@ const TWEETS: TweetItem[] = [
     date: 'May 16, 2023',
     content: (
       <>
-        This is a great project to contribute to, it's so incredibly valuable for other maintainers like myself to be able to automate project releases and provide a better experience for our contributors. I'm already using it in octocrab and plan to adopt it in all my projects eventually and going forward.
+        This is a great project to contribute to, it's so incredibly valuable for other maintainers like myself to be able to automate project releases and provide a better experience for our contributors.
       </>
     ),
     showOnHomepage: true,
     githubUsername: 'XAMPPRocky',
+  },
+  {
+    url: 'https://twitter.com/algo_luca/status/1781977925299908816',
+    handle: 'algo_luca',
+    name: 'Luca Palmieri',
+    date: 'Apr 21, 2024',
+    content: (
+      <>
+        God bless @MarcoIeni for release-plz.
+      </>
+    ),
+    showOnHomepage: true,
+    githubUsername: 'lukeMathWalker',
   },
 ];
 
