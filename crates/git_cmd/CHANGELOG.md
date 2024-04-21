@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.3...git_cmd-v0.6.4) - 2024-04-21
+
+### Added
+- add `release_always` option to release on release PRs only ([#1407](https://github.com/MarcoIeni/release-plz/pull/1407))
+
 ## [0.6.3](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.2...git_cmd-v0.6.3) - 2024-04-14
 
 ### Other
