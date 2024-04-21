@@ -395,7 +395,7 @@ release_always = false
 ```
 
 :::info
-Supported on Gitea >= 1.22 and GitHub.
+Supported on GitHub only.
 :::
 
 #### The `release_commits` field
