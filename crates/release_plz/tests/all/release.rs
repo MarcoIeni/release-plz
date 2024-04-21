@@ -1,3 +1,5 @@
+use release_plz_core::fs_utils::Utf8TempDir;
+
 use crate::helpers::test_context::TestContext;
 
 #[tokio::test]
@@ -32,6 +34,40 @@ async fn release_plz_releases_a_new_project_with_custom_tag_name() {
     outcome.stdout(format!("{expected_stdout}\n"));
 
     assert!(is_tag_created());
+}
+
+#[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_plz_does_not_release_a_new_project_if_release_always_is_false() {
+    let context = TestContext::new().await;
+
+    let config = r#"
+    [workspace]
+    release_always = false
+    "#;
+    context.write_release_plz_toml(config);
+
+    // Running `release` doesn't release the project
+    // because the last commit doesn't belong to a release PR.
+    let outcome = context.run_release().success();
+    outcome.stdout("");
+
+    let dest_dir = Utf8TempDir::new().unwrap();
+    let packages = || context.download_package(dest_dir.path());
+    assert!(packages().is_empty());
+
+    // TODO: Gitea doesn't detect associated PRs. I don't know why.
+    // context.run_release_pr().success();
+    // let opened_prs = context.opened_release_prs().await;
+    // assert_eq!(opened_prs.len(), 1);
+    // context.gitea.merge_pr_retrying(opened_prs[0].number).await;
+    // context.repo.git(&["pull"]).unwrap();
+
+    // // Running `release` releases the project
+    // // because the last commit belongs to a release PR.
+    // let outcome = context.run_release().success();
+    // outcome.success();
+    // assert_eq!(packages().len(), 1);
 }
 
 #[tokio::test]

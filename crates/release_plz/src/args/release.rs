@@ -119,6 +119,9 @@ impl Release {
         if let Some(git_release) = git_release {
             req = req.with_git_release(git_release);
         }
+        if let Some(release_always) = config.workspace.release_always {
+            req = req.with_release_always(release_always);
+        }
 
         req = req.with_publish_timeout(config.workspace.publish_timeout()?);
 

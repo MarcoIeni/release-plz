@@ -81,7 +81,7 @@ pub struct CreateReleaseOption<'a> {
     prerelease: &'a bool,
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct GitPr {
     pub number: u64,
     pub html_url: Url,
@@ -96,7 +96,7 @@ impl GitPr {
     }
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct Commit {
     #[serde(rename = "ref")]
     pub ref_field: String,
@@ -185,6 +185,7 @@ impl GitClient {
             }
             BackendType::Gitlab => self.create_gitlab_release(release_info).await,
         }
+        .context("Failed to create release")
     }
 
     /// Same as Gitea.
@@ -365,6 +366,52 @@ impl GitClient {
             .json()
             .await
             .context("can't parse commits")
+    }
+
+    /// Only works for GitHub.
+    /// From my tests, Gitea doesn't work yet,
+    /// but this implementation should be correct.
+    pub async fn associated_prs(&self, commit: &str) -> anyhow::Result<Vec<GitPr>> {
+        let url = match self.backend {
+            BackendType::Github => {
+                format!("{}/commits/{}/pulls", self.repo_url(), commit)
+            }
+            BackendType::Gitea => {
+                format!("{}/commits/{}/pull", self.repo_url(), commit)
+            }
+            BackendType::Gitlab => {
+                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
+            }
+        };
+
+        let response = self.client.get(url).send().await?;
+        if response.status() == 404 {
+            debug!("No associated PRs for commit {commit}");
+            return Ok(vec![]);
+        }
+        debug!("Associated PR found. Status: {}", response.status());
+        let response = response.error_for_status()?;
+
+        let prs = match self.backend {
+            BackendType::Github => {
+                let prs: Vec<GitPr> = response
+                    .json()
+                    .await
+                    .context("can't parse associated PRs")?;
+                prs
+            }
+            BackendType::Gitea => {
+                let pr: GitPr = response.json().await.context("can't parse associated PR")?;
+                vec![pr]
+            }
+            BackendType::Gitlab => {
+                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
+            }
+        };
+
+        let prs_numbers = prs.iter().map(|pr| pr.number).collect::<Vec<_>>();
+        debug!("Associated PRs for commit {commit}: {:?}", prs_numbers);
+        Ok(prs)
     }
 }
 

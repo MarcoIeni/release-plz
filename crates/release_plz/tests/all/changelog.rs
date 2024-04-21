@@ -1,4 +1,6 @@
-use crate::helpers::{test_context::TestContext, TEST_REGISTRY};
+use release_plz_core::fs_utils::Utf8TempDir;
+
+use crate::helpers::test_context::TestContext;
 
 #[tokio::test]
 #[cfg_attr(not(feature = "docker-tests"), ignore)]
@@ -63,17 +65,9 @@ async fn release_plz_adds_changelog_on_new_project() {
 async fn release_plz_releases_a_new_project() {
     let context = TestContext::new().await;
 
-    let crate_name = &context.gitea.repo;
-    let dest_dir = tempfile::tempdir().unwrap();
-    let dest_dir_str = dest_dir.path().to_str().unwrap();
+    let dest_dir = Utf8TempDir::new().unwrap();
 
-    let packages = || {
-        release_plz_core::PackageDownloader::new([crate_name], dest_dir_str)
-            .with_registry(TEST_REGISTRY.to_string())
-            .with_cargo_cwd(context.repo_dir())
-            .download()
-            .unwrap()
-    };
+    let packages = || context.download_package(dest_dir.path());
     // Before running release-plz, no packages should be present.
     assert!(packages().is_empty());
 

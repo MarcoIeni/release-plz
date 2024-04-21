@@ -2,7 +2,10 @@ use std::{fs, process::Command, str::FromStr};
 
 use crate::helpers::gitea::CARGO_INDEX_REPO;
 use assert_cmd::assert::Assert;
-use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
+use cargo_metadata::{
+    camino::{Utf8Path, Utf8PathBuf},
+    Package,
+};
 use cargo_utils::LocalManifest;
 use git_cmd::Repo;
 use release_plz_core::{
@@ -98,6 +101,15 @@ impl TestContext {
         fs::write(release_plz_toml_path, content).unwrap();
         self.repo.add_all_and_commit("add config file").unwrap();
         self.repo.git(&["push"]).unwrap();
+    }
+
+    pub fn download_package(&self, dest_dir: &Utf8Path) -> Vec<Package> {
+        let crate_name = &self.gitea.repo;
+        release_plz_core::PackageDownloader::new([crate_name], dest_dir.as_str())
+            .with_registry(TEST_REGISTRY.to_string())
+            .with_cargo_cwd(self.repo_dir())
+            .download()
+            .unwrap()
     }
 }
 

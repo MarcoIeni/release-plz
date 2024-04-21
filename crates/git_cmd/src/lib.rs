@@ -249,6 +249,7 @@ impl Repo {
     /// Get the SHA1 of the current HEAD.
     pub fn current_commit_hash(&self) -> anyhow::Result<String> {
         self.git(&["log", "-1", "--pretty=format:%H"])
+            .context("can't determine current commit hash")
     }
 
     /// Create a git tag

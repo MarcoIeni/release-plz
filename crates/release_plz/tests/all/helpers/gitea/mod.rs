@@ -1,11 +1,13 @@
 mod gitea_client;
 mod gitea_new;
 
+#[derive(Debug)]
 pub struct GiteaUser {
     username: String,
     password: String,
 }
 
+#[derive(Debug)]
 pub struct GiteaContext {
     pub user: GiteaUser,
     pub token: String,
