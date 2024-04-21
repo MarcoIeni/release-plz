@@ -406,7 +406,8 @@ impl GitClient {
             }
         };
 
-        debug!("Associated PRs for commit {commit}: {:?}", prs);
+        let prs_numbers = prs.iter().map(|pr| pr.number).collect::<Vec<_>>();
+        debug!("Associated PRs for commit {commit}: {:?}", prs_numbers);
         Ok(prs)
     }
 }
