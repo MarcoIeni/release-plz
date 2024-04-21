@@ -8,6 +8,19 @@ export type TweetItem = Tweet & {
 
 const TWEETS: TweetItem[] = [
   {
+    url: 'https://twitter.com/algo_luca/status/1781977925299908816',
+    handle: 'algo_luca',
+    name: 'Luca Palmieri',
+    date: 'Apr 21, 2024',
+    content: (
+      <>
+        God bless @MarcoIeni for release-plz.
+      </>
+    ),
+    showOnHomepage: true,
+    githubUsername: 'LukeMathWalker',
+  },
+  {
     url: 'https://fosdem.org/2024/schedule/event/fosdem-2024-2682-semver-in-the-rust-ecosystem-breakage-tooling-and-edge-cases/',
     handle: 'PredragGruevski',
     name: 'Predrag Gruevski',
@@ -45,19 +58,6 @@ const TWEETS: TweetItem[] = [
     ),
     showOnHomepage: true,
     githubUsername: 'XAMPPRocky',
-  },
-  {
-    url: 'https://twitter.com/algo_luca/status/1781977925299908816',
-    handle: 'algo_luca',
-    name: 'Luca Palmieri',
-    date: 'Apr 21, 2024',
-    content: (
-      <>
-        God bless @MarcoIeni for release-plz.
-      </>
-    ),
-    showOnHomepage: true,
-    githubUsername: 'lukeMathWalker',
   },
 ];
 
