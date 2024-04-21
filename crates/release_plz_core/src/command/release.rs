@@ -507,8 +507,8 @@ async fn release_package_if_needed(
             input,
             git_tag.clone(),
             release_name.clone(),
-            &repo,
-            &git_client,
+            repo,
+            git_client,
         )
         .await
         .context("failed to release package")?;
