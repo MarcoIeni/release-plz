@@ -5,12 +5,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React, {type ReactNode} from 'react';
+import React, { type ReactNode } from "react";
 
-import clsx from 'clsx';
+import clsx from "clsx";
 
-import Link from '@docusaurus/Link';
-import styles from './styles.module.css';
+import Link from "@docusaurus/Link";
+import styles from "./styles.module.css";
 
 export interface Props {
   url: string;
@@ -21,7 +21,7 @@ export interface Props {
   githubUsername: string;
 }
 
-export default function Tweet({
+export default function GetTweet({
   url,
   handle,
   name,
@@ -30,7 +30,7 @@ export default function Tweet({
   githubUsername,
 }: Props): JSX.Element {
   return (
-    <div className={clsx('card', styles.tweet)}>
+    <div className={clsx("card", styles.tweet)}>
       <div className="card__header">
         <div className="avatar">
           <img
@@ -41,14 +41,14 @@ export default function Tweet({
             height="48"
             loading="lazy"
           />
-          <div className={clsx('avatar__intro', styles.tweetMeta)}>
+          <div className={clsx("avatar__intro", styles.tweetMeta)}>
             <strong className="avatar__name">{name}</strong>
             <span>@{handle}</span>
           </div>
         </div>
       </div>
 
-      <div className={clsx('card__body', styles.tweet)}>{content}</div>
+      <div className={clsx("card__body", styles.tweet)}>{content}</div>
 
       <div className="card__footer">
         <Link className={clsx(styles.tweetMeta, styles.tweetDate)} to={url}>

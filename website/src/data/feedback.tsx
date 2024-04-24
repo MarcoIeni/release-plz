@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type {Props as Tweet} from '../components/Tweet';
+import type {Props as Tweet} from '../components/tweet';
 
 export type TweetItem = Tweet & {
   showOnHomepage: boolean;
