@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.21.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.2...release_plz_core-v0.21.3) - 2024-04-25
 
 ### Fixed
-- json output for empty results ([#1418](https://github.com/MarcoIeni/release-plz/pull/1418))
+- implement `Default` for `Release` struct ([#1418](https://github.com/MarcoIeni/release-plz/pull/1418))
 
 ## [0.21.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.1...release_plz_core-v0.21.2) - 2024-04-25
 
