@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.1...release_plz_core-v0.21.2) - 2024-04-25
+
+### Fixed
+- use token to fetch sparse metadata ([#1416](https://github.com/MarcoIeni/release-plz/pull/1416))
+
 ## [0.21.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.0...release_plz_core-v0.21.1) - 2024-04-21
 
 ### Added
