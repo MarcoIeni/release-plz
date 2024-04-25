@@ -50,7 +50,7 @@ async fn release_plz_does_not_release_a_new_project_if_release_always_is_false()
     // Running `release` doesn't release the project
     // because the last commit doesn't belong to a release PR.
     let outcome = context.run_release().success();
-    outcome.stdout("");
+    outcome.stdout("{\"releases\":[]}\n");
 
     let dest_dir = Utf8TempDir::new().unwrap();
     let packages = || context.download_package(dest_dir.path());
@@ -156,5 +156,5 @@ async fn release_plz_does_not_releases_twice() {
 
     // Running `release` the second time, releases nothing.
     let outcome = context.run_release().success();
-    outcome.stdout("");
+    outcome.stdout("{\"releases\":[]}\n");
 }

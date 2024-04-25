@@ -14,7 +14,7 @@ async fn release_plz_does_not_open_release_pr_if_there_are_no_release_commits() 
     context.write_release_plz_toml(config);
 
     let outcome = context.run_release_pr().success();
-    outcome.stdout("");
+    outcome.stdout("{\"prs\":[]}\n");
 
     let opened_prs = context.opened_release_prs().await;
     // no features are present in the commits, so release-plz doesn't open the release PR
