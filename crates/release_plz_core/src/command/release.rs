@@ -494,7 +494,7 @@ async fn release_package_if_needed(
         .context("can't determine registry indexes")?;
     let mut package_was_released = true;
     for mut index in registry_indexes {
-        if is_published(&mut index, package, input.publish_timeout)
+        if is_published(&mut index, package, input.publish_timeout, &input.token)
             .await
             .context("can't determine if package is published")?
         {
@@ -604,7 +604,7 @@ async fn release_package(
         Ok(false)
     } else {
         if publish {
-            wait_until_published(index, package, input.publish_timeout).await?;
+            wait_until_published(index, package, input.publish_timeout, &input.token).await?;
         }
 
         if input.is_git_tag_enabled(&package.name) {
