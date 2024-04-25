@@ -7,3 +7,71 @@ After the action runs, it outputs the following properties:
 - `releases`: The JSON output of the `release` command.
 - `prs_created`: Whether release-plz created any release PR.
 - `releases_created`: Whether release-plz released any package.
+
+## Example
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run release-plz
+        id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
+        uses: MarcoIeni/release-plz-action@v0.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Assert release
+        env:
+          RELEASES: ${{ steps.release-plz.outputs.releases }}
+          PRS: ${{ steps.release-plz.outputs.prs }}
+          PR: ${{ steps.release-plz.outputs.pr }}
+          PRS_CREATED: ${{ steps.release-plz.outputs.prs_created }}
+          RELEASES_CREATED: ${{ steps.release-plz.outputs.releases_created }}
+        run: |
+          set -e
+          echo "releases: $RELEASES"
+          echo "prs: $PRS"
+          echo "pr: $PR"
+          echo "prs_created: $PRS_CREATED"
+          echo "releases_created: $RELEASES_CREATED"
+
+          releases_length=$(echo "$RELEASES" | jq 'length')
+          echo "releases_length: $releases_length"
+          if [ "$releases_length" != "1" ]; then
+            echo "too many releases"
+            exit 1
+          fi
+
+          release_version=$(echo "$RELEASES" | jq -r '.[0].version')
+          echo "release_version: $release_version"
+          if [ "$release_version" != "0.1.0" ]; then
+            echo "bad version"
+            exit 1
+          fi
+          if [ "$release_version" != ${{ fromJSON(steps.release-plz.outputs.releases)[0].version }} ]; then
+            echo "bad version (fromJSON)"
+            exit 1
+          fi
+
+          release_tag=$(echo "$RELEASES" | jq -r '.[0].tag')
+          echo "release_tag: $release_tag"
+          if [ "$release_tag" != "v0.1.0" ]; then
+            echo "bad tag"
+            exit 1
+          fi
+
+          release_package_name=$(echo "$RELEASES" | jq -r '.[0].package_name')
+          echo "release_package_name: $release_package_name"
+          if [ "$release_package_name" != "marco-test-one" ]; then
+            echo "bad package name"
+            exit 1
+          fi
+
+          prs_length=$(echo "$PRS" | jq 'length')
+          echo "prs_length: $prs_length"
+          if [ "$prs_length" != "0" ]; then
+            echo "too many prs"
+            exit 1
+          fi
+```
