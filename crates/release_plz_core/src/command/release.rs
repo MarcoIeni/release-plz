@@ -424,7 +424,7 @@ pub struct GitRelease {
     pub backend: GitBackend,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Default)]
 pub struct Release {
     releases: Vec<PackageRelease>,
 }

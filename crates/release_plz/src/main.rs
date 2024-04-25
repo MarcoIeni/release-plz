@@ -9,7 +9,7 @@ mod update_checker;
 use anyhow::Context;
 use args::OutputType;
 use clap::Parser;
-use release_plz_core::{ReleasePrRequest, ReleaseRequest};
+use release_plz_core::{Release, ReleasePrRequest, ReleaseRequest};
 use serde::Serialize;
 use tracing::error;
 
@@ -52,13 +52,16 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
                 .mark_as_draft(pr_draft)
                 .with_labels(pr_labels);
             let release_pr = release_plz_core::release_pr(&request).await?;
-            if let Some(release_pr) = release_pr {
-                if let Some(output_type) = cmd_args.output {
-                    let out = serde_json::json!({
-                        "prs": [release_pr]
-                    });
-                    print_output(output_type, out)
-                }
+            if let Some(output_type) = cmd_args.output {
+                let prs = if let Some(release_pr) = release_pr {
+                    vec![release_pr]
+                } else {
+                    vec![]
+                };
+                let prs_json = serde_json::json!({
+                    "prs": prs
+                });
+                print_output(output_type, prs_json)
             }
         }
         Command::Release(cmd_args) => {
@@ -66,10 +69,13 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let config = cmd_args.config()?;
             let cmd_args_output = cmd_args.output;
             let request: ReleaseRequest = cmd_args.release_request(config, cargo_metadata)?;
-            if let Some(release) = release_plz_core::release(&request).await? {
-                if let Some(output_type) = cmd_args_output {
-                    print_output(output_type, release)
-                }
+            if let Some(output_type) = cmd_args_output {
+                let output = if let Some(release) = release_plz_core::release(&request).await? {
+                    release
+                } else {
+                    Release::default()
+                };
+                print_output(output_type, output)
             }
         }
         Command::GenerateCompletions(cmd_args) => cmd_args.print(),
