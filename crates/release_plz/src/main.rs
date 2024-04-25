@@ -9,7 +9,7 @@ mod update_checker;
 use anyhow::Context;
 use args::OutputType;
 use clap::Parser;
-use release_plz_core::{Release, ReleasePrRequest, ReleaseRequest};
+use release_plz_core::{ReleasePrRequest, ReleaseRequest};
 use serde::Serialize;
 use tracing::error;
 
@@ -53,10 +53,9 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
                 .with_labels(pr_labels);
             let release_pr = release_plz_core::release_pr(&request).await?;
             if let Some(output_type) = cmd_args.output {
-                let prs = if let Some(release_pr) = release_pr {
-                    vec![release_pr]
-                } else {
-                    vec![]
+                let prs = match release_pr {
+                    Some(pr) => vec![pr],
+                    None => vec![],
                 };
                 let prs_json = serde_json::json!({
                     "prs": prs
@@ -70,11 +69,9 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let cmd_args_output = cmd_args.output;
             let request: ReleaseRequest = cmd_args.release_request(config, cargo_metadata)?;
             if let Some(output_type) = cmd_args_output {
-                let output = if let Some(release) = release_plz_core::release(&request).await? {
-                    release
-                } else {
-                    Release::default()
-                };
+                let output = release_plz_core::release(&request)
+                    .await?
+                    .unwrap_or_default();
                 print_output(output_type, output)
             }
         }
