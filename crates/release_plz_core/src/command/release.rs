@@ -492,7 +492,7 @@ async fn release_package_if_needed(
 
     let registry_indexes = registry_indexes(package, input.registry.clone())
         .context("can't determine registry indexes")?;
-    let mut package_was_released = true;
+    let mut package_was_released = false;
     for mut index in registry_indexes {
         if is_published(&mut index, package, input.publish_timeout, &input.token)
             .await
@@ -513,7 +513,9 @@ async fn release_package_if_needed(
         .await
         .context("failed to release package")?;
 
-        package_was_released = package_was_released && package_was_released_at_index;
+        if package_was_released_at_index {
+            package_was_released = true;
+        }
     }
     let package_release = package_was_released.then_some(PackageRelease {
         package_name: package.name.clone(),
