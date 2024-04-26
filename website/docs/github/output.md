@@ -50,42 +50,23 @@ jobs:
           echo "prs_created: $PRS_CREATED"
           echo "releases_created: $RELEASES_CREATED"
 
+          # get the number of releases with jq
           releases_length=$(echo "$RELEASES" | jq 'length')
           echo "releases_length: $releases_length"
-          if [ "$releases_length" != "1" ]; then
-            echo "too many releases"
-            exit 1
-          fi
 
+          # access the first release with jq
           release_version=$(echo "$RELEASES" | jq -r '.[0].version')
           echo "release_version: $release_version"
-          if [ "$release_version" != "0.1.0" ]; then
-            echo "bad version"
-            exit 1
-          fi
-          if [ "$release_version" != ${{ fromJSON(steps.release-plz.outputs.releases)[0].version }} ]; then
-            echo "bad version (fromJSON)"
-            exit 1
-          fi
+
+          # access the first release with fromJSON. Docs: https://docs.github.com/en/actions/learn-github-actions/expressions
+          echo "release_version: ${{ fromJSON(steps.release-plz.outputs.releases)[0].version }}"
 
           release_tag=$(echo "$RELEASES" | jq -r '.[0].tag')
           echo "release_tag: $release_tag"
-          if [ "$release_tag" != "v0.1.0" ]; then
-            echo "bad tag"
-            exit 1
-          fi
 
           release_package_name=$(echo "$RELEASES" | jq -r '.[0].package_name')
           echo "release_package_name: $release_package_name"
-          if [ "$release_package_name" != "marco-test-one" ]; then
-            echo "bad package name"
-            exit 1
-          fi
 
           prs_length=$(echo "$PRS" | jq 'length')
           echo "prs_length: $prs_length"
-          if [ "$prs_length" != "0" ]; then
-            echo "too many prs"
-            exit 1
-          fi
 ```
