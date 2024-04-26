@@ -3,11 +3,24 @@
 After the action runs, it outputs the following properties:
 
 - `prs`: The release PRs opened by release-plz.
-  *(Not useful for now. Use `pr` instead)*
+  It's an array of objects with the properties of `pr`.
+  *(Not useful for now. Use `pr` instead)*.
 - `pr`: The release PR opened by release-plz.
+  It's a JSON object with the following properties:
+  - `head_branch`: The name of the branch where the changes are implemented.
+  - `base_branch`: The name of the branch the changes are pulled into.
+    It is the default branch of the repository. E.g. `main`.
+  - `html_url`: The URL of the PR.
+  - `number`: The number of the PR.
 - `releases`: The JSON output of the `release` command.
-- `prs_created`: Whether release-plz created any release PR.
-- `releases_created`: Whether release-plz released any package.
+  It's an array of JSON objects with the following properties:
+  - `package_name`: The name of the package that was released.
+  - `tag`: git tag name of the package that was released. It's returned even if you have
+    [git_tag_enable](../config.md#the-git_tag_enable-field) set to `false`, so that
+    you can use this to create the git tag yourself.
+  - `version`: The version of the package that was released.
+- `prs_created`: Whether release-plz created any release PR. *Boolean.*
+- `releases_created`: Whether release-plz released any package. *Boolean.*
 
 ## Example
 
