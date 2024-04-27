@@ -22,13 +22,19 @@ After the action runs, it outputs the following properties:
 - `prs_created`: Whether release-plz created any release PR. *Boolean.*
 - `releases_created`: Whether release-plz released any package. *Boolean.*
 
-## Example
+## Example: read the output
 
 ```yaml
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
         id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
         uses: MarcoIeni/release-plz-action@v0.5
@@ -44,11 +50,11 @@ jobs:
           RELEASES_CREATED: ${{ steps.release-plz.outputs.releases_created }}
         run: |
           set -e
-          echo "releases: $RELEASES"
-          echo "prs: $PRS"
-          echo "pr: $PR"
-          echo "prs_created: $PRS_CREATED"
-          echo "releases_created: $RELEASES_CREATED"
+          echo "$RELEASES" # example: [{"package_name":"my-package","tag":"v0.1.0","version":"0.1.0"}]
+          echo "$PRS" # example: []
+          echo "$PR" # example: {}
+          echo "$PRS_CREATED" # example: true
+          echo "$RELEASES_CREATED" # example: true
 
           # get the number of releases with jq
           releases_length=$(echo "$RELEASES" | jq 'length')
@@ -66,6 +72,14 @@ jobs:
 
           release_package_name=$(echo "$RELEASES" | jq -r '.[0].package_name')
           echo "release_package_name: $release_package_name"
+
+          # print all names of released packages, one per line
+          echo "package_names: $(echo "$RELEASES" | jq -r '.[].package_name')"
+
+          # iterate over released packages
+          for package_name in $(echo "$RELEASES" | jq -r '.[].package_name'); do
+              echo "released $package_name"
+          done
 
           prs_length=$(echo "$PRS" | jq 'length')
           echo "prs_length: $prs_length"
