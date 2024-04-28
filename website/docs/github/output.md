@@ -75,12 +75,12 @@ jobs:
 
           # print all names of released packages, one per line
           echo "package_names: $(echo "$RELEASES" | jq -r '.[].package_name')"
+          # TODO: show how to store this in a variable and iterate over it (maybe an array?). PR welcome!
 
           # iterate over released packages
           for package_name in $(echo "$RELEASES" | jq -r '.[].package_name'); do
               echo "released $package_name"
           done
 
-          prs_length=$(echo "$PRS" | jq 'length')
-          echo "prs_length: $prs_length"
+          echo "pr_number: ${{ fromJSON(steps.release-plz.outputs.pr).number }}""
 ```
