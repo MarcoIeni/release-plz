@@ -35,7 +35,7 @@ const sidebars = {
       label: "GitHub Action",
       collapsed: false,
       link: { type: "doc", id: "github/index" },
-      items: ["github/quickstart", "github/token", "github/update", "github/advanced"],
+      items: ["github/quickstart", "github/output", "github/token", "github/update", "github/advanced", "github/security"],
     },
     "config",
     "changelog-format",
