@@ -41,7 +41,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-      - name: Assert release
+      - name: Read release output
         env:
           RELEASES: ${{ steps.release-plz.outputs.releases }}
           PRS: ${{ steps.release-plz.outputs.prs }}
@@ -50,11 +50,11 @@ jobs:
           RELEASES_CREATED: ${{ steps.release-plz.outputs.releases_created }}
         run: |
           set -e
-          echo "$RELEASES" # example: [{"package_name":"my-package","tag":"v0.1.0","version":"0.1.0"}]
-          echo "$PRS" # example: []
-          echo "$PR" # example: {}
-          echo "$PRS_CREATED" # example: true
-          echo "$RELEASES_CREATED" # example: true
+          echo "releases: $RELEASES" # example: [{"package_name":"my-package","tag":"v0.1.0","version":"0.1.0"}]
+          echo "prs: $PRS" # example: [{"base_branch":"main","head_branch":"release-plz-2024-05-01T20-38-05Z","html_url":"https://github.com/MarcoIeni/rust-workspace-example/pull/198","number":198}]
+          echo "pr: $PR" # example: {"base_branch":"main","head_branch":"release-plz-2024-05-01T20-38-05Z","html_url":"https://github.com/MarcoIeni/rust-workspace-example/pull/198","number":198}
+          echo "prs_created: $PRS_CREATED" # example: true
+          echo "releases_created: $RELEASES_CREATED" # example: true
 
           # get the number of releases with jq
           releases_length=$(echo "$RELEASES" | jq 'length')
@@ -82,5 +82,8 @@ jobs:
               echo "released $package_name"
           done
 
-          echo "pr_number: ${{ fromJSON(steps.release-plz.outputs.pr).number }}""
+          echo "pr_number: ${{ fromJSON(steps.release-plz.outputs.pr).number }}"
+          echo "pr_html_url: ${{ fromJSON(steps.release-plz.outputs.pr).html_url }}"
+          echo "pr_head_branch: ${{ fromJSON(steps.release-plz.outputs.pr).head_branch }}"
+          echo "pr_base_branch: ${{ fromJSON(steps.release-plz.outputs.pr).base_branch }}"
 ```
