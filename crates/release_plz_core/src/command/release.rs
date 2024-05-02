@@ -170,8 +170,7 @@ impl ReleaseRequest {
     }
 
     fn registry_token(&self) -> Option<secrecy::Secret<String>> {
-        let token = self
-            .registry
+        self.registry
             .clone()
             .and_then(|r| {
                 // Credentials for a specific registry can be set using environment variables.
@@ -181,8 +180,7 @@ impl ReleaseRequest {
                     .map(SecretString::new);
                 self.token.clone().or(env_token)
             })
-            .or(self.token.clone());
-        token
+            .or(self.token.clone())
     }
 }
 
