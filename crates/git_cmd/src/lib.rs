@@ -76,7 +76,7 @@ impl Repo {
     /// Check if there are uncommitted changes.
     pub fn is_clean(&self) -> anyhow::Result<()> {
         let changes = self.changes_except_typechanges()?;
-        anyhow::ensure!(changes.is_empty(), "the working directory of this project has uncommitted changes. Please commit or stash these changes:\n{changes:?}");
+        anyhow::ensure!(changes.is_empty(), "the working directory of this project has uncommitted changes. If these files are both committed and in .gitignore, either delete them or remove them from .gitignore. Otherwise, please commit or stash these changes:\n{changes:?}");
         Ok(())
     }
 
