@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, time::Duration};
+use std::{collections::BTreeMap, env, time::Duration};
 
 use anyhow::Context;
 use cargo::util::VersionExt;
@@ -167,6 +167,20 @@ impl ReleaseRequest {
     pub fn features(&self, package: &str) -> Vec<String> {
         let config = self.get_package_config(package);
         config.generic.features.clone()
+    }
+
+    fn registry_token(&self) -> Option<secrecy::Secret<String>> {
+        self.registry
+            .clone()
+            .and_then(|r| {
+                // Credentials for a specific registry can be set using environment variables.
+                // https://doc.rust-lang.org/cargo/reference/config.html#credentials
+                let env_token = env::var(format!("CARGO_REGISTRIES_{r}_TOKEN"))
+                    .ok()
+                    .map(SecretString::new);
+                self.token.clone().or(env_token)
+            })
+            .or(self.token.clone())
     }
 }
 
@@ -490,11 +504,12 @@ async fn release_package_if_needed(
         return Ok(None);
     }
 
+    let token = input.registry_token();
     let registry_indexes = registry_indexes(package, input.registry.clone())
         .context("can't determine registry indexes")?;
     let mut package_was_released = false;
     for mut index in registry_indexes {
-        if is_published(&mut index, package, input.publish_timeout, &input.token)
+        if is_published(&mut index, package, input.publish_timeout, &token)
             .await
             .context("can't determine if package is published")?
         {
