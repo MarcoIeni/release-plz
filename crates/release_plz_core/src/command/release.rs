@@ -168,6 +168,22 @@ impl ReleaseRequest {
         let config = self.get_package_config(package);
         config.generic.features.clone()
     }
+
+    fn registry_token(&self) -> Option<secrecy::Secret<String>> {
+        let token = self
+            .registry
+            .clone()
+            .and_then(|r| {
+                // Credentials for a specific registry can be set using environment variables.
+                // https://doc.rust-lang.org/cargo/reference/config.html#credentials
+                let env_token = env::var(format!("CARGO_REGISTRIES_{r}_TOKEN"))
+                    .ok()
+                    .map(SecretString::new);
+                self.token.clone().or(env_token)
+            })
+            .or(self.token.clone());
+        token
+    }
 }
 
 impl ReleaseMetadataBuilder for ReleaseRequest {
@@ -490,18 +506,7 @@ async fn release_package_if_needed(
         return Ok(None);
     }
 
-    let token = input
-        .registry
-        .clone()
-        .and_then(|r| {
-            // Credentials for a specific registry can be set using environment variables.
-            // https://doc.rust-lang.org/cargo/reference/config.html#credentials
-            let env_token = env::var(format!("CARGO_REGISTRIES_{r}_TOKEN"))
-                .ok()
-                .map(SecretString::new);
-            input.token.clone().or(env_token)
-        })
-        .or(input.token.clone());
+    let token = input.registry_token();
     let registry_indexes = registry_indexes(package, input.registry.clone())
         .context("can't determine registry indexes")?;
     let mut package_was_released = false;
