@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.4...release_plz_core-v0.21.5) - 2024-05-05
+
+### Added
+- use cargo registry environment variable to authenticate in private sparse registry ([#1435](https://github.com/MarcoIeni/release-plz/pull/1435))
+
+### Other
+- add `needless_pass_by_value` lint ([#1441](https://github.com/MarcoIeni/release-plz/pull/1441))
+- add `uninlined_format_args` ([#1440](https://github.com/MarcoIeni/release-plz/pull/1440))
+- add clippy lints ([#1439](https://github.com/MarcoIeni/release-plz/pull/1439))
+- add `if_not_else` clippy lint ([#1438](https://github.com/MarcoIeni/release-plz/pull/1438))
+- update dependencies ([#1437](https://github.com/MarcoIeni/release-plz/pull/1437))
+
 ## [0.21.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.3...release_plz_core-v0.21.4) - 2024-04-28
 
 ### Fixed
