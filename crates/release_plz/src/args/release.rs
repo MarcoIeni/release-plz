@@ -82,12 +82,12 @@ impl Release {
 
     pub fn release_request(
         self,
-        config: Config,
+        config: &Config,
         metadata: cargo_metadata::Metadata,
     ) -> anyhow::Result<ReleaseRequest> {
         let git_release = if let Some(git_token) = &self.git_token {
             let git_token = SecretString::from(git_token.clone());
-            let repo_url = self.get_repo_url(&config)?;
+            let repo_url = self.get_repo_url(config)?;
             let release = release_plz_core::GitRelease {
                 backend: match self.backend {
                     ReleaseGitBackendKind::Gitea => {
@@ -166,7 +166,7 @@ mod tests {
         let release_args = default_args();
         let config: Config = toml::from_str(config).unwrap();
         let actual_request = release_args
-            .release_request(config, fake_metadata())
+            .release_request(&config, fake_metadata())
             .unwrap();
         assert!(actual_request.allow_dirty("aaa"));
     }
@@ -187,7 +187,7 @@ mod tests {
         let release_args = default_args();
         let config: Config = toml::from_str(config).unwrap();
         let actual_request = release_args
-            .release_request(config, fake_metadata())
+            .release_request(&config, fake_metadata())
             .unwrap();
         assert!(actual_request.allow_dirty("aaa"));
         assert!(actual_request.no_verify("aaa"));
@@ -215,7 +215,7 @@ mod tests {
         let release_args = default_args();
         let config: Config = toml::from_str("").unwrap();
         let request = release_args
-            .release_request(config, fake_metadata())
+            .release_request(&config, fake_metadata())
             .unwrap();
         let pkg_config = request.get_package_config("aaa");
         let expected = release_plz_core::PackageReleaseConfig {
