@@ -58,7 +58,7 @@ impl LocalManifest {
             anyhow::bail!("can only edit absolute paths, got {}", path);
         }
         let data = std::fs::read_to_string(path)
-            .with_context(|| format!("Failed to read manifest contents. Path: {:?}", path))?;
+            .with_context(|| format!("Failed to read manifest contents. Path: {path:?}"))?;
         let manifest = data.parse().context("Unable to parse Cargo.toml")?;
         Ok(LocalManifest {
             manifest,

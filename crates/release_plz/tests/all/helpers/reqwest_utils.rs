@@ -12,7 +12,7 @@ impl ReqwestUtils for Response {
         if self.status().is_success() {
             Ok(self)
         } else {
-            let response_dbg = format!("{:?}", self);
+            let response_dbg = format!("{__self:?}");
             let body = self.text().await.context("can't convert body to text")?;
             anyhow::bail!(
                 "Unexpected response. \

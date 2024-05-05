@@ -185,7 +185,7 @@ fn cargo_config(username: &str) -> String {
 [net]
 git-fetch-with-cli = true
     "#;
-    format!("{}{}{}", cargo_registries, gitea_index, config_end)
+    format!("{cargo_registries}{gitea_index}{config_end}")
 }
 
 fn git_client(repo_url: &str, token: &str) -> GitClient {

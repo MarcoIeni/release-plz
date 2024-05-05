@@ -456,9 +456,8 @@ mod tests {
     #[test]
     fn config_is_deserialized() {
         let config = &format!(
-            "{}\
-            changelog_update = true",
-            BASE_WORKSPACE_CONFIG
+            "{BASE_WORKSPACE_CONFIG}\
+            changelog_update = true"
         );
 
         let mut expected_config = create_base_workspace_config();
@@ -470,9 +469,8 @@ mod tests {
 
     fn config_package_release_is_deserialized(config_flag: &str, expected_value: bool) {
         let config = &format!(
-            "{}\n{}\
-            release = {}",
-            BASE_WORKSPACE_CONFIG, BASE_PACKAGE_CONFIG, config_flag
+            "{BASE_WORKSPACE_CONFIG}\n{BASE_PACKAGE_CONFIG}\
+            release = {config_flag}"
         );
 
         let mut expected_config = create_base_workspace_config();
@@ -496,9 +494,8 @@ mod tests {
 
     fn config_workspace_release_is_deserialized(config_flag: &str, expected_value: bool) {
         let config = &format!(
-            "{}\
-            release = {}",
-            BASE_WORKSPACE_CONFIG, config_flag
+            "{BASE_WORKSPACE_CONFIG}\
+            release = {config_flag}"
         );
 
         let mut expected_config = create_base_workspace_config();
