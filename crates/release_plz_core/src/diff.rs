@@ -32,11 +32,11 @@ impl<'a> Diff<'a> {
     }
 
     pub fn set_version_unpublished(&mut self) {
-        self.is_version_published = false
+        self.is_version_published = false;
     }
 
     pub fn set_semver_check(&mut self, semver_check: SemverCheck) {
-        self.semver_check = semver_check
+        self.semver_check = semver_check;
     }
 
     pub fn add_commits(&mut self, commits: &[Commit<'a>]) {

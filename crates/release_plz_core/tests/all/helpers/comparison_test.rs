@@ -122,7 +122,7 @@ impl ComparisonTest {
 
     pub fn write_local_project_changelog(&self, changelog: &str) {
         let changelog_path = self.local_project_changelog_path();
-        fs::write(changelog_path, changelog).unwrap()
+        fs::write(changelog_path, changelog).unwrap();
     }
 
     pub fn local_project_changelog(&self) -> String {

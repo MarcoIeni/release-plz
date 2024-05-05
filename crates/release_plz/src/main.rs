@@ -60,7 +60,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
                 let prs_json = serde_json::json!({
                     "prs": prs
                 });
-                print_output(output_type, prs_json)
+                print_output(output_type, prs_json);
             }
         }
         Command::Release(cmd_args) => {
@@ -72,7 +72,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
                 let output = release_plz_core::release(&request)
                     .await?
                     .unwrap_or_default();
-                print_output(output_type, output)
+                print_output(output_type, output);
             }
         }
         Command::GenerateCompletions(cmd_args) => cmd_args.print(),

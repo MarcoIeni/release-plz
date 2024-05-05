@@ -450,7 +450,7 @@ mod tests {
         let expected_config = create_base_workspace_config();
 
         let config: Config = toml::from_str(BASE_WORKSPACE_CONFIG).unwrap();
-        assert_eq!(config, expected_config)
+        assert_eq!(config, expected_config);
     }
 
     #[test]
@@ -465,7 +465,7 @@ mod tests {
         expected_config.workspace.packages_defaults.changelog_update = true.into();
 
         let config: Config = toml::from_str(config).unwrap();
-        assert_eq!(config, expected_config)
+        assert_eq!(config, expected_config);
     }
 
     fn config_package_release_is_deserialized(config_flag: &str, expected_value: bool) {
@@ -481,7 +481,7 @@ mod tests {
         expected_config.package = [package_config].into();
 
         let config: Config = toml::from_str(config).unwrap();
-        assert_eq!(config, expected_config)
+        assert_eq!(config, expected_config);
     }
 
     #[test]
@@ -505,7 +505,7 @@ mod tests {
         expected_config.workspace.packages_defaults.release = expected_value.into();
 
         let config: Config = toml::from_str(config).unwrap();
-        assert_eq!(config, expected_config)
+        assert_eq!(config, expected_config);
     }
 
     #[test]
