@@ -30,7 +30,7 @@ use walkdir::WalkDir;
 // Re-export cargo types.
 pub use cargo::{
     core::SourceId,
-    util::{CargoResult, Config},
+    util::{CargoResult, GlobalContext},
 };
 
 use crate::fs_utils::strip_prefix;
@@ -54,7 +54,7 @@ impl Crate {
 /// Clones a crate.
 pub struct Cloner {
     /// Cargo configuration.
-    pub(crate) config: Config,
+    pub(crate) config: GlobalContext,
     /// Directory where the crates will be cloned.
     /// Each crate is cloned into a subdirectory of this directory.
     pub(crate) directory: Utf8PathBuf,
@@ -160,7 +160,7 @@ impl Cloner {
     }
 }
 
-fn get_source<'a>(srcid: SourceId, config: &'a Config) -> CargoResult<Box<dyn Source + 'a>> {
+fn get_source<'a>(srcid: SourceId, config: &'a GlobalContext) -> CargoResult<Box<dyn Source + 'a>> {
     let mut source = if srcid.is_path() {
         let path = srcid.url().to_file_path().expect("path must be valid");
         Box::new(PathSource::new(&path, srcid, config))
@@ -174,7 +174,7 @@ fn get_source<'a>(srcid: SourceId, config: &'a Config) -> CargoResult<Box<dyn So
 }
 
 fn select_pkg<'a, T>(
-    config: &Config,
+    config: &GlobalContext,
     src: &mut T,
     name: &str,
     vers: Option<&str>,

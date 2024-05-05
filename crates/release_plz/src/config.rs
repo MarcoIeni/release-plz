@@ -1,4 +1,3 @@
-use anyhow::Context;
 use cargo_metadata::camino::Utf8Path;
 use cargo_utils::to_utf8_pathbuf;
 use release_plz_core::{fs_utils::to_utf8_path, ReleaseRequest, UpdateRequest};
@@ -145,7 +144,7 @@ impl Workspace {
     pub fn publish_timeout(&self) -> anyhow::Result<Duration> {
         let publish_timeout = self.publish_timeout.as_deref().unwrap_or("30m");
         duration_str::parse(publish_timeout)
-            .with_context(|| format!("invalid publish_timeout {}", publish_timeout))
+            .map_err(|e| anyhow::anyhow!("invalid publish_timeout {publish_timeout}: {e}"))
     }
 }
 
