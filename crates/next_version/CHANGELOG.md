@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.16](https://github.com/MarcoIeni/release-plz/compare/next_version-v0.2.15...next_version-v0.2.16) - 2024-05-05
+
+### Other
+- add `if_not_else` clippy lint ([#1438](https://github.com/MarcoIeni/release-plz/pull/1438))
+
 ## [0.2.15](https://github.com/MarcoIeni/release-plz/compare/next_version-v0.2.14...next_version-v0.2.15) - 2024-03-08
 
 ### Other

@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.45](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.44...cargo_utils-v0.1.45) - 2024-05-05
+
+### Other
+- add `uninlined_format_args` ([#1440](https://github.com/MarcoIeni/release-plz/pull/1440))
+- add clippy lints ([#1439](https://github.com/MarcoIeni/release-plz/pull/1439))
+
 ## [0.1.44](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.43...cargo_utils-v0.1.44) - 2024-04-14
 
 ### Other

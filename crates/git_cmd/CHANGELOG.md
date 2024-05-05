@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.5](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.4...git_cmd-v0.6.5) - 2024-05-05
+
+### Other
+- add clippy lints ([#1439](https://github.com/MarcoIeni/release-plz/pull/1439))
+- improve uncommitted changes error message ([#1434](https://github.com/MarcoIeni/release-plz/pull/1434))
+
 ## [0.6.4](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.3...git_cmd-v0.6.4) - 2024-04-21
 
 ### Added
