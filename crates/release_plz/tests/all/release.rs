@@ -15,7 +15,7 @@ async fn release_plz_releases_a_new_project_with_custom_tag_name() {
 
     let crate_name = &context.gitea.repo;
 
-    let expected_tag = format!("{}--0.1.0", crate_name);
+    let expected_tag = format!("{crate_name}--0.1.0");
     let is_tag_created = || context.repo.tag_exists(&expected_tag).unwrap();
 
     assert!(!is_tag_created());
@@ -85,7 +85,7 @@ async fn release_plz_releases_a_new_project_with_custom_release() {
     let crate_name = &context.gitea.repo;
 
     let expected_tag = "v0.1.0";
-    let expected_release = format!("{}--0.1.0", crate_name);
+    let expected_release = format!("{crate_name}--0.1.0");
 
     context.run_release().success();
 
@@ -117,7 +117,7 @@ async fn release_plz_releases_after_release_pr_merged() {
     let crate_name = &context.gitea.repo;
 
     let expected_tag = "v0.1.0";
-    let expected_release = format!("{}--0.1.0", crate_name);
+    let expected_release = format!("{crate_name}--0.1.0");
 
     context.run_release().success();
 

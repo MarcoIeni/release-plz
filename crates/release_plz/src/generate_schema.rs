@@ -28,7 +28,7 @@ fn generate_schema_json() -> anyhow::Result<String> {
     // See here for update on resolution: https://github.com/GREsau/schemars/issues/229
     json = json.replace(
         SCHEMA_TOKEN,
-        &format!("{}\n  {}{}/{}\",", SCHEMA_TOKEN, ID, FOLDER, FILE),
+        &format!("{SCHEMA_TOKEN}\n  {ID}{FOLDER}/{FILE}\","),
     );
 
     Ok(json)

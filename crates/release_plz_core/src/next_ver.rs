@@ -405,7 +405,7 @@ fn check_for_typos(packages: &HashSet<String>, overrides: &HashSet<String>) -> a
         missing.sort();
         let missing = missing
             .iter()
-            .map(|s| format!("`{}`", s))
+            .map(|s| format!("`{s}`"))
             .collect::<Vec<_>>()
             .join(", ");
 

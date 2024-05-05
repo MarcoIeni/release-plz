@@ -154,7 +154,7 @@ fn actions_secret_url(repo_url: &str) -> String {
 }
 
 fn repo_settings_url(repo_url: &str) -> String {
-    format!("{}/settings", repo_url)
+    format!("{repo_url}/settings")
 }
 
 #[cfg(test)]
