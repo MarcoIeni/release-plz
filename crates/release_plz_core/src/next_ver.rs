@@ -303,8 +303,7 @@ impl UpdateRequest {
     }
 
     pub fn with_release_commits(self, release_commits: &str) -> anyhow::Result<Self> {
-        let regex =
-            Regex::new(release_commits).context("invalid release_commits regex pattern")?;
+        let regex = Regex::new(release_commits).context("invalid release_commits regex pattern")?;
 
         Ok(Self {
             release_commits: Some(regex),
@@ -873,7 +872,15 @@ impl Updater<'_> {
                 })
                 .collect();
             changelog_req
-                .map(|r| get_changelog(commits, &version, Some(r), old_changelog.as_deref(), release_link.as_deref()))
+                .map(|r| {
+                    get_changelog(
+                        commits,
+                        &version,
+                        Some(r),
+                        old_changelog.as_deref(),
+                        release_link.as_deref(),
+                    )
+                })
                 .transpose()
         }?;
 
@@ -1423,14 +1430,8 @@ mod tests {
 ### other
 - complex update
 "#;
-        let new = get_changelog(
-            commits,
-            &next_version,
-            Some(changelog_req),
-            Some(old),
-            None,
-        )
-        .unwrap();
+        let new =
+            get_changelog(commits, &next_version, Some(changelog_req), Some(old), None).unwrap();
         assert_eq!(old, new);
     }
 
