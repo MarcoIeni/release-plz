@@ -59,7 +59,9 @@ impl PackagesUpdate {
         self.updates
             .iter()
             .map(|(package, update)| {
-                if package.version != update.version {
+                if package.version == update.version {
+                    format!("\n* `{}`: {}", package.name, package.version)
+                } else {
                     format!(
                         "\n* `{}`: {} -> {}{}",
                         package.name,
@@ -67,8 +69,6 @@ impl PackagesUpdate {
                         update.version,
                         update.semver_check.outcome_str()
                     )
-                } else {
-                    format!("\n* `{}`: {}", package.name, package.version)
                 }
             })
             .collect()

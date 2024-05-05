@@ -42,9 +42,7 @@ impl VersionIncrement {
     {
         let mut commits = commits.into_iter().peekable();
         let are_commits_present = commits.peek().is_some();
-        if !are_commits_present {
-            None
-        } else {
+        if are_commits_present {
             if !current_version.pre.is_empty() {
                 return Some(VersionIncrement::Prerelease);
             }
@@ -58,6 +56,8 @@ impl VersionIncrement {
                 &commits,
                 updater,
             ))
+        } else {
+            None
         }
     }
 
