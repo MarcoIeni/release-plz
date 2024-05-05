@@ -28,9 +28,7 @@ fn are_dependencies_updated(
     let local_lock: Lockfile = read_lockfile(local_lock)
         .with_context(|| format!("failed to load lockfile of local package {local_lock:?}"))?;
     let registry_lock = read_lockfile(registry_lock).with_context(|| {
-        format!(
-            "failed to load lockfile of registry package {registry_lock:?}"
-        )
+        format!("failed to load lockfile of registry package {registry_lock:?}")
     })?;
     let local_lock_packages = PackagesByName::new(&local_lock.packages);
     Ok(are_dependencies_of_lockfiles_updated(
