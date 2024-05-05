@@ -35,6 +35,7 @@ jobs:
           fetch-depth: 0
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Run release-plz
         id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
         uses: MarcoIeni/release-plz-action@v0.5

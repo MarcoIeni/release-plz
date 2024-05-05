@@ -71,6 +71,7 @@ jobs:
           token: ${{ secrets.RELEASE_PLZ_TOKEN }} # <-- PAT secret name
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@v0.5
         env:
@@ -130,6 +131,7 @@ Here's how to use a GitHub App to generate a GitHub token:
          token: ${{ steps.generate-token.outputs.token }}
      - name: Install Rust toolchain
        uses: dtolnay/rust-toolchain@stable
+     - uses: Swatinem/rust-cache@v2
      - name: Run release-plz
        uses: MarcoIeni/release-plz-action@main
        env:
