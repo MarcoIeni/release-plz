@@ -67,7 +67,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let cargo_metadata = cmd_args.cargo_metadata()?;
             let config = cmd_args.config()?;
             let cmd_args_output = cmd_args.output;
-            let request: ReleaseRequest = cmd_args.release_request(config, cargo_metadata)?;
+            let request: ReleaseRequest = cmd_args.release_request(&config, cargo_metadata)?;
             if let Some(output_type) = cmd_args_output {
                 let output = release_plz_core::release(&request)
                     .await?

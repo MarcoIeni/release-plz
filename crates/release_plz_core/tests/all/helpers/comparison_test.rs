@@ -56,7 +56,7 @@ impl ComparisonTest {
                 release_date: NaiveDate::from_ymd_opt(2015, 5, 15),
                 changelog_config: None,
             })
-            .with_registry_manifest_path(self.registry_project_manfifest())
+            .with_registry_manifest_path(&self.registry_project_manfifest())
             .unwrap()
     }
 
@@ -84,7 +84,7 @@ impl ComparisonTest {
         Ok(())
     }
 
-    fn gitea_release_pr_request(&self, base_url: Url) -> anyhow::Result<ReleasePrRequest> {
+    fn gitea_release_pr_request(&self, base_url: &Url) -> anyhow::Result<ReleasePrRequest> {
         let url = RepoUrl::new(&format!("{}{OWNER}/{REPO}", base_url.as_str()))
             .context("can't crate url")?;
         let git = GitBackend::Gitea(Gitea::new(url, Secret::from("token".to_string()))?);
@@ -94,7 +94,7 @@ impl ComparisonTest {
     pub async fn gitea_open_release_pr(&self) -> anyhow::Result<()> {
         let base_url = self.gitea_mock_server.base_url();
         let release_pr_request = self
-            .gitea_release_pr_request(base_url)
+            .gitea_release_pr_request(&base_url)
             .context("failed to run release-pr")?;
         release_plz_core::release_pr(&release_pr_request).await?;
         Ok(())

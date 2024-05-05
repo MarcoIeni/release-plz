@@ -120,6 +120,7 @@ if_not_else = "warn"
 semicolon_if_nothing_returned = "warn"
 explicit_iter_loop = "warn"
 uninlined_format_args = "warn"
+needless_pass_by_value = "warn"
 
 # Allowing optional lints has no effect, but we list them to
 # make clear that we reviewed them and we decided to allow them

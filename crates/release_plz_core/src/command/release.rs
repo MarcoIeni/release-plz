@@ -461,7 +461,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<Option<Release>> 
     let project = Project::new(
         &input.local_manifest(),
         None,
-        overrides,
+        &overrides,
         &input.metadata,
         input,
     )?;
