@@ -403,11 +403,11 @@ mod tests {
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
 
-        let commit_message = r#"feat: my feature
+        let commit_message = r"feat: my feature
 
         message
 
-        footer: small note"#;
+        footer: small note";
 
         {
             fs::write(file1, b"Hello, file1!").unwrap();
@@ -444,7 +444,7 @@ D  crates/git_cmd/CHANGELOG.md
         let changed_files = changed_files(git_status_output, |line| !line.starts_with("T "));
         // `CHANGELOG.md` is ignored because it's a typechange
         let expected_changed_files = vec!["README.md", "crates", "crates/git_cmd/CHANGELOG.md"];
-        assert_eq!(changed_files, expected_changed_files)
+        assert_eq!(changed_files, expected_changed_files);
     }
 
     #[test]
@@ -459,7 +459,7 @@ D  crates/git_cmd/CHANGELOG.md
         }
         let version = "v1.0.0";
         repo.tag(version, "test").unwrap();
-        assert!(repo.tag_exists(version).unwrap())
+        assert!(repo.tag_exists(version).unwrap());
     }
 
     #[test]
@@ -473,6 +473,6 @@ D  crates/git_cmd/CHANGELOG.md
             repo.add_all_and_commit("file1").unwrap();
         }
         repo.tag("v1.0.0", "test").unwrap();
-        assert!(!repo.tag_exists("v2.0.0").unwrap())
+        assert!(!repo.tag_exists("v2.0.0").unwrap());
     }
 }

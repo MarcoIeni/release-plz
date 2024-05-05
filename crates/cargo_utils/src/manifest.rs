@@ -25,7 +25,7 @@ impl Manifest {
                 .map(|t| t.is_table_like())
                 .unwrap_or(false)
             {
-                sections.push((table.clone(), self.data[dependency_type].clone()))
+                sections.push((table.clone(), self.data[dependency_type].clone()));
             }
 
             // ... and in `target.<target>.(build-/dev-)dependencies`.

@@ -186,7 +186,7 @@ where
     let mut summaries = vec![];
     loop {
         let query_result = src.query(&dep, QueryKind::Exact, &mut |summary| {
-            summaries.push(summary)
+            summaries.push(summary);
         });
         match query_result {
             std::task::Poll::Ready(res) => match res {

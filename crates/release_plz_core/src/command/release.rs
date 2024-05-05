@@ -584,7 +584,7 @@ fn registry_indexes(
         })
         .collect::<Result<Vec<CargoIndex>, crates_index::Error>>()?;
     if registry_indexes.is_empty() {
-        registry_indexes.push(CargoIndex::Git(GitIndex::new_cargo_default()?))
+        registry_indexes.push(CargoIndex::Git(GitIndex::new_cargo_default()?));
     }
     Ok(registry_indexes)
 }

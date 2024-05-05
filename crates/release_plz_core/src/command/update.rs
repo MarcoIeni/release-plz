@@ -232,7 +232,7 @@ fn update_changelogs(
 fn update_cargo_lock(root: &Utf8Path, update_all_dependencies: bool) -> anyhow::Result<()> {
     let mut args = vec!["update"];
     if !update_all_dependencies {
-        args.push("--workspace")
+        args.push("--workspace");
     }
     let output = crate::cargo::run_cargo(root, &args)
         .context("error while running cargo to update the Cargo.lock file")?;

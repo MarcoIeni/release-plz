@@ -63,7 +63,7 @@ mod tests {
         assert_eq!(expected_owner, repo.owner);
         assert_eq!(expected_repo, repo.name);
         assert_eq!(GITHUB_COM, repo.host);
-        assert!(repo.is_on_github())
+        assert!(repo.is_on_github());
     }
 
     #[test]
@@ -75,7 +75,7 @@ mod tests {
         assert_eq!(expected_owner, repo.owner);
         assert_eq!(expected_repo, repo.name);
         assert_eq!(GITHUB_COM, repo.host);
-        assert!(repo.is_on_github())
+        assert!(repo.is_on_github());
     }
 
     #[test]

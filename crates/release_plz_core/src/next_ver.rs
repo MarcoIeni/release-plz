@@ -197,7 +197,7 @@ pub struct ChangelogRequest {
 fn canonical_local_manifest(local_manifest: &Path) -> anyhow::Result<Utf8PathBuf> {
     let mut local_manifest = dunce::canonicalize(local_manifest)?;
     if !local_manifest.ends_with(CARGO_TOML) {
-        local_manifest.push(CARGO_TOML)
+        local_manifest.push(CARGO_TOML);
     }
     let local_manifest = to_utf8_pathbuf(local_manifest)?;
     Ok(local_manifest)
@@ -927,7 +927,7 @@ impl Updater<'_> {
                 registry_package.package.version == package.version,
                 "package `{}` has a different version ({}) with respect to the registry package ({}), but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish the new version of this package.",
                 package.name, package.version, registry_package.package.version
-            )
+            );
         }
         self.get_package_diff(
             &package_path,
@@ -1128,17 +1128,17 @@ fn get_changelog(
     let mut changelog_builder = ChangelogBuilder::new(commits, next_version.to_string());
     if let Some(changelog_req) = changelog_req {
         if let Some(release_date) = changelog_req.release_date {
-            changelog_builder = changelog_builder.with_release_date(release_date)
+            changelog_builder = changelog_builder.with_release_date(release_date);
         }
         if let Some(config) = changelog_req.changelog_config {
-            changelog_builder = changelog_builder.with_config(config)
+            changelog_builder = changelog_builder.with_config(config);
         }
         if let Some(link) = release_link {
-            changelog_builder = changelog_builder.with_release_link(link)
+            changelog_builder = changelog_builder.with_release_link(link);
         }
         if let Some(old_changelog) = &old_changelog {
             if let Ok(Some(last_version)) = changelog_parser::last_version_from_str(old_changelog) {
-                changelog_builder = changelog_builder.with_previous_version(last_version)
+                changelog_builder = changelog_builder.with_previous_version(last_version);
             }
         }
     }
@@ -1431,7 +1431,7 @@ mod tests {
             None,
         )
         .unwrap();
-        assert_eq!(old, new)
+        assert_eq!(old, new);
     }
 
     #[test]
