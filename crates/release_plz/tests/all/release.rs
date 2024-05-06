@@ -26,14 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
     let crate_name = &context.gitea.repo;
 
-    let expected_tag = format!("{crate_name}-0.1.0");
-
     let outcome = context.run_release().success();
     let expected_stdout = serde_json::json!({
         "releases": [
             {
                 "package_name": crate_name,
-                "tag": expected_tag,
+                "tag": "v0.1.0",
                 "version": "0.1.0",
                 "prs": [
                     {
@@ -59,7 +57,7 @@ async fn release_plz_releases_a_new_project_with_custom_tag_name() {
 
     let config = r#"
     [workspace]
-    git_tag_name = "{{ package}}--{{ version }}"
+    git_tag_name = "{{ package }}--{{ version }}"
     "#;
     context.write_release_plz_toml(config);
 
