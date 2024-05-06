@@ -4,6 +4,56 @@ use crate::helpers::test_context::TestContext;
 
 #[tokio::test]
 #[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_info_contains_prs_in_changelog() {
+    let context = TestContext::new().await;
+
+    let changelog = r#"
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.6.5](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.4...git_cmd-v0.6.5) - 2024-05-05
+
+### Other
+- add clippy lints ([#1439](https://github.com/MarcoIeni/release-plz/pull/1439))
+- improve uncommitted changes error message ([#1434](https://github.com/MarcoIeni/release-plz/pull/1434))
+"#;
+    context.write_changelog(changelog);
+
+    let crate_name = &context.gitea.repo;
+
+    let expected_tag = format!("{crate_name}-0.1.0");
+
+    let outcome = context.run_release().success();
+    let expected_stdout = serde_json::json!({
+        "releases": [
+            {
+                "package_name": crate_name,
+                "tag": expected_tag,
+                "version": "0.1.0",
+                "prs": [
+                    {
+                        "html_url":"https://github.com/MarcoIeni/release-plz/pull/1439",
+                        "number":1439
+                    },
+                    {
+                        "html_url":"https://github.com/MarcoIeni/release-plz/pull/1434",
+                        "number":1434
+                    }
+                ],
+            }
+        ]
+    })
+    .to_string();
+    outcome.stdout(format!("{expected_stdout}\n"));
+}
+
+#[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
 async fn release_plz_releases_a_new_project_with_custom_tag_name() {
     let context = TestContext::new().await;
 
