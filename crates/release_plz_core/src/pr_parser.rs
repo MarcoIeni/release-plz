@@ -43,7 +43,7 @@ mod tests {
 - add `if_not_else` clippy lint ([#1438](https://github.com/MarcoIeni/release-plz/pull/1438))
 - update dependencies ([#1437](https://github.com/MarcoIeni/release-plz/pull/1437))
 "#;
-        let prs = Pr::from_text(changelog_entry);
+        let prs = prs_from_text(changelog_entry);
         assert_eq!(
             prs,
             vec![
