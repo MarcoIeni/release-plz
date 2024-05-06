@@ -58,6 +58,7 @@ Stdout will contain info about the release:
   "releases": [
     {
       "package_name": "<package_name>",
+      "prs": "<prs>",
       "tag": "<tag_name>",
       "version": "<version>"
     }
@@ -72,6 +73,12 @@ Example:
   "releases": [
       {
         "package_name": "my_crate",
+        "prs": [
+          {
+            "html_url": "https://github.com/user/proj/pull/1439",
+            "number": 1439
+          }
+        ],
         "tag": "v0.1.0",
         "version": "0.1.0"
       }
@@ -79,9 +86,21 @@ Example:
 }
 ```
 
+If release-plz didn't release any packages, the `releases` array will be empty.
+
+### The `tag` field
+
 The `tag` field is present even if the user disabled the tag creation with the
 [`git_tag_enable`](../config.md#the-git_tag_enable-field) field.
 This is because the user might want to use the tag name to create the tag
 by themselves.
 
-If release-plz didn't release any packages, the `releases` array will be empty.
+### The `prs` field
+
+`prs` is an array of PRs present in the changelog body of the release.
+Usually, they are the PRs containing the changes that were released.
+
+Each entry of the array is an object containing:
+
+- `html_url`: The URL of the PR.
+- `number`: The number of the PR.

@@ -16,7 +16,7 @@ After the action runs, it outputs the following properties:
   It's an array of JSON objects with the following properties:
   - `package_name`: The name of the package that was released.
   - `prs`: Array of PRs present in the changelog body of the release.
-    Normally, they are the PRs containing the changes that were released.
+    Usually, they are the PRs containing the changes that were released.
     Each entry is an object containing:
     - `html_url`: The URL of the PR.
     - `number`: The number of the PR.
