@@ -27,6 +27,7 @@ async fn release_plz_releases_a_new_project_with_custom_tag_name() {
                 "package_name": crate_name,
                 "tag": expected_tag,
                 "version": "0.1.0",
+                "prs": [],
             }
         ]
     })
@@ -146,6 +147,7 @@ async fn release_plz_does_not_releases_twice() {
         "releases": [
             {
                 "package_name": crate_name,
+                "prs": [],
                 "tag": "v0.1.0",
                 "version": "0.1.0",
             }
