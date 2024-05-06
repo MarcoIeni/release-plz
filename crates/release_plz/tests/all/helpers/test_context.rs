@@ -103,6 +103,13 @@ impl TestContext {
         self.repo.git(&["push"]).unwrap();
     }
 
+    pub fn write_changelog(&self, content: &str) {
+        let changelog_path = self.repo_dir().join("CHANGELOG.md");
+        fs::write(changelog_path, content).unwrap();
+        self.repo.add_all_and_commit("edit changelog").unwrap();
+        self.repo.git(&["push"]).unwrap();
+    }
+
     pub fn download_package(&self, dest_dir: &Utf8Path) -> Vec<Package> {
         let crate_name = &self.gitea.repo;
         release_plz_core::PackageDownloader::new([crate_name], dest_dir.as_str())

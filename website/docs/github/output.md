@@ -15,6 +15,11 @@ After the action runs, it outputs the following properties:
 - `releases`: The JSON output of the `release` command.
   It's an array of JSON objects with the following properties:
   - `package_name`: The name of the package that was released.
+  - `prs`: Array of PRs present in the changelog body of the release.
+    Usually, they are the PRs containing the changes that were released.
+    Each entry is an object containing:
+    - `html_url`: The URL of the PR.
+    - `number`: The number of the PR.
   - `tag`: git tag name of the package that was released. It's returned even if you have
     [git_tag_enable](../config.md#the-git_tag_enable-field) set to `false`, so that
     you can use this to create the git tag yourself.
@@ -50,7 +55,7 @@ jobs:
           RELEASES_CREATED: ${{ steps.release-plz.outputs.releases_created }}
         run: |
           set -e
-          echo "releases: $RELEASES" # example: [{"package_name":"my-package","tag":"v0.1.0","version":"0.1.0"}]
+          echo "releases: $RELEASES" # example: [{"package_name":"my-package","prs":[{"html_url":"https://github.com/user/proj/pull/1439","number":1439}],"tag":"v0.1.0","version":"0.1.0"}]
           echo "prs: $PRS" # example: [{"base_branch":"main","head_branch":"release-plz-2024-05-01T20-38-05Z","html_url":"https://github.com/MarcoIeni/rust-workspace-example/pull/198","number":198}]
           echo "pr: $PR" # example: {"base_branch":"main","head_branch":"release-plz-2024-05-01T20-38-05Z","html_url":"https://github.com/MarcoIeni/rust-workspace-example/pull/198","number":198}
           echo "prs_created: $PRS_CREATED" # example: true
