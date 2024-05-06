@@ -14,6 +14,7 @@ mod next_ver;
 mod package_compare;
 mod package_path;
 mod pr;
+mod pr_parser;
 mod registry_packages;
 mod release_order;
 mod repo_url;
@@ -22,7 +23,6 @@ mod tera;
 mod tmp_repo;
 mod toml_compare;
 mod version;
-mod pr_parser;
 
 pub use changelog::*;
 pub use command::*;
