@@ -18,6 +18,7 @@ use crate::{
     cargo::{is_published, run_cargo, wait_until_published, CargoIndex, CmdOutput},
     changelog_parser,
     git::backend::GitClient,
+    pr_parser::{prs_from_text, Pr, ReleaseOutcome},
     release_order::release_order,
     GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, BRANCH_PREFIX,
     CHANGELOG_FILENAME,
@@ -452,6 +453,7 @@ pub struct PackageRelease {
     /// the tag by themselves.
     tag: String,
     version: Version,
+    prs: Vec<Pr>,
 }
 
 /// Release the project as it is.
@@ -508,6 +510,7 @@ async fn release_package_if_needed(
     let registry_indexes = registry_indexes(package, input.registry.clone())
         .context("can't determine registry indexes")?;
     let mut package_was_released = false;
+    let changelog = last_changelog_entry(input, package);
     for mut index in registry_indexes {
         if is_published(&mut index, package, input.publish_timeout, &token)
             .await
@@ -524,6 +527,7 @@ async fn release_package_if_needed(
             release_name.clone(),
             repo,
             git_client,
+            &changelog,
         )
         .await
         .context("failed to release package")?;
@@ -536,6 +540,7 @@ async fn release_package_if_needed(
         package_name: package.name.clone(),
         version: package.version.clone(),
         tag: git_tag,
+        prs: prs_from_text(&changelog),
     });
     Ok(package_release)
 }
@@ -598,6 +603,7 @@ async fn release_package(
     release_name: String,
     repo: &Repo,
     git_client: &GitClient,
+    changelog: &str,
 ) -> anyhow::Result<bool> {
     let workspace_root = &input.metadata.workspace_root;
 
@@ -635,7 +641,7 @@ async fn release_package(
         }
 
         if input.is_git_release_enabled(&package.name) {
-            let release_body = release_body(input, package);
+            let release_body = release_body(input, package, &changelog);
             let release_config = input.get_package_config(&package.name).generic.git_release;
             let is_pre_release = release_config.is_pre_release(&package.version);
             let release_info = GitReleaseInfo {
@@ -726,25 +732,7 @@ fn run_cargo_publish(
 }
 
 /// Return an empty string if the changelog cannot be parsed.
-fn release_body(req: &ReleaseRequest, package: &Package) -> String {
-    let changelog_path = req.changelog_path(package);
-    let changelog = match changelog_parser::last_changes(&changelog_path) {
-        Ok(Some(changes)) => changes,
-        Ok(None) => {
-            warn!(
-                "{}: last change not fuond in changelog at path {:?}. The git release body will be empty.",
-                package.name, &changelog_path
-            );
-            String::new()
-        }
-        Err(e) => {
-            warn!(
-                "{}: failed to parse changelog at path {:?}: {:?}. The git release body will be empty.",
-                package.name, &changelog_path, e
-            );
-            String::new()
-        }
-    };
+fn release_body(req: &ReleaseRequest, package: &Package, changelog: &str) -> String {
     let body_template = req
         .get_package_config(&package.name)
         .generic
@@ -756,6 +744,27 @@ fn release_body(req: &ReleaseRequest, package: &Package) -> String {
         &changelog,
         body_template.as_deref(),
     )
+}
+
+fn last_changelog_entry(req: &ReleaseRequest, package: &Package) -> String {
+    let changelog_path = req.changelog_path(package);
+    match changelog_parser::last_changes(&changelog_path) {
+        Ok(Some(changes)) => changes,
+        Ok(None) => {
+            warn!(
+                "{}: last change not found in changelog at path {:?}. The git release body will be empty.",
+                package.name, &changelog_path
+            );
+            String::new()
+        }
+        Err(e) => {
+            warn!(
+                "{}: failed to parse changelog at path {:?}: {:?}. The git release body will be empty.",
+                package.name, &changelog_path, e
+            );
+            String::new()
+        }
+    }
 }
 
 #[cfg(test)]
