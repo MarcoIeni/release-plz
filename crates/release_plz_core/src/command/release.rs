@@ -595,6 +595,7 @@ fn registry_indexes(
 }
 
 /// Return `true` if package was published, `false` otherwise.
+#[allow(clippy::too_many_arguments)]
 async fn release_package(
     index: &mut CargoIndex,
     package: &Package,
