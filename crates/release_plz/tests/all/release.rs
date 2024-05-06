@@ -75,9 +75,9 @@ async fn release_plz_releases_a_new_project_with_custom_tag_name() {
         "releases": [
             {
                 "package_name": crate_name,
+                "prs": [],
                 "tag": expected_tag,
                 "version": "0.1.0",
-                "prs": [],
             }
         ]
     })
