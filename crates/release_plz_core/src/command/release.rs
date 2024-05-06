@@ -18,7 +18,7 @@ use crate::{
     cargo::{is_published, run_cargo, wait_until_published, CargoIndex, CmdOutput},
     changelog_parser,
     git::backend::GitClient,
-    pr_parser::{prs_from_text, Pr, ReleaseOutcome},
+    pr_parser::{prs_from_text, Pr},
     release_order::release_order,
     GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, BRANCH_PREFIX,
     CHANGELOG_FILENAME,
@@ -641,7 +641,7 @@ async fn release_package(
         }
 
         if input.is_git_release_enabled(&package.name) {
-            let release_body = release_body(input, package, &changelog);
+            let release_body = release_body(input, package, changelog);
             let release_config = input.get_package_config(&package.name).generic.git_release;
             let is_pre_release = release_config.is_pre_release(&package.version);
             let release_info = GitReleaseInfo {
@@ -741,7 +741,7 @@ fn release_body(req: &ReleaseRequest, package: &Package, changelog: &str) -> Str
     crate::tera::release_body_from_template(
         &package.name,
         &package.version.to_string(),
-        &changelog,
+        changelog,
         body_template.as_deref(),
     )
 }
