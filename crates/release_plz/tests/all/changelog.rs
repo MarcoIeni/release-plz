@@ -20,7 +20,7 @@ async fn release_plz_does_not_open_release_pr_if_there_are_no_release_commits() 
     // no features are present in the commits, so release-plz doesn't open the release PR
     assert_eq!(opened_prs.len(), 0);
 
-    std::fs::write(context.repo_dir().join("new.rs"), "// hi").unwrap();
+    fs_err::write(context.repo_dir().join("new.rs"), "// hi").unwrap();
     context.repo.add_all_and_commit("feat: new file").unwrap();
 
     context.run_release_pr().success();

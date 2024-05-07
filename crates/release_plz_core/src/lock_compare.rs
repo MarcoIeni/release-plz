@@ -38,8 +38,7 @@ fn are_dependencies_updated(
 }
 
 fn read_lockfile(path: &Utf8Path) -> anyhow::Result<Lockfile> {
-    let content =
-        std::fs::read_to_string(path).with_context(|| format!("can't read lockfile {path:?}"))?;
+    let content = fs_err::read_to_string(path).context("can't read lockfile")?;
     let lockfile =
         toml::from_str(&content).with_context(|| format!("invalid format of lockfile {path:?}"))?;
     Ok(lockfile)

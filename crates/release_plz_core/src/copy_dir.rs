@@ -118,7 +118,7 @@ mod tests {
         fs::create_dir(&subdir_path).unwrap();
 
         let file1 = subdir_path.join("file1");
-        std::fs::write(&file1, "aaa").unwrap();
+        fs_err::write(&file1, "aaa").unwrap();
         let file2 = subdir_path.join("file2");
         create_symlink(&file1, file2).unwrap();
 
@@ -140,7 +140,7 @@ mod tests {
         let file2 = temp.path().join("file2");
 
         // file already exists
-        std::fs::write(&file1, "aaa").unwrap();
+        fs_err::write(&file1, "aaa").unwrap();
         create_symlink(&file1, &file2).unwrap();
         let metadata = fs::symlink_metadata(&file2).unwrap();
         assert!(metadata.is_symlink());
@@ -159,7 +159,7 @@ mod tests {
 
         // file doesn't exist yet
         create_symlink(&file1, &file2).unwrap();
-        std::fs::write(&file1, "aaa").unwrap();
+        fs_err::write(&file1, "aaa").unwrap();
         let metadata = fs::symlink_metadata(&file2).unwrap();
         assert!(metadata.is_symlink());
         dbg!(metadata);

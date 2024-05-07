@@ -507,6 +507,7 @@ dependencies = [
  "cargo_metadata",
  "dirs",
  "dunce",
+ "fs-err",
  "semver",
  "serde",
  "toml",

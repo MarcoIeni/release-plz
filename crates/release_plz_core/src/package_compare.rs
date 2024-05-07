@@ -99,7 +99,7 @@ pub fn are_packages_equal(
 fn rename(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<()> {
     let from = from.as_ref();
     let to = to.as_ref();
-    std::fs::rename(from, to).with_context(|| format!("cannot rename {from:?} to {to:?}"))
+    fs_err::rename(from, to).with_context(|| format!("cannot rename {from:?} to {to:?}"))
 }
 
 fn run_cargo_package(package: &Utf8Path) -> anyhow::Result<String> {

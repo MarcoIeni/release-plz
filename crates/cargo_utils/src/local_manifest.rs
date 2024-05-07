@@ -57,8 +57,7 @@ impl LocalManifest {
         if !path.is_absolute() {
             anyhow::bail!("can only edit absolute paths, got {}", path);
         }
-        let data = std::fs::read_to_string(path)
-            .with_context(|| format!("Failed to read manifest contents. Path: {path:?}"))?;
+        let data = fs_err::read_to_string(path).context("Failed to read manifest contents")?;
         let manifest = data.parse().context("Unable to parse Cargo.toml")?;
         Ok(LocalManifest {
             manifest,
@@ -71,7 +70,7 @@ impl LocalManifest {
         let s = self.manifest.data.to_string();
         let new_contents_bytes = s.as_bytes();
 
-        std::fs::write(&self.path, new_contents_bytes).context("Failed to write updated Cargo.toml")
+        fs_err::write(&self.path, new_contents_bytes).context("Failed to write updated Cargo.toml")
     }
 
     /// Allow mutating depedencies, wherever they live
@@ -226,7 +225,7 @@ pub(crate) fn find_manifest_path(dir: &Path) -> anyhow::Result<PathBuf> {
     const MANIFEST_FILENAME: &str = "Cargo.toml";
     for path in dir.ancestors() {
         let manifest = path.join(MANIFEST_FILENAME);
-        if std::fs::metadata(&manifest).is_ok() {
+        if fs_err::metadata(&manifest).is_ok() {
             return Ok(manifest);
         }
     }
