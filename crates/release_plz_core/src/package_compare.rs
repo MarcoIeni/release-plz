@@ -8,7 +8,7 @@ use tracing::debug;
 use crate::{cargo::run_cargo, CARGO_TOML};
 use std::{
     collections::hash_map::DefaultHasher,
-    fs::File,
+    fs_err::File,
     hash::{Hash, Hasher},
     io::{self, Read},
     path::Path,

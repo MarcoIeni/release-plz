@@ -1,7 +1,6 @@
 use crate::config;
 use anyhow::Context;
 use schemars::schema_for;
-use std::fs;
 use std::path::Path;
 
 const FOLDER: &str = ".schema";
@@ -12,8 +11,9 @@ const FILE: &str = "latest.json";
 pub fn generate_schema_to_disk() -> anyhow::Result<()> {
     let file_path = Path::new(FOLDER).join(FILE);
     let json = generate_schema_json().context("can't generate schema")?;
-    fs::create_dir_all(FOLDER).with_context(|| format!("can't create folder {FOLDER:?}"))?;
-    fs::write(&file_path, json).with_context(|| format!("can't write schema in {file_path:?}"))?;
+    fs_err::create_dir_all(FOLDER).with_context(|| format!("can't create folder {FOLDER:?}"))?;
+    fs_err::write(&file_path, json)
+        .with_context(|| format!("can't write schema in {file_path:?}"))?;
     Ok(())
 }
 
@@ -60,7 +60,7 @@ mod tests {
         let file_path = workspace_path.join(FOLDER).join(FILE);
 
         // Load the two json strings
-        let existing_json: String = fs::read_to_string(file_path).unwrap();
+        let existing_json: String = fs_err::read_to_string(file_path).unwrap();
         let new_json = generate_schema_json().unwrap();
 
         // Windows-friendly comparison

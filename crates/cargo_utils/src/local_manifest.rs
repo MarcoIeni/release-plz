@@ -209,7 +209,7 @@ impl LocalManifest {
 pub fn find(specified: Option<&Path>) -> anyhow::Result<PathBuf> {
     match specified {
         Some(path)
-            if fs::metadata(path)
+            if fs_err::metadata(path)
                 .with_context(|| "Failed to get cargo file metadata")?
                 .is_file() =>
         {

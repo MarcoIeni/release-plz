@@ -846,7 +846,7 @@ impl Updater<'_> {
             let changelog_req = cfg
                 .should_update_changelog()
                 .then_some(self.req.changelog_req.clone());
-            let old_changelog = fs::read_to_string(self.req.changelog_path(package)).ok();
+            let old_changelog = fs_err::read_to_string(self.req.changelog_path(package)).ok();
             let commits: Vec<Commit> = commits
                 .into_iter()
                 // If not conventional commit, only consider the first line of the commit message.
@@ -1295,7 +1295,7 @@ impl PackageDependencies for Package {
                     let dependency_path = d
                         .get("path")
                         .and_then(|i| i.as_str())
-                        .and_then(|relpath| fs::canonicalize(package_dir.join(relpath)).ok());
+                        .and_then(|relpath| fs_err::canonicalize(package_dir.join(relpath)).ok());
                     match dependency_path {
                         Some(dep_path) => dep_path == canonical_path,
                         None => false,

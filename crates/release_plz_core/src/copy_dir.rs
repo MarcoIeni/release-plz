@@ -17,10 +17,10 @@ pub(crate) fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(
     );
 
     #[cfg(unix)]
-    return std::os::unix::fs::symlink(original, link);
+    return std::os::unix::fs_err::symlink(original, link);
 
     #[cfg(windows)]
-    return std::os::windows::fs::symlink_file(original, link);
+    return std::os::windows::fs_err::symlink_file(original, link);
 }
 
 /// Copy directory preserving symlinks.
@@ -36,7 +36,7 @@ pub fn copy_dir(from: impl AsRef<Utf8Path>, to: impl AsRef<Utf8Path>) -> anyhow:
     debug!("copying directory from {:?} to {:?}", from, to);
     if !to.exists() {
         trace!("creating directory {:?}", to);
-        fs::create_dir_all(&to).with_context(|| format!("cannot create directory {to:?}"))?;
+        fs_err::create_dir_all(&to).with_context(|| format!("cannot create directory {to:?}"))?;
     }
 
     copy_directory(from, to)?;
@@ -64,7 +64,7 @@ fn copy_directory(from: &Utf8Path, to: Utf8PathBuf) -> Result<(), anyhow::Error>
                 continue;
             }
             trace!("creating directory {:?}", destination);
-            fs::create_dir(&destination)
+            fs_err::create_dir(&destination)
                 .with_context(|| format!("cannot create directory {destination:?}"))?;
         } else if file_type.is_symlink() {
             let entry_utf8: &Utf8Path = entry.path().try_into()?;
@@ -85,7 +85,7 @@ fn copy_directory(from: &Utf8Path, to: Utf8PathBuf) -> Result<(), anyhow::Error>
             })?;
         } else if file_type.is_file() {
             trace!("copying file {:?} to {:?}", entry.path(), &destination);
-            fs::copy(entry.path(), &destination).with_context(|| {
+            fs_err::copy(entry.path(), &destination).with_context(|| {
                 format!("cannot copy file {:?} to {:?}", entry.path(), &destination)
             })?;
         }
@@ -115,7 +115,7 @@ mod tests {
         let temp = Utf8TempDir::new().unwrap();
         let subdir = "subdir";
         let subdir_path = temp.path().join(subdir);
-        fs::create_dir(&subdir_path).unwrap();
+        fs_err::create_dir(&subdir_path).unwrap();
 
         let file1 = subdir_path.join("file1");
         fs_err::write(&file1, "aaa").unwrap();
@@ -126,8 +126,8 @@ mod tests {
         copy_dir(subdir_path, temp2.path()).unwrap();
         let temp2_subdir = temp2.path().join(subdir);
         let new_file2 = temp2_subdir.join("file2");
-        assert!(fs::symlink_metadata(&new_file2).unwrap().is_symlink());
-        let link_target = fs::read_link(new_file2).unwrap();
+        assert!(fs_err::symlink_metadata(&new_file2).unwrap().is_symlink());
+        let link_target = fs_err::read_link(new_file2).unwrap();
         let file1_dest = temp2.path().join(subdir).join("file1");
         assert!(file1_dest.exists());
         assert_eq!(link_target, file1_dest);
@@ -142,13 +142,13 @@ mod tests {
         // file already exists
         fs_err::write(&file1, "aaa").unwrap();
         create_symlink(&file1, &file2).unwrap();
-        let metadata = fs::symlink_metadata(&file2).unwrap();
+        let metadata = fs_err::symlink_metadata(&file2).unwrap();
         assert!(metadata.is_symlink());
         dbg!(metadata);
-        let target = fs::read_link(file2).unwrap();
+        let target = fs_err::read_link(file2).unwrap();
         assert_eq!(target, file1);
-        assert_eq!(fs::read_to_string(target).unwrap(), "aaa");
-        assert_eq!(fs::read_to_string(file1).unwrap(), "aaa");
+        assert_eq!(fs_err::read_to_string(target).unwrap(), "aaa");
+        assert_eq!(fs_err::read_to_string(file1).unwrap(), "aaa");
     }
 
     #[test]
@@ -160,12 +160,12 @@ mod tests {
         // file doesn't exist yet
         create_symlink(&file1, &file2).unwrap();
         fs_err::write(&file1, "aaa").unwrap();
-        let metadata = fs::symlink_metadata(&file2).unwrap();
+        let metadata = fs_err::symlink_metadata(&file2).unwrap();
         assert!(metadata.is_symlink());
         dbg!(metadata);
-        let target = fs::read_link(file2).unwrap();
+        let target = fs_err::read_link(file2).unwrap();
         assert_eq!(target, file1);
-        assert_eq!(fs::read_to_string(target).unwrap(), "aaa");
-        assert_eq!(fs::read_to_string(file1).unwrap(), "aaa");
+        assert_eq!(fs_err::read_to_string(target).unwrap(), "aaa");
+        assert_eq!(fs_err::read_to_string(file1).unwrap(), "aaa");
     }
 }
