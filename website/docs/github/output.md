@@ -92,3 +92,60 @@ jobs:
           echo "pr_head_branch: ${{ fromJSON(steps.release-plz.outputs.pr).head_branch }}"
           echo "pr_base_branch: ${{ fromJSON(steps.release-plz.outputs.pr).base_branch }}"
 ```
+
+## Example: add labels to released PRs
+
+It often happens, when looking for a feature or a bug fix, to land on a merged PR.
+The next question: was this released? In what version?
+
+With release-plz you can add a label to the PRs with the version they were released in:
+
+:::info
+In this example, we are talking about the PRs containing code changes.
+We aren't talking about the release PRs created by release-plz.
+You can label release PRs with the [pr_labels](../config.md#the-pr_labels-field)
+configuration field.
+:::
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
+        uses: MarcoIeni/release-plz-action@v0.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Tag released PRs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASES: ${{ steps.release-plz.outputs.releases }}
+        run: |
+          set -e
+
+          # iterate over released packages and add a label to the PRs
+          # shipped with the release
+          for release in $(echo "$RELEASES" | jq -r '.[]'); do
+              package_name=$(echo "$release" | jq -r '.package_name')
+              version=$(echo "$release" | jq -r '.version')
+              for pr in $(echo "$release" | jq -r '.prs[]'); do
+                  pr_number=$(echo "$pr" | jq -r '.number')
+                  echo "Adding label 'released:$package_name-$version' to PR #$pr_number"
+                  gh pr edit $pr_number --add-label "released:$package_name-$version"
+              done
+          done
+```
+
+You can also add a milestone with `gh pr edit $pr_number --milestone <MILESTONE_NUMBER>`.
+
+:::tip
+Make sure your GitHub token has permission to do all the operations you need.
+:::
