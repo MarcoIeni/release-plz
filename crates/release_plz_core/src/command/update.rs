@@ -221,7 +221,7 @@ fn update_changelogs(
         if let Some(changelog) = update.changelog.as_ref() {
             let changelog_path = update_request.changelog_path(package);
             fs_err::write(&changelog_path, changelog)
-                .with_context(|| format!("cannot write changelog to {:?}", &changelog_path))?;
+                .context("cannot write changelog")?;
         }
     }
     Ok(())
