@@ -8,7 +8,6 @@ use tracing::debug;
 use crate::{cargo::run_cargo, CARGO_TOML};
 use std::{
     collections::hash_map::DefaultHasher,
-    fs::File,
     hash::{Hash, Hasher},
     io::{self, Read},
     path::Path,
@@ -99,7 +98,7 @@ pub fn are_packages_equal(
 fn rename(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<()> {
     let from = from.as_ref();
     let to = to.as_ref();
-    std::fs::rename(from, to).with_context(|| format!("cannot rename {from:?} to {to:?}"))
+    fs_err::rename(from, to).with_context(|| format!("cannot rename {from:?} to {to:?}"))
 }
 
 fn run_cargo_package(package: &Utf8Path) -> anyhow::Result<String> {
@@ -175,7 +174,7 @@ fn are_files_equal(first: &Utf8Path, second: &Utf8Path) -> anyhow::Result<bool> 
 
 fn file_hash(file: &Utf8Path) -> io::Result<u64> {
     let buffer = &mut vec![];
-    File::open(file)?.read_to_end(buffer)?;
+    fs_err::File::open(file)?.read_to_end(buffer)?;
     let mut hasher = DefaultHasher::new();
     buffer.hash(&mut hasher);
     let hash = hasher.finish();

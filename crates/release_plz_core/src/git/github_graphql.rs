@@ -3,7 +3,6 @@ use base64::prelude::*;
 use cargo_metadata::camino::Utf8PathBuf;
 use git_cmd::Repo;
 use serde_json::{json, Value};
-use tokio::fs;
 use tracing::{debug, trace};
 use url::Url;
 
@@ -122,7 +121,7 @@ impl GithubCommit {
         let mut additions = vec![];
         for path in &self.additions {
             let realpath = self.repo_dir.join(path);
-            let contents = BASE64_STANDARD.encode(fs::read(realpath).await?);
+            let contents = BASE64_STANDARD.encode(fs_err::tokio::read(realpath).await?);
 
             additions.push(json!({"path": path, "contents": contents}));
         }
@@ -162,15 +161,21 @@ mod tests {
 
         // make the initial commit on top which we'll make changes
         let unchanged_path = repo_dir.join("unchanged.txt");
-        fs::write(&unchanged_path, b"unchanged").await.unwrap();
+        fs_err::tokio::write(&unchanged_path, b"unchanged")
+            .await
+            .unwrap();
 
         let changed = "changed.txt";
         let changed_path = repo_dir.join(changed);
-        fs::write(&changed_path, b"changed").await.unwrap();
+        fs_err::tokio::write(&changed_path, b"changed")
+            .await
+            .unwrap();
 
         let removed = "removed.txt";
         let removed_path = repo_dir.join(removed);
-        fs::write(&removed_path, b"removed").await.unwrap();
+        fs_err::tokio::write(&removed_path, b"removed")
+            .await
+            .unwrap();
 
         let type_changed_path = repo_dir.join("type_changed.txt");
         create_symlink(&unchanged_path, &type_changed_path).unwrap();
@@ -183,18 +188,24 @@ mod tests {
         let added = "added.txt";
         let added_path = repo_dir.join(added);
         let added_base64_content = BASE64_STANDARD.encode(b"added");
-        fs::write(&added_path, b"added").await.unwrap();
+        fs_err::tokio::write(&added_path, b"added").await.unwrap();
 
         // file change
         let changed_base64_content = BASE64_STANDARD.encode(b"file changed");
-        fs::write(&changed_path, b"file changed").await.unwrap();
+        fs_err::tokio::write(&changed_path, b"file changed")
+            .await
+            .unwrap();
 
         // file removal
-        fs::remove_file(&removed_path).await.unwrap();
+        fs_err::tokio::remove_file(&removed_path).await.unwrap();
 
         // type change (replace symlink with a content it pointed to)
-        fs::remove_file(&type_changed_path).await.unwrap();
-        fs::write(&type_changed_path, b"unchanged").await.unwrap();
+        fs_err::tokio::remove_file(&type_changed_path)
+            .await
+            .unwrap();
+        fs_err::tokio::write(&type_changed_path, b"unchanged")
+            .await
+            .unwrap();
 
         // check if the commit query is correctly created
         let owner_slash_repo = "owner/repo";

@@ -68,7 +68,7 @@ fn local_manifest(manifest_path: Option<&Utf8Path>) -> Utf8PathBuf {
 
 fn parse_config(config_path: Option<&Path>) -> anyhow::Result<Config> {
     let (config, path) = if let Some(config_path) = config_path {
-        match std::fs::read_to_string(config_path) {
+        match fs_err::read_to_string(config_path) {
             Ok(config) => (config, config_path),
             Err(e) => match e.kind() {
                 std::io::ErrorKind::NotFound => {
@@ -107,7 +107,7 @@ fn first_file_contents<'a>(
     let paths = paths.into_iter();
 
     for path in paths {
-        match std::fs::read_to_string(path) {
+        match fs_err::read_to_string(path) {
             Ok(config) => return Ok(Some((config, path))),
             Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
             Err(err) => return Err(err.into()),

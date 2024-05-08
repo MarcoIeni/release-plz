@@ -1,5 +1,3 @@
-use std::fs;
-
 use crate::helpers::gitea_mock_server::GiteaMockServer;
 use anyhow::Context;
 use cargo_metadata::camino::Utf8PathBuf;
@@ -40,7 +38,7 @@ impl ComparisonTest {
             github_mock_server: GitHubMockServer::start(OWNER, REPO).await,
             gitea_mock_server: GiteaMockServer::start(OWNER, REPO).await,
         };
-        fs::copy(
+        fs_err::copy(
             comparison.registry_project().join(CARGO_TOML),
             comparison.registry_project().join("Cargo.toml.orig"),
         )
@@ -122,12 +120,12 @@ impl ComparisonTest {
 
     pub fn write_local_project_changelog(&self, changelog: &str) {
         let changelog_path = self.local_project_changelog_path();
-        fs::write(changelog_path, changelog).unwrap();
+        fs_err::write(changelog_path, changelog).unwrap();
     }
 
     pub fn local_project_changelog(&self) -> String {
         let changelog_path = self.local_project_changelog_path();
-        fs::read_to_string(changelog_path).unwrap()
+        fs_err::read_to_string(changelog_path).unwrap()
     }
 
     fn local_project_changelog_path(&self) -> Utf8PathBuf {
