@@ -64,8 +64,7 @@ fn copy_directory(from: &Utf8Path, to: Utf8PathBuf) -> Result<(), anyhow::Error>
                 continue;
             }
             trace!("creating directory {:?}", destination);
-            fs_err::create_dir(&destination)
-                .with_context(|| format!("cannot create directory {destination:?}"))?;
+            fs_err::create_dir(&destination)?;
         } else if file_type.is_symlink() {
             let entry_utf8: &Utf8Path = entry.path().try_into()?;
             let original_link = Utf8Path::read_link_utf8(entry_utf8)
