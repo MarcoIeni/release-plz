@@ -220,8 +220,7 @@ fn update_changelogs(
     for (package, update) in &local_packages.updates {
         if let Some(changelog) = update.changelog.as_ref() {
             let changelog_path = update_request.changelog_path(package);
-            fs_err::write(&changelog_path, changelog)
-                .context("cannot write changelog")?;
+            fs_err::write(&changelog_path, changelog).context("cannot write changelog")?;
         }
     }
     Ok(())
