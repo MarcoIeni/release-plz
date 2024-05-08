@@ -11,7 +11,7 @@ const FILE: &str = "latest.json";
 pub fn generate_schema_to_disk() -> anyhow::Result<()> {
     let file_path = Path::new(FOLDER).join(FILE);
     let json = generate_schema_json().context("can't generate schema")?;
-    fs_err::create_dir_all(FOLDER).with_context(|| format!("can't create folder {FOLDER:?}"))?;
+    fs_err::create_dir_all(FOLDER)?;
     fs_err::write(file_path, json).context("can't write schema")?;
     Ok(())
 }

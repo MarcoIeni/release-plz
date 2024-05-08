@@ -36,7 +36,7 @@ pub fn copy_dir(from: impl AsRef<Utf8Path>, to: impl AsRef<Utf8Path>) -> anyhow:
     debug!("copying directory from {:?} to {:?}", from, to);
     if !to.exists() {
         trace!("creating directory {:?}", to);
-        fs_err::create_dir_all(&to).with_context(|| format!("cannot create directory {to:?}"))?;
+        fs_err::create_dir_all(&to)?;
     }
 
     copy_directory(from, to)?;
