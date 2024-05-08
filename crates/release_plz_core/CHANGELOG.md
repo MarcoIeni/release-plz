@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.6](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.5...release_plz_core-v0.21.6) - 2024-05-08
+
+### Added
+- print released prs ([#1449](https://github.com/MarcoIeni/release-plz/pull/1449))
+
+### Other
+- more descriptive file system error messages ([#1450](https://github.com/MarcoIeni/release-plz/pull/1450))
+
 ## [0.21.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.4...release_plz_core-v0.21.5) - 2024-05-05
 
 ### Added

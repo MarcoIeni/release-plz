@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.6](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.5...git_cmd-v0.6.6) - 2024-05-08
+
+### Other
+- more descriptive file system error messages ([#1450](https://github.com/MarcoIeni/release-plz/pull/1450))
+
 ## [0.6.5](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.4...git_cmd-v0.6.5) - 2024-05-05
 
 ### Other
