@@ -20,6 +20,7 @@ test_fixture = []
 anyhow.workspace = true
 camino.workspace = true
 tracing.workspace = true
+fs-err.workspace = true
 
 [dev-dependencies]
 git_cmd = { path = ".", features = ["test_fixture"]}

@@ -1,4 +1,4 @@
-use std::{fs, path::Path};
+use std::path::Path;
 
 use camino::Utf8Path;
 use tracing::{debug, instrument};

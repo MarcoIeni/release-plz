@@ -1,4 +1,4 @@
-use std::{fs, process::Command, str::FromStr};
+use std::{process::Command, str::FromStr};
 
 use crate::helpers::gitea::CARGO_INDEX_REPO;
 use assert_cmd::assert::Assert;

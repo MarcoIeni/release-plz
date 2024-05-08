@@ -1,4 +1,4 @@
-use std::{fs, io, path::Path};
+use std::{io, path::Path};
 
 use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
@@ -17,10 +17,10 @@ pub(crate) fn create_symlink<P: AsRef<Path>, Q: AsRef<Path>>(
     );
 
     #[cfg(unix)]
-    return std::os::unix::fs_err::symlink(original, link);
+    return std::os::unix::fs::symlink(original, link);
 
     #[cfg(windows)]
-    return std::os::windows::fs_err::symlink_file(original, link);
+    return std::os::windows::fs::symlink_file(original, link);
 }
 
 /// Copy directory preserving symlinks.

@@ -30,7 +30,7 @@ use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
-    fs, io,
+    io,
     path::Path,
 };
 use tracing::{debug, info, instrument, warn};

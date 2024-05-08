@@ -1,5 +1,5 @@
 use std::{
-    env, fs,
+    env,
     ops::{Deref, DerefMut},
     path::{Path, PathBuf},
 };
