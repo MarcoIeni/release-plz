@@ -161,15 +161,21 @@ mod tests {
 
         // make the initial commit on top which we'll make changes
         let unchanged_path = repo_dir.join("unchanged.txt");
-        fs_err::tokio::write(&unchanged_path, b"unchanged").await.unwrap();
+        fs_err::tokio::write(&unchanged_path, b"unchanged")
+            .await
+            .unwrap();
 
         let changed = "changed.txt";
         let changed_path = repo_dir.join(changed);
-        fs_err::tokio::write(&changed_path, b"changed").await.unwrap();
+        fs_err::tokio::write(&changed_path, b"changed")
+            .await
+            .unwrap();
 
         let removed = "removed.txt";
         let removed_path = repo_dir.join(removed);
-        fs_err::tokio::write(&removed_path, b"removed").await.unwrap();
+        fs_err::tokio::write(&removed_path, b"removed")
+            .await
+            .unwrap();
 
         let type_changed_path = repo_dir.join("type_changed.txt");
         create_symlink(&unchanged_path, &type_changed_path).unwrap();
@@ -186,13 +192,17 @@ mod tests {
 
         // file change
         let changed_base64_content = BASE64_STANDARD.encode(b"file changed");
-        fs_err::tokio::write(&changed_path, b"file changed").await.unwrap();
+        fs_err::tokio::write(&changed_path, b"file changed")
+            .await
+            .unwrap();
 
         // file removal
         fs_err::tokio::remove_file(&removed_path).await.unwrap();
 
         // type change (replace symlink with a content it pointed to)
-        fs_err::tokio::remove_file(&type_changed_path).await.unwrap();
+        fs_err::tokio::remove_file(&type_changed_path)
+            .await
+            .unwrap();
         fs_err::tokio::write(&type_changed_path, b"unchanged")
             .await
             .unwrap();
