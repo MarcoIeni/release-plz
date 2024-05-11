@@ -1130,7 +1130,7 @@ impl OldChangelogs {
         self.old_changelogs
             .get(changelog_path)
             .cloned()
-            .or(fs::read_to_string(changelog_path).ok())
+            .or(fs_err::read_to_string(changelog_path).ok())
     }
 
     fn insert(&mut self, changelog_path: Utf8PathBuf, changelog: String) {
