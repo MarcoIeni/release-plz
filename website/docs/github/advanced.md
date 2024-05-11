@@ -69,5 +69,43 @@ If you want to run other checks before releasing (e.g. `cargo test`), you have t
              CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
    ```
 
-   The con of this approach, is that the release-plz action will complete later
+   The con of this approach is that the release-plz action will complete later
    because it needs to wait for the other checks to finish.
+
+## Close old release PRs
+
+Release-plz updates the release PR by force-pushing to it.
+If you want release-plz to open new release PRs instead of updating the old ones,
+you can close the old release PR before running release-plz:
+
+```yml
+jobs:
+  release-plz:
+    name: Release-plz
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Close old release PR
+        run: |
+          # List all opened PRs which head branch starts with "release-plz-"
+          release_pr=$(gh pr list --state='open' --json number,headRefName --jq '.[] | select(.headRefName | startswith("release-plz-")) | .number')
+          # Close the release PR if there is one
+          if [[ -n "$release_pr" ]]; then
+            echo "Closing old release PR $release_pr"
+            gh pr close $release_pr
+          else
+            echo "No open release PR"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+```
