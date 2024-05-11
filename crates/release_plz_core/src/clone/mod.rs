@@ -88,7 +88,13 @@ impl Cloner {
 
             dest_path.push(&crate_.name);
 
-            if let Some(pkg) = self.clone_in(crate_, &dest_path, &mut src)? {
+            let pkg = self
+                .clone_in(crate_, &dest_path, &mut src)
+                .with_context(|| {
+                    format!("failed to clone package {} in {dest_path}", &crate_.name)
+                })?;
+
+            if let Some(pkg) = pkg {
                 cloned_pkgs.push((pkg, dest_path));
             }
         }

@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use anyhow::Context as _;
 use cargo_metadata::camino::Utf8Path;
 use clap::{
     builder::{NonEmptyStringValueParser, PathBufValueParser},
@@ -78,6 +79,7 @@ pub enum ReleaseGitBackendKind {
 impl Release {
     pub fn config(&self) -> anyhow::Result<Config> {
         super::parse_config(self.config.as_deref())
+            .context("failed to parse release-plz configuration")
     }
 
     pub fn release_request(
