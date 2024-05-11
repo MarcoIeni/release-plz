@@ -94,8 +94,15 @@ jobs:
         run: |
           # List all opened PRs which head branch starts with "release-plz-"
           release_pr=$(gh pr list --state='open' --json number,headRefName --jq '.[] | select(.headRefName | startswith("release-plz-")) | .number')
-          # Close the release PR
-          gh pr close $release_pr
+          # Close the release PR if there is one
+          if [[ -n "$release_pr" ]]; then
+            echo "Closing old release PR $release_pr"
+            gh pr close $release_pr
+          else
+            echo "No open release PR"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@v0.5
         env:
