@@ -72,7 +72,8 @@ body = """
 """
 ```
 
-The difference with the default changelog body configuration is that the header now also contains the `{{package}}`.
+The difference with the default changelog body configuration is that the header now also contains
+the `{{package}}`.
 
 In this way, `package_a` and `package_b` changelogs are in the same file.
 Note that the changelog will contain duplicate changes.
