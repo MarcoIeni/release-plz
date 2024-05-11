@@ -77,7 +77,8 @@ pub fn get_registry_packages(
             // After downloading the package, we initialize a git repo in the package.
             // This is because if cargo doesn't find a git repo in the package, it doesn't
             // show hidden files in `cargo package --list` output.
-            let registry_packages = initialize_registry_package(registry_packages)?;
+            let registry_packages = initialize_registry_package(registry_packages)
+                .context("failed to initialize repository package")?;
             (Some(temp_dir), registry_packages)
         }
     };

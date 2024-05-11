@@ -78,10 +78,12 @@ fn parse_config(config_path: Option<&Path>) -> anyhow::Result<Config> {
             },
         }
     } else {
-        match first_file_contents([
+        let first_file = first_file_contents([
             Path::new("release-plz.toml"),
             Path::new(".release-plz.toml"),
-        ])? {
+        ])
+        .context("failed looking for release-plz config file")?;
+        match first_file {
             Some((config, path)) => (config, path),
             None => {
                 info!("release-plz config file not found, using default configuration");

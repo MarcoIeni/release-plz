@@ -78,6 +78,7 @@ pub enum ReleaseGitBackendKind {
 impl Release {
     pub fn config(&self) -> anyhow::Result<Config> {
         super::parse_config(self.config.as_deref())
+            .context("failed to parse release-plz configuration")
     }
 
     pub fn release_request(
