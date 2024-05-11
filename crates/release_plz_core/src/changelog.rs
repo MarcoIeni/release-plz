@@ -31,16 +31,16 @@ pub struct Changelog<'a> {
 
 impl Changelog<'_> {
     /// Generate the full changelog.
-    pub fn generate(self) -> String {
+    pub fn generate(self) -> anyhow::Result<String> {
         let config = self.changelog_config(None, self.release_link.as_deref());
         let mut changelog = GitCliffChangelog::new(vec![self.release], &config)
-            .expect("error while building changelog");
-        changelog.add_context("package", self.package);
+            .context("error while building changelog")?;
+        add_package_context(&mut changelog, &self.package)?;
         let mut out = Vec::new();
         changelog
             .generate(&mut out)
-            .expect("cannot generate changelog");
-        String::from_utf8(out).expect("cannot convert bytes to string")
+            .context("cannot generate changelog")?;
+        String::from_utf8(out).context("cannot convert bytes to string")
     }
 
     /// Update an existing changelog.
@@ -54,14 +54,7 @@ impl Changelog<'_> {
         let config = self.changelog_config(old_header, self.release_link.as_deref());
         let mut changelog = GitCliffChangelog::new(vec![self.release], &config)
             .context("error while building changelog")?;
-        changelog
-            .add_context("package", &self.package)
-            .with_context(|| {
-                format!(
-                    "failed to add `{}` to the `package` changelog context",
-                    &self.package
-                )
-            })?;
+        add_package_context(&mut changelog, &self.package)?;
         let mut out = Vec::new();
         changelog
             .prepend(old_changelog, &mut out)
@@ -82,6 +75,16 @@ impl Changelog<'_> {
             bump: Bump::default(),
         }
     }
+}
+
+fn add_package_context(
+    changelog: &mut GitCliffChangelog,
+    package: &str,
+) -> Result<(), anyhow::Error> {
+    changelog.add_context("package", package).with_context(|| {
+        format!("failed to add `{package}` to the `package` changelog context")
+    })?;
+    Ok(())
 }
 
 /// Apply release-plz defaults
@@ -357,7 +360,7 @@ mod tests {
             ### Other
             - simple update
         "####]]
-        .assert_eq(&changelog.generate());
+        .assert_eq(&changelog.generate().unwrap());
     }
 
     #[test]
@@ -385,7 +388,7 @@ mod tests {
             ### Fixed
             - myfix
         "####]]
-        .assert_eq(&changelog.generate());
+        .assert_eq(&changelog.generate().unwrap());
     }
 
     #[test]
@@ -398,7 +401,7 @@ mod tests {
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
 
-        let generated_changelog = changelog.generate();
+        let generated_changelog = changelog.generate().unwrap();
 
         let commits = vec![
             Commit::new(NO_COMMIT_ID.to_string(), "fix: myfix2".to_string()),
@@ -562,7 +565,7 @@ mod tests {
 
             something else - 0000000
         "####]]
-        .assert_eq(&changelog.generate());
+        .assert_eq(&changelog.generate().unwrap());
     }
 
     #[test]
@@ -599,7 +602,7 @@ mod tests {
             - another fix
             - myfix
         "#]]
-        .assert_eq(&changelog.generate());
+        .assert_eq(&changelog.generate().unwrap());
     }
 }
 

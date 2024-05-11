@@ -704,7 +704,7 @@ impl Updater<'_> {
                     next_version,
                     p,
                     diff.semver_check,
-                    old_changelog,
+                    old_changelog.as_deref(),
                 )?;
                 if let Some(changelog) = &update_result.changelog {
                     old_changelogs.insert(changelog_path, changelog.clone());
@@ -823,7 +823,7 @@ impl Updater<'_> {
                     next_version,
                     p,
                     SemverCheck::Skipped,
-                    old_changelog,
+                    old_changelog.as_deref(),
                 )?;
                 if let Some(changelog) = &update_result.changelog {
                     old_changelogs.insert(changelog_path, changelog.clone());
@@ -840,7 +840,7 @@ impl Updater<'_> {
         version: Version,
         package: &Package,
         semver_check: SemverCheck,
-        old_changelog: Option<String>,
+        old_changelog: Option<&str>,
     ) -> anyhow::Result<UpdateResult> {
         let release_link = {
             let prev_tag = self
@@ -894,7 +894,7 @@ impl Updater<'_> {
                         commits,
                         &version,
                         Some(r),
-                        old_changelog.as_deref(),
+                        old_changelog,
                         release_link.as_deref(),
                         package,
                     )
@@ -1198,7 +1198,7 @@ fn get_changelog(
     let new_changelog = changelog_builder.build();
     let changelog = match old_changelog {
         Some(old_changelog) => new_changelog.prepend(old_changelog)?,
-        None => new_changelog.generate(), // Old changelog doesn't exist.
+        None => new_changelog.generate()?, // Old changelog doesn't exist.
     };
     Ok(changelog)
 }
