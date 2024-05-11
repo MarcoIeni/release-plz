@@ -202,6 +202,7 @@ async fn handle_opened_pr(
 }
 
 async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Result<ReleasePr> {
+    repo.checkout_new_branch(&pr.branch)?;
     if matches!(git_client.backend, BackendType::Github) {
         github_create_release_branch(git_client, repo, &pr.branch).await?;
     } else {
@@ -302,7 +303,6 @@ fn force_push(pr: &GitPr, repository: &Repo) -> anyhow::Result<()> {
 }
 
 fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {
-    repository.checkout_new_branch(release_branch)?;
     add_changes_and_commit(repository)?;
     repository.push(release_branch)?;
     Ok(())
@@ -313,7 +313,6 @@ async fn github_create_release_branch(
     repository: &Repo,
     release_branch: &str,
 ) -> anyhow::Result<()> {
-    repository.checkout_new_branch(release_branch)?;
     repository.push(release_branch)?;
     github_graphql::commit_changes(client, repository, "chore: release", release_branch).await
 }
