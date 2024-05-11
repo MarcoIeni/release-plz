@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use anyhow::Context as _;
 use cargo_metadata::camino::Utf8Path;
 use clap::{
     builder::{NonEmptyStringValueParser, PathBufValueParser},
