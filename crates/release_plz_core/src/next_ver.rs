@@ -834,6 +834,8 @@ impl Updater<'_> {
         Ok(packages_to_update)
     }
 
+    /// This function needs `old_changelog` so that you can have changes of different
+    /// packages in the same changelog.
     fn update_result(
         &self,
         commits: Vec<Commit>,
