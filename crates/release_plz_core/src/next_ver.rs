@@ -696,20 +696,12 @@ impl Updater<'_> {
                     p.name,
                     diff.semver_check.outcome_str()
                 );
-                let changelog_path = self.req.changelog_path(p);
-                let old_changelog: Option<String> = old_changelogs.get_or_read(&changelog_path);
-
-                let update_result = self.update_result(
+                let update_result = self.calculate_update_result(
                     diff.commits,
                     next_version,
                     p,
-                    diff.semver_check,
-                    old_changelog.as_deref(),
+                    &mut old_changelogs,
                 )?;
-                if let Some(changelog) = &update_result.changelog {
-                    old_changelogs.insert(changelog_path, changelog.clone());
-                }
-
                 packages_to_update
                     .updates_mut()
                     .push((p.clone(), update_result));
@@ -807,31 +799,46 @@ impl Updater<'_> {
             })
             .map(|(&p, deps)| {
                 let deps: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
-                let change = format!(
-                    "chore: updated the following local packages: {}",
-                    deps.join(", ")
-                );
+                let commits = {
+                    let change = format!(
+                        "chore: updated the following local packages: {}",
+                        deps.join(", ")
+                    );
+                    vec![Commit::new(NO_COMMIT_ID.to_string(), change)]
+                };
                 let next_version = { p.version.increment_patch() };
                 info!(
                     "{}: dependencies changed. Next version is {next_version}",
                     p.name
                 );
-                let changelog_path = self.req.changelog_path(p);
-                let old_changelog: Option<String> = old_changelogs.get_or_read(&changelog_path);
-                let update_result = self.update_result(
-                    vec![Commit::new(NO_COMMIT_ID.to_string(), change)],
-                    next_version,
-                    p,
-                    SemverCheck::Skipped,
-                    old_changelog.as_deref(),
-                )?;
-                if let Some(changelog) = &update_result.changelog {
-                    old_changelogs.insert(changelog_path, changelog.clone());
-                }
+                let update_result =
+                    self.calculate_update_result(commits, next_version, p, &mut old_changelogs)?;
                 Ok((p.clone(), update_result))
             })
             .collect::<anyhow::Result<Vec<_>>>()?;
         Ok(packages_to_update)
+    }
+
+    fn calculate_update_result(
+        &self,
+        commits: Vec<Commit>,
+        next_version: Version,
+        p: &Package,
+        old_changelogs: &mut OldChangelogs,
+    ) -> Result<UpdateResult, anyhow::Error> {
+        let changelog_path = self.req.changelog_path(p);
+        let old_changelog: Option<String> = old_changelogs.get_or_read(&changelog_path);
+        let update_result = self.update_result(
+            commits,
+            next_version,
+            p,
+            SemverCheck::Skipped,
+            old_changelog.as_deref(),
+        )?;
+        if let Some(changelog) = &update_result.changelog {
+            old_changelogs.insert(changelog_path, changelog.clone());
+        }
+        Ok(update_result)
     }
 
     /// This function needs `old_changelog` so that you can have changes of different
