@@ -81,9 +81,9 @@ fn add_package_context(
     changelog: &mut GitCliffChangelog,
     package: &str,
 ) -> Result<(), anyhow::Error> {
-    changelog.add_context("package", package).with_context(|| {
-        format!("failed to add `{package}` to the `package` changelog context")
-    })?;
+    changelog
+        .add_context("package", package)
+        .with_context(|| format!("failed to add `{package}` to the `package` changelog context"))?;
     Ok(())
 }
 
