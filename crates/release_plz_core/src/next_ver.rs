@@ -697,7 +697,7 @@ impl Updater<'_> {
                     diff.semver_check.outcome_str()
                 );
                 let changelog_path = self.req.changelog_path(p);
-                let old_changelog: Option<String> = old_changelogs.get(&changelog_path);
+                let old_changelog: Option<String> = old_changelogs.get_or_read(&changelog_path);
 
                 let update_result = self.update_result(
                     diff.commits,
@@ -817,7 +817,7 @@ impl Updater<'_> {
                     p.name
                 );
                 let changelog_path = self.req.changelog_path(p);
-                let old_changelog: Option<String> = old_changelogs.get(&changelog_path);
+                let old_changelog: Option<String> = old_changelogs.get_or_read(&changelog_path);
                 let update_result = self.update_result(
                     vec![Commit::new(NO_COMMIT_ID.to_string(), change)],
                     next_version,
@@ -1126,7 +1126,7 @@ impl OldChangelogs {
         }
     }
 
-    fn get(&self, changelog_path: &Utf8PathBuf) -> Option<String> {
+    fn get_or_read(&self, changelog_path: &Utf8PathBuf) -> Option<String> {
         self.old_changelogs
             .get(changelog_path)
             .cloned()
