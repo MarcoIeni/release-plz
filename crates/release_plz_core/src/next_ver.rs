@@ -1187,15 +1187,13 @@ fn get_changelog(
             changelog_builder = changelog_builder.with_release_link(link);
         }
         let last_version = old_changelog
-            .as_deref()
-            .map(|old_changelog| {
+            .and_then(|old_changelog| {
                 changelog_parser::last_version_from_str(old_changelog)
                     .ok()
                     .flatten()
             })
-            .flatten()
             .unwrap_or(package.version.to_string());
-        changelog_builder = changelog_builder.with_previous_version(last_version)
+        changelog_builder = changelog_builder.with_previous_version(last_version);
     }
     let new_changelog = changelog_builder.build();
     let changelog = match old_changelog {
@@ -1487,7 +1485,7 @@ mod tests {
             &fake_package::FakePackage::new("my_package").into(),
         )
         .unwrap();
-        assert_eq!(old, new)
+        assert_eq!(old, new);
     }
 
     #[test]
