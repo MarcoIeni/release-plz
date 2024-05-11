@@ -11,12 +11,12 @@ pub async fn check_update() -> anyhow::Result<()> {
     let latest_version = get_latest_version()
         .await
         .context("error while checking for updates")?;
-    if latest_version != CURRENT_VERSION {
+    if latest_version == CURRENT_VERSION {
+        println!("Your release-plz version ({CURRENT_VERSION}) is up to date");
+    } else {
         println!(
             "Your release-plz version is {CURRENT_VERSION}. A newer version ({latest_version}) is available at https://github.com/MarcoIeni/release-plz"
         );
-    } else {
-        println!("Your release-plz version ({CURRENT_VERSION}) is up to date");
     }
     Ok(())
 }

@@ -1,4 +1,3 @@
-use anyhow::Context;
 use cargo_metadata::camino::Utf8Path;
 use cargo_utils::to_utf8_pathbuf;
 use release_plz_core::{fs_utils::to_utf8_path, ReleaseRequest, UpdateRequest};
@@ -128,6 +127,16 @@ pub struct Workspace {
     /// # Release Commits
     /// Prepare release only if at least one commit respects this regex.
     pub release_commits: Option<String>,
+    /// # Release always
+    /// - If true, release-plz release will try to release your packages every time you run it
+    ///   (e.g. on every commit in the main branch). *(Default)*.
+    /// - If false, `release-plz release` will try release your packages only when you merge the
+    ///   release pr.
+    ///   Use this if you want to commit your packages and publish them later.
+    ///   To determine if a pr is a release-pr, release-plz will check if the branch of the PR starts with
+    ///   `release-plz-`. So if you want to create a PR that should trigger a release
+    ///   (e.g. when you fix the CI), use this branch name format (e.g. `release-plz-fix-ci`).
+    pub release_always: Option<bool>,
 }
 
 impl Workspace {
@@ -135,7 +144,7 @@ impl Workspace {
     pub fn publish_timeout(&self) -> anyhow::Result<Duration> {
         let publish_timeout = self.publish_timeout.as_deref().unwrap_or("30m");
         duration_str::parse(publish_timeout)
-            .with_context(|| format!("invalid publish_timeout {}", publish_timeout))
+            .map_err(|e| anyhow::anyhow!("invalid publish_timeout {publish_timeout}: {e}"))
     }
 }
 
@@ -149,7 +158,7 @@ pub struct PackageSpecificConfig {
     /// # Changelog Path
     /// Normally the changelog is placed in the same directory of the Cargo.toml file.
     /// The user can provide a custom path here.
-    /// This changelog_path needs to be propagated to all the commands:
+    /// This `changelog_path` needs to be propagated to all the commands:
     /// `update`, `release-pr` and `release`.
     changelog_path: Option<PathBuf>,
     /// # Changelog Include
@@ -412,6 +421,7 @@ mod tests {
                 pr_labels: vec![],
                 publish_timeout: Some("10m".to_string()),
                 release_commits: Some("^feat:".to_string()),
+                release_always: None,
             },
             package: [].into(),
         }
@@ -440,29 +450,27 @@ mod tests {
         let expected_config = create_base_workspace_config();
 
         let config: Config = toml::from_str(BASE_WORKSPACE_CONFIG).unwrap();
-        assert_eq!(config, expected_config)
+        assert_eq!(config, expected_config);
     }
 
     #[test]
     fn config_is_deserialized() {
         let config = &format!(
-            "{}\
-            changelog_update = true",
-            BASE_WORKSPACE_CONFIG
+            "{BASE_WORKSPACE_CONFIG}\
+            changelog_update = true"
         );
 
         let mut expected_config = create_base_workspace_config();
         expected_config.workspace.packages_defaults.changelog_update = true.into();
 
         let config: Config = toml::from_str(config).unwrap();
-        assert_eq!(config, expected_config)
+        assert_eq!(config, expected_config);
     }
 
     fn config_package_release_is_deserialized(config_flag: &str, expected_value: bool) {
         let config = &format!(
-            "{}\n{}\
-            release = {}",
-            BASE_WORKSPACE_CONFIG, BASE_PACKAGE_CONFIG, config_flag
+            "{BASE_WORKSPACE_CONFIG}\n{BASE_PACKAGE_CONFIG}\
+            release = {config_flag}"
         );
 
         let mut expected_config = create_base_workspace_config();
@@ -471,7 +479,7 @@ mod tests {
         expected_config.package = [package_config].into();
 
         let config: Config = toml::from_str(config).unwrap();
-        assert_eq!(config, expected_config)
+        assert_eq!(config, expected_config);
     }
 
     #[test]
@@ -486,16 +494,15 @@ mod tests {
 
     fn config_workspace_release_is_deserialized(config_flag: &str, expected_value: bool) {
         let config = &format!(
-            "{}\
-            release = {}",
-            BASE_WORKSPACE_CONFIG, config_flag
+            "{BASE_WORKSPACE_CONFIG}\
+            release = {config_flag}"
         );
 
         let mut expected_config = create_base_workspace_config();
         expected_config.workspace.packages_defaults.release = expected_value.into();
 
         let config: Config = toml::from_str(config).unwrap();
-        assert_eq!(config, expected_config)
+        assert_eq!(config, expected_config);
     }
 
     #[test]
@@ -530,6 +537,7 @@ mod tests {
                 },
                 publish_timeout: Some("10m".to_string()),
                 release_commits: Some("^feat:".to_string()),
+                release_always: None,
             },
             package: [PackageSpecificConfigWithName {
                 name: "crate1".to_string(),

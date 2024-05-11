@@ -106,6 +106,7 @@ impl RepoCommand for Update {
 impl Update {
     pub fn config(&self) -> anyhow::Result<Config> {
         super::parse_config(self.config.as_deref())
+            .context("failed to parse release-plz configuration")
     }
 
     fn dependencies_update(&self, config: &Config) -> bool {
@@ -139,7 +140,7 @@ impl Update {
         if let Some(registry_manifest_path) = &self.registry_manifest_path {
             let registry_manifest_path = to_utf8_path(registry_manifest_path)?;
             update = update
-                .with_registry_manifest_path(registry_manifest_path.to_path_buf())
+                .with_registry_manifest_path(registry_manifest_path)
                 .with_context(|| {
                     format!("cannot find project manifest {registry_manifest_path:?}")
                 })?;
@@ -167,7 +168,7 @@ impl Update {
             update = update.with_registry(registry.clone());
         }
         if let Some(release_commits) = config.workspace.release_commits {
-            update = update.with_release_commits(release_commits.clone())?;
+            update = update.with_release_commits(&release_commits)?;
         }
 
         Ok(update)

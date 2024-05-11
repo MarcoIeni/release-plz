@@ -14,7 +14,6 @@ pub use source::*;
 use tracing::warn;
 
 use std::collections::HashSet;
-use std::fs;
 
 use std::process::Command;
 
@@ -30,7 +29,7 @@ use walkdir::WalkDir;
 // Re-export cargo types.
 pub use cargo::{
     core::SourceId,
-    util::{CargoResult, Config},
+    util::{CargoResult, GlobalContext},
 };
 
 use crate::fs_utils::strip_prefix;
@@ -54,7 +53,7 @@ impl Crate {
 /// Clones a crate.
 pub struct Cloner {
     /// Cargo configuration.
-    pub(crate) config: Config,
+    pub(crate) config: GlobalContext,
     /// Directory where the crates will be cloned.
     /// Each crate is cloned into a subdirectory of this directory.
     pub(crate) directory: Utf8PathBuf,
@@ -89,7 +88,13 @@ impl Cloner {
 
             dest_path.push(&crate_.name);
 
-            if let Some(pkg) = self.clone_in(crate_, &dest_path, &mut src)? {
+            let pkg = self
+                .clone_in(crate_, &dest_path, &mut src)
+                .with_context(|| {
+                    format!("failed to clone package {} in {dest_path}", &crate_.name)
+                })?;
+
+            if let Some(pkg) = pkg {
                 cloned_pkgs.push((pkg, dest_path));
             }
         }
@@ -107,7 +112,7 @@ impl Cloner {
         T: Source + 'a,
     {
         if !dest_path.exists() {
-            fs::create_dir_all(dest_path)?;
+            fs_err::create_dir_all(dest_path)?;
         }
 
         self.config
@@ -160,7 +165,7 @@ impl Cloner {
     }
 }
 
-fn get_source<'a>(srcid: SourceId, config: &'a Config) -> CargoResult<Box<dyn Source + 'a>> {
+fn get_source<'a>(srcid: SourceId, config: &'a GlobalContext) -> CargoResult<Box<dyn Source + 'a>> {
     let mut source = if srcid.is_path() {
         let path = srcid.url().to_file_path().expect("path must be valid");
         Box::new(PathSource::new(&path, srcid, config))
@@ -174,7 +179,7 @@ fn get_source<'a>(srcid: SourceId, config: &'a Config) -> CargoResult<Box<dyn So
 }
 
 fn select_pkg<'a, T>(
-    config: &Config,
+    config: &GlobalContext,
     src: &mut T,
     name: &str,
     vers: Option<&str>,
@@ -186,7 +191,7 @@ where
     let mut summaries = vec![];
     loop {
         let query_result = src.query(&dep, QueryKind::Exact, &mut |summary| {
-            summaries.push(summary)
+            summaries.push(summary);
         });
         match query_result {
             std::task::Poll::Ready(res) => match res {
@@ -252,12 +257,12 @@ fn clone_directory(from: &Utf8Path, to: &Utf8Path) -> CargoResult<()> {
 
         if !file_type.is_dir() {
             // .cargo-ok is not wanted in this context
-            fs::copy(entry.path(), &dest_path)?;
+            fs_err::copy(entry.path(), &dest_path)?;
         } else if file_type.is_dir() {
             if dest_path == to {
                 continue;
             }
-            fs::create_dir(&dest_path)?;
+            fs_err::create_dir(&dest_path)?;
         }
     }
 

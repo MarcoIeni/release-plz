@@ -76,7 +76,7 @@ impl Repo {
     /// Check if there are uncommitted changes.
     pub fn is_clean(&self) -> anyhow::Result<()> {
         let changes = self.changes_except_typechanges()?;
-        anyhow::ensure!(changes.is_empty(), "the working directory of this project has uncommitted changes. Please commit or stash these changes:\n{changes:?}");
+        anyhow::ensure!(changes.is_empty(), "the working directory of this project has uncommitted changes. If these files are both committed and in .gitignore, either delete them or remove them from .gitignore. Otherwise, please commit or stash these changes:\n{changes:?}");
         Ok(())
     }
 
@@ -249,6 +249,7 @@ impl Repo {
     /// Get the SHA1 of the current HEAD.
     pub fn current_commit_hash(&self) -> anyhow::Result<String> {
         self.git(&["log", "-1", "--pretty=format:%H"])
+            .context("can't determine current commit hash")
     }
 
     /// Create a git tag
@@ -362,7 +363,6 @@ fn get_current_branch(directory: impl AsRef<Utf8Path>) -> anyhow::Result<String>
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
     use tempfile::tempdir;
 
     use super::*;
@@ -384,11 +384,11 @@ mod tests {
         let file1 = repository_dir.as_ref().join("file1.txt");
         let file2 = repository_dir.as_ref().join("file2.txt");
         {
-            fs::write(&file2, b"Hello, file2!-1").unwrap();
+            fs_err::write(&file2, b"Hello, file2!-1").unwrap();
             repo.add_all_and_commit("file2-1").unwrap();
-            fs::write(file1, b"Hello, file1!").unwrap();
+            fs_err::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit("file1").unwrap();
-            fs::write(&file2, b"Hello, file2!-2").unwrap();
+            fs_err::write(&file2, b"Hello, file2!-2").unwrap();
             repo.add_all_and_commit("file2-2").unwrap();
         }
         repo.checkout_previous_commit_at_paths(&[&file2]).unwrap();
@@ -402,14 +402,14 @@ mod tests {
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
 
-        let commit_message = r#"feat: my feature
+        let commit_message = r"feat: my feature
 
         message
 
-        footer: small note"#;
+        footer: small note";
 
         {
-            fs::write(file1, b"Hello, file1!").unwrap();
+            fs_err::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit(commit_message).unwrap();
         }
         assert_eq!(repo.current_commit_message().unwrap(), commit_message);
@@ -429,7 +429,7 @@ mod tests {
         let repository_dir = tempdir().unwrap();
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
-        fs::write(file1, b"Hello, file1!").unwrap();
+        fs_err::write(file1, b"Hello, file1!").unwrap();
         assert!(repo.is_clean().is_err());
     }
 
@@ -443,7 +443,7 @@ D  crates/git_cmd/CHANGELOG.md
         let changed_files = changed_files(git_status_output, |line| !line.starts_with("T "));
         // `CHANGELOG.md` is ignored because it's a typechange
         let expected_changed_files = vec!["README.md", "crates", "crates/git_cmd/CHANGELOG.md"];
-        assert_eq!(changed_files, expected_changed_files)
+        assert_eq!(changed_files, expected_changed_files);
     }
 
     #[test]
@@ -453,12 +453,12 @@ D  crates/git_cmd/CHANGELOG.md
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
         {
-            fs::write(file1, b"Hello, file1!").unwrap();
+            fs_err::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit("file1").unwrap();
         }
         let version = "v1.0.0";
         repo.tag(version, "test").unwrap();
-        assert!(repo.tag_exists(version).unwrap())
+        assert!(repo.tag_exists(version).unwrap());
     }
 
     #[test]
@@ -468,10 +468,10 @@ D  crates/git_cmd/CHANGELOG.md
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
         {
-            fs::write(file1, b"Hello, file1!").unwrap();
+            fs_err::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit("file1").unwrap();
         }
         repo.tag("v1.0.0", "test").unwrap();
-        assert!(!repo.tag_exists("v2.0.0").unwrap())
+        assert!(!repo.tag_exists("v2.0.0").unwrap());
     }
 }

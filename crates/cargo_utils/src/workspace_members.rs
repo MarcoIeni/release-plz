@@ -20,7 +20,7 @@ pub fn workspace_members(metadata: &Metadata) -> anyhow::Result<impl Iterator<It
         .filter(move |p| workspace_members.contains(&p.id))
         .map(|mut p| {
             p.manifest_path = canonicalize_path(p.manifest_path);
-            for dep in p.dependencies.iter_mut() {
+            for dep in &mut p.dependencies {
                 dep.path = dep.path.take().map(canonicalize_path);
             }
             p

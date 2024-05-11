@@ -14,7 +14,7 @@ pub fn registry_url(manifest_path: &Path, registry: Option<&str>) -> anyhow::Res
         path: impl AsRef<Path>,
     ) -> anyhow::Result<()> {
         // TODO unit test for source replacement
-        let content = std::fs::read_to_string(path)?;
+        let content = fs_err::read_to_string(path).context("failed to read cargo config file")?;
         let config = toml::from_str::<CargoConfig>(&content).context("Invalid cargo config")?;
         for (key, value) in config.registries {
             registries.entry(key).or_insert(Source {

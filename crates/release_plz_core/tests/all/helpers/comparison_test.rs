@@ -1,5 +1,3 @@
-use std::fs;
-
 use crate::helpers::gitea_mock_server::GiteaMockServer;
 use anyhow::Context;
 use cargo_metadata::camino::Utf8PathBuf;
@@ -40,7 +38,7 @@ impl ComparisonTest {
             github_mock_server: GitHubMockServer::start(OWNER, REPO).await,
             gitea_mock_server: GiteaMockServer::start(OWNER, REPO).await,
         };
-        fs::copy(
+        fs_err::copy(
             comparison.registry_project().join(CARGO_TOML),
             comparison.registry_project().join("Cargo.toml.orig"),
         )
@@ -56,7 +54,7 @@ impl ComparisonTest {
                 release_date: NaiveDate::from_ymd_opt(2015, 5, 15),
                 changelog_config: None,
             })
-            .with_registry_manifest_path(self.registry_project_manfifest())
+            .with_registry_manifest_path(&self.registry_project_manfifest())
             .unwrap()
     }
 
@@ -84,7 +82,7 @@ impl ComparisonTest {
         Ok(())
     }
 
-    fn gitea_release_pr_request(&self, base_url: Url) -> anyhow::Result<ReleasePrRequest> {
+    fn gitea_release_pr_request(&self, base_url: &Url) -> anyhow::Result<ReleasePrRequest> {
         let url = RepoUrl::new(&format!("{}{OWNER}/{REPO}", base_url.as_str()))
             .context("can't crate url")?;
         let git = GitBackend::Gitea(Gitea::new(url, Secret::from("token".to_string()))?);
@@ -94,7 +92,7 @@ impl ComparisonTest {
     pub async fn gitea_open_release_pr(&self) -> anyhow::Result<()> {
         let base_url = self.gitea_mock_server.base_url();
         let release_pr_request = self
-            .gitea_release_pr_request(base_url)
+            .gitea_release_pr_request(&base_url)
             .context("failed to run release-pr")?;
         release_plz_core::release_pr(&release_pr_request).await?;
         Ok(())
@@ -122,12 +120,12 @@ impl ComparisonTest {
 
     pub fn write_local_project_changelog(&self, changelog: &str) {
         let changelog_path = self.local_project_changelog_path();
-        fs::write(changelog_path, changelog).unwrap()
+        fs_err::write(changelog_path, changelog).unwrap();
     }
 
     pub fn local_project_changelog(&self) -> String {
         let changelog_path = self.local_project_changelog_path();
-        fs::read_to_string(changelog_path).unwrap()
+        fs_err::read_to_string(changelog_path).unwrap()
     }
 
     fn local_project_changelog_path(&self) -> Utf8PathBuf {

@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, time::Duration};
+use std::{collections::BTreeMap, env, time::Duration};
 
 use anyhow::Context;
 use cargo::util::VersionExt;
@@ -18,8 +18,10 @@ use crate::{
     cargo::{is_published, run_cargo, wait_until_published, CargoIndex, CmdOutput},
     changelog_parser,
     git::backend::GitClient,
+    pr_parser::{prs_from_text, Pr},
     release_order::release_order,
-    GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, CHANGELOG_FILENAME,
+    GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, BRANCH_PREFIX,
+    CHANGELOG_FILENAME,
 };
 
 #[derive(Debug)]
@@ -35,6 +37,9 @@ pub struct ReleaseRequest {
     token: Option<SecretString>,
     /// Perform all checks without uploading.
     dry_run: bool,
+    /// If true, release on every commit.
+    /// If false, release only on Release PR merge.
+    release_always: bool,
     /// Publishes GitHub release.
     git_release: Option<GitRelease>,
     /// GitHub/Gitea/Gitlab repository url where your project is hosted.
@@ -43,7 +48,7 @@ pub struct ReleaseRequest {
     repo_url: Option<String>,
     /// Package-specific configurations.
     packages_config: PackagesConfig,
-    // publish timeout
+    /// publish timeout
     publish_timeout: Duration,
 }
 
@@ -59,6 +64,7 @@ impl ReleaseRequest {
             repo_url: None,
             packages_config: PackagesConfig::default(),
             publish_timeout: minutes_30,
+            release_always: true,
         }
     }
 
@@ -99,6 +105,11 @@ impl ReleaseRequest {
 
     pub fn with_publish_timeout(mut self, timeout: Duration) -> Self {
         self.publish_timeout = timeout;
+        self
+    }
+
+    pub fn with_release_always(mut self, release_always: bool) -> Self {
+        self.release_always = release_always;
         self
     }
 
@@ -158,19 +169,29 @@ impl ReleaseRequest {
         let config = self.get_package_config(package);
         config.generic.features.clone()
     }
+
+    fn registry_token(&self) -> Option<secrecy::Secret<String>> {
+        self.registry
+            .clone()
+            .and_then(|r| {
+                // Credentials for a specific registry can be set using environment variables.
+                // https://doc.rust-lang.org/cargo/reference/config.html#credentials
+                let env_token = env::var(format!("CARGO_REGISTRIES_{r}_TOKEN"))
+                    .ok()
+                    .map(SecretString::new);
+                self.token.clone().or(env_token)
+            })
+            .or(self.token.clone())
+    }
 }
 
 impl ReleaseMetadataBuilder for ReleaseRequest {
     fn get_release_metadata(&self, package_name: &str) -> Option<ReleaseMetadata> {
         let config = self.get_package_config(package_name);
-        if config.generic.release {
-            Some(ReleaseMetadata {
-                tag_name_template: config.generic.git_tag.name_template.clone(),
-                release_name_template: config.generic.git_release.name_template.clone(),
-            })
-        } else {
-            None
-        }
+        config.generic.release.then(|| ReleaseMetadata {
+            tag_name_template: config.generic.git_tag.name_template.clone(),
+            release_name_template: config.generic.git_release.name_template.clone(),
+        })
     }
 }
 
@@ -418,7 +439,7 @@ pub struct GitRelease {
     pub backend: GitBackend,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Default)]
 pub struct Release {
     releases: Vec<PackageRelease>,
 }
@@ -426,6 +447,7 @@ pub struct Release {
 #[derive(Serialize)]
 pub struct PackageRelease {
     package_name: String,
+    prs: Vec<Pr>,
     /// Git tag name. It's not guaranteed that release-plz created the git tag.
     /// In fact, users can disable git tag creation in the [`ReleaseRequest`].
     /// We return the git tag name anyway, because users might use it to create
@@ -441,15 +463,23 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<Option<Release>> 
     let project = Project::new(
         &input.local_manifest(),
         None,
-        overrides,
+        &overrides,
         &input.metadata,
         input,
     )?;
+    let repo = Repo::new(&input.metadata.workspace_root)?;
+    let git_client = get_git_client(input)?;
+    if !should_release(input, &repo, &git_client).await? {
+        return Ok(None);
+    }
+
     let packages = project.publishable_packages();
     let release_order = release_order(&packages).context("cannot determine release order")?;
     let mut package_releases: Vec<PackageRelease> = vec![];
     for package in release_order {
-        if let Some(pkg_release) = release_package_if_needed(input, &project, package).await? {
+        if let Some(pkg_release) =
+            release_package_if_needed(input, &project, package, &repo, &git_client).await?
+        {
             package_releases.push(pkg_release);
         }
     }
@@ -463,8 +493,9 @@ async fn release_package_if_needed(
     input: &ReleaseRequest,
     project: &Project,
     package: &Package,
+    repo: &Repo,
+    git_client: &GitClient,
 ) -> anyhow::Result<Option<PackageRelease>> {
-    let repo = Repo::new(&input.metadata.workspace_root)?;
     let git_tag = project.git_tag(&package.name, &package.version.to_string());
     let release_name = project.release_name(&package.name, &package.version.to_string());
     if repo.tag_exists(&git_tag)? {
@@ -474,11 +505,14 @@ async fn release_package_if_needed(
         );
         return Ok(None);
     }
+
+    let token = input.registry_token();
     let registry_indexes = registry_indexes(package, input.registry.clone())
         .context("can't determine registry indexes")?;
-    let mut package_was_released = true;
+    let mut package_was_released = false;
+    let changelog = last_changelog_entry(input, package);
     for mut index in registry_indexes {
-        if is_published(&mut index, package, input.publish_timeout)
+        if is_published(&mut index, package, input.publish_timeout, &token)
             .await
             .context("can't determine if package is published")?
         {
@@ -491,19 +525,39 @@ async fn release_package_if_needed(
             input,
             git_tag.clone(),
             release_name.clone(),
-            &repo,
+            repo,
+            git_client,
+            &changelog,
         )
         .await
         .context("failed to release package")?;
 
-        package_was_released = package_was_released && package_was_released_at_index;
+        if package_was_released_at_index {
+            package_was_released = true;
+        }
     }
     let package_release = package_was_released.then_some(PackageRelease {
         package_name: package.name.clone(),
         version: package.version.clone(),
         tag: git_tag,
+        prs: prs_from_text(&changelog),
     });
     Ok(package_release)
+}
+
+async fn should_release(
+    input: &ReleaseRequest,
+    repo: &Repo,
+    git_client: &GitClient,
+) -> anyhow::Result<bool> {
+    if input.release_always {
+        return Ok(true);
+    }
+    let last_commit = repo.current_commit_hash()?;
+    let prs = git_client.associated_prs(&last_commit).await?;
+    let is_current_commit_from_release_pr =
+        prs.iter().any(|pr| pr.branch().starts_with(BRANCH_PREFIX));
+    Ok(is_current_commit_from_release_pr)
 }
 
 /// Get the indexes where the package should be published.
@@ -535,12 +589,13 @@ fn registry_indexes(
         })
         .collect::<Result<Vec<CargoIndex>, crates_index::Error>>()?;
     if registry_indexes.is_empty() {
-        registry_indexes.push(CargoIndex::Git(GitIndex::new_cargo_default()?))
+        registry_indexes.push(CargoIndex::Git(GitIndex::new_cargo_default()?));
     }
     Ok(registry_indexes)
 }
 
 /// Return `true` if package was published, `false` otherwise.
+#[allow(clippy::too_many_arguments)]
 async fn release_package(
     index: &mut CargoIndex,
     package: &Package,
@@ -548,6 +603,8 @@ async fn release_package(
     git_tag: String,
     release_name: String,
     repo: &Repo,
+    git_client: &GitClient,
+    changelog: &str,
 ) -> anyhow::Result<bool> {
     let workspace_root = &input.metadata.workspace_root;
 
@@ -571,7 +628,7 @@ async fn release_package(
         Ok(false)
     } else {
         if publish {
-            wait_until_published(index, package, input.publish_timeout).await?;
+            wait_until_published(index, package, input.publish_timeout, &input.token).await?;
         }
 
         if input.is_git_tag_enabled(&package.name) {
@@ -585,11 +642,7 @@ async fn release_package(
         }
 
         if input.is_git_release_enabled(&package.name) {
-            let git_release = input
-                .git_release
-                .as_ref()
-                .context("git release not configured. Did you specify git-token and backend?")?;
-            let release_body = release_body(input, package);
+            let release_body = release_body(input, package, changelog);
             let release_config = input.get_package_config(&package.name).generic.git_release;
             let is_pre_release = release_config.is_pre_release(&package.version);
             let release_info = GitReleaseInfo {
@@ -599,12 +652,20 @@ async fn release_package(
                 draft: release_config.draft,
                 pre_release: is_pre_release,
             };
-            publish_git_release(&release_info, &git_release.backend).await?;
+            git_client.create_release(&release_info).await?;
         }
 
         info!("published {} {}", package.name, package.version);
         Ok(true)
     }
+}
+
+fn get_git_client(input: &ReleaseRequest) -> anyhow::Result<GitClient> {
+    let git_release = input
+        .git_release
+        .as_ref()
+        .context("git release not configured. Did you specify git-token and backend?")?;
+    GitClient::new(git_release.backend.clone())
 }
 
 pub struct GitReleaseInfo {
@@ -672,13 +733,27 @@ fn run_cargo_publish(
 }
 
 /// Return an empty string if the changelog cannot be parsed.
-fn release_body(req: &ReleaseRequest, package: &Package) -> String {
+fn release_body(req: &ReleaseRequest, package: &Package, changelog: &str) -> String {
+    let body_template = req
+        .get_package_config(&package.name)
+        .generic
+        .git_release
+        .body_template;
+    crate::tera::release_body_from_template(
+        &package.name,
+        &package.version.to_string(),
+        changelog,
+        body_template.as_deref(),
+    )
+}
+
+fn last_changelog_entry(req: &ReleaseRequest, package: &Package) -> String {
     let changelog_path = req.changelog_path(package);
-    let changelog = match changelog_parser::last_changes(&changelog_path) {
+    match changelog_parser::last_changes(&changelog_path) {
         Ok(Some(changes)) => changes,
         Ok(None) => {
             warn!(
-                "{}: last change not fuond in changelog at path {:?}. The git release body will be empty.",
+                "{}: last change not found in changelog at path {:?}. The git release body will be empty.",
                 package.name, &changelog_path
             );
             String::new()
@@ -690,35 +765,7 @@ fn release_body(req: &ReleaseRequest, package: &Package) -> String {
             );
             String::new()
         }
-    };
-    let body_template = req
-        .get_package_config(&package.name)
-        .generic
-        .git_release
-        .body_template;
-    crate::tera::release_body_from_template(
-        &package.name,
-        &package.version.to_string(),
-        &changelog,
-        body_template.as_deref(),
-    )
-}
-
-async fn publish_git_release(
-    release_info: &GitReleaseInfo,
-    backend: &GitBackend,
-) -> anyhow::Result<()> {
-    let backend = match backend {
-        GitBackend::Github(github) => GitBackend::Github(github.clone()),
-        GitBackend::Gitea(gitea) => GitBackend::Gitea(gitea.clone()),
-        GitBackend::Gitlab(gitlab) => GitBackend::Gitlab(gitlab.clone()),
-    };
-    let git_client = GitClient::new(backend)?;
-    git_client
-        .create_release(release_info)
-        .await
-        .context("Failed to create release")?;
-    Ok(())
+    }
 }
 
 #[cfg(test)]

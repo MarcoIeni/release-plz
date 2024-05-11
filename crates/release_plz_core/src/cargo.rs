@@ -3,10 +3,11 @@ use cargo_metadata::{camino::Utf8Path, Package};
 use crates_index::{Crate, GitIndex, SparseIndex};
 use tracing::{debug, info};
 
+use http::header;
+use secrecy::{ExposeSecret, SecretString};
 use std::{
     env,
-    io::{BufRead, BufReader},
-    process::{Command, ExitStatus, Stdio},
+    process::{Command, ExitStatus},
     time::{Duration, Instant},
 };
 
@@ -23,31 +24,14 @@ fn cargo_cmd() -> Command {
 pub fn run_cargo(root: &Utf8Path, args: &[&str]) -> anyhow::Result<CmdOutput> {
     debug!("cargo {}", args.join(" "));
 
-    let mut stderr_lines = vec![];
-
-    let mut child = cargo_cmd()
+    let output = cargo_cmd()
         .current_dir(root)
         .args(args)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
+        .output()
         .context("cannot run cargo")?;
 
-    {
-        let stderr = child.stderr.as_mut().expect("cannot get child stderr");
-
-        for line in BufReader::new(stderr).lines() {
-            let line = line?;
-
-            tracing::error!("{line}");
-            stderr_lines.push(line);
-        }
-    }
-
-    let output = child.wait_with_output()?;
-
     let output_stdout = String::from_utf8(output.stdout)?;
-    let output_stderr = stderr_lines.join("\n");
+    let output_stderr = String::from_utf8(output.stderr)?;
 
     debug!("cargo stderr: {}", output_stderr);
     debug!("cargo stdout: {}", output_stdout);
@@ -69,11 +53,12 @@ pub async fn is_published(
     index: &mut CargoIndex,
     package: &Package,
     timeout: Duration,
+    token: &Option<SecretString>,
 ) -> anyhow::Result<bool> {
     tokio::time::timeout(timeout, async {
         match index {
             CargoIndex::Git(index) => is_published_git(index, package),
-            CargoIndex::Sparse(index) => is_in_cache_sparse(index, package).await,
+            CargoIndex::Sparse(index) => is_in_cache_sparse(index, package, token).await,
         }
     })
     .await?
@@ -99,8 +84,12 @@ fn is_in_cache_git(index: &GitIndex, package: &Package) -> bool {
     is_in_cache(crate_data.as_ref(), version)
 }
 
-async fn is_in_cache_sparse(index: &SparseIndex, package: &Package) -> anyhow::Result<bool> {
-    let crate_data = fetch_sparse_metadata(index, &package.name)
+async fn is_in_cache_sparse(
+    index: &SparseIndex,
+    package: &Package,
+    token: &Option<SecretString>,
+) -> anyhow::Result<bool> {
+    let crate_data = fetch_sparse_metadata(index, &package.name, token)
         .await
         .context("failed fetching sparse metadata")?;
     let version = &package.version.to_string();
@@ -123,12 +112,21 @@ fn is_version_present(version: &str, crate_data: &Crate) -> bool {
 async fn fetch_sparse_metadata(
     index: &SparseIndex,
     crate_name: &str,
+    token: &Option<SecretString>,
 ) -> anyhow::Result<Option<Crate>> {
     let req = index.make_cache_request(crate_name)?;
     let (parts, _) = req.body(())?.into_parts();
     let req = http::Request::from_parts(parts, vec![]);
 
-    let req: reqwest::Request = req.try_into()?;
+    let mut req: reqwest::Request = req.try_into()?;
+    if let Some(token) = token {
+        let authorization = token
+            .expose_secret()
+            .parse()
+            .context("parse token as header value")?;
+        req.headers_mut()
+            .insert(header::AUTHORIZATION, authorization);
+    }
 
     let client = reqwest::ClientBuilder::new()
         .gzip(true)
@@ -156,13 +154,14 @@ pub async fn wait_until_published(
     index: &mut CargoIndex,
     package: &Package,
     timeout: Duration,
+    token: &Option<SecretString>,
 ) -> anyhow::Result<()> {
     let now: Instant = Instant::now();
     let sleep_time = Duration::from_secs(2);
     let mut logged = false;
 
     loop {
-        let is_published = is_published(index, package, timeout).await?;
+        let is_published = is_published(index, package, timeout, token).await?;
         if is_published {
             break;
         } else if timeout < now.elapsed() {

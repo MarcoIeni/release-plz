@@ -55,6 +55,7 @@
         "publish_no_verify": null,
         "publish_timeout": null,
         "release": null,
+        "release_always": null,
         "release_commits": null,
         "repo_url": null,
         "semver_check": null
@@ -263,7 +264,7 @@
         },
         "changelog_path": {
           "title": "Changelog Path",
-          "description": "Normally the changelog is placed in the same directory of the Cargo.toml file. The user can provide a custom path here. This changelog_path needs to be propagated to all the commands: `update`, `release-pr` and `release`.",
+          "description": "Normally the changelog is placed in the same directory of the Cargo.toml file. The user can provide a custom path here. This `changelog_path` needs to be propagated to all the commands: `update`, `release-pr` and `release`.",
           "type": [
             "string",
             "null"
@@ -612,6 +613,14 @@
         "release": {
           "title": "Release",
           "description": "Used to toggle off the update/release process for a workspace or package.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "release_always": {
+          "title": "Release always",
+          "description": "- If true, release-plz release will try to release your packages every time you run it (e.g. on every commit in the main branch). *(Default)*. - If false, `release-plz release` will try release your packages only when you merge the release pr. Use this if you want to commit your packages and publish them later. To determine if a pr is a release-pr, release-plz will check if the branch of the PR starts with `release-plz-`. So if you want to create a PR that should trigger a release (e.g. when you fix the CI), use this branch name format (e.g. `release-plz-fix-ci`).",
           "type": [
             "boolean",
             "null"

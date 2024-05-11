@@ -6,6 +6,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.6](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.5...release_plz_core-v0.21.6) - 2024-05-08
+
+### Added
+- print released prs ([#1449](https://github.com/MarcoIeni/release-plz/pull/1449))
+
+### Other
+- more descriptive file system error messages ([#1450](https://github.com/MarcoIeni/release-plz/pull/1450))
+
+## [0.21.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.4...release_plz_core-v0.21.5) - 2024-05-05
+
+### Added
+- use cargo registry environment variable to authenticate in private sparse registry ([#1435](https://github.com/MarcoIeni/release-plz/pull/1435))
+
+### Other
+- add `needless_pass_by_value` lint ([#1441](https://github.com/MarcoIeni/release-plz/pull/1441))
+- add `uninlined_format_args` ([#1440](https://github.com/MarcoIeni/release-plz/pull/1440))
+- add clippy lints ([#1439](https://github.com/MarcoIeni/release-plz/pull/1439))
+- add `if_not_else` clippy lint ([#1438](https://github.com/MarcoIeni/release-plz/pull/1438))
+- update dependencies ([#1437](https://github.com/MarcoIeni/release-plz/pull/1437))
+
+## [0.21.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.3...release_plz_core-v0.21.4) - 2024-04-28
+
+### Fixed
+- json output of release command ([#1421](https://github.com/MarcoIeni/release-plz/pull/1421))
+
+## [0.21.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.2...release_plz_core-v0.21.3) - 2024-04-25
+
+### Fixed
+- implement `Default` for `Release` struct ([#1418](https://github.com/MarcoIeni/release-plz/pull/1418))
+
+## [0.21.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.1...release_plz_core-v0.21.2) - 2024-04-25
+
+### Fixed
+- use token to fetch sparse metadata ([#1416](https://github.com/MarcoIeni/release-plz/pull/1416))
+
+## [0.21.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.0...release_plz_core-v0.21.1) - 2024-04-21
+
+### Added
+- add `release_always` option to release on release PRs only ([#1407](https://github.com/MarcoIeni/release-plz/pull/1407))
+
+### Fixed
+- avoid potential deadlock in large repo ([#1408](https://github.com/MarcoIeni/release-plz/pull/1408))
+
+### Other
+- fix `if_then_some_else_none` clippy lint ([#1405](https://github.com/MarcoIeni/release-plz/pull/1405))
+- don't log cargo stderr ([#1404](https://github.com/MarcoIeni/release-plz/pull/1404))
+- improve the github graphql query ([#1383](https://github.com/MarcoIeni/release-plz/pull/1383))
+
 ## [0.21.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.20.3...release_plz_core-v0.21.0) - 2024-04-14
 
 ### Other

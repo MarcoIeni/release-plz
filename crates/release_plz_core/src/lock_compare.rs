@@ -26,12 +26,9 @@ fn are_dependencies_updated(
     registry_lock: &Utf8Path,
 ) -> anyhow::Result<bool> {
     let local_lock: Lockfile = read_lockfile(local_lock)
-        .with_context(|| format!("failed to load lockfile of local package {:?}", local_lock))?;
+        .with_context(|| format!("failed to load lockfile of local package {local_lock:?}"))?;
     let registry_lock = read_lockfile(registry_lock).with_context(|| {
-        format!(
-            "failed to load lockfile of registry package {:?}",
-            registry_lock
-        )
+        format!("failed to load lockfile of registry package {registry_lock:?}")
     })?;
     let local_lock_packages = PackagesByName::new(&local_lock.packages);
     Ok(are_dependencies_of_lockfiles_updated(
@@ -41,8 +38,7 @@ fn are_dependencies_updated(
 }
 
 fn read_lockfile(path: &Utf8Path) -> anyhow::Result<Lockfile> {
-    let content =
-        std::fs::read_to_string(path).with_context(|| format!("can't read lockfile {path:?}"))?;
+    let content = fs_err::read_to_string(path).context("can't read lockfile")?;
     let lockfile =
         toml::from_str(&content).with_context(|| format!("invalid format of lockfile {path:?}"))?;
     Ok(lockfile)

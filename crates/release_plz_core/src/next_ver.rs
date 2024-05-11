@@ -30,7 +30,7 @@ use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
-    fs, io,
+    io,
     path::Path,
 };
 use tracing::{debug, info, instrument, warn};
@@ -197,7 +197,7 @@ pub struct ChangelogRequest {
 fn canonical_local_manifest(local_manifest: &Path) -> anyhow::Result<Utf8PathBuf> {
     let mut local_manifest = dunce::canonicalize(local_manifest)?;
     if !local_manifest.ends_with(CARGO_TOML) {
-        local_manifest.push(CARGO_TOML)
+        local_manifest.push(CARGO_TOML);
     }
     let local_manifest = to_utf8_pathbuf(local_manifest)?;
     Ok(local_manifest)
@@ -246,8 +246,8 @@ impl UpdateRequest {
         })
     }
 
-    pub fn with_registry_manifest_path(self, registry_manifest: Utf8PathBuf) -> io::Result<Self> {
-        let registry_manifest = Utf8Path::canonicalize_utf8(&registry_manifest)?;
+    pub fn with_registry_manifest_path(self, registry_manifest: &Utf8Path) -> io::Result<Self> {
+        let registry_manifest = Utf8Path::canonicalize_utf8(registry_manifest)?;
         Ok(Self {
             registry_manifest: Some(registry_manifest),
             ..self
@@ -302,9 +302,8 @@ impl UpdateRequest {
         }
     }
 
-    pub fn with_release_commits(self, release_commits: String) -> anyhow::Result<Self> {
-        let regex =
-            Regex::new(&release_commits).context("invalid release_commits regex pattern")?;
+    pub fn with_release_commits(self, release_commits: &str) -> anyhow::Result<Self> {
+        let regex = Regex::new(release_commits).context("invalid release_commits regex pattern")?;
 
         Ok(Self {
             release_commits: Some(regex),
@@ -352,14 +351,10 @@ impl UpdateRequest {
 impl ReleaseMetadataBuilder for UpdateRequest {
     fn get_release_metadata(&self, package_name: &str) -> Option<ReleaseMetadata> {
         let config = self.get_package_config(package_name);
-        if config.generic.release {
-            Some(ReleaseMetadata {
-                tag_name_template: config.generic.tag_name_template.clone(),
-                release_name_template: None,
-            })
-        } else {
-            None
-        }
+        config.generic.release.then(|| ReleaseMetadata {
+            tag_name_template: config.generic.tag_name_template.clone(),
+            release_name_template: None,
+        })
     }
 }
 
@@ -370,7 +365,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     let local_project = Project::new(
         &input.local_manifest,
         input.single_package.as_deref(),
-        overrides,
+        &overrides,
         &input.metadata,
         input,
     )?;
@@ -409,7 +404,7 @@ fn check_for_typos(packages: &HashSet<String>, overrides: &HashSet<String>) -> a
         missing.sort();
         let missing = missing
             .iter()
-            .map(|s| format!("`{}`", s))
+            .map(|s| format!("`{s}`"))
             .collect::<Vec<_>>()
             .join(", ");
 
@@ -448,7 +443,7 @@ impl Project {
     pub fn new(
         local_manifest: &Utf8Path,
         single_package: Option<&str>,
-        overrides: HashSet<String>,
+        overrides: &HashSet<String>,
         metadata: &Metadata,
         release_metadata_builder: &dyn ReleaseMetadataBuilder,
     ) -> anyhow::Result<Self> {
@@ -458,7 +453,7 @@ impl Project {
         let root = root_repo_path_from_manifest_dir(&manifest_dir)?;
         debug!("project_root: {root:?}");
         let mut packages = workspace_packages(metadata)?;
-        check_overrides_typos(&packages, &overrides)?;
+        check_overrides_typos(&packages, overrides)?;
         let mut release_metadata = HashMap::new();
         override_packages_path(&mut packages, metadata, &manifest_dir)
             .context("failed to override packages path")?;
@@ -539,7 +534,7 @@ impl Project {
                 }
             });
 
-        crate::tera::render_template(&mut tera, &tag_template, context, "tag_name")
+        crate::tera::render_template(&mut tera, &tag_template, &context, "tag_name")
     }
 
     pub fn release_name(&self, package_name: &str, version: &str) -> String {
@@ -558,7 +553,7 @@ impl Project {
                 }
             });
 
-        crate::tera::render_template(&mut tera, &name_template, context, "release_name")
+        crate::tera::render_template(&mut tera, &name_template, &context, "release_name")
     }
 
     pub fn cargo_lock_path(&self) -> Utf8PathBuf {
@@ -899,8 +894,8 @@ impl Updater<'_> {
                         commits,
                         &version,
                         Some(r),
-                        old_changelog,
-                        release_link,
+                        old_changelog.as_deref(),
+                        release_link.as_deref(),
                         package,
                     )
                 })
@@ -957,14 +952,14 @@ impl Updater<'_> {
                 registry_package.package.version == package.version,
                 "package `{}` has a different version ({}) with respect to the registry package ({}), but the git tag {git_tag} exists. Consider running `cargo publish` manually to publish the new version of this package.",
                 package.name, package.version, registry_package.package.version
-            )
+            );
         }
         self.get_package_diff(
             &package_path,
             package,
             registry_package,
             repository,
-            tag_commit,
+            tag_commit.as_deref(),
             &mut diff,
         )?;
         repository
@@ -979,7 +974,7 @@ impl Updater<'_> {
         package: &Package,
         registry_package: Option<&RegistryPackage>,
         repository: &Repo,
-        tag_commit: Option<String>,
+        tag_commit: Option<&str>,
         diff: &mut Diff,
     ) -> anyhow::Result<()> {
         let pathbufs_to_check = pathbufs_to_check(package_path, package);
@@ -1003,7 +998,7 @@ impl Updater<'_> {
                 if are_packages_equal
                     || is_commit_too_old(
                         repository,
-                        tag_commit.as_deref(),
+                        tag_commit,
                         registry_package.published_at_sha1(),
                         &current_commit_hash,
                     )
@@ -1175,21 +1170,21 @@ fn get_changelog(
     commits: Vec<Commit>,
     next_version: &Version,
     changelog_req: Option<ChangelogRequest>,
-    old_changelog: Option<String>,
-    release_link: Option<String>,
+    old_changelog: Option<&str>,
+    release_link: Option<&str>,
     package: &Package,
 ) -> anyhow::Result<String> {
     let mut changelog_builder =
         ChangelogBuilder::new(commits, next_version.to_string(), package.name.clone());
     if let Some(changelog_req) = changelog_req {
         if let Some(release_date) = changelog_req.release_date {
-            changelog_builder = changelog_builder.with_release_date(release_date)
+            changelog_builder = changelog_builder.with_release_date(release_date);
         }
         if let Some(config) = changelog_req.changelog_config {
-            changelog_builder = changelog_builder.with_config(config)
+            changelog_builder = changelog_builder.with_config(config);
         }
         if let Some(link) = release_link {
-            changelog_builder = changelog_builder.with_release_link(link)
+            changelog_builder = changelog_builder.with_release_link(link);
         }
         let last_version = old_changelog
             .as_deref()
@@ -1203,7 +1198,7 @@ fn get_changelog(
         changelog_builder = changelog_builder.with_previous_version(last_version)
     }
     let new_changelog = changelog_builder.build();
-    let changelog = match &old_changelog {
+    let changelog = match old_changelog {
         Some(old_changelog) => new_changelog.prepend(old_changelog)?,
         None => new_changelog.generate(), // Old changelog doesn't exist.
     };
@@ -1348,7 +1343,7 @@ impl PackageDependencies for Package {
                     let dependency_path = d
                         .get("path")
                         .and_then(|i| i.as_str())
-                        .and_then(|relpath| fs::canonicalize(package_dir.join(relpath)).ok());
+                        .and_then(|relpath| fs_err::canonicalize(package_dir.join(relpath)).ok());
                     match dependency_path {
                         Some(dep_path) => dep_path == canonical_path,
                         None => false,
@@ -1383,7 +1378,7 @@ mod tests {
     fn get_project(
         local_manifest: &Utf8Path,
         single_package: Option<&str>,
-        overrides: HashSet<String>,
+        overrides: &HashSet<String>,
         is_release_enabled: bool,
         tag_name: Option<String>,
         release_name: Option<String>,
@@ -1418,14 +1413,10 @@ mod tests {
 
     impl ReleaseMetadataBuilder for ReleaseMetadataBuilderStub {
         fn get_release_metadata(&self, _package_name: &str) -> Option<ReleaseMetadata> {
-            if self.release {
-                Some(ReleaseMetadata {
-                    tag_name_template: self.tag_name.clone(),
-                    release_name_template: self.release_name.clone(),
-                })
-            } else {
-                None
-            }
+            self.release.then(|| ReleaseMetadata {
+                tag_name_template: self.tag_name.clone(),
+                release_name_template: self.release_name.clone(),
+            })
         }
     }
 
@@ -1444,7 +1435,7 @@ mod tests {
     fn test_empty_override() {
         let utf8_path = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let local_manifest = utf8_path;
-        let result = get_project(local_manifest, None, HashSet::default(), true, None, None);
+        let result = get_project(local_manifest, None, &HashSet::default(), true, None, None);
         assert!(result.is_ok());
     }
 
@@ -1452,7 +1443,7 @@ mod tests {
     fn test_successful_override() {
         let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let overrides = (["typo_test".to_string()]).into();
-        let result = get_project(local_manifest, None, overrides, true, None, None);
+        let result = get_project(local_manifest, None, &overrides, true, None, None);
         assert!(result.is_ok());
     }
 
@@ -1461,7 +1452,7 @@ mod tests {
         let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
         let single_package = None;
         let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
-        let result = get_project(local_manifest, single_package, overrides, true, None, None);
+        let result = get_project(local_manifest, single_package, &overrides, true, None, None);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
@@ -1491,7 +1482,7 @@ mod tests {
             commits,
             &next_version,
             Some(changelog_req),
-            Some(old.to_string()),
+            Some(old),
             None,
             &fake_package::FakePackage::new("my_package").into(),
         )
@@ -1502,7 +1493,7 @@ mod tests {
     #[test]
     fn project_new_no_release_will_error() {
         let local_manifest = Utf8Path::new("../fake_package/Cargo.toml");
-        let result = get_project(local_manifest, None, HashSet::default(), false, None, None);
+        let result = get_project(local_manifest, None, &HashSet::default(), false, None, None);
         assert!(result.is_err());
         expect_test::expect![[r#"no public packages found. Are there any public packages in your project? Analyzed packages: ["cargo_utils", "fake_package", "git_cmd", "test_logs", "next_version", "release-plz", "release_plz_core"]"#]]
         .assert_eq(&result.unwrap_err().to_string());
@@ -1511,7 +1502,7 @@ mod tests {
     #[test]
     fn project_tag_template_none() {
         let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
-        let project = get_project(local_manifest, None, HashSet::default(), true, None, None)
+        let project = get_project(local_manifest, None, &HashSet::default(), true, None, None)
             .expect("Should ok");
         assert_eq!(project.git_tag("typo_test", "0.1.0"), "v0.1.0");
     }
@@ -1522,7 +1513,7 @@ mod tests {
         let project = get_project(
             local_manifest,
             None,
-            HashSet::default(),
+            &HashSet::default(),
             true,
             Some("prefix-{{ package }}-middle-{{ version }}-postfix".to_string()),
             Some("release-prefix-{{ package }}-middle-{{ version }}-postfix".to_string()),

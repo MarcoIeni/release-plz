@@ -1,8 +1,11 @@
-use std::{fs, process::Command, str::FromStr};
+use std::{process::Command, str::FromStr};
 
 use crate::helpers::gitea::CARGO_INDEX_REPO;
 use assert_cmd::assert::Assert;
-use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
+use cargo_metadata::{
+    camino::{Utf8Path, Utf8PathBuf},
+    Package,
+};
 use cargo_utils::LocalManifest;
 use git_cmd::Repo;
 use release_plz_core::{
@@ -95,9 +98,25 @@ impl TestContext {
 
     pub fn write_release_plz_toml(&self, content: &str) {
         let release_plz_toml_path = self.repo_dir().join("release-plz.toml");
-        fs::write(release_plz_toml_path, content).unwrap();
+        fs_err::write(release_plz_toml_path, content).unwrap();
         self.repo.add_all_and_commit("add config file").unwrap();
         self.repo.git(&["push"]).unwrap();
+    }
+
+    pub fn write_changelog(&self, content: &str) {
+        let changelog_path = self.repo_dir().join("CHANGELOG.md");
+        fs_err::write(changelog_path, content).unwrap();
+        self.repo.add_all_and_commit("edit changelog").unwrap();
+        self.repo.git(&["push"]).unwrap();
+    }
+
+    pub fn download_package(&self, dest_dir: &Utf8Path) -> Vec<Package> {
+        let crate_name = &self.gitea.repo;
+        release_plz_core::PackageDownloader::new([crate_name], dest_dir.as_str())
+            .with_registry(TEST_REGISTRY.to_string())
+            .with_cargo_cwd(self.repo_dir())
+            .download()
+            .unwrap()
     }
 }
 
@@ -150,10 +169,10 @@ fn edit_cargo_toml(repo_dir: &Utf8Path) {
 
 fn create_cargo_config(repo_dir: &Utf8Path, username: &str) {
     let config_dir = repo_dir.join(".cargo");
-    fs::create_dir(&config_dir).unwrap();
+    fs_err::create_dir(&config_dir).unwrap();
     let config_file = config_dir.join("config.toml");
     let cargo_config = cargo_config(username);
-    fs::write(config_file, cargo_config).unwrap();
+    fs_err::write(config_file, cargo_config).unwrap();
 }
 
 fn cargo_config(username: &str) -> String {
@@ -173,7 +192,7 @@ fn cargo_config(username: &str) -> String {
 [net]
 git-fetch-with-cli = true
     "#;
-    format!("{}{}{}", cargo_registries, gitea_index, config_end)
+    format!("{cargo_registries}{gitea_index}{config_end}")
 }
 
 fn git_client(repo_url: &str, token: &str) -> GitClient {

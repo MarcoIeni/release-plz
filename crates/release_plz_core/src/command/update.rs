@@ -7,7 +7,6 @@ use cargo_metadata::{semver::Version, Package};
 use cargo_utils::upgrade_requirement;
 use cargo_utils::LocalManifest;
 use git_cmd::Repo;
-use std::fs;
 use std::iter;
 use tracing::{info, warn};
 
@@ -59,7 +58,9 @@ impl PackagesUpdate {
         self.updates
             .iter()
             .map(|(package, update)| {
-                if package.version != update.version {
+                if package.version == update.version {
+                    format!("\n* `{}`: {}", package.name, package.version)
+                } else {
                     format!(
                         "\n* `{}`: {} -> {}{}",
                         package.name,
@@ -67,8 +68,6 @@ impl PackagesUpdate {
                         update.version,
                         update.semver_check.outcome_str()
                     )
-                } else {
-                    format!("\n* `{}`: {}", package.name, package.version)
                 }
             })
             .collect()
@@ -221,8 +220,7 @@ fn update_changelogs(
     for (package, update) in &local_packages.updates {
         if let Some(changelog) = update.changelog.as_ref() {
             let changelog_path = update_request.changelog_path(package);
-            fs::write(&changelog_path, changelog)
-                .with_context(|| format!("cannot write changelog to {:?}", &changelog_path))?;
+            fs_err::write(&changelog_path, changelog).context("cannot write changelog")?;
         }
     }
     Ok(())
@@ -232,7 +230,7 @@ fn update_changelogs(
 fn update_cargo_lock(root: &Utf8Path, update_all_dependencies: bool) -> anyhow::Result<()> {
     let mut args = vec!["update"];
     if !update_all_dependencies {
-        args.push("--workspace")
+        args.push("--workspace");
     }
     let output = crate::cargo::run_cargo(root, &args)
         .context("error while running cargo to update the Cargo.lock file")?;
@@ -308,7 +306,7 @@ fn update_dependencies(
                 let dependency_path = d
                     .get("path")
                     .and_then(|i| i.as_str())
-                    .and_then(|relpath| fs::canonicalize(manifest_dir.join(relpath)).ok());
+                    .and_then(|relpath| fs_err::canonicalize(manifest_dir.join(relpath)).ok());
                 match dependency_path {
                     Some(dep_path) => dep_path == package_path,
                     None => false,

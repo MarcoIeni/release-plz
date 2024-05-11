@@ -202,6 +202,7 @@ async fn handle_opened_pr(
 }
 
 async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Result<ReleasePr> {
+    repo.checkout_new_branch(&pr.branch)?;
     if matches!(git_client.backend, BackendType::Github) {
         github_create_release_branch(git_client, repo, &pr.branch).await?;
     } else {
@@ -223,17 +224,12 @@ async fn update_pr(
     repository: &Repo,
     new_pr: &Pr,
 ) -> anyhow::Result<()> {
-    // save local work
-    repository.git(&["stash", "--include-untracked"])?;
-
-    reset_branch(opened_pr, commits_number, repository).map_err(|e| {
-        // restore local work
-        if let Err(e) = repository.stash_pop() {
-            tracing::error!("cannot restore local work: {:?}", e);
-        }
-        e
+    update_pr_branch(commits_number, opened_pr, repository).with_context(|| {
+        format!(
+            "failed to update pr branch with changes from `{}` branch",
+            repository.original_branch()
+        )
     })?;
-    repository.stash_pop()?;
     force_push(opened_pr, repository)?;
     let pr_edit = {
         let mut pr_edit = PrEdit::new();
@@ -249,6 +245,27 @@ async fn update_pr(
         git_client.edit_pr(opened_pr.number, &pr_edit).await?;
     }
     info!("updated pr {}", opened_pr.html_url);
+    Ok(())
+}
+
+/// Update the PR branch with the latest changes from the
+/// original branch where release-plz was run (by default it's the default branch, e.g. `main`).
+fn update_pr_branch(
+    commits_number: usize,
+    opened_pr: &GitPr,
+    repository: &Repo,
+) -> anyhow::Result<()> {
+    // save local work
+    repository.git(&["stash", "--include-untracked"])?;
+
+    reset_branch(opened_pr, commits_number, repository).map_err(|e| {
+        // restore local work
+        if let Err(e) = repository.stash_pop() {
+            tracing::error!("cannot restore local work: {:?}", e);
+        }
+        e
+    })?;
+    repository.stash_pop()?;
     Ok(())
 }
 
@@ -286,7 +303,6 @@ fn force_push(pr: &GitPr, repository: &Repo) -> anyhow::Result<()> {
 }
 
 fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {
-    repository.checkout_new_branch(release_branch)?;
     add_changes_and_commit(repository)?;
     repository.push(release_branch)?;
     Ok(())
@@ -297,7 +313,6 @@ async fn github_create_release_branch(
     repository: &Repo,
     release_branch: &str,
 ) -> anyhow::Result<()> {
-    repository.checkout_new_branch(release_branch)?;
     repository.push(release_branch)?;
     github_graphql::commit_changes(client, repository, "chore: release", release_branch).await
 }

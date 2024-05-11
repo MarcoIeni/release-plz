@@ -67,17 +67,17 @@ pub fn run_semver_check(
 
     // Delete Cargo.lock file if cargo-semver-checks created it.
     if !local_package_contained_cargo_lock && local_cargo_lock.exists() {
-        std::fs::remove_file(local_cargo_lock)?;
+        fs_err::remove_file(local_cargo_lock)?;
     }
     if !registry_package_contained_cargo_lock && registry_cargo_lock.exists() {
-        std::fs::remove_file(registry_cargo_lock)?;
+        fs_err::remove_file(registry_cargo_lock)?;
     }
     // Delete target dir if cargo-semver-checks created it.
     if !local_package_contained_target && local_target_dir.exists() {
-        std::fs::remove_dir_all(local_target_dir)?;
+        fs_err::remove_dir_all(local_target_dir)?;
     }
     if !registry_package_contained_target && registry_target_dir.exists() {
-        std::fs::remove_dir_all(registry_target_dir)?;
+        fs_err::remove_dir_all(registry_target_dir)?;
     }
 
     if output.status.success() {
