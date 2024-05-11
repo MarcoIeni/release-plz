@@ -93,7 +93,8 @@ the following sections:
   - [`publish`](#the-publish-field-package-section) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field-package-section) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field-package-section) — Don't verify package build.
-  - [`publish_features`](#the-publish_features-field-package-section) — List of features to pass to `cargo publish`.
+  - [`publish_features`](#the-publish_features-field-package-section) — List of
+    features to pass to `cargo publish`.
   - [`release`](#the-release-field-package-section) - Enable the processing of this package.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
     Don't verify package build.
@@ -101,7 +102,8 @@ the following sections:
   - [`header`](#the-header-field) — Changelog header.
   - [`body`](#the-body-field) — Changelog body.
   - [`trim`](#the-trim-field) — Trim the changelog body.
-  - [`protect_breaking_commits`](#the-protect_breaking_commits-field) — Never skip commits with breaking changes.
+  - [`protect_breaking_commits`](#the-protect_breaking_commits-field) — Never skip commits
+    with breaking changes.
   - [`tag_pattern`](#the-tag_pattern-field) — Regex of tags to include in the changelog.
   - [`sort_commits`](#the-sort_commits-field) — How to sort commits.
   - [`commit_preprocessors`](#the-commit_preprocessors-field) — Manipulate commit messages.
@@ -187,7 +189,8 @@ The supported git releases are:
 
 #### The `git_release_name` field
 
-[Tera template](https://keats.github.io/tera/docs/#templates) of the git release name that release-plz creates.
+[Tera template](https://keats.github.io/tera/docs/#templates) of the git release name that
+release-plz creates.
 Use this to customize the git release name pattern.
 
 By default, it's:
@@ -203,7 +206,8 @@ Where:
 
 #### The `git_release_body` field
 
-[Tera template](https://keats.github.io/tera/docs/#templates) of the git release body that release-plz creates.
+[Tera template](https://keats.github.io/tera/docs/#templates) of the git release body that
+release-plz creates.
 Use this to customize the git release body pattern.
 
 By default, it's `"{{ changelog }}"`.
@@ -213,7 +217,6 @@ In `git_release_body`, you can use the following variables:
 - `{{ changelog }}`: the changelog body of the new release.
 - `{{ package }}`: the name of the package.
 - `{{ version }}`: the new version of the package.
-
 
 #### The `git_release_type` field
 
@@ -403,15 +406,17 @@ API (maybe in Gitea 1.22?).
 
 #### The `release_commits` field
 
-In `release-plz update` and `release-plz release-pr`, `release-plz` bumps the version and updates the changelog
-of the package only if at least one of the commits matches the `release_commits` regex.
+In `release-plz update` and `release-plz release-pr`, `release-plz` bumps the version and updates
+the changelog of the package only if at least one of the commits matches the `release_commits`
+regex.
 
 You can use this if you think it is too noisy to raise PRs on every commit.
 
 Examples:
 
 - With `release_commits = "^feat:"`, release-plz will update the package only if there's a new feature.
-- With `release_commits = "^(feat:|docs:)"`, release-plz will update the package only if there's a new feature or a documentation change.
+- With `release_commits = "^(feat:|docs:)"`, release-plz will update the package only if there's a
+  new feature or a documentation change.
 
 By default, release-plz updates the package on every commit.
 
@@ -727,11 +732,13 @@ commit_preprocessors = [
 
 Custom OS commands can also be used to edit the commit messages.
 
-For example, here's how you can use [pandoc](https://pandoc.org/) to convert all commit messages to the [CommonMark](https://commonmark.org/) format:
+For example, here's how you can use [pandoc](https://pandoc.org/) to convert all commit messages
+to the [CommonMark](https://commonmark.org/) format:
 
 - `{ pattern = ".*", replace_command = "pandoc -t commonmark"}`
 
-The `$COMMIT_SHA` environment variable is set when executing the command. For example, you can read the commit itself:
+The `$COMMIT_SHA` environment variable is set when executing the command.
+For example, you can read the commit itself:
 
 - `{ pattern = '.*', replace_command = 'git show -s --format=%B $COMMIT_SHA' }`
 
