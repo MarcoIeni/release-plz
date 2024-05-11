@@ -54,7 +54,14 @@ impl Changelog<'_> {
         let config = self.changelog_config(old_header, self.release_link.as_deref());
         let mut changelog = GitCliffChangelog::new(vec![self.release], &config)
             .context("error while building changelog")?;
-        changelog.add_context("package", self.package);
+        changelog
+            .add_context("package", &self.package)
+            .with_context(|| {
+                format!(
+                    "failed to add `{}` to the `package` changelog context",
+                    &self.package
+                )
+            })?;
         let mut out = Vec::new();
         changelog
             .prepend(old_changelog, &mut out)
