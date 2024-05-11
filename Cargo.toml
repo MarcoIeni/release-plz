@@ -21,7 +21,7 @@ conventional_commit_parser = "0.9.4"
 crates-index = { version = "2.8.0", features = ["git", "sparse", "git-https"] }
 dirs = "5.0.1"
 dunce = "1.0.4"
-duration-str = { version = "0.9.1", default-features = false }
+duration-str = { version = "0.10.0", default-features = false }
 expect-test = "1.5.0"
 fake = "2.9.2"
 fs-err = "2.11.0"
