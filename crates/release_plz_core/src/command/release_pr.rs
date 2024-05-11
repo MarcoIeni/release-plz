@@ -247,6 +247,8 @@ async fn update_pr(
     Ok(())
 }
 
+/// Update the PR branch with the latest changes from the
+/// original branch where release-plz was run (by default it's the default branch, e.g. `main`).
 fn update_pr_branch(
     commits_number: usize,
     opened_pr: &GitPr,
