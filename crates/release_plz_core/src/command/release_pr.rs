@@ -230,7 +230,11 @@ async fn update_pr(
             repository.original_branch()
         )
     })?;
-    force_push(opened_pr, repository)?;
+    if matches!(git_client.backend, BackendType::Github) {
+        github_force_push(git_client, opened_pr, repository).await?;
+    } else {
+        force_push(opened_pr, repository)?;
+    }
     let pr_edit = {
         let mut pr_edit = PrEdit::new();
         if opened_pr.title != new_pr.title {
@@ -300,6 +304,16 @@ fn force_push(pr: &GitPr, repository: &Repo) -> anyhow::Result<()> {
     add_changes_and_commit(repository)?;
     repository.force_push(pr.branch())?;
     Ok(())
+}
+
+async fn github_force_push(
+    client: &GitClient,
+    pr: &GitPr,
+    repository: &Repo,
+) -> anyhow::Result<()> {
+    // first force push the branch and then add new commit using gql api
+    repository.force_push(pr.branch())?;
+    github_graphql::commit_changes(client, repository, "chore: release", pr.branch()).await
 }
 
 fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {

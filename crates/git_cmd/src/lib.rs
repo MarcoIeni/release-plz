@@ -133,7 +133,7 @@ impl Repo {
     }
 
     pub fn force_push(&self, obj: &str) -> anyhow::Result<()> {
-        self.git(&["push", &self.original_remote, obj, "--force"])?;
+        self.git(&["push", &self.original_remote, obj, "--force-with-lease"])?;
         Ok(())
     }
 
