@@ -97,7 +97,6 @@ impl From<UpdateConfig> for PackageUpdateConfig {
     fn from(config: UpdateConfig) -> Self {
         Self {
             generic: config,
-            changelog_path: None,
             changelog_include: vec![],
         }
     }
@@ -122,6 +121,9 @@ impl PackagesConfig {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UpdateConfig {
+    /// This path needs to be a relative path to the Cargo.toml of the project.
+    /// I.e. if you have a workspace, it needs to be relative to the workspace root.
+    pub changelog_path: Option<Utf8PathBuf>,
     /// Controls when to run cargo-semver-checks.
     /// Note: You can only run cargo-semver-checks if the package contains a library.
     ///       For example, if it has a `lib.rs` file.
@@ -140,11 +142,6 @@ pub struct UpdateConfig {
 pub struct PackageUpdateConfig {
     /// config that can be applied by default to all packages.
     pub generic: UpdateConfig,
-    /// The changelog path can only be specified for a single package.
-    /// I.e. it cannot be applied to `[workspace]` configuration.
-    /// This path needs to be a relative path to the Cargo.toml of the project.
-    /// I.e. if you have a workspace, it needs to be relative to the workspace root.
-    pub changelog_path: Option<Utf8PathBuf>,
     /// List of package names.
     /// Include the changelogs of these packages in the changelog of the current package.
     pub changelog_include: Vec<String>,
@@ -167,6 +164,7 @@ impl Default for UpdateConfig {
             changelog_update: true,
             release: true,
             tag_name_template: None,
+            changelog_path: None,
         }
     }
 }
@@ -225,6 +223,7 @@ impl UpdateRequest {
     pub fn changelog_path(&self, package: &Package) -> Utf8PathBuf {
         let config = self.get_package_config(&package.name);
         config
+            .generic
             .changelog_path
             .map(|p| self.local_manifest.parent().unwrap().join(p))
             .unwrap_or_else(|| {
