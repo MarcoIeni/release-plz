@@ -501,7 +501,7 @@ dependencies = [
 
 [[package]]
 name = "cargo_utils"
-version = "0.1.46"
+version = "0.1.47"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -1441,7 +1441,7 @@ dependencies = [
 
 [[package]]
 name = "git_cmd"
-version = "0.6.6"
+version = "0.6.7"
 dependencies = [
  "anyhow",
  "camino",
@@ -2688,9 +2688,9 @@ dependencies = [
 
 [[package]]
 name = "hashlink"
-version = "0.9.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "692eaaf7f7607518dd3cef090f1474b61edc5301d8012f09579920df68b725ee"
+checksum = "6ba4ff7128dee98c7dc9794b6a411377e1404dba1c97deb8d1a55297bd25d8af"
 dependencies = [
  "hashbrown",
 ]
@@ -4072,7 +4072,7 @@ checksum = "adad44e29e4c806119491a7f06f03de4d1af22c3a680dd47f1e6e179439d1f56"
 
 [[package]]
 name = "release-plz"
-version = "0.3.66"
+version = "0.3.67"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -4112,7 +4112,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.21.6"
+version = "0.21.7"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
