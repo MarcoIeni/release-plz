@@ -84,7 +84,8 @@ impl Config {
             if allow_dirty {
                 release_config.common.publish_allow_dirty = Some(true);
             }
-            release_request = release_request.with_package_config(package, release_config.common.into());
+            release_request =
+                release_request.with_package_config(package, release_config.common.into());
         }
         release_request
     }
