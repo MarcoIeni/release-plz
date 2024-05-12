@@ -84,7 +84,7 @@ impl Config {
             if allow_dirty {
                 release_config.common.publish_allow_dirty = Some(true);
             }
-            release_request = release_request.with_package_config(package, release_config.into());
+            release_request = release_request.with_package_config(package, release_config.common.into());
         }
         release_request
     }
@@ -176,12 +176,6 @@ pub struct PackageSpecificConfigWithName {
     pub name: String,
     #[serde(flatten)]
     pub config: PackageSpecificConfig,
-}
-
-impl From<PackageSpecificConfig> for release_plz_core::ReleaseConfig {
-    fn from(config: PackageSpecificConfig) -> Self {
-        config.common.into()
-    }
 }
 
 impl From<PackageConfig> for release_plz_core::ReleaseConfig {
