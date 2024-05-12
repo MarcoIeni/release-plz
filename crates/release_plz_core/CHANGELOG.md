@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - updating pr persists GitHub verified status ([#1459](https://github.com/MarcoIeni/release-plz/pull/1459))
 
 ### Other
-- remove duplicate line ([#1457](https://github.com/MarcoIeni/release-plz/pull/1457))
 - add more error contexts ([#1455](https://github.com/MarcoIeni/release-plz/pull/1455))
 - improve error message when updating pr ([#1453](https://github.com/MarcoIeni/release-plz/pull/1453))
 

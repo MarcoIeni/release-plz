@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Other
 - add more error contexts ([#1455](https://github.com/MarcoIeni/release-plz/pull/1455))
-- remove duplicate line ([#1457](https://github.com/MarcoIeni/release-plz/pull/1457))
 - improve error message when updating pr ([#1453](https://github.com/MarcoIeni/release-plz/pull/1453))
 
 ## [0.3.66](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.65...release-plz-v0.3.66) - 2024-05-08
