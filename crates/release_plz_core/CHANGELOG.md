@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.7](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.6...release_plz_core-v0.21.7) - 2024-05-12
+
+### Fixed
+- updating pr persists GitHub verified status ([#1459](https://github.com/MarcoIeni/release-plz/pull/1459))
+
+### Other
+- add more error contexts ([#1455](https://github.com/MarcoIeni/release-plz/pull/1455))
+- improve error message when updating pr ([#1453](https://github.com/MarcoIeni/release-plz/pull/1453))
+
 ## [0.21.6](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.21.5...release_plz_core-v0.21.6) - 2024-05-08
 
 ### Added
