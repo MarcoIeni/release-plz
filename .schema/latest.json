@@ -265,7 +265,7 @@
         },
         "changelog_path": {
           "title": "Changelog Path",
-          "description": "Normally the changelog is placed in the same directory of the Cargo.toml file. The user can provide a custom path here. This `changelog_path` needs to be propagated to all the commands: `update`, `release-pr` and `release`.",
+          "description": "Normally the changelog is placed in the same directory of the Cargo.toml file. The user can provide a custom path here. `changelog_path` is propagated to the commands: `update`, `release-pr` and `release`.",
           "type": [
             "string",
             "null"
@@ -479,7 +479,7 @@
         },
         "changelog_path": {
           "title": "Changelog Path",
-          "description": "Normally the changelog is placed in the same directory of the Cargo.toml file. The user can provide a custom path here. This `changelog_path` needs to be propagated to all the commands: `update`, `release-pr` and `release`.",
+          "description": "Normally the changelog is placed in the same directory of the Cargo.toml file. The user can provide a custom path here. `changelog_path` is propagated to the commands: `update`, `release-pr` and `release`.",
           "type": [
             "string",
             "null"

@@ -232,7 +232,7 @@ pub struct PackageConfig {
     /// # Changelog Path
     /// Normally the changelog is placed in the same directory of the Cargo.toml file.
     /// The user can provide a custom path here.
-    /// This `changelog_path` needs to be propagated to all the commands:
+    /// `changelog_path` is propagated to the commands:
     /// `update`, `release-pr` and `release`.
     pub changelog_path: Option<PathBuf>,
     /// # Changelog Update
