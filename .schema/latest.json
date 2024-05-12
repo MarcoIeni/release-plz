@@ -38,6 +38,7 @@
       "default": {
         "allow_dirty": null,
         "changelog_config": null,
+        "changelog_path": null,
         "changelog_update": null,
         "dependencies_update": null,
         "git_release_body": null,
@@ -471,6 +472,14 @@
         "changelog_config": {
           "title": "Changelog Config",
           "description": "Path to the git cliff configuration file. Defaults to the `keep a changelog` configuration.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "changelog_path": {
+          "title": "Changelog Path",
+          "description": "Normally the changelog is placed in the same directory of the Cargo.toml file. The user can provide a custom path here. This `changelog_path` needs to be propagated to all the commands: `update`, `release-pr` and `release`.",
           "type": [
             "string",
             "null"

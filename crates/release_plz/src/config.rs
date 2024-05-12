@@ -290,7 +290,9 @@ impl From<PackageConfig> for release_plz_core::UpdateConfig {
             changelog_update: config.changelog_update != Some(false),
             release: config.release != Some(false),
             tag_name_template: config.git_tag_name,
-            changelog_path: config.changelog_path.map(|p| to_utf8_pathbuf(p).unwrap()),
+            changelog_path: config
+                .changelog_path
+                .map(|p| to_utf8_pathbuf(p).unwrap()),
         }
     }
 }
@@ -554,6 +556,7 @@ mod tests {
 
         expect_test::expect![[r#"
             [workspace]
+            changelog_path = "./CHANGELOG.md"
             changelog_update = true
             git_release_enable = true
             git_release_type = "prod"
@@ -565,7 +568,6 @@ mod tests {
             publish_timeout = "10m"
             repo_url = "https://github.com/MarcoIeni/release-plz"
             release_commits = "^feat:"
-            changelog_path = "./CHANGELOG.md"
 
             [changelog]
 
