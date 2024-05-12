@@ -133,6 +133,11 @@ impl Repo {
     }
 
     pub fn force_push(&self, obj: &str) -> anyhow::Result<()> {
+        // `--force-with-lease` is safer than `--force` because it will not overwrite
+        // changes on the remote that you do not have locally.
+        // In other words, it will only push if no one else has pushed changes to the remote
+        // branch since you last pulled. If someone else has pushed changes, the command will fail,
+        // preventing you from accidentally overwriting someone else's work.
         self.git(&["push", &self.original_remote, obj, "--force-with-lease"])?;
         Ok(())
     }
