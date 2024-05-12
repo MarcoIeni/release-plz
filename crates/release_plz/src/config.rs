@@ -290,9 +290,7 @@ impl From<PackageConfig> for release_plz_core::UpdateConfig {
             changelog_update: config.changelog_update != Some(false),
             release: config.release != Some(false),
             tag_name_template: config.git_tag_name,
-            changelog_path: config
-                .changelog_path
-                .map(|p| to_utf8_pathbuf(p).unwrap()),
+            changelog_path: config.changelog_path.map(|p| to_utf8_pathbuf(p).unwrap()),
         }
     }
 }
