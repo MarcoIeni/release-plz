@@ -133,7 +133,12 @@ impl Repo {
     }
 
     pub fn force_push(&self, obj: &str) -> anyhow::Result<()> {
-        self.git(&["push", &self.original_remote, obj, "--force"])?;
+        // `--force-with-lease` is safer than `--force` because it will not overwrite
+        // changes on the remote that you do not have locally.
+        // In other words, it will only push if no one else has pushed changes to the remote
+        // branch since you last pulled. If someone else has pushed changes, the command will fail,
+        // preventing you from accidentally overwriting someone else's work.
+        self.git(&["push", &self.original_remote, obj, "--force-with-lease"])?;
         Ok(())
     }
 
@@ -363,7 +368,6 @@ fn get_current_branch(directory: impl AsRef<Utf8Path>) -> anyhow::Result<String>
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
     use tempfile::tempdir;
 
     use super::*;
@@ -385,11 +389,11 @@ mod tests {
         let file1 = repository_dir.as_ref().join("file1.txt");
         let file2 = repository_dir.as_ref().join("file2.txt");
         {
-            fs::write(&file2, b"Hello, file2!-1").unwrap();
+            fs_err::write(&file2, b"Hello, file2!-1").unwrap();
             repo.add_all_and_commit("file2-1").unwrap();
-            fs::write(file1, b"Hello, file1!").unwrap();
+            fs_err::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit("file1").unwrap();
-            fs::write(&file2, b"Hello, file2!-2").unwrap();
+            fs_err::write(&file2, b"Hello, file2!-2").unwrap();
             repo.add_all_and_commit("file2-2").unwrap();
         }
         repo.checkout_previous_commit_at_paths(&[&file2]).unwrap();
@@ -410,7 +414,7 @@ mod tests {
         footer: small note";
 
         {
-            fs::write(file1, b"Hello, file1!").unwrap();
+            fs_err::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit(commit_message).unwrap();
         }
         assert_eq!(repo.current_commit_message().unwrap(), commit_message);
@@ -430,7 +434,7 @@ mod tests {
         let repository_dir = tempdir().unwrap();
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
-        fs::write(file1, b"Hello, file1!").unwrap();
+        fs_err::write(file1, b"Hello, file1!").unwrap();
         assert!(repo.is_clean().is_err());
     }
 
@@ -454,7 +458,7 @@ D  crates/git_cmd/CHANGELOG.md
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
         {
-            fs::write(file1, b"Hello, file1!").unwrap();
+            fs_err::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit("file1").unwrap();
         }
         let version = "v1.0.0";
@@ -469,7 +473,7 @@ D  crates/git_cmd/CHANGELOG.md
         let repo = Repo::init(&repository_dir);
         let file1 = repository_dir.as_ref().join("file1.txt");
         {
-            fs::write(file1, b"Hello, file1!").unwrap();
+            fs_err::write(file1, b"Hello, file1!").unwrap();
             repo.add_all_and_commit("file1").unwrap();
         }
         repo.tag("v1.0.0", "test").unwrap();

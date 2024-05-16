@@ -106,6 +106,7 @@ impl RepoCommand for Update {
 impl Update {
     pub fn config(&self) -> anyhow::Result<Config> {
         super::parse_config(self.config.as_deref())
+            .context("failed to parse release-plz configuration")
     }
 
     fn dependencies_update(&self, config: &Config) -> bool {

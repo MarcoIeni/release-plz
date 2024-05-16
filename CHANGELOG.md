@@ -6,6 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.68](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.67...release-plz-v0.3.68) - 2024-05-14
+
+### Fixed
+- don't add directories to github api commit ([#1461](https://github.com/MarcoIeni/release-plz/pull/1461))
+
+## [0.3.67](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.66...release-plz-v0.3.67) - 2024-05-12
+
+### Fixed
+- updating pr persists GitHub verified status ([#1459](https://github.com/MarcoIeni/release-plz/pull/1459))
+
+### Other
+- add more error contexts ([#1455](https://github.com/MarcoIeni/release-plz/pull/1455))
+- improve error message when updating pr ([#1453](https://github.com/MarcoIeni/release-plz/pull/1453))
+
+## [0.3.66](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.65...release-plz-v0.3.66) - 2024-05-08
+
+### Added
+- print released prs ([#1449](https://github.com/MarcoIeni/release-plz/pull/1449))
+
+### Other
+- more descriptive file system error messages ([#1450](https://github.com/MarcoIeni/release-plz/pull/1450))
+
 ## [0.3.65](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.64...release-plz-v0.3.65) - 2024-05-05
 
 ### Added

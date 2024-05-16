@@ -14,7 +14,6 @@ pub use source::*;
 use tracing::warn;
 
 use std::collections::HashSet;
-use std::fs;
 
 use std::process::Command;
 
@@ -89,7 +88,13 @@ impl Cloner {
 
             dest_path.push(&crate_.name);
 
-            if let Some(pkg) = self.clone_in(crate_, &dest_path, &mut src)? {
+            let pkg = self
+                .clone_in(crate_, &dest_path, &mut src)
+                .with_context(|| {
+                    format!("failed to clone package {} in {dest_path}", &crate_.name)
+                })?;
+
+            if let Some(pkg) = pkg {
                 cloned_pkgs.push((pkg, dest_path));
             }
         }
@@ -107,7 +112,7 @@ impl Cloner {
         T: Source + 'a,
     {
         if !dest_path.exists() {
-            fs::create_dir_all(dest_path)?;
+            fs_err::create_dir_all(dest_path)?;
         }
 
         self.config
@@ -252,12 +257,12 @@ fn clone_directory(from: &Utf8Path, to: &Utf8Path) -> CargoResult<()> {
 
         if !file_type.is_dir() {
             // .cargo-ok is not wanted in this context
-            fs::copy(entry.path(), &dest_path)?;
+            fs_err::copy(entry.path(), &dest_path)?;
         } else if file_type.is_dir() {
             if dest_path == to {
                 continue;
             }
-            fs::create_dir(&dest_path)?;
+            fs_err::create_dir(&dest_path)?;
         }
     }
 

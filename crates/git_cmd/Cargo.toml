@@ -1,6 +1,6 @@
 [package]
 name = "git_cmd"
-version = "0.6.5"
+version = "0.6.7"
 edition.workspace = true
 description = "Wrapper around git cli"
 repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/git_cmd"
@@ -20,6 +20,7 @@ test_fixture = []
 anyhow.workspace = true
 camino.workspace = true
 tracing.workspace = true
+fs-err.workspace = true
 
 [dev-dependencies]
 git_cmd = { path = ".", features = ["test_fixture"]}
