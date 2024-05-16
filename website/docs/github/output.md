@@ -142,6 +142,7 @@ jobs:
                   # Use `--force` to overwrite the label,
                   # so that the command does not fail if the label already exists.
                   label="released:$package_name-$version"
+                  echo "Creating label $label"
                   gh label create $label --color BFD4F2 --force
                   for pr in $(echo "$release" | jq -r -c '.prs[]'); do
                       pr_number=$(echo "$pr" | jq -r '.number')
