@@ -131,16 +131,26 @@ jobs:
         run: |
           set -e
 
-          # iterate over released packages and add a label to the PRs
-          # shipped with the release
+          # Iterate over released packages and add a label to the PRs
+          # shipped with the release.
           for release in $(echo "$RELEASES" | jq -r -c '.[]'); do
               package_name=$(echo "$release" | jq -r '.package_name')
               version=$(echo "$release" | jq -r '.version')
-              for pr in $(echo "$release" | jq -r -c '.prs[]'); do
-                  pr_number=$(echo "$pr" | jq -r '.number')
-                  echo "Adding label 'released:$package_name-$version' to PR #$pr_number"
-                  gh pr edit $pr_number --add-label "released:$package_name-$version"
-              done
+              prs_length=$(echo "$release" | jq '.prs | length')
+              if [ "$prs_length" -gt 0 ]; then
+                  # Create label.
+                  # Use `--force` to overwrite the label,
+                  # so that the command does not fail if the label already exists.
+                  gh label create $label --color BFD4F2 --force
+                  for pr in $(echo "$release" | jq -r -c '.prs[]'); do
+                      pr_number=$(echo "$pr" | jq -r '.number')
+                      label="released:$package_name-$version"
+                      echo "Adding label $label to PR #$pr_number"
+                      gh pr edit $pr_number --add-label $label
+                  done
+              else
+                  echo "No PRs found for package $package_name"
+              fi
           done
 ```
 
