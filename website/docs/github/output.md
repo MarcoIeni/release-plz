@@ -133,10 +133,10 @@ jobs:
 
           # iterate over released packages and add a label to the PRs
           # shipped with the release
-          for release in $(echo "$RELEASES" | jq -r '.[]'); do
+          for release in $(echo "$RELEASES" | jq -r -c '.[]'); do
               package_name=$(echo "$release" | jq -r '.package_name')
               version=$(echo "$release" | jq -r '.version')
-              for pr in $(echo "$release" | jq -r '.prs[]'); do
+              for pr in $(echo "$release" | jq -r -c '.prs[]'); do
                   pr_number=$(echo "$pr" | jq -r '.number')
                   echo "Adding label 'released:$package_name-$version' to PR #$pr_number"
                   gh pr edit $pr_number --add-label "released:$package_name-$version"
