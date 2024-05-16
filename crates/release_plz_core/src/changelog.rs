@@ -9,7 +9,7 @@ use git_cliff_core::{
 use regex::Regex;
 use tracing::warn;
 
-use crate::changelog_parser;
+use crate::{changelog_header::replace_unreleased, changelog_parser};
 
 pub const CHANGELOG_HEADER: &str = r#"# Changelog
 All notable changes to this project will be documented in this file.
@@ -45,6 +45,7 @@ impl Changelog<'_> {
     pub fn prepend(self, old_changelog: impl Into<String>) -> anyhow::Result<String> {
         let old_changelog: String = old_changelog.into();
         if is_version_unchanged(&self.release) {
+            tracing::debug!("Version is unchanged, not updating changelog");
             // The changelog already contains this version, so we don't update the changelog.
             return Ok(old_changelog);
         }
@@ -53,6 +54,7 @@ impl Changelog<'_> {
         let changelog = GitCliffChangelog::new(vec![self.release], &config)
             .context("error while building changelog")?;
         let mut out = Vec::new();
+        tracing::debug!("updating changelog: {:#?}", changelog);
         changelog
             .prepend(old_changelog, &mut out)
             .context("cannot update changelog")?;
@@ -277,8 +279,10 @@ fn kac_commit_parsers() -> Vec<CommitParser> {
 }
 
 fn default_changelog_config(header: Option<String>, release_link: Option<&str>) -> ChangelogConfig {
+    let header = header.unwrap_or(String::from(CHANGELOG_HEADER));
+    let header = replace_unreleased(&header, "aaaa");
     ChangelogConfig {
-        header: Some(header.unwrap_or(String::from(CHANGELOG_HEADER))),
+        header: Some(header),
         body: Some(default_changelog_body_config(release_link)),
         footer: None,
         postprocessors: None,
@@ -323,14 +327,14 @@ mod tests {
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
 
-        expect_test::expect![[r####"
+        expect_test::expect![[r#"
             # Changelog
             All notable changes to this project will be documented in this file.
 
             The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
             and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-            ## [Unreleased]
+            ## [Unreleased](aaaa)
 
             ## [1.1.1] - 2015-05-15
 
@@ -339,7 +343,7 @@ mod tests {
 
             ### Other
             - simple update
-        "####]]
+        "#]]
         .assert_eq(&changelog.generate());
     }
 
@@ -354,20 +358,20 @@ mod tests {
             .with_release_link("https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.24...release-plz-v0.2.25")
             .build();
 
-        expect_test::expect![[r####"
+        expect_test::expect![[r#"
             # Changelog
             All notable changes to this project will be documented in this file.
 
             The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
             and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-            ## [Unreleased]
+            ## [Unreleased](aaaa)
 
             ## [1.1.1](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.24...release-plz-v0.2.25) - 2015-05-15
 
             ### Fixed
             - myfix
-        "####]]
+        "#]]
         .assert_eq(&changelog.generate());
     }
 
@@ -391,14 +395,14 @@ mod tests {
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
 
-        expect_test::expect![[r####"
+        expect_test::expect![[r#"
             # Changelog
             All notable changes to this project will be documented in this file.
 
             The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
             and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-            ## [Unreleased]
+            ## [Unreleased](aaaa)
 
             ## [1.1.2] - 2015-05-15
 
@@ -415,7 +419,7 @@ mod tests {
 
             ### Other
             - simple update
-        "####]]
+        "#]]
         .assert_eq(&changelog.prepend(generated_changelog).unwrap());
     }
 
@@ -438,14 +442,14 @@ mod tests {
 "#;
         let old = format!("{CHANGELOG_HEADER}\n{old_body}");
         let new = changelog.prepend(old).unwrap();
-        expect_test::expect![[r####"
+        expect_test::expect![[r#"
             # Changelog
             All notable changes to this project will be documented in this file.
 
             The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
             and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-            ## [Unreleased]
+            ## [Unreleased](aaaa)
 
             ## [1.1.1] - 2015-05-15
 
@@ -454,6 +458,13 @@ mod tests {
 
             ### Other
             - simple update
+            # Changelog
+            All notable changes to this project will be documented in this file.
+
+            The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+            and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+            ## [Unreleased]
 
             ## [1.1.0] - 1970-01-01
 
@@ -462,7 +473,7 @@ mod tests {
 
             ### other
             - complex update
-        "####]]
+        "#]]
         .assert_eq(&new);
     }
 
@@ -484,14 +495,14 @@ mod tests {
 - complex update
 "#;
         let new = changelog.prepend(old);
-        expect_test::expect![[r####"
+        expect_test::expect![[r#"
             # Changelog
             All notable changes to this project will be documented in this file.
 
             The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
             and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-            ## [Unreleased]
+            ## [Unreleased](aaaa)
 
             ## [1.1.1] - 2015-05-15
 
@@ -507,7 +518,7 @@ mod tests {
 
             ### other
             - complex update
-        "####]]
+        "#]]
         .assert_eq(&new.unwrap());
     }
 
@@ -574,7 +585,7 @@ mod tests {
             The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
             and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-            ## [Unreleased]
+            ## [Unreleased](aaaa)
 
             ## [1.1.1] - 2015-05-15
 
@@ -588,6 +599,7 @@ mod tests {
 
 #[test]
 fn empty_changelog_is_updated() {
+    test_logs::init();
     let commits = vec![
         Commit::new(crate::NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
         Commit::new(crate::NO_COMMIT_ID.to_string(), "simple update".to_string()),
@@ -595,15 +607,15 @@ fn empty_changelog_is_updated() {
     let changelog = ChangelogBuilder::new(commits, "1.1.1")
         .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
         .build();
-    let new = changelog.prepend(CHANGELOG_HEADER);
-    expect_test::expect![[r####"
+    let new = changelog.prepend(CHANGELOG_HEADER).unwrap();
+    expect_test::expect![[r#"
         # Changelog
         All notable changes to this project will be documented in this file.
 
         The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
         and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-        ## [Unreleased]
+        ## [Unreleased](aaaa)
 
         ## [1.1.1] - 2015-05-15
 
@@ -612,6 +624,6 @@ fn empty_changelog_is_updated() {
 
         ### Other
         - simple update
-    "####]]
-    .assert_eq(&new.unwrap());
+    "#]]
+    .assert_eq(&new);
 }

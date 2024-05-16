@@ -1,6 +1,7 @@
 mod cargo;
 mod cargo_vcs_info;
 mod changelog;
+mod changelog_header;
 mod changelog_parser;
 mod clone;
 mod command;
