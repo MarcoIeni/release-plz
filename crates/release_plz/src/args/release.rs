@@ -220,11 +220,8 @@ mod tests {
             .release_request(&config, fake_metadata())
             .unwrap();
         let pkg_config = request.get_package_config("aaa");
-        let expected = release_plz_core::PackageReleaseConfig {
-            generic: release_plz_core::ReleaseConfig::default(),
-            changelog_path: None,
-        };
+        let expected = release_plz_core::ReleaseConfig::default();
         assert_eq!(pkg_config, expected);
-        assert!(pkg_config.generic.git_release().is_enabled());
+        assert!(pkg_config.git_release().is_enabled());
     }
 }

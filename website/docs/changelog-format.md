@@ -59,7 +59,8 @@ you can use the following context in the template:
 
 ```json
 {
-  "version": "v0.1.0-rc.21",
+  "version": "0.1.0",
+  "package": "my_crate",
   "commits": [
     {
       "id": "e795460c9bb7275294d1fa53a9d73258fb51eb10",

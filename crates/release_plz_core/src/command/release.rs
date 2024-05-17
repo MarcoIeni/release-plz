@@ -117,7 +117,7 @@ impl ReleaseRequest {
     pub fn with_package_config(
         mut self,
         package: impl Into<String>,
-        config: PackageReleaseConfig,
+        config: ReleaseConfig,
     ) -> Self {
         self.packages_config.set(package.into(), config);
         self
@@ -138,36 +138,36 @@ impl ReleaseRequest {
 
     fn is_publish_enabled(&self, package: &str) -> bool {
         let config = self.get_package_config(package);
-        config.generic.publish.enabled
+        config.publish.enabled
     }
 
     fn is_git_release_enabled(&self, package: &str) -> bool {
         let config = self.get_package_config(package);
-        config.generic.git_release.enabled
+        config.git_release.enabled
     }
 
     fn is_git_tag_enabled(&self, package: &str) -> bool {
         let config = self.get_package_config(package);
-        config.generic.git_tag.enabled
+        config.git_tag.enabled
     }
 
-    pub fn get_package_config(&self, package: &str) -> PackageReleaseConfig {
+    pub fn get_package_config(&self, package: &str) -> ReleaseConfig {
         self.packages_config.get(package)
     }
 
     pub fn allow_dirty(&self, package: &str) -> bool {
         let config = self.get_package_config(package);
-        config.generic.allow_dirty
+        config.allow_dirty
     }
 
     pub fn no_verify(&self, package: &str) -> bool {
         let config = self.get_package_config(package);
-        config.generic.no_verify
+        config.no_verify
     }
 
     pub fn features(&self, package: &str) -> Vec<String> {
         let config = self.get_package_config(package);
-        config.generic.features.clone()
+        config.features.clone()
     }
 
     fn registry_token(&self) -> Option<secrecy::Secret<String>> {
@@ -188,9 +188,9 @@ impl ReleaseRequest {
 impl ReleaseMetadataBuilder for ReleaseRequest {
     fn get_release_metadata(&self, package_name: &str) -> Option<ReleaseMetadata> {
         let config = self.get_package_config(package_name);
-        config.generic.release.then(|| ReleaseMetadata {
-            tag_name_template: config.generic.git_tag.name_template.clone(),
-            release_name_template: config.generic.git_release.name_template.clone(),
+        config.release.then(|| ReleaseMetadata {
+            tag_name_template: config.git_tag.name_template.clone(),
+            release_name_template: config.git_release.name_template.clone(),
         })
     }
 }
@@ -201,22 +201,22 @@ struct PackagesConfig {
     default: ReleaseConfig,
     /// Configurations that override `default`.
     /// The key is the package name.
-    overrides: BTreeMap<String, PackageReleaseConfig>,
+    overrides: BTreeMap<String, ReleaseConfig>,
 }
 
 impl PackagesConfig {
-    fn get(&self, package_name: &str) -> PackageReleaseConfig {
+    fn get(&self, package_name: &str) -> ReleaseConfig {
         self.overrides
             .get(package_name)
             .cloned()
-            .unwrap_or(self.default.clone().into())
+            .unwrap_or(self.default.clone())
     }
 
     fn set_default(&mut self, config: ReleaseConfig) {
         self.default = config;
     }
 
-    fn set(&mut self, package_name: String, config: PackageReleaseConfig) {
+    fn set(&mut self, package_name: String, config: ReleaseConfig) {
         self.overrides.insert(package_name, config);
     }
 }
@@ -237,6 +237,7 @@ pub struct ReleaseConfig {
     features: Vec<String>,
     /// High-level toggle to process this package or ignore it
     release: bool,
+    changelog_path: Option<Utf8PathBuf>,
 }
 
 impl ReleaseConfig {
@@ -294,6 +295,7 @@ impl Default for ReleaseConfig {
             allow_dirty: false,
             features: vec![],
             release: true,
+            changelog_path: None,
         }
     }
 }
@@ -414,23 +416,6 @@ impl GitTagConfig {
     pub fn is_enabled(&self) -> bool {
         self.enabled
     }
-}
-
-impl From<ReleaseConfig> for PackageReleaseConfig {
-    fn from(config: ReleaseConfig) -> Self {
-        Self {
-            generic: config,
-            changelog_path: None,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub struct PackageReleaseConfig {
-    /// config that can be applied by default to all packages.
-    pub generic: ReleaseConfig,
-    /// The changelog path can only be specified for a single package.
-    pub changelog_path: Option<Utf8PathBuf>,
 }
 
 #[derive(Debug)]
@@ -643,7 +628,7 @@ async fn release_package(
 
         if input.is_git_release_enabled(&package.name) {
             let release_body = release_body(input, package, changelog);
-            let release_config = input.get_package_config(&package.name).generic.git_release;
+            let release_config = input.get_package_config(&package.name).git_release;
             let is_pre_release = release_config.is_pre_release(&package.version);
             let release_info = GitReleaseInfo {
                 git_tag,
@@ -736,7 +721,6 @@ fn run_cargo_publish(
 fn release_body(req: &ReleaseRequest, package: &Package, changelog: &str) -> String {
     let body_template = req
         .get_package_config(&package.name)
-        .generic
         .git_release
         .body_template;
     crate::tera::release_body_from_template(

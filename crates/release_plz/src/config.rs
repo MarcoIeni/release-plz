@@ -84,7 +84,8 @@ impl Config {
             if allow_dirty {
                 release_config.common.publish_allow_dirty = Some(true);
             }
-            release_request = release_request.with_package_config(package, release_config.into());
+            release_request =
+                release_request.with_package_config(package, release_config.common.into());
         }
         release_request
     }
@@ -155,12 +156,6 @@ pub struct PackageSpecificConfig {
     /// Configuration that can be specified at the `[workspace]` level, too.
     #[serde(flatten)]
     common: PackageConfig,
-    /// # Changelog Path
-    /// Normally the changelog is placed in the same directory of the Cargo.toml file.
-    /// The user can provide a custom path here.
-    /// This `changelog_path` needs to be propagated to all the commands:
-    /// `update`, `release-pr` and `release`.
-    changelog_path: Option<PathBuf>,
     /// # Changelog Include
     /// List of package names.
     /// Include the changelogs of these packages in the changelog of the current package.
@@ -172,15 +167,8 @@ impl PackageSpecificConfig {
     pub fn merge(self, default: PackageConfig) -> PackageSpecificConfig {
         PackageSpecificConfig {
             common: self.common.merge(default),
-            changelog_path: self.changelog_path,
             changelog_include: self.changelog_include,
         }
-    }
-
-    pub fn changelog_path(&self) -> Option<&Utf8Path> {
-        self.changelog_path
-            .as_ref()
-            .map(|p| to_utf8_path(p.as_ref()).unwrap())
     }
 }
 
@@ -189,17 +177,6 @@ pub struct PackageSpecificConfigWithName {
     pub name: String,
     #[serde(flatten)]
     pub config: PackageSpecificConfig,
-}
-
-impl From<PackageSpecificConfig> for release_plz_core::PackageReleaseConfig {
-    fn from(config: PackageSpecificConfig) -> Self {
-        let generic = config.common.into();
-
-        Self {
-            generic,
-            changelog_path: config.changelog_path.map(|p| to_utf8_pathbuf(p).unwrap()),
-        }
-    }
 }
 
 impl From<PackageConfig> for release_plz_core::ReleaseConfig {
@@ -247,6 +224,12 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
 /// Configuration that can be specified both at the `[workspace]` and at the `[[package]]` level.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone, JsonSchema)]
 pub struct PackageConfig {
+    /// # Changelog Path
+    /// Normally the changelog is placed in the same directory of the Cargo.toml file.
+    /// The user can provide a custom path here.
+    /// `changelog_path` is propagated to the commands:
+    /// `update`, `release-pr` and `release`.
+    pub changelog_path: Option<PathBuf>,
     /// # Changelog Update
     /// Whether to create/update changelog or not.
     /// If unspecified, the changelog is updated.
@@ -302,6 +285,7 @@ impl From<PackageConfig> for release_plz_core::UpdateConfig {
             changelog_update: config.changelog_update != Some(false),
             release: config.release != Some(false),
             tag_name_template: config.git_tag_name,
+            changelog_path: config.changelog_path.map(|p| to_utf8_pathbuf(p).unwrap()),
         }
     }
 }
@@ -310,7 +294,6 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
     fn from(config: PackageSpecificConfig) -> Self {
         Self {
             generic: config.common.into(),
-            changelog_path: config.changelog_path.map(|p| to_utf8_pathbuf(p).unwrap()),
             changelog_include: config.changelog_include.unwrap_or_default(),
         }
     }
@@ -321,6 +304,7 @@ impl PackageConfig {
     pub fn merge(self, default: Self) -> Self {
         Self {
             semver_check: self.semver_check.or(default.semver_check),
+            changelog_path: self.changelog_path.or(default.changelog_path),
             changelog_update: self.changelog_update.or(default.changelog_update),
             git_release_enable: self.git_release_enable.or(default.git_release_enable),
             git_release_type: self.git_release_type.or(default.git_release_type),
@@ -336,6 +320,12 @@ impl PackageConfig {
             git_tag_name: self.git_tag_name.or(default.git_tag_name),
             release: self.release.or(default.release),
         }
+    }
+
+    pub fn changelog_path(&self) -> Option<&Utf8Path> {
+        self.changelog_path
+            .as_ref()
+            .map(|p| to_utf8_path(p.as_ref()).unwrap())
     }
 }
 
@@ -439,7 +429,6 @@ mod tests {
                     git_release_draft: None,
                     ..Default::default()
                 },
-                changelog_path: None,
                 changelog_include: None,
             },
         }
@@ -533,6 +522,7 @@ mod tests {
                     git_release_type: Some(ReleaseType::Prod),
                     git_release_draft: Some(false),
                     release: Some(true),
+                    changelog_path: Some("./CHANGELOG.md".into()),
                     ..Default::default()
                 },
                 publish_timeout: Some("10m".to_string()),
@@ -551,7 +541,6 @@ mod tests {
                         release: Some(false),
                         ..Default::default()
                     },
-                    changelog_path: Some("./CHANGELOG.md".into()),
                     changelog_include: Some(vec!["pkg1".to_string()]),
                 },
             }]
@@ -560,6 +549,7 @@ mod tests {
 
         expect_test::expect![[r#"
             [workspace]
+            changelog_path = "./CHANGELOG.md"
             changelog_update = true
             git_release_enable = true
             git_release_type = "prod"
@@ -582,7 +572,6 @@ mod tests {
             git_release_draft = false
             semver_check = false
             release = false
-            changelog_path = "./CHANGELOG.md"
             changelog_include = ["pkg1"]
         "#]]
         .assert_eq(&toml::to_string(&config).unwrap());
