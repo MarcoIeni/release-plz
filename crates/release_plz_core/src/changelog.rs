@@ -308,7 +308,7 @@ fn default_changelog_config(header: Option<String>, release_link: Option<&str>) 
 
 fn default_changelog_body_config(release_link: Option<&str>) -> String {
     let pre = r#"
-    ## [{{ version | trim_start_matches(pat="v") }}]"#;
+## [{{ version | trim_start_matches(pat="v") }}]"#;
     let post = r#" - {{ timestamp | date(format="%Y-%m-%d") }}
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group | upper_first }}
