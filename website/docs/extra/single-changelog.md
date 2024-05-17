@@ -28,31 +28,9 @@ If you have a workspace with multiple packages, and you want to group all the
 changes in a single changelog, you can customize your `release-plz.toml`
 file like this:
 
-<!--
-TODO: allow to set the `changelog_path` at workspace level
-
 ```toml
 [workspace]
 # set the path of all the crates to the changelog to the root of the repository
-changelog_path = "./CHANGELOG.md"
-```
-
-If you only cares about a few packages of the workspace: -->
-
-```toml
-[workspace]
-# disable the changelog for all packages
-changelog_update = false
-
-[[package]]
-name = "package_a"
-# enable the changelog for this package
-changelog_update = true
-changelog_path = "./CHANGELOG.md"
-
-[[package]]
-name = "package_b"
-changelog_update = true
 changelog_path = "./CHANGELOG.md"
 
 [changelog]
@@ -79,3 +57,34 @@ In this way, `package_a` and `package_b` changelogs are in the same file.
 Note that the changelog will contain duplicate changes.
 If you want to merge updates of different packages into one, check
 the [changelog_include](../config.md#the-changelog_include-field) field.
+
+:::tip
+You can enable the changelog for a subset of packages only:
+
+```toml
+[workspace]
+# Disable the changelog for all packages.
+changelog_update = false
+changelog_path = "./CHANGELOG.md"
+
+[[package]]
+name = "package_a"
+# Enable the changelog for this package (override default).
+changelog_update = true
+```
+:::
+
+:::tip
+You can customize the changelog path for each package.
+In the following example, the changes of `package_b` will be added to its own changelog,
+instead of being included in `./CHANGELOG.md` like all the other packages.
+
+```toml
+[workspace]
+changelog_path = "./CHANGELOG.md"
+
+[[package]]
+name = "package_b"
+changelog_path = "package_b/CHANGELOG.md"
+```
+:::
