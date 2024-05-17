@@ -72,6 +72,7 @@ name = "package_a"
 # Enable the changelog for this package (override default).
 changelog_update = true
 ```
+
 :::
 
 :::tip
@@ -87,4 +88,5 @@ changelog_path = "./CHANGELOG.md"
 name = "package_b"
 changelog_path = "package_b/CHANGELOG.md"
 ```
+
 :::
