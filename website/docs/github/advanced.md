@@ -91,6 +91,8 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Close old release PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # List all opened PRs which head branch starts with "release-plz-"
           release_pr=$(gh pr list --state='open' --json number,headRefName --jq '.[] | select(.headRefName | startswith("release-plz-")) | .number')
@@ -101,8 +103,6 @@ jobs:
           else
             echo "No open release PR"
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@v0.5
         env:

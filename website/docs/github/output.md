@@ -92,3 +92,71 @@ jobs:
           echo "pr_head_branch: ${{ fromJSON(steps.release-plz.outputs.pr).head_branch }}"
           echo "pr_base_branch: ${{ fromJSON(steps.release-plz.outputs.pr).base_branch }}"
 ```
+
+## Example: add labels to released PRs
+
+It often happens, when looking for a feature or a bug fix, to land on a merged PR.
+The next question: was this released? In what version?
+
+With release-plz you can add a label to the PRs with the version they were released in:
+
+:::info
+In this example, we are talking about the PRs containing code changes.
+We aren't talking about the release PRs created by release-plz.
+You can label release PRs with the [pr_labels](../config.md#the-pr_labels-field)
+configuration field.
+:::
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
+        uses: MarcoIeni/release-plz-action@v0.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Tag released PRs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASES: ${{ steps.release-plz.outputs.releases }}
+        run: |
+          set -e
+
+          # Iterate over released packages and add a label to the PRs
+          # shipped with the release.
+          for release in $(echo "$RELEASES" | jq -r -c '.[]'); do
+              package_name=$(echo "$release" | jq -r '.package_name')
+              version=$(echo "$release" | jq -r '.version')
+              prs_length=$(echo "$release" | jq '.prs | length')
+              if [ "$prs_length" -gt 0 ]; then
+                  # Create label.
+                  # Use `--force` to overwrite the label,
+                  # so that the command does not fail if the label already exists.
+                  label="released:$package_name-$version"
+                  echo "Creating label $label"
+                  gh label create $label --color BFD4F2 --force
+                  for pr in $(echo "$release" | jq -r -c '.prs[]'); do
+                      pr_number=$(echo "$pr" | jq -r '.number')
+                      echo "Adding label $label to PR #$pr_number"
+                      gh pr edit $pr_number --add-label $label
+                  done
+              else
+                  echo "No PRs found for package $package_name"
+              fi
+          done
+```
+
+You can also add a milestone with `gh pr edit $pr_number --milestone <MILESTONE_NUMBER>`.
+
+:::tip
+Make sure your GitHub token has permission to do all the operations you need.
+:::
