@@ -122,3 +122,102 @@ async fn release_plz_adds_custom_changelog() {
     "#]]
     .assert_eq(&changelog);
 }
+
+#[tokio::test]
+async fn can_generate_single_changelog_for_multiple_packages_in_pr() {
+    let context = TestContext::new_workspace(&["crates/one", "crates/two"]).await;
+    let config = r#"
+    [workspace]
+    changelog_path = "./CHANGELOG.md"
+
+    [changelog]
+    body = """
+
+    ## `{{ package }}` - [{{ version | trim_start_matches(pat="v") }}](https://github.com/me/my-proj/compare/{{ package }}-v{{ previous.version }}...{{ package }}-v{{ version }}) - {{ timestamp | date(format="%Y-%m-%d") }}
+    {% for group, commits in commits | group_by(attribute="group") %}
+    ### {{ group | upper_first }}
+    {% for commit in commits %}
+    {%- if commit.scope -%}
+    - *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
+    {% else -%}
+    - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
+    {% endif -%}
+    {% endfor -%}
+    {% endfor %}
+    """
+    "#;
+    context.write_release_plz_toml(config);
+
+    context.run_release_pr().success();
+
+    let opened_prs = context.opened_release_prs().await;
+    assert_eq!(opened_prs.len(), 1);
+
+    let changelog = context
+        .gitea
+        .get_file_content(opened_prs[0].branch(), "CHANGELOG.md")
+        .await;
+    expect_test::expect![[r#"
+        # Changelog
+        All notable changes to this project will be documented in this file.
+
+        The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+        and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+        ## [Unreleased]
+
+        ## `one` - [0.1.0](https://github.com/me/my-proj/compare/one-v0.1.0...one-v0.1.0) - 2024-05-18
+
+        ### Other
+        - cargo init
+
+    "#]]
+    .assert_eq(&changelog);
+}
+
+#[tokio::test]
+async fn can_generate_single_changelog_for_multiple_packages_locally() {
+    let context = TestContext::new_workspace(&["crates/one", "crates/two"]).await;
+    let config = r#"
+    [workspace]
+    changelog_path = "./CHANGELOG.md"
+
+    [changelog]
+    body = """
+
+    ## `{{ package }}` - [{{ version | trim_start_matches(pat="v") }}](https://github.com/me/my-proj/compare/{{ package }}-v{{ previous.version }}...{{ package }}-v{{ version }}) - {{ timestamp | date(format="%Y-%m-%d") }}
+    {% for group, commits in commits | group_by(attribute="group") %}
+    ### {{ group | upper_first }}
+    {% for commit in commits %}
+    {%- if commit.scope -%}
+    - *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
+    {% else -%}
+    - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
+    {% endif -%}
+    {% endfor -%}
+    {% endfor %}
+    """
+    "#;
+    context.write_release_plz_toml(config);
+
+    context.run_update().success();
+
+    let changelog = fs_err::read_to_string(context.repo.directory().join("CHANGELOG.md")).unwrap();
+
+    expect_test::expect![[r#"
+        # Changelog
+        All notable changes to this project will be documented in this file.
+
+        The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+        and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+        ## [Unreleased]
+
+        ## `one` - [0.1.0](https://github.com/me/my-proj/compare/one-v0.1.0...one-v0.1.0) - 2024-05-18
+
+        ### Other
+        - cargo init
+
+    "#]]
+    .assert_eq(&changelog);
+}
