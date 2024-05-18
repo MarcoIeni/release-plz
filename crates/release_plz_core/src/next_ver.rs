@@ -1439,7 +1439,7 @@ mod tests {
 
     #[test]
     fn test_empty_override() {
-        let utf8_path = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let utf8_path = Utf8Path::new("../../tests/fixtures/typo-in-overrides/Cargo.toml");
         let local_manifest = utf8_path;
         let result = get_project(local_manifest, None, &HashSet::default(), true, None, None);
         assert!(result.is_ok());
@@ -1447,7 +1447,7 @@ mod tests {
 
     #[test]
     fn test_successful_override() {
-        let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = Utf8Path::new("../../tests/fixtures/typo-in-overrides/Cargo.toml");
         let overrides = (["typo_test".to_string()]).into();
         let result = get_project(local_manifest, None, &overrides, true, None, None);
         assert!(result.is_ok());
@@ -1455,7 +1455,7 @@ mod tests {
 
     #[test]
     fn test_typo_in_crate_names() {
-        let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = Utf8Path::new("../../tests/fixtures/typo-in-overrides/Cargo.toml");
         let single_package = None;
         let overrides = vec!["typo_tesst".to_string()].into_iter().collect();
         let result = get_project(local_manifest, single_package, &overrides, true, None, None);
@@ -1507,7 +1507,7 @@ mod tests {
 
     #[test]
     fn project_tag_template_none() {
-        let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = Utf8Path::new("../../tests/fixtures/typo-in-overrides/Cargo.toml");
         let project = get_project(local_manifest, None, &HashSet::default(), true, None, None)
             .expect("Should ok");
         assert_eq!(project.git_tag("typo_test", "0.1.0"), "v0.1.0");
@@ -1515,7 +1515,7 @@ mod tests {
 
     #[test]
     fn project_release_and_tag_template_some() {
-        let local_manifest = Utf8Path::new("../../fixtures/typo-in-overrides/Cargo.toml");
+        let local_manifest = Utf8Path::new("../../tests/fixtures/typo-in-overrides/Cargo.toml");
         let project = get_project(
             local_manifest,
             None,
