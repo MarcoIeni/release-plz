@@ -167,6 +167,12 @@ async fn can_generate_single_changelog_for_multiple_packages_in_pr() {
 
         ## [Unreleased]
 
+        ## `two` - [0.1.0](https://github.com/me/my-proj/compare/two-v0.1.0...two-v0.1.0) - 2024-05-18
+
+        ### Other
+        - cargo init
+
+
         ## `one` - [0.1.0](https://github.com/me/my-proj/compare/one-v0.1.0...one-v0.1.0) - 2024-05-18
 
         ### Other
@@ -214,6 +220,12 @@ async fn can_generate_single_changelog_for_multiple_packages_locally() {
         and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
         ## [Unreleased]
+
+        ## `two` - [0.1.0](https://github.com/me/my-proj/compare/two-v0.1.0...two-v0.1.0) - 2024-05-18
+
+        ### Other
+        - cargo init
+
 
         ## `one` - [0.1.0](https://github.com/me/my-proj/compare/one-v0.1.0...one-v0.1.0) - 2024-05-18
 

@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";
 
+#[derive(Debug)]
 pub struct Changelog<'a> {
     release: Release<'a>,
     config: Option<Config>,
@@ -46,10 +47,6 @@ impl Changelog<'_> {
     /// Update an existing changelog.
     pub fn prepend(self, old_changelog: impl Into<String>) -> anyhow::Result<String> {
         let old_changelog: String = old_changelog.into();
-        if is_version_unchanged(&self.release) {
-            // The changelog already contains this version, so we don't update the changelog.
-            return Ok(old_changelog);
-        }
         let old_header = changelog_parser::parse_header(&old_changelog);
         let config = self.changelog_config(old_header, self.release_link.as_deref());
         let mut changelog = GitCliffChangelog::new(vec![self.release], &config)
