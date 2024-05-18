@@ -58,6 +58,28 @@ Note that the changelog will contain duplicate changes.
 If you want to merge updates of different packages into one, check
 the [changelog_include](../config.md#the-changelog_include-field) field.
 
+Here's an example of the changelog output:
+
+```md
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## `marco-test-two` - [0.4.20](https://github.com/marcoieni/rust-workspace-example/compare/marco-test-two-v0.4.19...marco-test-two-v0.4.20) - 2024-05-17
+
+### Added
+- new feature
+
+## `marco-test-three` - [0.1.16](https://github.com/marcoieni/rust-workspace-example/compare/marco-test-three-v0.1.15...marco-test-three-v0.1.16) - 2024-05-17
+
+### Other
+- Small change
+```
+
 :::tip
 You can enable the changelog for a subset of packages only:
 
