@@ -124,6 +124,7 @@ async fn release_plz_adds_custom_changelog() {
 }
 
 #[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
 async fn can_generate_single_changelog_for_multiple_packages_in_pr() {
     let context = TestContext::new_workspace(&["crates/one", "crates/two"]).await;
     let config = r#"
@@ -176,6 +177,7 @@ async fn can_generate_single_changelog_for_multiple_packages_in_pr() {
 }
 
 #[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
 async fn can_generate_single_changelog_for_multiple_packages_locally() {
     let context = TestContext::new_workspace(&["crates/one", "crates/two"]).await;
     let config = r#"
