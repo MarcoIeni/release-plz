@@ -1194,14 +1194,15 @@ fn get_changelog(
         if let Some(link) = release_link {
             changelog_builder = changelog_builder.with_release_link(link);
         }
-        let last_version = old_changelog
-            .and_then(|old_changelog| {
-                changelog_parser::last_version_from_str(old_changelog)
-                    .ok()
-                    .flatten()
-            })
-            .unwrap_or(package.version.to_string());
-        if next_version.to_string() != last_version {
+        let is_unpublished_package = next_version == &package.version;
+        if !is_unpublished_package {
+            let last_version = old_changelog
+                .and_then(|old_changelog| {
+                    changelog_parser::last_version_from_str(old_changelog)
+                        .ok()
+                        .flatten()
+                })
+                .unwrap_or(package.version.to_string());
             changelog_builder = changelog_builder.with_previous_version(last_version);
         }
     }
