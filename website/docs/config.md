@@ -649,7 +649,7 @@ E.g.:
 ```toml
 [changelog]
 body = """
-## [{{ version | trim_start_matches(pat="v") }}](https://github.com/me/my-proj/compare/{{ previous.version }}...{{ version }}) - {{ timestamp | date(format="%Y-%m-%d") }}
+## [{{ version | trim_start_matches(pat="v") }}](https://github.com/me/my-proj/{% if previous.version %}compare/{{ package }}-v{{ previous.version }}...{{ package }}-v{{ version }}{% else %}releases/tag/{{ package }}-v{{ version }}{% endif %}) - {{ timestamp | date(format="%Y-%m-%d") }}
 
 ...rest of the body...
 ```

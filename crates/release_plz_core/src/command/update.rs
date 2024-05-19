@@ -14,7 +14,7 @@ use tracing::{debug, instrument};
 
 pub type PackagesToUpdate = Vec<(Package, UpdateResult)>;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct PackagesUpdate {
     updates: PackagesToUpdate,
     /// New workspace version. If None, the workspace version is not updated.

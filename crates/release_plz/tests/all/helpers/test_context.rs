@@ -31,7 +31,7 @@ pub struct TestContext {
 }
 
 impl TestContext {
-    pub async fn new() -> Self {
+    async fn init_context() -> Self {
         test_logs::init();
         let repo_name = fake_utils::fake_id();
         let gitea = GiteaContext::new(repo_name).await;
@@ -43,13 +43,60 @@ impl TestContext {
         let git_client = git_client(&repo_url, &gitea.token);
 
         let repo_dir = test_dir.path().join(&gitea.repo);
-        let repo = commit_cargo_init(&repo_dir, &gitea);
+        let repo = configure_repo(&repo_dir, &gitea);
         Self {
             gitea,
             test_dir,
             git_client,
             repo,
         }
+    }
+    pub async fn new() -> Self {
+        let context = Self::init_context().await;
+        cargo_init(context.repo.directory());
+        context.generate_cargo_lock();
+        context.repo.add_all_and_commit("cargo init").unwrap();
+        context.repo.git(&["push"]).unwrap();
+        context
+    }
+
+    pub async fn new_workspace(crates: &[&str]) -> Self {
+        let context = Self::init_context().await;
+        let root_cargo_toml = {
+            let quoted_crates: Vec<String> = crates.iter().map(|c| format!("\"{c}\"")).collect();
+            let crates_list = quoted_crates.join(",");
+            format!("[workspace]\nresolver = \"2\"\nmembers = [{crates_list}]\n")
+        };
+        fs_err::write(context.repo.directory().join("Cargo.toml"), root_cargo_toml).unwrap();
+
+        for package in crates {
+            let crate_dir = context.repo.directory().join(package);
+            fs_err::create_dir_all(&crate_dir).unwrap();
+            cargo_init(&crate_dir);
+        }
+        context.generate_cargo_lock();
+        context.repo.add_all_and_commit("cargo init").unwrap();
+        context.repo.git(&["push"]).unwrap();
+        context
+    }
+
+    fn generate_cargo_lock(&self) {
+        assert_cmd::Command::new("cargo")
+            .current_dir(self.repo.directory())
+            .arg("check")
+            .assert()
+            .success();
+    }
+
+    pub fn run_update(&self) -> Assert {
+        super::cmd::release_plz_cmd()
+            .current_dir(&self.repo_dir())
+            .env("RUST_LOG", log_level())
+            .arg("update")
+            .arg("--verbose")
+            .arg("--registry")
+            .arg(TEST_REGISTRY)
+            .assert()
     }
 
     pub fn run_release_pr(&self) -> Assert {
@@ -128,14 +175,17 @@ fn log_level() -> String {
     }
 }
 
-fn commit_cargo_init(repo_dir: &Utf8Path, gitea: &GiteaContext) -> Repo {
-    let username = gitea.user.username();
+fn cargo_init(crate_dir: &Utf8Path) {
     assert_cmd::Command::new("cargo")
-        .current_dir(repo_dir)
+        .current_dir(crate_dir)
         .arg("init")
         .assert()
         .success();
-    edit_cargo_toml(repo_dir);
+    edit_cargo_toml(crate_dir);
+}
+
+fn configure_repo(repo_dir: &Utf8Path, gitea: &GiteaContext) -> Repo {
+    let username = gitea.user.username();
     let repo = Repo::new(repo_dir).unwrap();
     // config local user
     repo.git(&["config", "user.name", username]).unwrap();
@@ -145,15 +195,6 @@ fn commit_cargo_init(repo_dir: &Utf8Path, gitea: &GiteaContext) -> Repo {
 
     create_cargo_config(repo_dir, username);
 
-    // Generate Cargo.lock
-    assert_cmd::Command::new("cargo")
-        .current_dir(repo_dir)
-        .arg("check")
-        .assert()
-        .success();
-
-    repo.add_all_and_commit("cargo init").unwrap();
-    repo.git(&["push"]).unwrap();
     repo
 }
 
