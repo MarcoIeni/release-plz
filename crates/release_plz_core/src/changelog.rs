@@ -125,7 +125,6 @@ fn apply_defaults_to_git_config(git: GitConfig) -> GitConfig {
 fn is_version_unchanged(release: &Release) -> bool {
     let previous_version = release.previous.as_ref().and_then(|r| r.version.as_deref());
     let new_version = release.version.as_deref();
-    tracing::info!("Checking if version is unchanged. new: {new_version:?}. prev: {previous_version:?}. release: {:?}", release);
     previous_version == new_version
 }
 
