@@ -1201,7 +1201,9 @@ fn get_changelog(
                     .flatten()
             })
             .unwrap_or(package.version.to_string());
-        changelog_builder = changelog_builder.with_previous_version(last_version);
+        if next_version.to_string() != last_version {
+            changelog_builder = changelog_builder.with_previous_version(last_version);
+        }
     }
     let new_changelog = changelog_builder.build();
     let changelog = match old_changelog {

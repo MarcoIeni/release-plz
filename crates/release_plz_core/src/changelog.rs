@@ -47,6 +47,10 @@ impl Changelog<'_> {
     /// Update an existing changelog.
     pub fn prepend(self, old_changelog: impl Into<String>) -> anyhow::Result<String> {
         let old_changelog: String = old_changelog.into();
+        if is_version_unchanged(&self.release) {
+            // The changelog already contains this version, so we don't update the changelog.
+            return Ok(old_changelog);
+        }
         let old_header = changelog_parser::parse_header(&old_changelog);
         let config = self.changelog_config(old_header, self.release_link.as_deref());
         let mut changelog = GitCliffChangelog::new(vec![self.release], &config)
@@ -121,6 +125,7 @@ fn apply_defaults_to_git_config(git: GitConfig) -> GitConfig {
 fn is_version_unchanged(release: &Release) -> bool {
     let previous_version = release.previous.as_ref().and_then(|r| r.version.as_deref());
     let new_version = release.version.as_deref();
+    tracing::info!("Checking if version is unchanged. new: {new_version:?}. prev: {previous_version:?}. release: {:?}", release);
     previous_version == new_version
 }
 
