@@ -1479,8 +1479,10 @@ mod tests {
         let changelog_req = ChangelogRequest::default();
 
         let old = r#"## [1.1.0] - 1970-01-01
+
 ### fix bugs
 - my awesomefix
+
 ### other
 - complex update
 "#;
