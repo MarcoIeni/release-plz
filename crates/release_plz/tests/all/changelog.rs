@@ -144,7 +144,7 @@ async fn can_generate_single_changelog_for_multiple_packages_in_pr() {
     - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
     {% endif -%}
     {% endfor -%}
-    {% endfor %}
+    {% endfor -%}
     """
     "#;
     context.write_release_plz_toml(config);
@@ -172,12 +172,10 @@ async fn can_generate_single_changelog_for_multiple_packages_in_pr() {
         ### Other
         - cargo init
 
-
         ## `one` - [0.1.0](https://github.com/me/my-proj/releases/tag/one-v0.1.0) - 2024-05-19
 
         ### Other
         - cargo init
-
     "#]]
     .assert_eq(&changelog);
 }
@@ -203,8 +201,7 @@ async fn can_generate_single_changelog_for_multiple_packages_locally() {
     - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
     {% endif -%}
     {% endfor -%}
-    {% endfor %}
-    """
+    {% endfor -%}"""
     "#;
     context.write_release_plz_toml(config);
 
@@ -226,12 +223,10 @@ async fn can_generate_single_changelog_for_multiple_packages_locally() {
         ### Other
         - cargo init
 
-
         ## `one` - [0.1.0](https://github.com/me/my-proj/releases/tag/one-v0.1.0) - 2024-05-19
 
         ### Other
         - cargo init
-
     "#]]
     .assert_eq(&changelog);
 }
