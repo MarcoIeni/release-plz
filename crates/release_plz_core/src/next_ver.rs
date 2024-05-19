@@ -1469,6 +1469,34 @@ mod tests {
     }
 
     #[test]
+    fn same_version_is_not_added_to_changelog() {
+        let commits = vec![
+            Commit::new(crate::NO_COMMIT_ID.to_string(), "fix: myfix".to_string()),
+            Commit::new(crate::NO_COMMIT_ID.to_string(), "simple update".to_string()),
+        ];
+
+        let next_version = Version::new(1, 1, 0);
+        let changelog_req = ChangelogRequest::default();
+
+        let old = r#"## [1.1.0] - 1970-01-01
+### fix bugs
+- my awesomefix
+### other
+- complex update
+"#;
+        let new = get_changelog(
+            commits,
+            &next_version,
+            Some(changelog_req),
+            Some(old),
+            None,
+            &fake_package::FakePackage::new("my_package").into(),
+        )
+        .unwrap();
+        assert_eq!(old, new);
+    }
+
+    #[test]
     fn project_new_no_release_will_error() {
         let local_manifest = Utf8Path::new("../fake_package/Cargo.toml");
         let result = get_project(local_manifest, None, &HashSet::default(), false, None, None);
