@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.69](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.68...release-plz-v0.3.69) - 2024-05-21
+
+### Added
+- add package name to changelog context ([#1399](https://github.com/MarcoIeni/release-plz/pull/1399))
+
+### Fixed
+- multiple packages in one changelog with same version ([#1469](https://github.com/MarcoIeni/release-plz/pull/1469))
+
+### Other
+- remove timestamp from test ([#1480](https://github.com/MarcoIeni/release-plz/pull/1480))
+- move fixtures directory ([#1467](https://github.com/MarcoIeni/release-plz/pull/1467))
+
 ## [0.3.68](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.67...release-plz-v0.3.68) - 2024-05-14
 
 ### Fixed
