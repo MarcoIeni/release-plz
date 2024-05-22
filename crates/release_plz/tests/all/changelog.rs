@@ -134,7 +134,7 @@ async fn can_generate_single_changelog_for_multiple_packages_in_pr() {
     [changelog]
     body = """
 
-    ## `{{ package }}` - [{{ version | trim_start_matches(pat="v") }}](https://github.com/me/my-proj/{% if previous.version %}compare/{{ package }}-v{{ previous.version }}...{{ package }}-v{{ version }}{% else %}releases/tag/{{ package }}-v{{ version }}{% endif %}) - {{ timestamp | date(format="%Y-%m-%d") }}
+    ## `{{ package }}` - [{{ version | trim_start_matches(pat="v") }}](https://github.com/me/my-proj/{% if previous.version %}compare/{{ package }}-v{{ previous.version }}...{{ package }}-v{{ version }}{% else %}releases/tag/{{ package }}-v{{ version }}{% endif %})
     {% for group, commits in commits | group_by(attribute="group") %}
     ### {{ group | upper_first }}
     {% for commit in commits %}
@@ -167,12 +167,12 @@ async fn can_generate_single_changelog_for_multiple_packages_in_pr() {
 
         ## [Unreleased]
 
-        ## `two` - [0.1.0](https://github.com/me/my-proj/releases/tag/two-v0.1.0) - 2024-05-19
+        ## `two` - [0.1.0](https://github.com/me/my-proj/releases/tag/two-v0.1.0)
 
         ### Other
         - cargo init
 
-        ## `one` - [0.1.0](https://github.com/me/my-proj/releases/tag/one-v0.1.0) - 2024-05-19
+        ## `one` - [0.1.0](https://github.com/me/my-proj/releases/tag/one-v0.1.0)
 
         ### Other
         - cargo init
@@ -191,7 +191,7 @@ async fn can_generate_single_changelog_for_multiple_packages_locally() {
     [changelog]
     body = """
 
-    ## `{{ package }}` - [{{ version | trim_start_matches(pat="v") }}](https://github.com/me/my-proj/{% if previous.version %}compare/{{ package }}-v{{ previous.version }}...{{ package }}-v{{ version }}{% else %}releases/tag/{{ package }}-v{{ version }}{% endif %}) - {{ timestamp | date(format="%Y-%m-%d") }}
+    ## `{{ package }}` - [{{ version | trim_start_matches(pat="v") }}](https://github.com/me/my-proj/{% if previous.version %}compare/{{ package }}-v{{ previous.version }}...{{ package }}-v{{ version }}{% else %}releases/tag/{{ package }}-v{{ version }}{% endif %})
     {% for group, commits in commits | group_by(attribute="group") %}
     ### {{ group | upper_first }}
     {% for commit in commits %}
@@ -218,12 +218,12 @@ async fn can_generate_single_changelog_for_multiple_packages_locally() {
 
         ## [Unreleased]
 
-        ## `two` - [0.1.0](https://github.com/me/my-proj/releases/tag/two-v0.1.0) - 2024-05-19
+        ## `two` - [0.1.0](https://github.com/me/my-proj/releases/tag/two-v0.1.0)
 
         ### Other
         - cargo init
 
-        ## `one` - [0.1.0](https://github.com/me/my-proj/releases/tag/one-v0.1.0) - 2024-05-19
+        ## `one` - [0.1.0](https://github.com/me/my-proj/releases/tag/one-v0.1.0)
 
         ### Other
         - cargo init
