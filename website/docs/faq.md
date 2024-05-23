@@ -40,8 +40,8 @@ files of the crate or one of its dependencies.
 ## What if a commit doesn't follow the conventional-commits format?
 
 By default, it will be listed under the section `### Other`.
-Remember you can customize the changelog format by providing a
-[git-cliff](https://git-cliff.org) config file.
+You can customize the changelog format with the
+[`[changelog]`](./config.md#the-changelog-section) configuration section.
 
 ## How do I know the branch of the release PR?
 
