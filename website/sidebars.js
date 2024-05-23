@@ -55,6 +55,7 @@ const sidebars = {
         "extra/yanked-packages",
       ],
     },
+    "media",
     "release-plz-in-the-wild",
   ],
 };
