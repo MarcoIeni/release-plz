@@ -1,4 +1,5 @@
 use anyhow::Context;
+use cargo::core::package;
 use cargo_metadata::{
     camino::{Utf8Path, Utf8PathBuf},
     Package,
@@ -138,21 +139,14 @@ pub fn is_readme_updated(
     registry_package_path: &Utf8Path,
 ) -> anyhow::Result<bool> {
     // Read again manifest metadata because the Cargo.toml might change on every commit.
-    let package = match get_manifest_metadata(&local_package_path.join(CARGO_TOML)) {
-        Ok(metadata) => metadata
-            .workspace_packages()
-            .into_iter()
-            .find(|&p| p.name == package_name)
-            .cloned(),
+    let package = match read_package_metadata(package_name, local_package_path) {
+        Ok(package) => package,
         Err(e) => {
-            tracing::warn!("cannot read Cargo.toml {local_package_path}: {e}");
+            tracing::warn!(
+                "cannot read package metadata of {package_name} in {local_package_path}: {e:?}"
+            );
             return Ok(false);
         }
-    };
-
-    let Some(package) = package else {
-        tracing::warn!("cannot find package {package_name} in Cargo.toml {local_package_path}");
-        return Ok(false);
     };
 
     let local_package_readme_path = local_readme_override(&package, local_package_path);
@@ -199,4 +193,18 @@ fn file_hash(file: &Utf8Path) -> io::Result<u64> {
     buffer.hash(&mut hasher);
     let hash = hasher.finish();
     Ok(hash)
+}
+
+fn read_package_metadata(
+    package_name: &str,
+    local_package_path: &Utf8Path,
+) -> anyhow::Result<Package> {
+    let package = get_manifest_metadata(&local_package_path.join(CARGO_TOML))
+        .context("cannot read Cargo.toml")?
+        .workspace_packages()
+        .into_iter()
+        .find(|&p| p.name == package_name)
+        .cloned()
+        .context("cannot find package in Cargo.toml")?;
+    Ok(package)
 }
