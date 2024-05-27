@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.48](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.47...cargo_utils-v0.1.48) - 2024-05-27
+
+### Other
+- update Cargo.toml dependencies
+
 ## [0.1.47](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.46...cargo_utils-v0.1.47) - 2024-05-12
 
 ### Other
