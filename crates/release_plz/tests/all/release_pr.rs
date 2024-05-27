@@ -30,7 +30,7 @@ async fn release_plz_detects_edited_readme_cargo_toml_field() {
     assert_eq!(gitea_release.name, expected_tag);
     expect_test::expect![[r#"
         ### Other
-        - add new readme"#]]
+        - move readme"#]]
     .assert_eq(&gitea_release.body);
 }
 
