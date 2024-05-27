@@ -46,6 +46,6 @@ fn move_readme(context: &TestContext) {
     cargo_toml.data["package"]["readme"] = toml_edit::value(new_readme);
     cargo_toml.write().unwrap();
 
-    context.repo.add_all_and_commit("add new readme").unwrap();
+    context.repo.add_all_and_commit("move readme").unwrap();
     context.repo.git(&["push"]).unwrap();
 }
