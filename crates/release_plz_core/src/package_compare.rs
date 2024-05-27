@@ -1,5 +1,4 @@
 use anyhow::Context;
-use cargo::core::package;
 use cargo_metadata::{
     camino::{Utf8Path, Utf8PathBuf},
     Package,
