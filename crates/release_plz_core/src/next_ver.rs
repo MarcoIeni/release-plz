@@ -8,6 +8,7 @@ use crate::{
     package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection, RegistryPackage},
     repo_url::RepoUrl,
+    repo_versions::get_repo_versions,
     semver_check::{self, SemverCheck},
     tera::{tera_context, tera_var, PACKAGE_VAR, VERSION_VAR},
     tmp_repo::TempRepo,
@@ -15,7 +16,7 @@ use crate::{
     version::NextVersionFromDiff,
     ChangelogBuilder, PackagesToUpdate, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
 };
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use cargo_metadata::{
     camino::{Utf8Path, Utf8PathBuf},
     semver::Version,
@@ -24,7 +25,7 @@ use cargo_metadata::{
 use cargo_utils::{to_utf8_pathbuf, upgrade_requirement, LocalManifest};
 use chrono::NaiveDate;
 use git_cliff_core::commit::Commit;
-use git_cmd::{self, Repo};
+use git_cmd::Repo;
 use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
@@ -131,6 +132,9 @@ pub struct UpdateConfig {
     /// Whether to create/update changelog or not.
     /// Default: `true`.
     pub changelog_update: bool,
+    /// Whether to use git tags instead of the Cargo registry to determine package versions.
+    /// Default: `false`.
+    pub git_only: bool,
     /// High-level toggle to process this package or ignore it.
     pub release: bool,
     /// Template for the git tag created by release-plz.
@@ -155,6 +159,10 @@ impl PackageUpdateConfig {
     pub fn should_update_changelog(&self) -> bool {
         self.generic.changelog_update
     }
+
+    pub fn git_only(&self) -> bool {
+        self.generic.git_only
+    }
 }
 
 impl Default for UpdateConfig {
@@ -162,6 +170,7 @@ impl Default for UpdateConfig {
         Self {
             semver_check: true,
             changelog_update: true,
+            git_only: false,
             release: true,
             tag_name_template: None,
             changelog_path: None,
@@ -182,6 +191,10 @@ impl UpdateConfig {
             changelog_update,
             ..self
         }
+    }
+
+    pub fn with_git_only(self, git_only: bool) -> Self {
+        Self { git_only, ..self }
     }
 }
 
@@ -372,6 +385,19 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
         project: &local_project,
         req: input,
     };
+
+    let repository = local_project
+        .get_repo()
+        .context("failed to determine local project repository")?;
+    if !input.allow_dirty {
+        repository.repo.is_clean()?;
+    }
+
+    if input.packages_config.default.git_only && input.registry_manifest.is_none() {
+        fetch_registry_manifest_from_git(&repository)
+            .context("failed to fetch registry manifest from git")?;
+    }
+
     // Retrieve the latest published version of the packages.
     // Release-plz will compare the registry packages with the local packages,
     // to determine the new commits.
@@ -381,15 +407,31 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
         input.registry.as_deref(),
     )?;
 
-    let repository = local_project
-        .get_repo()
-        .context("failed to determine local project repository")?;
-    if !input.allow_dirty {
-        repository.repo.is_clean()?;
-    }
     let packages_to_update =
         updater.packages_to_update(&registry_packages, &repository.repo, input.local_manifest())?;
     Ok((packages_to_update, repository))
+}
+
+fn fetch_registry_manifest_from_git(repository: &TempRepo) -> anyhow::Result<()> {
+    debug!("git-only feature is enabled, and no registry manifest supplied. Will try to fetch the manifest from the latest tag");
+    match get_repo_versions(&repository.repo) {
+        Some(tag) => {
+            // in the case of crates.io, `registry_manifest` represents the released
+            // package's cargo.toml file. However, since we are dealing tags in git,
+            // `registry_manifest` is `None` at the moment so we need to set it to
+            // the latest tag's cargo.toml file
+
+            // TODO:
+            // 1. check out to `tag` in this repo (already done)
+            // 2. find the manifest (cargo.toml)'s path
+            // 3. use it to override the `None` value for `registry_manifest`:
+            // input.registry_manifest = Some(latest_tag_registry_manifest)
+            repository.repo.checkout(&tag)?;
+
+            unimplemented!("read above")
+        }
+        None => return Err(anyhow!("there is no previous tag to compare with!")),
+    }
 }
 
 /// Check for typos in the package names based on the overrides
