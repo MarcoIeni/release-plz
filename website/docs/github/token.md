@@ -2,23 +2,78 @@
 
 GitHub Actions using the default
 [`GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication)
-cannot trigger other workflow runs.
-For example:
-
-- `on: pull_request` or `on: push` workflows acting as checks on pull
-  requests opened by GitHub Actions won't run.
-- `on: release` or `on: push: tags` workflows acting on releases or
-  tags created by GitHub actions won't run.
+cannot trigger other
+[workflow](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows)
+runs, i.e. cannot start new GitHub Actions jobs.
 
 You can learn more in the GitHub
 [docs](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
 
+:::tip
+To perform actions after release-plz runs without triggering further workflow runs,
+you can use GitHub Action [output](./output.md).
+:::
+
+## Why you might need further workflow runs
+
+Release-plz doesn't need to trigger further workflow runs to
+open the release PR or release your packages.
+However, you might need release-plz to trigger further workflow runs in the following cases.
+
+### CI checks
+
+Workflows acting as checks on pull requests opened by GitHub Actions
+with the default GitHub token won't run.
+
+For example, you might have CI checks that run:
+
+- On a pull request:
+
+  ```yaml
+  on:
+    pull_request:
+  ```
+
+- On push:
+
+  ```yaml
+  on:
+    push:
+  ```
+
+If release-plz uses the default GitHub token, CI checks on the release PR
+(i.e. the PR opened by release-plz) won't run.
+
+### Actions after release
+
+You can further trigger workflows after `release-plz release` runs,
+in the following ways:
+
+- When a GitHub release is published:
+
+  ```yaml
+  on:
+    release:
+      types: [published]
+  ```
+
+- When a git tag is pushed:
+
+  ```yaml
+  on:
+    push:
+      tags:
+        - "*"
+   ```
+
+This can be useful to announce automatically the release on socials
+or to attach files (such as [binaries](../extra/releasing-binaries.md)) to the GitHub release.
+
+If release-plz uses the default GitHub token, these workflows won't be triggered.
+
 ## How to trigger further workflow runs
 
-Release-plz doesn't need to trigger further workflow runs to release your packages.
-However, if you want to run CI checks on the release PR,
-or if you want to trigger another workflow after release-plz pushes
-a tag or creates a release, you need to use one of the following methods.
+To trigger further workflow runs from release-plz, use one of the following methods.
 
 ### Trigger workflow manually
 
@@ -78,6 +133,13 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
+:::warning
+As shown in the example below,
+you need to add the `token` field to the `actions/checkout` step, too.
+This allows release-plz to use the PAT also when spawning `git` commands,
+such as `git tag`.
+:::
+
 ### Use a GitHub App
 
 Generate a GitHub token with a GitHub App.
@@ -136,30 +198,3 @@ Here's how to use a GitHub App to generate a GitHub token:
          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
    ```
-
-## Events that trigger workflows
-
-You can further trigger workflows after `release-plz release` runs,
-in the following ways:
-
-- When a GitHub release is published:
-
-  ```yaml
-  on:
-    release:
-      types: [published]
-  ```
-
-- When a git tag is pushed:
-
-  ```yaml
-  on:
-    push:
-      tags:
-        - "*"
-   ```
-
-This can be useful to announce automatically the release on socials
-or to [release binaries](../extra/releasing-binaries.md).
-
-To learn more, see GitHub [docs](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows).
