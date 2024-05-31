@@ -9,6 +9,11 @@ runs, i.e. cannot start new GitHub Actions jobs.
 You can learn more in the GitHub
 [docs](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow).
 
+:::tip
+To perform actions after release-plz runs without triggering further workflow runs,
+you can use GitHub Action [output](./output.md).
+:::
+
 ## Why you might need further workflow runs
 
 Release-plz doesn't need to trigger further workflow runs to
@@ -64,9 +69,7 @@ in the following ways:
 This can be useful to announce automatically the release on socials
 or to attach files (such as [binaries](../extra/releasing-binaries.md)) to the GitHub release.
 
-:::tip
-You can also use GitHub Action [output](./output.md) to perform actions after release-plz runs.
-:::
+If release-plz uses the default GitHub token, these workflows won't be triggered.
 
 ## How to trigger further workflow runs
 
