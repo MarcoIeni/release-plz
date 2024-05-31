@@ -133,7 +133,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
-:::warn
+:::warning
 As shown in the example below,
 you need to add the `token` field to the `actions/checkout` step, too.
 This allows release-plz to use the PAT also when spawning `git` commands,
