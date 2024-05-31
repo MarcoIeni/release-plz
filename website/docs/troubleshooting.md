@@ -14,7 +14,7 @@ If yes, try to:
 
 - *Pin a specific version of the release-plz* in the GitHub action, by specifying the `version` field
   in the GitHub Action [input](./github/quickstart.md#4-set-input-variables-optional).
-  E.g. `version = "0.3.70"`.
+  E.g. `version: "0.3.70"`.
   The default is the latest version of release-plz.
   Determine the right version to pin by looking at the previous release-plz
   [releases](https://github.com/MarcoIeni/release-plz/releases)
