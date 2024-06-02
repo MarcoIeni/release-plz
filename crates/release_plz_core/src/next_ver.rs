@@ -393,10 +393,16 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
         repository.repo.is_clean()?;
     }
 
-    if input.packages_config.default.git_only && input.registry_manifest.is_none() {
-        fetch_registry_manifest_from_git(&repository)
+    // modify the input for `git-only` case by creating a new copy of it
+    let input = if input.packages_config.default.git_only && input.registry_manifest.is_none() {
+        let registry_manifest_path = fetch_registry_manifest_from_git(&repository, &input)
             .context("failed to fetch registry manifest from git")?;
-    }
+        let mut new_input = input.clone();
+        new_input.registry_manifest = Some(registry_manifest_path);
+        new_input
+    } else {
+        input.clone()
+    };
 
     // Retrieve the latest published version of the packages.
     // Release-plz will compare the registry packages with the local packages,
@@ -412,23 +418,26 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     Ok((packages_to_update, repository))
 }
 
-fn fetch_registry_manifest_from_git(repository: &TempRepo) -> anyhow::Result<()> {
+fn fetch_registry_manifest_from_git(
+    repository: &TempRepo,
+    input: &UpdateRequest,
+) -> anyhow::Result<Utf8PathBuf> {
     debug!("git-only feature is enabled, and no registry manifest supplied. Will try to fetch the manifest from the latest tag");
     match get_repo_versions(&repository.repo) {
         Some(tag) => {
             // in the case of crates.io, `registry_manifest` represents the released
-            // package's cargo.toml file. However, since we are dealing tags in git,
+            // package's cargo.toml file. However, since we are dealing with tags in git,
             // `registry_manifest` is `None` at the moment so we need to set it to
             // the latest tag's cargo.toml file
 
             // TODO:
             // 1. check out to `tag` in this repo (already done)
-            // 2. find the manifest (cargo.toml)'s path
+            // 2. find the manifest (cargo.toml)'s path, we expect the same path
+            // as the local manifest for this one, so we will use `local_manifest` here.
             // 3. use it to override the `None` value for `registry_manifest`:
-            // input.registry_manifest = Some(latest_tag_registry_manifest)
+            // input.registry_manifest = Some(local_manifest_path)
             repository.repo.checkout(&tag)?;
-
-            unimplemented!("read above")
+            Ok(input.local_manifest.clone())
         }
         None => return Err(anyhow!("there is no previous tag to compare with!")),
     }
