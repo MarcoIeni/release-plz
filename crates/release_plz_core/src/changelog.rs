@@ -37,6 +37,7 @@ impl Changelog<'_> {
         let mut changelog = GitCliffChangelog::new(vec![self.release], &config)
             .context("error while building changelog")?;
         add_package_context(&mut changelog, &self.package)?;
+        add_release_link_context(&mut changelog, self.package.as_deref())?;
         let mut out = Vec::new();
         changelog
             .generate(&mut out)
@@ -85,6 +86,16 @@ fn add_package_context(
     changelog
         .add_context("package", package)
         .with_context(|| format!("failed to add `{package}` to the `package` changelog context"))?;
+    Ok(())
+}
+
+fn add_release_link_context(
+    changelog: &mut GitCliffChangelog,
+    release_link: Option<&str>,
+) -> Result<(), anyhow::Error> {
+    changelog
+        .add_context("release_link", release_link)
+        .with_context(|| format!("failed to add `{release_link}` to the `release_link` changelog context"))?;
     Ok(())
 }
 
