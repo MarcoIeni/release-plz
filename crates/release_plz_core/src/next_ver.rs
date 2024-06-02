@@ -431,11 +431,10 @@ fn fetch_registry_manifest_from_git(
             // the latest tag's cargo.toml file
 
             // TODO:
-            // 1. check out to `tag` in this repo (already done)
+            // 1. check out to `tag` in this repo
             // 2. find the manifest (cargo.toml)'s path, we expect the same path
             // as the local manifest for this one, so we will use `local_manifest` here.
             // 3. use it to override the `None` value for `registry_manifest`:
-            // input.registry_manifest = Some(local_manifest_path)
             repository.repo.checkout(&tag)?;
             Ok(input.local_manifest.clone())
         }
