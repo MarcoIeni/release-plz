@@ -217,8 +217,7 @@ The GitHub action accepts the following input variables:
 - `manifest_path`: Path to the Cargo.toml of the project you want to update.
   Both Cargo workspaces and single packages are supported. (Defaults to the root
   directory).
-- `version`: Release-plz version to use. It must be an existing git tag name.
-  For example `release-plz-v0.2.45`. (Default: `"latest"`).
+- `version`: Release-plz version to use. E.g. `0.3.70`. (Default: latest version).
 - `config`: Release-plz config file location. (Defaults to
   `release-plz.toml` or `.release-plz.toml`).
 - `token`: Token used to publish to the cargo registry.
