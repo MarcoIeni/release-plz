@@ -393,8 +393,8 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
         repository.repo.is_clean()?;
     }
 
-    // if `git-only`, use the latest tag's cargo.toml, else use the registry manifest for the base package to be compared against.
-    let to_be_compared_manifest_path = if input.packages_config.default.git_only {
+    // if `git-only`, use the latest tag's cargo.toml, else use the given registry manifest.
+    let registry_manifest_path = if input.packages_config.default.git_only {
         if input.registry_manifest.is_some() {
             return Err(anyhow!("Both `git_only` and `registry_manifest` is supplied. This is conflicting behavior."));
         }
@@ -416,7 +416,7 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     // Release-plz will compare the registry packages with the local packages,
     // to determine the new commits.
     let registry_packages = registry_packages::get_registry_packages(
-        to_be_compared_manifest_path,
+        registry_manifest_path,
         &local_project.publishable_packages(),
         input.registry.as_deref(),
     )?;
