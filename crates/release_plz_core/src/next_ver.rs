@@ -8,7 +8,7 @@ use crate::{
     package_path::{manifest_dir, PackagePath},
     registry_packages::{self, PackagesCollection, RegistryPackage},
     repo_url::RepoUrl,
-    repo_versions::get_repo_versions,
+    repo_versions::get_the_latest_repo_tag,
     semver_check::{self, SemverCheck},
     tera::{tera_context, tera_var, PACKAGE_VAR, VERSION_VAR},
     tmp_repo::TempRepo,
@@ -393,22 +393,30 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
         repository.repo.is_clean()?;
     }
 
-    // modify the input for `git-only` case by creating a new copy of it
-    let input = if input.packages_config.default.git_only && input.registry_manifest.is_none() {
-        let registry_manifest_path = fetch_registry_manifest_from_git(&repository, &input)
-            .context("failed to fetch registry manifest from git")?;
-        let mut new_input = input.clone();
-        new_input.registry_manifest = Some(registry_manifest_path);
-        new_input
+    // if `git-only`, use the latest tag's cargo.toml, else use the registry manifest for the base package to be compared against.
+    let to_be_compared_manifest_path = if input.packages_config.default.git_only {
+        if input.registry_manifest.is_some() {
+            return Err(anyhow!("Both `git_only` and `registry_manifest` is supplied. This is conflicting behavior."));
+        }
+        if input.registry.is_some() {
+            return Err(anyhow!(
+                "Both `git_only` and `registry` is supplied. This is conflicting behavior."
+            ));
+        }
+
+        Some(
+            fetch_registry_manifest_from_git(&repository, input)
+                .context("failed to fetch registry manifest from git")?,
+        )
     } else {
-        input.clone()
+        input.registry_manifest.clone()
     };
 
     // Retrieve the latest published version of the packages.
     // Release-plz will compare the registry packages with the local packages,
     // to determine the new commits.
     let registry_packages = registry_packages::get_registry_packages(
-        input.registry_manifest.as_deref(),
+        to_be_compared_manifest_path,
         &local_project.publishable_packages(),
         input.registry.as_deref(),
     )?;
@@ -423,7 +431,7 @@ fn fetch_registry_manifest_from_git(
     input: &UpdateRequest,
 ) -> anyhow::Result<Utf8PathBuf> {
     debug!("git-only feature is enabled, and no registry manifest supplied. Will try to fetch the manifest from the latest tag");
-    match get_repo_versions(&repository.repo) {
+    match get_the_latest_repo_tag(&repository.repo) {
         Some(tag) => {
             // in the case of crates.io, `registry_manifest` represents the released
             // package's cargo.toml file. However, since we are dealing with tags in git,
@@ -438,7 +446,7 @@ fn fetch_registry_manifest_from_git(
             repository.repo.checkout(&tag)?;
             Ok(input.local_manifest.clone())
         }
-        None => return Err(anyhow!("there is no previous tag to compare with!")),
+        None => unimplemented!("no tag found. In this case, release v0.1.0"),
     }
 }
 
