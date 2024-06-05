@@ -176,7 +176,7 @@ impl ReleaseRequest {
             .and_then(|r| {
                 // Credentials for a specific registry can be set using environment variables.
                 // https://doc.rust-lang.org/cargo/reference/config.html#credentials
-                let env_token = env::var(format!("CARGO_REGISTRIES_{r}_TOKEN"))
+                let env_token = env::var(format!("CARGO_REGISTRIES_{}_TOKEN", r.to_uppercase()))
                     .ok()
                     .map(SecretString::new);
                 self.token.clone().or(env_token)
@@ -514,8 +514,8 @@ async fn release_package_if_needed(
             git_client,
             &changelog,
         )
-        .await
-        .context("failed to release package")?;
+            .await
+            .context("failed to release package")?;
 
         if package_was_released_at_index {
             package_was_released = true;
@@ -754,7 +754,15 @@ fn last_changelog_entry(req: &ReleaseRequest, package: &Package) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Mutex;
+    use lazy_static::lazy_static;
+    use fake_package::metadata::fake_metadata;
     use super::*;
+
+    lazy_static! {
+        // Trick to avoid the tests to run concurrently
+        static ref NO_PARALLEL: Mutex<()> = Default::default();
+    }
 
     #[test]
     fn git_release_config_pre_release_default_works() {
@@ -786,5 +794,29 @@ mod tests {
 
         assert!(config.is_pre_release(&version));
         assert!(config.is_pre_release(&rc_version));
+    }
+
+    #[test]
+    fn release_request_registry_token_env_works() {
+        let _guard = NO_PARALLEL.lock().unwrap();
+
+        let registry_name = "my_registry";
+        let token = "t0p$eCrEt";
+        let token_env_var = format!("CARGO_REGISTRIES_{}_TOKEN", registry_name.to_uppercase());
+
+        let old_value = env::var(&token_env_var);
+        env::set_var(&token_env_var, token);
+
+        let request = ReleaseRequest::new(fake_metadata()).with_registry(registry_name);
+        let registry_token = request.registry_token();
+
+        if let Ok(old) = old_value {
+            env::set_var(&token_env_var, old);
+        } else {
+            env::remove_var(&token_env_var);
+        }
+
+        assert!(registry_token.is_some());
+        assert_eq!(token, registry_token.unwrap().expose_secret())
     }
 }
