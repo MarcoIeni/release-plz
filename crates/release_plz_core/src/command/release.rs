@@ -8,11 +8,12 @@ use cargo_metadata::{
     Metadata, Package,
 };
 use crates_index::{GitIndex, SparseIndex};
-use git_cmd::Repo;
 use secrecy::{ExposeSecret, SecretString};
 use serde::Serialize;
 use tracing::{info, instrument, warn};
 use url::Url;
+
+use git_cmd::Repo;
 
 use crate::{
     cargo::{is_published, run_cargo, wait_until_published, CargoIndex, CmdOutput},
@@ -514,8 +515,8 @@ async fn release_package_if_needed(
             git_client,
             &changelog,
         )
-            .await
-            .context("failed to release package")?;
+        .await
+        .context("failed to release package")?;
 
         if package_was_released_at_index {
             package_was_released = true;
@@ -755,13 +756,16 @@ fn last_changelog_entry(req: &ReleaseRequest, package: &Package) -> String {
 #[cfg(test)]
 mod tests {
     use std::sync::Mutex;
+
     use lazy_static::lazy_static;
+
     use fake_package::metadata::fake_metadata;
+
     use super::*;
 
     lazy_static! {
         // Trick to avoid the tests to run concurrently
-        static ref NO_PARALLEL: Mutex<()> = Default::default();
+        static ref NO_PARALLEL: Mutex<()> = Mutex::default();
     }
 
     #[test]
@@ -817,6 +821,6 @@ mod tests {
         }
 
         assert!(registry_token.is_some());
-        assert_eq!(token, registry_token.unwrap().expose_secret())
+        assert_eq!(token, registry_token.unwrap().expose_secret());
     }
 }
