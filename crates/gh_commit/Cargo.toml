@@ -1,0 +1,15 @@
+[package]
+name = "gh_commit"
+version = "0.1.0"
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+camino.workspace = true
+git_cmd = { version = "0.6.8", path = "../git_cmd" }
+release_plz_core = { version = "0.22.1", path = "../release_plz_core" }
+secrecy.workspace = true
+tokio.workspace = true
+
+[lints]
+workspace = true

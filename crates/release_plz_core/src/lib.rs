@@ -8,7 +8,7 @@ mod copy_dir;
 mod diff;
 mod download;
 pub mod fs_utils;
-mod git;
+pub mod git;
 mod lock_compare;
 mod next_ver;
 mod package_compare;

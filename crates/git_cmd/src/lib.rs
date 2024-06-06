@@ -41,7 +41,7 @@ impl Repo {
         &self.directory
     }
 
-    fn get_current_remote_and_branch(
+    pub fn get_current_remote_and_branch(
         directory: impl AsRef<Utf8Path>,
     ) -> anyhow::Result<(String, String)> {
         match git_in_dir(

@@ -1362,6 +1362,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "gh_commit"
+version = "0.1.0"
+dependencies = [
+ "camino",
+ "git_cmd",
+ "release_plz_core",
+ "secrecy",
+ "tokio",
+]
+
+[[package]]
 name = "gimli"
 version = "0.28.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
