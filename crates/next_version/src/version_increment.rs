@@ -1,4 +1,5 @@
 use conventional_commit_parser::commit::{CommitType, ConventionalCommit};
+use regex::Regex;
 use semver::Version;
 
 use crate::{NextVersion, VersionUpdater};
@@ -99,10 +100,24 @@ impl VersionIncrement {
                 .any(|commit| commit.commit_type == CommitType::Feature)
         };
 
+        let is_there_a_custom_match = |regex_option: &Option<Regex>| {
+            if let Some(regex) = regex_option {
+                commits.iter().any(|commit| {
+                    if let CommitType::Custom(ref custom_type) = commit.commit_type {
+                        return regex.is_match(custom_type);
+                    }
+                    false
+                })
+            } else {
+                false
+            }
+        };
+
         let is_there_a_breaking_change = commits.iter().any(|commit| commit.is_breaking_change);
 
         let is_major_bump = || {
-            is_there_a_breaking_change
+            (is_there_a_breaking_change
+                || is_there_a_custom_match(&updater.custom_major_increment_regex))
                 && (current.major != 0 || updater.breaking_always_increment_major)
         };
 
@@ -113,7 +128,9 @@ impl VersionIncrement {
             };
             let is_breaking_bump =
                 || current.major == 0 && current.minor != 0 && is_there_a_breaking_change;
-            is_feat_bump() || is_breaking_bump()
+            is_feat_bump()
+                || is_breaking_bump()
+                || is_there_a_custom_match(&updater.custom_minor_increment_regex)
         };
 
         if is_major_bump() {

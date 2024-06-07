@@ -68,3 +68,27 @@ fn commit_with_breaking_change_increments_major_version_when_major_is_zero() {
         Version::new(1, 0, 0)
     );
 }
+
+#[test]
+fn commit_with_custom_major_increment_regex_increments_major_version() {
+    let commits = ["major: some changes"];
+    let version = Version::new(1, 2, 3);
+    assert_eq!(
+        VersionUpdater::new()
+            .with_custom_major_increment_regex("another|major")
+            .increment(&version, commits),
+        Version::new(2, 0, 0)
+    );
+}
+
+#[test]
+fn commit_with_custom_minor_increment_regex_increments_minor_version() {
+    let commits = ["minor: some changes"];
+    let version = Version::new(1, 2, 3);
+    assert_eq!(
+        VersionUpdater::new()
+            .with_custom_minor_increment_regex("minor")
+            .increment(&version, commits),
+        Version::new(1, 3, 0)
+    );
+}
