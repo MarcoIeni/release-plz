@@ -8,12 +8,12 @@ use cargo_metadata::{
     Metadata, Package,
 };
 use crates_index::{GitIndex, SparseIndex};
+use git_cmd::Repo;
 use secrecy::{ExposeSecret, SecretString};
 use serde::Serialize;
 use tracing::{info, instrument, warn};
 use url::Url;
 
-use git_cmd::Repo;
 
 use crate::{
     cargo::{is_published, run_cargo, wait_until_published, CargoIndex, CmdOutput},
@@ -764,7 +764,9 @@ mod tests {
     use super::*;
 
     lazy_static! {
-        // Trick to avoid the tests to run concurrently
+        // Trick to avoid the tests to run concurrently.
+        // It's used to not affect environment variables used in other tests
+        // since tests run concurrently by default and share the same environment context.
         static ref NO_PARALLEL: Mutex<()> = Mutex::default();
     }
 
