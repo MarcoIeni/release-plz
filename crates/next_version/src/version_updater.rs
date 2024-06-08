@@ -136,7 +136,8 @@ impl VersionUpdater {
     /// Configures a custom regex pattern for major version increments.
     /// this will check only the type of the commit against the given pattern.
     ///
-    /// <div class="warning">commit type according to the spec is only `[a-zA-Z]+`</div>
+    /// ### Note
+    /// `commit type` according to the spec is only `[a-zA-Z]+`
     ///
     /// Default: `None`.
     ///
@@ -170,7 +171,8 @@ impl VersionUpdater {
     /// Configures a custom regex pattern for minor version increments.
     /// this will check only the type of the commit against the given pattern.
     ///
-    /// <div class="warning">commit type according to the spec is only `[a-zA-Z]+`</div>
+    /// ### Note
+    /// `commit type` according to the spec is only `[a-zA-Z]+`
     ///
     /// Default: `None`.
     ///
