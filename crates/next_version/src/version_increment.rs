@@ -12,6 +12,19 @@ pub enum VersionIncrement {
     Prerelease,
 }
 
+fn is_there_a_custom_match(regex_option: &Option<Regex>, commits: &[ConventionalCommit]) -> bool {
+    if let Some(regex) = regex_option {
+        commits.iter().any(|commit| {
+            if let CommitType::Custom(ref custom_type) = commit.commit_type {
+                return regex.is_match(custom_type);
+            }
+            false
+        })
+    } else {
+        false
+    }
+}
+
 impl VersionIncrement {
     /// Analyze commits and determine which part of version to increment based on
     /// [conventional commits](https://www.conventionalcommits.org/) and
@@ -100,24 +113,11 @@ impl VersionIncrement {
                 .any(|commit| commit.commit_type == CommitType::Feature)
         };
 
-        let is_there_a_custom_match = |regex_option: &Option<Regex>| {
-            if let Some(regex) = regex_option {
-                commits.iter().any(|commit| {
-                    if let CommitType::Custom(ref custom_type) = commit.commit_type {
-                        return regex.is_match(custom_type);
-                    }
-                    false
-                })
-            } else {
-                false
-            }
-        };
-
         let is_there_a_breaking_change = commits.iter().any(|commit| commit.is_breaking_change);
 
         let is_major_bump = || {
             (is_there_a_breaking_change
-                || is_there_a_custom_match(&updater.custom_major_increment_regex))
+                || is_there_a_custom_match(&updater.custom_major_increment_regex, commits))
                 && (current.major != 0 || updater.breaking_always_increment_major)
         };
 
@@ -130,7 +130,7 @@ impl VersionIncrement {
                 || current.major == 0 && current.minor != 0 && is_there_a_breaking_change;
             is_feat_bump()
                 || is_breaking_bump()
-                || is_there_a_custom_match(&updater.custom_minor_increment_regex)
+                || is_there_a_custom_match(&updater.custom_minor_increment_regex, commits)
         };
 
         if is_major_bump() {
@@ -151,5 +151,82 @@ impl VersionIncrement {
             Self::Patch => version.increment_patch(),
             Self::Prerelease => version.increment_prerelease(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    // Returns true when a commit's custom type matches the provided regex
+    #[test]
+    fn returns_true_for_matching_custom_type() {
+        use conventional_commit_parser::commit::{CommitType, ConventionalCommit};
+        use regex::Regex;
+
+        let regex = Regex::new(r"custom").unwrap();
+        let commits = vec![ConventionalCommit {
+            commit_type: CommitType::Custom("custom".to_string()),
+            is_breaking_change: false,
+            summary: "A custom commit".to_string(),
+            body: None,
+            scope: None,
+            footers: vec![],
+        }];
+
+        let result = is_there_a_custom_match(&Some(regex), &commits);
+        assert!(result);
+    }
+
+    // returns false for non-custom commit types
+    #[test]
+    fn returns_false_for_non_custom_commit_types() {
+        use conventional_commit_parser::commit::{CommitType, ConventionalCommit};
+        use regex::Regex;
+
+        let regex = Regex::new(r"custom").unwrap();
+        let commits = vec![ConventionalCommit {
+            commit_type: CommitType::Feature,
+            is_breaking_change: false,
+            summary: "A feature commit".to_string(),
+            body: None,
+            scope: None,
+            footers: vec![],
+        }];
+
+        let result = is_there_a_custom_match(&Some(regex), &commits);
+        assert!(!result);
+    }
+
+    // Handles an empty commits list gracefully, returning false
+    #[test]
+    fn returns_false_for_empty_commits_list() {
+        use conventional_commit_parser::commit::ConventionalCommit;
+        use regex::Regex;
+
+        let regex = Regex::new(r"custom").unwrap();
+        let commits: Vec<ConventionalCommit> = Vec::new();
+
+        let result = is_there_a_custom_match(&Some(regex), &commits);
+        assert!(!result);
+    }
+
+    // Handles commits with empty custom types
+    #[test]
+    fn handles_commits_with_empty_custom_types() {
+        use conventional_commit_parser::commit::{CommitType, ConventionalCommit};
+        use regex::Regex;
+
+        let regex = Regex::new(r"custom").unwrap();
+        let commits = vec![ConventionalCommit {
+            commit_type: CommitType::Custom("".to_string()),
+            is_breaking_change: false,
+            summary: "A custom commit".to_string(),
+            body: None,
+            scope: None,
+            footers: vec![],
+        }];
+
+        let result = is_there_a_custom_match(&Some(regex), &commits);
+        assert!(!result);
     }
 }
