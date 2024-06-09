@@ -14,7 +14,6 @@ use serde::Serialize;
 use tracing::{info, instrument, warn};
 use url::Url;
 
-
 use crate::{
     cargo::{is_published, run_cargo, wait_until_published, CargoIndex, CmdOutput},
     changelog_parser,
