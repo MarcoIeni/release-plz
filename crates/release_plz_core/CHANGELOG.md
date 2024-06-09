@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.22.1...release_plz_core-v0.22.2) - 2024-06-09
+
+### Fixed
+- Handle CARGO_REGISTRIES_<name>_TOKEN env with uppercase ([#1507](https://github.com/MarcoIeni/release-plz/pull/1507))
+- readme comparison ([#1496](https://github.com/MarcoIeni/release-plz/pull/1496))
+
 ## [0.22.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.22.0...release_plz_core-v0.22.1) - 2024-05-27
 
 ### Other
