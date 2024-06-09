@@ -162,7 +162,6 @@ impl VersionIncrement {
 #[cfg(test)]
 mod tests {
     use super::*;
-    // Returns true when a commit's custom type matches the provided regex
     #[test]
     fn returns_true_for_matching_custom_type() {
         use conventional_commit_parser::commit::{CommitType, ConventionalCommit};
@@ -182,7 +181,6 @@ mod tests {
         assert!(result);
     }
 
-    // returns false for non-custom commit types
     #[test]
     fn returns_false_for_non_custom_commit_types() {
         use conventional_commit_parser::commit::{CommitType, ConventionalCommit};
@@ -202,7 +200,6 @@ mod tests {
         assert!(!result);
     }
 
-    // Handles an empty commits list gracefully, returning false
     #[test]
     fn returns_false_for_empty_commits_list() {
         use conventional_commit_parser::commit::ConventionalCommit;
@@ -215,7 +212,6 @@ mod tests {
         assert!(!result);
     }
 
-    // Handles commits with empty custom types
     #[test]
     fn handles_commits_with_empty_custom_types() {
         use conventional_commit_parser::commit::{CommitType, ConventionalCommit};
