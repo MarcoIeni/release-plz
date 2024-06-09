@@ -162,10 +162,10 @@ impl VersionIncrement {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use regex::Regex;
     #[test]
     fn returns_true_for_matching_custom_type() {
         use conventional_commit_parser::commit::{CommitType, ConventionalCommit};
-        use regex::Regex;
 
         let regex = Regex::new(r"custom").unwrap();
         let commits = vec![ConventionalCommit {
@@ -177,14 +177,12 @@ mod tests {
             footers: vec![],
         }];
 
-        let result = is_there_a_custom_match(Some(&regex), &commits);
-        assert!(result);
+        assert!(is_there_a_custom_match(Some(&regex), &commits));
     }
 
     #[test]
     fn returns_false_for_non_custom_commit_types() {
         use conventional_commit_parser::commit::{CommitType, ConventionalCommit};
-        use regex::Regex;
 
         let regex = Regex::new(r"custom").unwrap();
         let commits = vec![ConventionalCommit {
@@ -196,26 +194,22 @@ mod tests {
             footers: vec![],
         }];
 
-        let result = is_there_a_custom_match(Some(&regex), &commits);
-        assert!(!result);
+        assert!(!is_there_a_custom_match(Some(&regex), &commits));
     }
 
     #[test]
     fn returns_false_for_empty_commits_list() {
         use conventional_commit_parser::commit::ConventionalCommit;
-        use regex::Regex;
 
         let regex = Regex::new(r"custom").unwrap();
         let commits: Vec<ConventionalCommit> = Vec::new();
 
-        let result = is_there_a_custom_match(Some(&regex), &commits);
-        assert!(!result);
+        assert!(!is_there_a_custom_match(Some(&regex), &commits));
     }
 
     #[test]
     fn handles_commits_with_empty_custom_types() {
         use conventional_commit_parser::commit::{CommitType, ConventionalCommit};
-        use regex::Regex;
 
         let regex = Regex::new(r"custom").unwrap();
         let commits = vec![ConventionalCommit {
@@ -227,7 +221,6 @@ mod tests {
             footers: vec![],
         }];
 
-        let result = is_there_a_custom_match(Some(&regex), &commits);
-        assert!(!result);
+        assert!(!is_there_a_custom_match(Some(&regex), &commits));
     }
 }
