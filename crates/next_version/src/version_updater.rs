@@ -150,6 +150,7 @@ impl VersionUpdater {
     /// assert_eq!(
     ///     VersionUpdater::new()
     ///         .with_custom_major_increment_regex("abc")
+    ///         .expect("invalid regex")
     ///         .increment(&version, &commits),
     ///     Version::new(2, 0, 0)
     /// );
@@ -159,13 +160,17 @@ impl VersionUpdater {
     ///     Version::new(1, 2, 4)
     /// );
     /// ```
-    pub fn with_custom_major_increment_regex(mut self, custom_major_increment_regex: &str) -> Self {
-        if let Ok(regex) = Regex::new(custom_major_increment_regex) {
-            self.custom_major_increment_regex = Some(regex);
-        } else {
-            eprintln!("Invalid regex pattern provided for custom major increment");
+    pub fn with_custom_major_increment_regex(
+        mut self,
+        custom_major_increment_regex: &str,
+    ) -> Result<Self, regex::Error> {
+        match Regex::new(custom_major_increment_regex) {
+            Ok(regex) => {
+                self.custom_major_increment_regex = Some(regex);
+                Ok(self)
+            }
+            Err(err) => Err(err),
         }
-        self
     }
 
     /// Configures a custom regex pattern for minor version increments.
@@ -185,6 +190,7 @@ impl VersionUpdater {
     /// assert_eq!(
     ///     VersionUpdater::new()
     ///         .with_custom_minor_increment_regex("abc|bbb")
+    ///         .expect("invalid regex")
     ///         .increment(&version, &commits),
     ///     Version::new(0, 3, 0)
     /// );
@@ -194,13 +200,17 @@ impl VersionUpdater {
     ///     Version::new(0, 2, 4)
     /// );
     /// ```
-    pub fn with_custom_minor_increment_regex(mut self, custom_minor_increment_regex: &str) -> Self {
-        if let Ok(regex) = Regex::new(custom_minor_increment_regex) {
-            self.custom_minor_increment_regex = Some(regex);
-        } else {
-            eprintln!("Invalid regex pattern provided for custom major increment");
+    pub fn with_custom_minor_increment_regex(
+        mut self,
+        custom_minor_increment_regex: &str,
+    ) -> Result<Self, regex::Error> {
+        match Regex::new(custom_minor_increment_regex) {
+            Ok(regex) => {
+                self.custom_minor_increment_regex = Some(regex);
+                Ok(self)
+            }
+            Err(err) => Err(err),
         }
-        self
     }
 
     /// Analyze commits and determine the next version.

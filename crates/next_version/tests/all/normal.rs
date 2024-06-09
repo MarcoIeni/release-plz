@@ -76,6 +76,7 @@ fn commit_with_custom_major_increment_regex_increments_major_version() {
     assert_eq!(
         VersionUpdater::new()
             .with_custom_major_increment_regex("another|major")
+            .unwrap()
             .increment(&version, commits),
         Version::new(2, 0, 0)
     );
@@ -88,6 +89,7 @@ fn commit_with_custom_minor_increment_regex_increments_minor_version() {
     assert_eq!(
         VersionUpdater::new()
             .with_custom_minor_increment_regex("minor")
+            .unwrap()
             .increment(&version, commits),
         Version::new(1, 3, 0)
     );
