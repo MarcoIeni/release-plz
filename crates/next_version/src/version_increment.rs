@@ -14,12 +14,17 @@ pub enum VersionIncrement {
 
 fn is_there_a_custom_match(regex_option: Option<&Regex>, commits: &[ConventionalCommit]) -> bool {
     if let Some(regex) = regex_option {
-        commits.iter().any(|commit| {
-            if let CommitType::Custom(custom_type) = &commit.commit_type {
-                return regex.is_match(custom_type);
-            }
-            false
-        })
+        commits
+            .iter()
+            .any(|commit| custom_commit_matches_regex(regex, commit))
+    } else {
+        false
+    }
+}
+
+fn custom_commit_matches_regex(regex: &Regex, commit: &ConventionalCommit) -> bool {
+    if let CommitType::Custom(custom_type) = &commit.commit_type {
+        regex.is_match(custom_type)
     } else {
         false
     }
