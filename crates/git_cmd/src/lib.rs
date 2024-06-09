@@ -288,6 +288,11 @@ impl Repo {
         .is_ok()
     }
 
+    /// Name of the remote when the [`Repo`] was created.
+    pub fn original_remote(&self) -> &str {
+        &self.original_remote
+    }
+
     /// Url of the remote when the [`Repo`] was created.
     pub fn original_remote_url(&self) -> anyhow::Result<String> {
         let param = format!("remote.{}.url", self.original_remote);

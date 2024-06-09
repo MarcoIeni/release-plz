@@ -311,9 +311,23 @@ async fn github_force_push(
     pr: &GitPr,
     repository: &Repo,
 ) -> anyhow::Result<()> {
-    // first force push the branch and then add new commit using gql api
-    repository.force_push(pr.branch())?;
-    github_graphql::commit_changes(client, repository, "chore: release", pr.branch()).await
+    // note: see https://github.com/MarcoIeni/release-plz/issues/1487
+    // Create a 'Verified' commit on temporary branch
+    let tmp_release_branch = format!("{}-tmp-{}", pr.branch(), rand::random::<u32>());
+    repository.checkout_new_branch(&tmp_release_branch)?;
+    github_create_release_branch(client, repository, &tmp_release_branch).await?;
+    // rewrite the PR branch to point to the new commit
+    repository.fetch(&tmp_release_branch)?;
+    repository.force_push(&format!(
+        "{}/{}:{}",
+        repository.original_remote(),
+        tmp_release_branch,
+        pr.branch()
+    ))?;
+    // delete the temporary branch in remote
+    repository.push(&format!(":refs/heads/{tmp_release_branch}"))?;
+
+    Ok(())
 }
 
 fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {

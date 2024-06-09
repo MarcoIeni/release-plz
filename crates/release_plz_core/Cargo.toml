@@ -33,6 +33,7 @@ git-url-parse.workspace = true
 ignore.workspace = true
 lazy_static.workspace = true
 parse-changelog.workspace = true
+rand.workspace = true
 rayon.workspace = true
 regex.workspace = true
 # native-tls-alpn is needed for http2 support. https://doc.rust-lang.org/cargo/reference/registry-index.html#sparse-protocol
