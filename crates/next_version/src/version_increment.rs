@@ -12,7 +12,7 @@ pub enum VersionIncrement {
     Prerelease,
 }
 
-fn is_there_a_custom_match(regex_option: &Option<Regex>, commits: &[ConventionalCommit]) -> bool {
+fn is_there_a_custom_match(regex_option: Option<&Regex>, commits: &[ConventionalCommit]) -> bool {
     if let Some(regex) = regex_option {
         commits.iter().any(|commit| {
             if let CommitType::Custom(ref custom_type) = commit.commit_type {
@@ -117,7 +117,7 @@ impl VersionIncrement {
 
         let is_major_bump = || {
             (is_there_a_breaking_change
-                || is_there_a_custom_match(&updater.custom_major_increment_regex, commits))
+                || is_there_a_custom_match(updater.custom_major_increment_regex.as_ref(), commits))
                 && (current.major != 0 || updater.breaking_always_increment_major)
         };
 
@@ -130,7 +130,7 @@ impl VersionIncrement {
                 || current.major == 0 && current.minor != 0 && is_there_a_breaking_change;
             is_feat_bump()
                 || is_breaking_bump()
-                || is_there_a_custom_match(&updater.custom_minor_increment_regex, commits)
+                || is_there_a_custom_match(updater.custom_minor_increment_regex.as_ref(), commits)
         };
 
         if is_major_bump() {
@@ -173,7 +173,7 @@ mod tests {
             footers: vec![],
         }];
 
-        let result = is_there_a_custom_match(&Some(regex), &commits);
+        let result = is_there_a_custom_match(Some(&regex), &commits);
         assert!(result);
     }
 
@@ -193,7 +193,7 @@ mod tests {
             footers: vec![],
         }];
 
-        let result = is_there_a_custom_match(&Some(regex), &commits);
+        let result = is_there_a_custom_match(Some(&regex), &commits);
         assert!(!result);
     }
 
@@ -206,7 +206,7 @@ mod tests {
         let regex = Regex::new(r"custom").unwrap();
         let commits: Vec<ConventionalCommit> = Vec::new();
 
-        let result = is_there_a_custom_match(&Some(regex), &commits);
+        let result = is_there_a_custom_match(Some(&regex), &commits);
         assert!(!result);
     }
 
@@ -226,7 +226,7 @@ mod tests {
             footers: vec![],
         }];
 
-        let result = is_there_a_custom_match(&Some(regex), &commits);
+        let result = is_there_a_custom_match(Some(&regex), &commits);
         assert!(!result);
     }
 }
