@@ -324,8 +324,7 @@ async fn github_force_push(
         tmp_release_branch,
         pr.branch()
     ))?;
-    // delete the temporary branch in remote
-    repository.push(&format!(":refs/heads/{tmp_release_branch}"))?;
+    repository.delete_branch_in_remote(&tmp_release_branch)?;
 
     Ok(())
 }
