@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.72](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.71...release-plz-v0.3.72) - 2024-06-10
+
+### Fixed
+- fix([#1487](https://github.com/MarcoIeni/release-plz/pull/1487)): don't close release PR on force-push ([#1513](https://github.com/MarcoIeni/release-plz/pull/1513))
+
+Co-authored-by: Marco Ieni <11428655+MarcoIeni@users.noreply.github.com>
+
 ## [0.3.71](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.70...release-plz-v0.3.71) - 2024-06-09
 
 ### Fixed
