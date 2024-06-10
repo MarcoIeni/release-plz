@@ -9,9 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.9](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.8...git_cmd-v0.6.9) - 2024-06-10
 
 ### Fixed
-- fix([#1487](https://github.com/MarcoIeni/release-plz/pull/1487)): don't close release PR on force-push ([#1513](https://github.com/MarcoIeni/release-plz/pull/1513))
-
-Co-authored-by: Marco Ieni <11428655+MarcoIeni@users.noreply.github.com>
+- add utility functions ([#1513](https://github.com/MarcoIeni/release-plz/pull/1513))
 
 ## [0.6.8](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.7...git_cmd-v0.6.8) - 2024-05-27
 
