@@ -313,20 +313,47 @@ async fn github_force_push(
 ) -> anyhow::Result<()> {
     // note: see https://github.com/MarcoIeni/release-plz/issues/1487
     // Create a 'Verified' commit on temporary branch
-    let tmp_release_branch = format!("{}-tmp-{}", pr.branch(), rand::random::<u32>());
-    repository.checkout_new_branch(&tmp_release_branch)?;
-    github_create_release_branch(client, repository, &tmp_release_branch).await?;
+    let tmp_release_branch = {
+        let name = format!("{}-tmp-{}", pr.branch(), rand::random::<u32>());
+        TmpBranch::checkout_new(repository, name)
+    }?;
+
+    github_create_release_branch(client, repository, &tmp_release_branch.name).await?;
     // rewrite the PR branch to point to the new commit
-    repository.fetch(&tmp_release_branch)?;
+    repository.fetch(&tmp_release_branch.name)?;
     repository.force_push(&format!(
         "{}/{}:{}",
         repository.original_remote(),
-        tmp_release_branch,
+        tmp_release_branch.name,
         pr.branch()
     ))?;
-    repository.delete_branch_in_remote(&tmp_release_branch)?;
 
     Ok(())
+}
+
+/// Temporary branch.
+/// It deletes the branch in remote when it goes out of scope.
+/// In this way, we can ensure that the branch is deleted even if the program panics.
+struct TmpBranch<'a> {
+    name: String,
+    repository: &'a Repo,
+}
+
+impl<'a> TmpBranch<'a> {
+    fn checkout_new(repository: &'a Repo, name: impl Into<String>) -> anyhow::Result<Self> {
+        let name = name.into();
+        repository.checkout_new_branch(&name)?;
+        let branch = Self { name, repository };
+        Ok(branch)
+    }
+}
+
+impl Drop for TmpBranch<'_> {
+    fn drop(&mut self) {
+        if let Err(e) = self.repository.delete_branch_in_remote(&self.name) {
+            tracing::error!("cannot delete branch {}: {:?}", self.name, e);
+        }
+    }
 }
 
 fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {
