@@ -311,16 +311,25 @@ async fn github_force_push(
     pr: &GitPr,
     repository: &Repo,
 ) -> anyhow::Result<()> {
-    // note: see https://github.com/MarcoIeni/release-plz/issues/1487
-    // Create a 'Verified' commit on temporary branch
+    // Create a temporary branch.
     let tmp_release_branch = {
         let name = format!("{}-tmp-{}", pr.branch(), rand::random::<u32>());
         TmpBranch::checkout_new(repository, name)
     }?;
 
+    // Push the "Verified" commit in the temporary branch using
+    // the GitHub API.
+    // We push the release-plz changes to the temporary branch instead of the release PR branch because:
+    // - You can't force-push with the GitHub API, so we can't commit to the release PR branch
+    //   directly if we want a "Verified" commit.
+    // - If we revert the last commit of the release PR branch, GitHub will close the release PR
+    //   because the branch is the same as the default branch. So we can't revert the latest release-plz commit and push the new one.
+    // To learn more, see https://github.com/MarcoIeni/release-plz/issues/1487
     github_create_release_branch(client, repository, &tmp_release_branch.name).await?;
-    // rewrite the PR branch to point to the new commit
+
     repository.fetch(&tmp_release_branch.name)?;
+
+    // Rewrite the PR branch so that it's the same as the temporary branch.
     repository.force_push(&format!(
         "{}/{}:{}",
         repository.original_remote(),
@@ -328,6 +337,7 @@ async fn github_force_push(
         pr.branch()
     ))?;
 
+    // The temporary branch is deleted in remote when it goes out of scope.
     Ok(())
 }
 
