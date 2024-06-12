@@ -133,13 +133,15 @@ impl VersionUpdater {
         self
     }
 
-    /// Configures a custom regex pattern for major version increments.
-    /// this will check only the type of the commit against the given pattern.
+    /// Configure a custom regex pattern for major version increments.
+    /// This will check only the type of the commit against the given pattern.
+    ///
+    /// Default: `None`.
     ///
     /// ### Note
     /// `commit type` according to the spec is only `[a-zA-Z]+`
     ///
-    /// Default: `None`.
+    /// ### Example
     ///
     /// ```rust
     /// use semver::Version;
@@ -174,12 +176,14 @@ impl VersionUpdater {
     }
 
     /// Configures a custom regex pattern for minor version increments.
-    /// this will check only the type of the commit against the given pattern.
+    /// This will check only the type of the commit against the given pattern.
+    ///
+    /// Default: `None`.
     ///
     /// ### Note
     /// `commit type` according to the spec is only `[a-zA-Z]+`
     ///
-    /// Default: `None`.
+    /// ### Example
     ///
     /// ```rust
     /// use semver::Version;
