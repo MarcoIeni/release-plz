@@ -99,7 +99,7 @@ impl Release {
                         GitBackend::Github(GitHub::new(repo_url.owner, repo_url.name, git_token))
                     }
                     ReleaseGitBackendKind::Gitlab => {
-                        GitBackend::Gitlab(GitLab::new(repo_url.owner, repo_url.name, git_token))
+                        GitBackend::Gitlab(GitLab::new(repo_url, git_token)?)
                     }
                 },
             };

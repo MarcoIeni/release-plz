@@ -2,7 +2,7 @@ use anyhow::Context;
 use reqwest::header::{HeaderMap, HeaderValue};
 use secrecy::{ExposeSecret, SecretString};
 
-use crate::git::backend::Remote;
+use crate::{git::backend::Remote, RepoUrl};
 
 #[derive(Debug, Clone)]
 pub struct GitLab {
@@ -10,15 +10,20 @@ pub struct GitLab {
 }
 
 impl GitLab {
-    pub fn new(owner: String, repo: String, token: SecretString) -> Self {
-        Self {
+    pub fn new(url: RepoUrl, token: SecretString) -> anyhow::Result<Self> {
+        let base_url = url
+            .gitlab_api_url()
+            .parse()
+            .context("invalid GitLab API URL")?;
+
+        Ok(Self {
             remote: Remote {
-                owner,
-                repo,
+                base_url,
+                owner: url.owner,
+                repo: url.name,
                 token,
-                base_url: "https://gitlab.com/api/v4".parse().unwrap(),
             },
-        }
+        })
     }
 
     pub fn default_headers(&self) -> anyhow::Result<HeaderMap> {
