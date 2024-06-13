@@ -85,9 +85,9 @@ impl RepoUrl {
         let v4 = "api/v4/projects";
         let prj_path = self
             .path
-            .strip_prefix("/")
+            .strip_prefix('/')
             .unwrap_or(&self.path)
-            .replace("/", "%2F");
+            .replace('/', "%2F");
         let scheme = if self.scheme == "ssh" {
             "https"
         } else {
