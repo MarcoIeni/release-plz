@@ -219,10 +219,7 @@ impl GitClient {
             description: &release_info.release_body,
         };
         self.client
-            .post(format!(
-                "{}/projects/{}%2F{}/releases",
-                self.remote.base_url, self.remote.owner, self.remote.repo
-            ))
+            .post(format!("{}/releases", self.remote.base_url))
             .json(&gitlab_release_options)
             .send()
             .await?
