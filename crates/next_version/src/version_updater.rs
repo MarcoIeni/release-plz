@@ -166,13 +166,9 @@ impl VersionUpdater {
         mut self,
         custom_major_increment_regex: &str,
     ) -> Result<Self, regex::Error> {
-        match Regex::new(custom_major_increment_regex) {
-            Ok(regex) => {
-                self.custom_major_increment_regex = Some(regex);
-                Ok(self)
-            }
-            Err(err) => Err(err),
-        }
+        let regex = Regex::new(custom_major_increment_regex)?;
+        self.custom_major_increment_regex = Some(regex);
+        Ok(self)
     }
 
     /// Configures a custom regex pattern for minor version increments.
@@ -208,13 +204,9 @@ impl VersionUpdater {
         mut self,
         custom_minor_increment_regex: &str,
     ) -> Result<Self, regex::Error> {
-        match Regex::new(custom_minor_increment_regex) {
-            Ok(regex) => {
-                self.custom_minor_increment_regex = Some(regex);
-                Ok(self)
-            }
-            Err(err) => Err(err),
-        }
+        let regex = Regex::new(custom_minor_increment_regex)?;
+        self.custom_minor_increment_regex = Some(regex);
+        Ok(self)
     }
 
     /// Analyze commits and determine the next version.
