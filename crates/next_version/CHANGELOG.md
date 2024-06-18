@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.18](https://github.com/MarcoIeni/release-plz/compare/next_version-v0.2.17...next_version-v0.2.18) - 2024-06-18
+
+### Added
+- *(next_version)* support bumping version based on configurable custom pattern ([#1511](https://github.com/MarcoIeni/release-plz/pull/1511))
+
 ## [0.2.17](https://github.com/MarcoIeni/release-plz/compare/next_version-v0.2.16...next_version-v0.2.17) - 2024-05-27
 
 ### Other
