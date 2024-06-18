@@ -13,9 +13,9 @@ async-trait = "0.1.80"
 base64 = "0.22.1"
 camino = "1.1.7"
 cargo_metadata = "0.18.1"
-cargo = { version = "0.79.0", default-features = false }
+cargo = { version = "0.80.0", default-features = false }
 chrono = { version = "0.4.38", default-features = false }
-clap = "4.5.6"
+clap = "4.5.7"
 clap_complete = "4.5.5"
 conventional_commit_parser = "0.9.4"
 crates-index = { version = "3.0.0", features = ["git", "sparse", "git-https"] }
@@ -35,8 +35,8 @@ parse-changelog = { version = "0.6.8", default-features = false }
 pretty_assertions = "1.4.0"
 rayon = "1.10.0"
 rand = "0.8.5"
-regex = "1.10.4"
-reqwest = "0.12.4"
+regex = "1.10.5"
+reqwest = "0.12.5"
 reqwest-middleware = { version = "0.3.1", features = ["json"] }
 reqwest-retry = "0.5.0"
 schemars = { version = "0.8.21", features = ["url"] }
@@ -53,7 +53,7 @@ toml_edit = { version = "0.22.14" }
 tracing = "0.1.40"
 tracing-log = "0.2.0"
 tracing-subscriber = "0.3.18"
-url = { version = "2.5.0", default-features = false }
+url = { version = "2.5.1", default-features = false }
 walkdir = "2.5.0"
 wiremock = "0.6.0"
 
