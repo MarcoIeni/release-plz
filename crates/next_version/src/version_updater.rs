@@ -1,3 +1,4 @@
+use regex::Regex;
 use semver::Version;
 
 use crate::VersionIncrement;
@@ -24,6 +25,8 @@ use crate::VersionIncrement;
 pub struct VersionUpdater {
     pub(crate) features_always_increment_minor: bool,
     pub(crate) breaking_always_increment_major: bool,
+    pub(crate) custom_major_increment_regex: Option<Regex>,
+    pub(crate) custom_minor_increment_regex: Option<Regex>,
 }
 
 impl Default for VersionUpdater {
@@ -54,6 +57,8 @@ impl VersionUpdater {
         Self {
             features_always_increment_minor: false,
             breaking_always_increment_major: false,
+            custom_major_increment_regex: None,
+            custom_minor_increment_regex: None,
         }
     }
 
@@ -126,6 +131,82 @@ impl VersionUpdater {
     ) -> Self {
         self.breaking_always_increment_major = breaking_always_increment_major;
         self
+    }
+
+    /// Configure a custom regex pattern for major version increments.
+    /// This will check only the type of the commit against the given pattern.
+    ///
+    /// Default: `None`.
+    ///
+    /// ### Note
+    /// `commit type` according to the spec is only `[a-zA-Z]+`
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use semver::Version;
+    /// use next_version::VersionUpdater;
+    ///
+    /// let commits = ["abc: incompatible change"];
+    /// let version = Version::new(1, 2, 3);
+    /// assert_eq!(
+    ///     VersionUpdater::new()
+    ///         .with_custom_major_increment_regex("abc")
+    ///         .expect("invalid regex")
+    ///         .increment(&version, &commits),
+    ///     Version::new(2, 0, 0)
+    /// );
+    /// assert_eq!(
+    ///     VersionUpdater::new()
+    ///         .increment(&version, &commits),
+    ///     Version::new(1, 2, 4)
+    /// );
+    /// ```
+    pub fn with_custom_major_increment_regex(
+        mut self,
+        custom_major_increment_regex: &str,
+    ) -> Result<Self, regex::Error> {
+        let regex = Regex::new(custom_major_increment_regex)?;
+        self.custom_major_increment_regex = Some(regex);
+        Ok(self)
+    }
+
+    /// Configures a custom regex pattern for minor version increments.
+    /// This will check only the type of the commit against the given pattern.
+    ///
+    /// Default: `None`.
+    ///
+    /// ### Note
+    /// `commit type` according to the spec is only `[a-zA-Z]+`
+    ///
+    /// ### Example
+    ///
+    /// ```rust
+    /// use semver::Version;
+    /// use next_version::VersionUpdater;
+    ///
+    /// let commits = ["bbb: make coffee"];
+    /// let version = Version::new(0, 2, 3);
+    /// assert_eq!(
+    ///     VersionUpdater::new()
+    ///         .with_custom_minor_increment_regex("abc|bbb")
+    ///         .expect("invalid regex")
+    ///         .increment(&version, &commits),
+    ///     Version::new(0, 3, 0)
+    /// );
+    /// assert_eq!(
+    ///     VersionUpdater::new()
+    ///         .increment(&version, &commits),
+    ///     Version::new(0, 2, 4)
+    /// );
+    /// ```
+    pub fn with_custom_minor_increment_regex(
+        mut self,
+        custom_minor_increment_regex: &str,
+    ) -> Result<Self, regex::Error> {
+        let regex = Regex::new(custom_minor_increment_regex)?;
+        self.custom_minor_increment_regex = Some(regex);
+        Ok(self)
     }
 
     /// Analyze commits and determine the next version.
