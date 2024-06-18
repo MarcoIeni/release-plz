@@ -62,7 +62,6 @@ pub struct PrCommit {
     pub author: Option<Author>,
 }
 
-#[allow(dead_code)]
 #[derive(Deserialize)]
 pub struct Author {
     login: String,
