@@ -37,9 +37,10 @@ impl GitHub {
             reqwest::header::ACCEPT,
             HeaderValue::from_static("application/vnd.github+json"),
         );
-        let auth_header: HeaderValue = format!("Bearer {}", self.remote.token.expose_secret())
+        let mut auth_header: HeaderValue = format!("Bearer {}", self.remote.token.expose_secret())
             .parse()
             .context("invalid GitHub token")?;
+        auth_header.set_sensitive(true);
         headers.insert(reqwest::header::AUTHORIZATION, auth_header);
         Ok(headers)
     }

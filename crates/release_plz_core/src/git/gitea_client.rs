@@ -36,9 +36,10 @@ impl Gitea {
 
     pub fn default_headers(&self) -> anyhow::Result<HeaderMap> {
         let mut headers = HeaderMap::new();
-        let auth_header: HeaderValue = format!("token {}", self.remote.token.expose_secret())
+        let mut auth_header: HeaderValue = format!("token {}", self.remote.token.expose_secret())
             .parse()
             .context("invalid Gitea token")?;
+        auth_header.set_sensitive(true);
         headers.insert(reqwest::header::AUTHORIZATION, auth_header);
         Ok(headers)
     }
