@@ -12,5 +12,6 @@ categories = ["development-tools", "parsing"]
 workspace = true
 
 [dependencies]
+regex.workspace = true
 semver.workspace = true
 conventional_commit_parser.workspace = true
