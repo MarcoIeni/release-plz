@@ -61,6 +61,7 @@ If you want to run other checks before releasing (e.g. `cargo test`), you have t
              fetch-depth: 0
          - name: Install Rust toolchain
            uses: dtolnay/rust-toolchain@stable
+         - uses: Swatinem/rust-cache@v2
          - run: cargo test # <-- put any check you like here
          - name: Run release-plz
            uses: MarcoIeni/release-plz-action@v0.5
