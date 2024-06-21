@@ -197,7 +197,17 @@ impl GitClient {
             .json(&create_release_options)
             .send()
             .await?
-            .error_for_status()?;
+            .error_for_status()
+            .map_err(|e| {
+                if let Some(status) = e.status() {
+                    if status == reqwest::StatusCode::FORBIDDEN {
+                        return anyhow::anyhow!(e).context(
+                            "Make sure your token has sufficient permissions. Learn more at https://release-plz.ieni.dev/docs/usage/release or https://release-plz.ieni.dev/docs/github/token",
+                        );
+                    }
+                }
+                anyhow::anyhow!(e)
+            })?;
         Ok(())
     }
 
@@ -214,14 +224,21 @@ impl GitClient {
             description: &release_info.release_body,
         };
         self.client
-            .post(format!(
-                "{}/projects/{}%2F{}/releases",
-                self.remote.base_url, self.remote.owner, self.remote.repo
-            ))
+            .post(format!("{}/releases", self.remote.base_url))
             .json(&gitlab_release_options)
             .send()
             .await?
-            .error_for_status()?;
+            .error_for_status()
+            .map_err(|e| {
+                if let Some(status) = e.status() {
+                    if status == reqwest::StatusCode::FORBIDDEN {
+                        return anyhow::anyhow!(e).context(
+                            "Make sure your token has sufficient permissions. Learn more at https://release-plz.ieni.dev/docs/usage/release#gitlab",
+                        );
+                    }
+                }
+                anyhow::anyhow!(e)
+            })?;
         Ok(())
     }
 
