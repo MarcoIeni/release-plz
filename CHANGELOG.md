@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.74](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.73...release-plz-v0.3.74) - 2024-06-21
 
 ### Added
-- *(backend)* GitLab on-premise support and multilevel URLs, SSH git repos ([#1521](https://github.com/MarcoIeni/release-plz/pull/1521))
+- Support for GitLab on-premise, multilevel URLs and SSH git repos ([#1521](https://github.com/MarcoIeni/release-plz/pull/1521))
 
 ### Other
 - set GitHub and Gitea tokens to be sensitive ([#1529](https://github.com/MarcoIeni/release-plz/pull/1529))
