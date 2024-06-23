@@ -25,7 +25,7 @@ and consider
 investing a portion of these savings to [sponsor](https://github.com/sponsors/MarcoIeni) the author.
 
 By sponsoring, you're enabling the author to focus more on the development of Release-plz, ensuring
-it remains sustainable, up-to-date, secure, and ahead of the curve.
+it remains sustainable, up-to-date and secure.
 
 ## 📬 Stay Updated
 
