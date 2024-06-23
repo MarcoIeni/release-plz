@@ -11,7 +11,8 @@ Here’s how you can help:
   [LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=release-plz.ieni.dev),
   and other platforms using the `#ReleasePlz` hashtag. 👯‍♀️
 - **Star**: Give Release-plz a star on [GitHub](https://github.com/MarcoIeni/release-plz). ⭐
-- **Become a Sponsor**: Your financial support helps me dedicating more time to improve Release-plz and develop new features. Support Release-plz development, by sponsoring the author on
+- **Become a Sponsor**: Your financial support helps me dedicating more time to improve
+  Release-plz and develop new features. Support Release-plz development, by sponsoring the author on
   [GitHub](https://github.com/sponsors/MarcoIeni). ❤️
 - **Contribute**: Get involved by fixing
   [issues](https://github.com/MarcoIeni/release-plz/issues). 🚀
