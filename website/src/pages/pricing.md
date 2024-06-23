@@ -3,7 +3,7 @@
 Just kidding, Release-plz is free and open-source. 💫
 
 However, maintaining Release-plz requires a lot of effort.
-If you find Release-plz valuable to you or your company, consider supporting it.
+If you find Release-plz valuable to you, consider supporting it.
 Here’s how you can help:
 
 - **Spread the Word**: Share your experience with Release-plz on
