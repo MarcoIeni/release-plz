@@ -1102,6 +1102,9 @@ impl Updater<'_> {
                     current_commit_message.clone(),
                 ));
             }
+            // Go back to the previous commit.
+            // Keep in mind that the info contained in `package` might be outdated,
+            // because commits could contain changes to Cargo.toml.
             if let Err(_err) = repository.checkout_previous_commit_at_paths(&paths_to_check) {
                 debug!("there are no other commits");
                 break;
@@ -1117,7 +1120,7 @@ impl Updater<'_> {
         package_path: &Utf8Path,
         registry_package_path: &Utf8Path,
     ) -> anyhow::Result<bool> {
-        if is_readme_updated(package_path, package, registry_package_path)? {
+        if is_readme_updated(&package.name, package_path, registry_package_path)? {
             debug!("{}: README updated", package.name);
             return Ok(false);
         }

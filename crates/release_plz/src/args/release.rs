@@ -45,7 +45,7 @@ pub struct Release {
     /// It defaults to the url of the default remote.
     #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     pub repo_url: Option<String>,
-    /// Git token used to publish the GitHub release.
+    /// Git token used to publish the GitHub/Gitea/GitLab release.
     #[arg(long, value_parser = NonEmptyStringValueParser::new(), env, hide_env_values=true)]
     pub git_token: Option<String>,
     /// Kind of git backend
@@ -99,7 +99,7 @@ impl Release {
                         GitBackend::Github(GitHub::new(repo_url.owner, repo_url.name, git_token))
                     }
                     ReleaseGitBackendKind::Gitlab => {
-                        GitBackend::Gitlab(GitLab::new(repo_url.owner, repo_url.name, git_token))
+                        GitBackend::Gitlab(GitLab::new(repo_url, git_token)?)
                     }
                 },
             };

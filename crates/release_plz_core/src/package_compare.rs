@@ -3,6 +3,7 @@ use cargo_metadata::{
     camino::{Utf8Path, Utf8PathBuf},
     Package,
 };
+use cargo_utils::get_manifest_metadata;
 use tracing::debug;
 
 use crate::{cargo::run_cargo, CARGO_TOML};
@@ -132,23 +133,35 @@ fn are_cargo_toml_equal(local_package: &Utf8Path, registry_package: &Utf8Path) -
 /// - the local package doesn't have a `readme` field in the `Cargo.toml`.
 /// - the package doesn't have a README at all.
 pub fn is_readme_updated(
+    package_name: &str,
     local_package_path: &Utf8Path,
-    package: &Package,
     registry_package_path: &Utf8Path,
 ) -> anyhow::Result<bool> {
-    let local_package_readme_path = local_readme_override(package, local_package_path);
+    // Read again manifest metadata because the Cargo.toml might change on every commit.
+    let package = match read_package_metadata(package_name, local_package_path) {
+        Ok(package) => package,
+        Err(e) => {
+            tracing::warn!(
+                "cannot read package metadata of {package_name} in {local_package_path}: {e:?}"
+            );
+            return Ok(false);
+        }
+    };
+
+    let local_package_readme_path = local_readme_override(&package, local_package_path);
     let are_readmes_equal = match local_package_readme_path {
         Some(local_package_readme_path) => {
             let registry_package_readme_path = registry_package_path.join("README.md");
             if !registry_package_readme_path.exists() {
                 return Ok(true);
             }
-            if let Err(e) =
-                are_files_equal(&local_package_readme_path, &registry_package_readme_path)
-            {
-                tracing::warn!("cannot compare README files: {e}");
+            match are_files_equal(&local_package_readme_path, &registry_package_readme_path) {
+                Ok(are_readmes_equal) => are_readmes_equal,
+                Err(e) => {
+                    tracing::warn!("cannot compare README files: {e}");
+                    true
+                }
             }
-            true
         }
         None => true,
     };
@@ -179,4 +192,18 @@ fn file_hash(file: &Utf8Path) -> io::Result<u64> {
     buffer.hash(&mut hasher);
     let hash = hasher.finish();
     Ok(hash)
+}
+
+fn read_package_metadata(
+    package_name: &str,
+    local_package_path: &Utf8Path,
+) -> anyhow::Result<Package> {
+    let package = get_manifest_metadata(&local_package_path.join(CARGO_TOML))
+        .context("cannot read Cargo.toml")?
+        .workspace_packages()
+        .into_iter()
+        .find(|&p| p.name == package_name)
+        .cloned()
+        .context("cannot find package in Cargo.toml")?;
+    Ok(package)
 }

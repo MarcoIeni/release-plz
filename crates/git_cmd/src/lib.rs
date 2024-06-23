@@ -85,6 +85,11 @@ impl Repo {
         Ok(())
     }
 
+    pub fn delete_branch_in_remote(&self, branch: &str) -> anyhow::Result<()> {
+        self.push(&format!(":refs/heads/{branch}"))
+            .with_context(|| format!("can't delete temporary branch {branch}"))
+    }
+
     pub fn add_all_and_commit(&self, message: &str) -> anyhow::Result<()> {
         self.git(&["add", "."])?;
         self.git(&["commit", "-m", message])?;
@@ -304,6 +309,11 @@ impl Repo {
             descendant_commit,
         ])
         .is_ok()
+    }
+
+    /// Name of the remote when the [`Repo`] was created.
+    pub fn original_remote(&self) -> &str {
+        &self.original_remote
     }
 
     /// Url of the remote when the [`Repo`] was created.

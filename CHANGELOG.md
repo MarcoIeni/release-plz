@@ -6,6 +6,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.74](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.73...release-plz-v0.3.74) - 2024-06-21
+
+### Added
+- Support for GitLab on-premise, multilevel URLs and SSH git repos ([#1521](https://github.com/MarcoIeni/release-plz/pull/1521))
+
+### Other
+- set GitHub and Gitea tokens to be sensitive ([#1529](https://github.com/MarcoIeni/release-plz/pull/1529))
+
+## [0.3.73](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.72...release-plz-v0.3.73) - 2024-06-18
+
+### Fixed
+- `release-plz release` command now works if `-o` isn't specified ([#1528](https://github.com/MarcoIeni/release-plz/pull/1528))
+
+### Other
+- remove dead code ([#1525](https://github.com/MarcoIeni/release-plz/pull/1525))
+
+## [0.3.72](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.71...release-plz-v0.3.72) - 2024-06-10
+
+### Fixed
+- fix([#1487](https://github.com/MarcoIeni/release-plz/pull/1487)): don't close release PR on force-push ([#1513](https://github.com/MarcoIeni/release-plz/pull/1513))
+
+## [0.3.71](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.70...release-plz-v0.3.71) - 2024-06-09
+
+### Fixed
+- readme comparison ([#1496](https://github.com/MarcoIeni/release-plz/pull/1496))
+- Handle CARGO_REGISTRIES_<name>_TOKEN env with uppercase ([#1507](https://github.com/MarcoIeni/release-plz/pull/1507))
+
+### Other
+- add new line to `release-plz.toml` config json schema ([#1500](https://github.com/MarcoIeni/release-plz/pull/1500))
+
 ## [0.3.70](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.69...release-plz-v0.3.70) - 2024-05-27
 
 ### Other
