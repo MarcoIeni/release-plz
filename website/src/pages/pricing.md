@@ -17,13 +17,6 @@ Here’s how you can help:
 - **Contribute**: Get involved by fixing
   [issues](https://github.com/MarcoIeni/release-plz/issues). 🚀
 
-## Stay Updated 📬
-
-Stay updated on Release-plz news by following the author on
-[Twitter](https://twitter.com/MarcoIeni), [GitHub](https://github.com/MarcoIeni),
-[LinkedIn](https://linkedin.com/in/MarcoIeni),
-[Mastodon](https://hachyderm.io/@MarcoIeni) and [YouTube](https://www.youtube.com/MarcoIeni).
-
 ## Companies 🏢
 
 If you are using Release-plz at your organization to improve your engineering team's productivity,
@@ -33,3 +26,10 @@ investing a portion of these savings to [sponsor](https://github.com/sponsors/Ma
 
 By sponsoring, you're enabling the author to focus more on the development of Release-plz, ensuring
 it remains sustainable, up-to-date, secure, and ahead of the curve.
+
+## Stay Updated 📬
+
+Stay updated on Release-plz news by following the author on
+[Twitter](https://twitter.com/MarcoIeni), [GitHub](https://github.com/MarcoIeni),
+[LinkedIn](https://linkedin.com/in/MarcoIeni),
+[Mastodon](https://hachyderm.io/@MarcoIeni) and [YouTube](https://www.youtube.com/MarcoIeni).
