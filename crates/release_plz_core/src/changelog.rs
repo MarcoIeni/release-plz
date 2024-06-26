@@ -33,10 +33,11 @@ pub struct Changelog<'a> {
 impl Changelog<'_> {
     /// Generate the full changelog.
     pub fn generate(self) -> anyhow::Result<String> {
-        let config = self.changelog_config(None, self.release_link.as_deref());
+        let config = self.changelog_config(None);
         let mut changelog = GitCliffChangelog::new(vec![self.release], &config)
             .context("error while building changelog")?;
         add_package_context(&mut changelog, &self.package)?;
+        add_release_link_context(&mut changelog, self.release_link.as_deref())?;
         let mut out = Vec::new();
         changelog
             .generate(&mut out)
@@ -52,10 +53,11 @@ impl Changelog<'_> {
             return Ok(old_changelog);
         }
         let old_header = changelog_parser::parse_header(&old_changelog);
-        let config = self.changelog_config(old_header, self.release_link.as_deref());
+        let config = self.changelog_config(old_header);
         let mut changelog = GitCliffChangelog::new(vec![self.release], &config)
             .context("error while building changelog")?;
         add_package_context(&mut changelog, &self.package)?;
+        add_release_link_context(&mut changelog, self.release_link.as_deref())?;
         let mut out = Vec::new();
         changelog
             .prepend(old_changelog, &mut out)
@@ -63,13 +65,13 @@ impl Changelog<'_> {
         String::from_utf8(out).context("cannot convert bytes to string")
     }
 
-    fn changelog_config(&self, header: Option<String>, release_link: Option<&str>) -> Config {
+    fn changelog_config(&self, header: Option<String>) -> Config {
         let user_config = self.config.clone().unwrap_or(default_git_cliff_config());
         Config {
             changelog: apply_defaults_to_changelog_config(
                 user_config.changelog,
                 header,
-                release_link,
+                self.release_link.as_deref(),
             ),
             git: apply_defaults_to_git_config(user_config.git),
             remote: user_config.remote,
@@ -85,6 +87,16 @@ fn add_package_context(
     changelog
         .add_context("package", package)
         .with_context(|| format!("failed to add `{package}` to the `package` changelog context"))?;
+    Ok(())
+}
+
+fn add_release_link_context(
+    changelog: &mut GitCliffChangelog,
+    release_link: Option<&str>,
+) -> Result<(), anyhow::Error> {
+    changelog
+        .add_context("release_link", release_link)
+        .with_context(|| format!("failed to add `{release_link:?}` to the `release_link` changelog context"))?;
     Ok(())
 }
 
