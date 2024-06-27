@@ -224,6 +224,8 @@ impl<'a> ChangelogBuilder<'a> {
             commit_id: None,
             timestamp: 0,
             previous: None,
+            message: None,
+            repository: None,
         });
 
         Changelog {
@@ -233,6 +235,8 @@ impl<'a> ChangelogBuilder<'a> {
                 commit_id: None,
                 timestamp: release_date,
                 previous: previous.map(Box::new),
+                message: None,
+                repository: None,
             },
             release_link: self.release_link,
             config: self.config,
@@ -281,6 +285,7 @@ fn commit_parser(regex: &str, group: &str) -> CommitParser {
         field: None,
         pattern: None,
         sha: None,
+        footer: None,
     }
 }
 
