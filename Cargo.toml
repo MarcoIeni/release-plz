@@ -38,7 +38,7 @@ rand = "0.8.5"
 regex = "1.10.5"
 reqwest = "0.12.5"
 reqwest-middleware = { version = "0.3.1", features = ["json"] }
-reqwest-retry = "0.5.0"
+reqwest-retry = "0.6.0"
 schemars = { version = "0.8.21", features = ["url"] }
 secrecy = "0.8.0"
 semver = "1.0.23"
