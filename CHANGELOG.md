@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.75](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.74...release-plz-v0.3.75) - 2024-06-30
+
+### Other
+- update git-cliff to 2.4.0 ([#1535](https://github.com/MarcoIeni/release-plz/pull/1535))
+
 ## [0.3.74](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.73...release-plz-v0.3.74) - 2024-06-21
 
 ### Added
