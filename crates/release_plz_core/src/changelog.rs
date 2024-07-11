@@ -96,7 +96,9 @@ fn add_release_link_context(
 ) -> Result<(), anyhow::Error> {
     changelog
         .add_context("release_link", release_link)
-        .with_context(|| format!("failed to add `{release_link:?}` to the `release_link` changelog context"))?;
+        .with_context(|| {
+            format!("failed to add `{release_link:?}` to the `release_link` changelog context")
+        })?;
     Ok(())
 }
 
