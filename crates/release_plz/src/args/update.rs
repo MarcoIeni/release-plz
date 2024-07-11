@@ -99,8 +99,7 @@ impl RepoCommand for Update {
 
 impl ManifestCommand for Update {
     fn optional_manifest(&self) -> Option<&Path> {
-        self.manifest_path
-            .as_deref()
+        self.manifest_path.as_deref()
     }
 }
 
