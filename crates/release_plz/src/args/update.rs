@@ -9,7 +9,7 @@ use release_plz_core::{fs_utils::to_utf8_path, ChangelogRequest, UpdateRequest};
 
 use crate::config::Config;
 
-use super::repo_command::RepoCommand;
+use super::{manifest_command::ManifestCommand, repo_command::RepoCommand};
 
 /// Update your project locally, without opening a PR.
 /// If `repo_url` contains a GitHub URL, release-plz uses it to add a release
@@ -92,14 +92,14 @@ pub struct Update {
 }
 
 impl RepoCommand for Update {
-    fn optional_manifest_path(&self) -> Option<&Utf8Path> {
-        self.manifest_path
-            .as_deref()
-            .map(|p| to_utf8_path(p).unwrap())
-    }
-
     fn repo_url(&self) -> Option<&str> {
         self.repo_url.as_deref()
+    }
+}
+
+impl ManifestCommand for Update {
+    fn optional_manifest(&self) -> Option<&Path> {
+        self.manifest_path.as_deref()
     }
 }
 

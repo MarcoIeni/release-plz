@@ -1,11 +1,11 @@
+use crate::root_repo_path_from_manifest_dir;
 use crate::semver_check::SemverCheck;
-use crate::{root_repo_path_from_manifest_dir, CARGO_TOML};
 use crate::{tmp_repo::TempRepo, PackagePath, UpdateRequest, UpdateResult};
 use anyhow::Context;
 use cargo_metadata::camino::Utf8Path;
 use cargo_metadata::{semver::Version, Package};
-use cargo_utils::upgrade_requirement;
 use cargo_utils::LocalManifest;
+use cargo_utils::{upgrade_requirement, CARGO_TOML};
 use git_cmd::Repo;
 use std::iter;
 use tracing::{info, warn};
@@ -135,7 +135,8 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
     // Read packages from `local_metadata` to update the manifest of local
     // workspace dependencies.
     let all_packages: Vec<Package> = cargo_utils::workspace_members(&local_metadata)?.collect();
-    update_manifests(&packages_to_update, local_manifest_path, &all_packages)?;
+    let all_packages_ref: Vec<&Package> = all_packages.iter().collect();
+    update_manifests(&packages_to_update, local_manifest_path, &all_packages_ref)?;
     update_changelogs(input, &packages_to_update)?;
     if !packages_to_update.updates.is_empty() {
         let local_manifest_dir = input.local_manifest_dir()?;
@@ -154,7 +155,7 @@ pub fn update(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo
 fn update_manifests(
     packages_to_update: &PackagesUpdate,
     local_manifest_path: &Utf8Path,
-    all_packages: &[Package],
+    all_packages: &[&Package],
 ) -> anyhow::Result<()> {
     // Distinguish packages type to avoid updating the version of packages that inherit the workspace version
     let (workspace_pkgs, independent_pkgs): (PackagesToUpdate, PackagesToUpdate) =
@@ -196,7 +197,7 @@ fn update_manifests(
 
 #[instrument(skip_all)]
 fn update_versions(
-    all_packages: &[Package],
+    all_packages: &[&Package],
     packages_to_update: &PackagesUpdate,
     workspace_manifest: &Utf8Path,
 ) -> anyhow::Result<()> {
@@ -246,8 +247,8 @@ fn update_cargo_lock(root: &Utf8Path, update_all_dependencies: bool) -> anyhow::
 }
 
 #[instrument(skip(all_packages))]
-fn set_version(
-    all_packages: &[Package],
+pub fn set_version(
+    all_packages: &[&Package],
     package_path: &Utf8Path,
     version: &Version,
     workspace_manifest: &Utf8Path,
@@ -288,7 +289,7 @@ fn set_version(
 /// ```
 ///
 fn update_dependencies(
-    all_packages: &[Package],
+    all_packages: &[&Package],
     version: &Version,
     package_path: &Utf8Path,
     workspace_manifest: &Utf8Path,
