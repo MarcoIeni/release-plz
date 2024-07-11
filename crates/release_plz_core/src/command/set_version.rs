@@ -45,7 +45,6 @@ pub fn set_version(input: &SetVersionRequest) -> anyhow::Result<()> {
             (package_name, p)
         })
         .collect();
-    // TODO: ref
     let all_packages: Vec<&Package> = packages.values().collect();
     for change in &input.version_changes {
         let pkg = packages
