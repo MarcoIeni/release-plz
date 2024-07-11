@@ -59,8 +59,9 @@ you can use the following context in the template:
 
 ```json
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "package": "my_crate",
+  "release_link": "https://github.com/me/my_project/compare/my_project-v0.1.0...my_project-v0.1.1",
   "commits": [
     {
       "id": "e795460c9bb7275294d1fa53a9d73258fb51eb10",
@@ -98,7 +99,7 @@ you can use the following context in the template:
   "commit_id": "a440c6eb26404be4877b7e3ad592bfaa5d4eb210 (release commit)",
   "timestamp": 1625169301,
   "previous": {
-    "version": "previous release"
+    "version": "0.1.0"
   }
 }
 ```
