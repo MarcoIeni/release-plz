@@ -94,11 +94,13 @@ fn add_release_link_context(
     changelog: &mut GitCliffChangelog,
     release_link: Option<&str>,
 ) -> Result<(), anyhow::Error> {
-    changelog
-        .add_context("release_link", release_link)
-        .with_context(|| {
-            format!("failed to add `{release_link:?}` to the `release_link` changelog context")
-        })?;
+    if let Some(release_link) = release_link {
+        changelog
+            .add_context("release_link", release_link)
+            .with_context(|| {
+                format!("failed to add `{release_link:?}` to the `release_link` changelog context")
+            })?;
+    }
     Ok(())
 }
 
