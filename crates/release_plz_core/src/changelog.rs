@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 "#;
 
 pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";
+pub const RELEASE_LINK: &str = "release_link";
 
 #[derive(Debug)]
 pub struct Changelog<'a> {
@@ -68,11 +69,7 @@ impl Changelog<'_> {
     fn changelog_config(&self, header: Option<String>) -> Config {
         let user_config = self.config.clone().unwrap_or(default_git_cliff_config());
         Config {
-            changelog: apply_defaults_to_changelog_config(
-                user_config.changelog,
-                header,
-                self.release_link.as_deref(),
-            ),
+            changelog: apply_defaults_to_changelog_config(user_config.changelog, header),
             git: apply_defaults_to_git_config(user_config.git),
             remote: user_config.remote,
             bump: Bump::default(),
@@ -96,9 +93,9 @@ fn add_release_link_context(
 ) -> Result<(), anyhow::Error> {
     if let Some(release_link) = release_link {
         changelog
-            .add_context("release_link", release_link)
+            .add_context(RELEASE_LINK, release_link)
             .with_context(|| {
-                format!("failed to add `{release_link:?}` to the `release_link` changelog context")
+                format!("failed to add `{release_link:?}` to the `{RELEASE_LINK}` changelog context")
             })?;
     }
     Ok(())
@@ -108,9 +105,8 @@ fn add_release_link_context(
 fn apply_defaults_to_changelog_config(
     changelog: ChangelogConfig,
     header: Option<String>,
-    release_link: Option<&str>,
 ) -> ChangelogConfig {
-    let default_changelog_config = default_changelog_config(header, release_link);
+    let default_changelog_config = default_changelog_config(header);
 
     ChangelogConfig {
         header: changelog.header.or(default_changelog_config.header),
@@ -318,20 +314,19 @@ fn kac_commit_parsers() -> Vec<CommitParser> {
     ]
 }
 
-fn default_changelog_config(header: Option<String>, release_link: Option<&str>) -> ChangelogConfig {
+fn default_changelog_config(header: Option<String>) -> ChangelogConfig {
     ChangelogConfig {
         header: Some(header.unwrap_or(String::from(CHANGELOG_HEADER))),
-        body: Some(default_changelog_body_config(release_link)),
+        body: Some(default_changelog_body_config().to_string()),
         footer: None,
         postprocessors: None,
         trim: Some(true),
     }
 }
 
-fn default_changelog_body_config(release_link: Option<&str>) -> String {
-    let pre = r#"
-## [{{ version | trim_start_matches(pat="v") }}]"#;
-    let post = r#" - {{ timestamp | date(format="%Y-%m-%d") }}
+fn default_changelog_body_config() -> &'static str {
+    r#"
+## [{{ version | trim_start_matches(pat="v") }}]{%- if commit.scope -%}({{ release_link }}){% endif %} - {{ timestamp | date(format="%Y-%m-%d") }}
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group | upper_first }}
 {% for commit in commits %}
@@ -341,12 +336,7 @@ fn default_changelog_body_config(release_link: Option<&str>) -> String {
 - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
 {% endif -%}
 {% endfor -%}
-{% endfor %}"#;
-
-    match release_link {
-        Some(link) => format!("{pre}({link}){post}"),
-        None => format!("{pre}{post}"),
-    }
+{% endfor %}"#
 }
 
 #[cfg(test)]
@@ -600,7 +590,7 @@ mod tests {
         let changelog = ChangelogBuilder::new(commits, "1.1.1", "my_pkg")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .with_config(Config {
-                changelog: default_changelog_config(None, None),
+                changelog: default_changelog_config(None),
                 git: GitConfig {
                     sort_commits: Some("oldest".to_string()),
                     ..GitConfig::default()
