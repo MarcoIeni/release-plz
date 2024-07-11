@@ -80,6 +80,13 @@ impl TestContext {
         context
     }
 
+    pub async fn merge_release_pr(&self) {
+        let opened_prs = self.opened_release_prs().await;
+        assert_eq!(opened_prs.len(), 1);
+        self.gitea.merge_pr_retrying(opened_prs[0].number).await;
+        self.repo.git(&["pull"]).unwrap();
+    }
+
     fn generate_cargo_lock(&self) {
         assert_cmd::Command::new("cargo")
             .current_dir(self.repo.directory())

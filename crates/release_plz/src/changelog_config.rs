@@ -134,6 +134,7 @@ impl TryFrom<CommitParser> for git_cliff_core::config::CommitParser {
             field: cfg.field,
             pattern: to_opt_regex(cfg.pattern.as_deref(), "pattern")?,
             sha: cfg.sha,
+            footer: None,
         })
     }
 }
@@ -273,6 +274,7 @@ mod tests {
                     field: Some("field".to_string()),
                     pattern: Some(regex::Regex::new("pattern").unwrap()),
                     sha: None,
+                    footer: None,
                 }]),
                 link_parsers: Some(vec![git_cliff_core::config::LinkParser {
                     pattern: regex::Regex::new("pattern").unwrap(),

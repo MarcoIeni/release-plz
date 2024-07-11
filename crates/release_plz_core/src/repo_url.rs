@@ -9,6 +9,7 @@ pub struct RepoUrl {
     port: Option<u16>,
     pub owner: String,
     pub name: String,
+    pub path: String,
 }
 
 impl RepoUrl {
@@ -24,12 +25,18 @@ impl RepoUrl {
             .with_context(|| format!("cannot find host in git url {git_host_url}"))?;
         let port = git_url.port;
         let scheme = git_url.scheme.to_string();
+        let path = git_url
+            .path
+            .strip_suffix(".git")
+            .unwrap_or(&git_url.path)
+            .to_string();
         Ok(RepoUrl {
             owner,
             name,
             host,
             port,
             scheme,
+            path,
         })
     }
 
@@ -73,6 +80,25 @@ impl RepoUrl {
             format!("{}://{}/{v1}", self.scheme, self.host)
         }
     }
+
+    pub fn gitlab_api_url(&self) -> String {
+        let v4 = "api/v4/projects";
+        let prj_path = self
+            .path
+            .strip_prefix('/')
+            .unwrap_or(&self.path)
+            .replace('/', "%2F");
+        let scheme = if self.scheme == "ssh" {
+            "https"
+        } else {
+            self.scheme.as_str()
+        };
+        if let Some(port) = self.port {
+            format!("{scheme}://{}:{port}/{v4}/{prj_path}", self.host)
+        } else {
+            format!("{scheme}://{}/{v4}/{prj_path}", self.host)
+        }
+    }
 }
 #[cfg(test)]
 mod tests {
@@ -101,5 +127,20 @@ mod tests {
         let expected_url = format!("{GITHUB_REPO_URL}/compare/{previous_tag}...{next_tag}");
         let release_link = repo.git_release_link(previous_tag, next_tag);
         assert_eq!(expected_url, release_link);
+    }
+
+    #[test]
+    fn gitlab_api_url() {
+        let git_repo = RepoUrl::new("git@host.example.com:ab/cd/myproj.git").unwrap();
+        assert_eq!(
+            "https://host.example.com/api/v4/projects/ab%2Fcd%2Fmyproj",
+            git_repo.gitlab_api_url()
+        );
+
+        let http_repo = RepoUrl::new("https://host.example.com/ab/cd/myproj.git").unwrap();
+        assert_eq!(
+            "https://host.example.com/api/v4/projects/ab%2Fcd%2Fmyproj",
+            http_repo.gitlab_api_url()
+        );
     }
 }

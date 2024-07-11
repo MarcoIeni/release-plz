@@ -1,4 +1,5 @@
 use cargo_metadata::camino::Utf8Path;
+use cargo_utils::CARGO_TOML;
 use git_cmd::Repo;
 
 use anyhow::Context;
@@ -12,7 +13,6 @@ use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};
 use crate::{
     copy_to_temp_dir, new_manifest_dir_path, new_project_root, publishable_packages_from_manifest,
     root_repo_path_from_manifest_dir, update, GitBackend, PackagesUpdate, UpdateRequest,
-    CARGO_TOML,
 };
 
 #[derive(Debug)]
@@ -311,9 +311,59 @@ async fn github_force_push(
     pr: &GitPr,
     repository: &Repo,
 ) -> anyhow::Result<()> {
-    // first force push the branch and then add new commit using gql api
-    repository.force_push(pr.branch())?;
-    github_graphql::commit_changes(client, repository, "chore: release", pr.branch()).await
+    // Create a temporary branch.
+    let tmp_release_branch = {
+        let name = format!("{}-tmp-{}", pr.branch(), rand::random::<u32>());
+        TmpBranch::checkout_new(repository, name)
+    }?;
+
+    // Push the "Verified" commit in the temporary branch using
+    // the GitHub API.
+    // We push the release-plz changes to the temporary branch instead of the release PR branch because:
+    // - You can't force-push with the GitHub API, so we can't commit to the release PR branch
+    //   directly if we want a "Verified" commit.
+    // - If we revert the last commit of the release PR branch, GitHub will close the release PR
+    //   because the branch is the same as the default branch. So we can't revert the latest release-plz commit and push the new one.
+    // To learn more, see https://github.com/MarcoIeni/release-plz/issues/1487
+    github_create_release_branch(client, repository, &tmp_release_branch.name).await?;
+
+    repository.fetch(&tmp_release_branch.name)?;
+
+    // Rewrite the PR branch so that it's the same as the temporary branch.
+    repository.force_push(&format!(
+        "{}/{}:{}",
+        repository.original_remote(),
+        tmp_release_branch.name,
+        pr.branch()
+    ))?;
+
+    // The temporary branch is deleted in remote when it goes out of scope.
+    Ok(())
+}
+
+/// Temporary branch.
+/// It deletes the branch in remote when it goes out of scope.
+/// In this way, we can ensure that the branch is deleted even if the program panics.
+struct TmpBranch<'a> {
+    name: String,
+    repository: &'a Repo,
+}
+
+impl<'a> TmpBranch<'a> {
+    fn checkout_new(repository: &'a Repo, name: impl Into<String>) -> anyhow::Result<Self> {
+        let name = name.into();
+        repository.checkout_new_branch(&name)?;
+        let branch = Self { name, repository };
+        Ok(branch)
+    }
+}
+
+impl Drop for TmpBranch<'_> {
+    fn drop(&mut self) {
+        if let Err(e) = self.repository.delete_branch_in_remote(&self.name) {
+            tracing::error!("cannot delete branch {}: {:?}", self.name, e);
+        }
+    }
 }
 
 fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {

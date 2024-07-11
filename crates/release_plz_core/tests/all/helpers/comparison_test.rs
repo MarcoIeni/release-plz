@@ -1,11 +1,11 @@
 use crate::helpers::gitea_mock_server::GiteaMockServer;
 use anyhow::Context;
 use cargo_metadata::camino::Utf8PathBuf;
-use cargo_utils::get_manifest_metadata;
+use cargo_utils::{get_manifest_metadata, CARGO_TOML};
 use chrono::NaiveDate;
 use release_plz_core::{
     are_packages_equal, copy_to_temp_dir, fs_utils::Utf8TempDir, ChangelogRequest, GitBackend,
-    GitHub, Gitea, ReleasePrRequest, RepoUrl, UpdateRequest, CARGO_TOML, CHANGELOG_FILENAME,
+    GitHub, Gitea, ReleasePrRequest, RepoUrl, UpdateRequest, CHANGELOG_FILENAME,
 };
 use secrecy::Secret;
 use url::Url;

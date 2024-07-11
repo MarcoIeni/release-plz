@@ -13,7 +13,7 @@ use crate::{
     tmp_repo::TempRepo,
     toml_compare::are_toml_dependencies_updated,
     version::NextVersionFromDiff,
-    ChangelogBuilder, PackagesToUpdate, PackagesUpdate, CARGO_TOML, CHANGELOG_FILENAME,
+    ChangelogBuilder, PackagesToUpdate, PackagesUpdate, CHANGELOG_FILENAME,
 };
 use anyhow::Context;
 use cargo_metadata::{
@@ -21,7 +21,7 @@ use cargo_metadata::{
     semver::Version,
     Metadata, Package,
 };
-use cargo_utils::{to_utf8_pathbuf, upgrade_requirement, LocalManifest};
+use cargo_utils::{canonical_local_manifest, upgrade_requirement, LocalManifest, CARGO_TOML};
 use chrono::NaiveDate;
 use git_cliff_core::commit::Commit;
 use git_cmd::{self, Repo};
@@ -190,15 +190,6 @@ pub struct ChangelogRequest {
     /// When the new release is published. If unspecified, current date is used.
     pub release_date: Option<NaiveDate>,
     pub changelog_config: Option<git_cliff_core::config::Config>,
-}
-
-fn canonical_local_manifest(local_manifest: &Path) -> anyhow::Result<Utf8PathBuf> {
-    let mut local_manifest = dunce::canonicalize(local_manifest)?;
-    if !local_manifest.ends_with(CARGO_TOML) {
-        local_manifest.push(CARGO_TOML);
-    }
-    let local_manifest = to_utf8_pathbuf(local_manifest)?;
-    Ok(local_manifest)
 }
 
 impl UpdateRequest {
@@ -1044,6 +1035,9 @@ impl Updater<'_> {
                     current_commit_message.clone(),
                 ));
             }
+            // Go back to the previous commit.
+            // Keep in mind that the info contained in `package` might be outdated,
+            // because commits could contain changes to Cargo.toml.
             if let Err(_err) = repository.checkout_previous_commit_at_paths(&paths_to_check) {
                 debug!("there are no other commits");
                 break;
@@ -1059,7 +1053,7 @@ impl Updater<'_> {
         package_path: &Utf8Path,
         registry_package_path: &Utf8Path,
     ) -> anyhow::Result<bool> {
-        if is_readme_updated(package_path, package, registry_package_path)? {
+        if is_readme_updated(&package.name, package_path, registry_package_path)? {
             debug!("{}: README updated", package.name);
             return Ok(false);
         }

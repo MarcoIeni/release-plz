@@ -29,24 +29,30 @@ To learn more, run `release-plz release --help`.
 
 ## Gitlab
 
-`releases-plz` also supports creating releases on Gitlab with the `--backend gitlab` option.
+`releases-plz` supports creating releases on Gitlab with the `--backend gitlab` option.
 
 The default token in CI does not have permissions to create tags, so you will need to
 a custom [access token](https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html).
 The permissions you need are:
 
-- `api` (to create a release)
-- `write_repository` (to create tag)
+- Role: `Maintainer` or higher
+- Scopes:
+  - `api` (to create a release)
+  - `write_repository` (to create tag)
 
 Then you can run `release-plz release` in Gitlab CI with the following arguments:
 
-`release-plz release --backend gitlab --git-token <gitlab application token>`
+`release-plz release --backend gitlab --git-token <gitlab_token>`
 
 ## Gitea
 
-`releases-plz` also supports creating releases on Gitea with the `--backend gitea` option.
+`releases-plz` supports creating releases on Gitea with the `--backend gitea` option.
 
 TODO: document how to create a token on Gitea.
+
+Then you can run `release-plz release` in Gitea CI with the following arguments:
+
+`release-plz release --backend gitea --git-token <gitea_token>`
 
 ## Json output
 
@@ -71,17 +77,17 @@ Example:
 ```json
 {
   "releases": [
-      {
-        "package_name": "my_crate",
-        "prs": [
-          {
-            "html_url": "https://github.com/user/proj/pull/1439",
-            "number": 1439
-          }
-        ],
-        "tag": "v0.1.0",
-        "version": "0.1.0"
-      }
+    {
+      "package_name": "my_crate",
+      "prs": [
+        {
+          "html_url": "https://github.com/user/proj/pull/1439",
+          "number": 1439
+        }
+      ],
+      "tag": "v0.1.0",
+      "version": "0.1.0"
+    }
   ]
 }
 ```

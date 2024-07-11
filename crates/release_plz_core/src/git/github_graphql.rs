@@ -11,6 +11,7 @@ use crate::GitClient;
 
 /// Commit all the changes (except typestates) that are present in the repository
 /// using GitHub's [GraphQL api](https://docs.github.com/en/graphql/reference/mutations#createcommitonbranch).
+/// We use this API, because it gives the "Verified" status to the commit without a GPG key.
 pub async fn commit_changes(
     client: &GitClient,
     repo: &Repo,

@@ -11,7 +11,7 @@ use cargo_metadata::{
 };
 use semver::Version;
 
-use crate::{to_utf8_pathbuf, DepTable, Manifest};
+use crate::{to_utf8_pathbuf, DepTable, Manifest, CARGO_TOML};
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum FeatureStatus {
@@ -266,4 +266,13 @@ fn remove_feature_activation(
 
 pub fn workspace_manifest(metadata: &Metadata) -> Utf8PathBuf {
     metadata.workspace_root.join("Cargo.toml")
+}
+
+pub fn canonical_local_manifest(local_manifest: &Path) -> anyhow::Result<Utf8PathBuf> {
+    let mut local_manifest = dunce::canonicalize(local_manifest)?;
+    if !local_manifest.ends_with(CARGO_TOML) {
+        local_manifest.push(CARGO_TOML);
+    }
+    let local_manifest = to_utf8_pathbuf(local_manifest)?;
+    Ok(local_manifest)
 }

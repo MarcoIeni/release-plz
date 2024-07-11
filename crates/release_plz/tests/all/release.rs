@@ -107,10 +107,7 @@ async fn release_plz_does_not_release_a_new_project_if_release_always_is_false()
 
     // TODO: Gitea doesn't detect associated PRs. I don't know why.
     // context.run_release_pr().success();
-    // let opened_prs = context.opened_release_prs().await;
-    // assert_eq!(opened_prs.len(), 1);
-    // context.gitea.merge_pr_retrying(opened_prs[0].number).await;
-    // context.repo.git(&["pull"]).unwrap();
+    // context.merge_release_pr().unwrap();
 
     // // Running `release` releases the project
     // // because the last commit belongs to a release PR.
@@ -157,11 +154,7 @@ async fn release_plz_releases_after_release_pr_merged() {
     context.write_release_plz_toml(config);
 
     context.run_release_pr().success();
-
-    let opened_prs = context.opened_release_prs().await;
-    assert_eq!(opened_prs.len(), 1);
-    context.gitea.merge_pr_retrying(opened_prs[0].number).await;
-    context.repo.git(&["pull"]).unwrap();
+    context.merge_release_pr().await;
 
     let crate_name = &context.gitea.repo;
 

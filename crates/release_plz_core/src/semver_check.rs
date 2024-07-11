@@ -2,8 +2,7 @@ use std::process::Command;
 
 use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
-
-use crate::CARGO_TOML;
+use cargo_utils::CARGO_TOML;
 
 fn target_dir(path: &Utf8Path) -> Utf8PathBuf {
     path.join("target")

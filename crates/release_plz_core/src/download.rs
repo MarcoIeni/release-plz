@@ -4,12 +4,10 @@ use std::path::Path;
 
 use anyhow::{anyhow, Context};
 use cargo_metadata::{camino::Utf8PathBuf, Package};
+use cargo_utils::CARGO_TOML;
 use tracing::{info, instrument, warn};
 
-use crate::{
-    clone::{Cloner, ClonerSource, Crate},
-    CARGO_TOML,
-};
+use crate::clone::{Cloner, ClonerSource, Crate};
 
 #[derive(Debug)]
 pub struct PackageDownloader {

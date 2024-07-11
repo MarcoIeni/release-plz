@@ -24,7 +24,7 @@ async fn version_is_updated_when_project_changed() {
     let local_package = read_package(comparison_test.local_project()).unwrap();
     assert_eq!(local_package.version, Version::new(0, 1, 1));
     // Assert: changelog is generated.
-    expect_test::expect![[r####"
+    expect_test::expect![[r#"
         # Changelog
         All notable changes to this project will be documented in this file.
 
@@ -37,7 +37,7 @@ async fn version_is_updated_when_project_changed() {
 
         ### Added
         - do awesome stuff
-    "####]]
+    "#]]
     .assert_eq(&comparison_test.local_project_changelog());
 }
 
@@ -59,7 +59,7 @@ async fn changelog_is_updated_if_changelog_already_exists() {
 
     let local_package = read_package(comparison_test.local_project()).unwrap();
     assert_eq!(local_package.version, Version::new(0, 1, 1));
-    expect_test::expect![[r####"
+    expect_test::expect![[r#"
         # Changelog
         All notable changes to this project will be documented in this file.
 
@@ -77,6 +77,6 @@ async fn changelog_is_updated_if_changelog_already_exists() {
 
         ### Fixed
         - fix important bug
-    "####]]
+    "#]]
     .assert_eq(&comparison_test.local_project_changelog());
 }

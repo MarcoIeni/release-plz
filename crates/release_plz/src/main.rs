@@ -13,7 +13,7 @@ use release_plz_core::{ReleasePrRequest, ReleaseRequest};
 use serde::Serialize;
 use tracing::error;
 
-use crate::args::{repo_command::RepoCommand as _, CliArgs, Command};
+use crate::args::{manifest_command::ManifestCommand as _, CliArgs, Command};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -68,10 +68,10 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let config = cmd_args.config()?;
             let cmd_args_output = cmd_args.output;
             let request: ReleaseRequest = cmd_args.release_request(&config, cargo_metadata)?;
+            let output = release_plz_core::release(&request)
+                .await?
+                .unwrap_or_default();
             if let Some(output_type) = cmd_args_output {
-                let output = release_plz_core::release(&request)
-                    .await?
-                    .unwrap_or_default();
                 print_output(output_type, output);
             }
         }
@@ -79,6 +79,10 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         Command::CheckUpdates => update_checker::check_update().await?,
         Command::GenerateSchema => generate_schema::generate_schema_to_disk()?,
         Command::Init => init::init()?,
+        Command::SetVersion(cmd_args) => {
+            let request = cmd_args.set_version_request()?;
+            release_plz_core::set_version::set_version(&request)?;
+        }
     }
     Ok(())
 }

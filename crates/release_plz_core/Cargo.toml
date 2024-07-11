@@ -1,6 +1,6 @@
 [package]
 name = "release_plz_core"
-version = "0.22.1"
+version = "0.23.1"
 edition.workspace = true
 description = "Update version and changelog based on semantic versioning and conventional commits"
 repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/release_plz_core"
@@ -17,8 +17,8 @@ all-static = ["cargo/vendored-libgit2", "cargo/all-static"]
 
 [dependencies]
 base64.workspace = true
-cargo_utils = { path = "../cargo_utils", version = "0.1.48" }
-git_cmd = { path = "../git_cmd", version = "0.6.8" }
+cargo_utils = { path = "../cargo_utils", version = "0.1.50" }
+git_cmd = { path = "../git_cmd", version = "0.6.9" }
 next_version = { path = "../next_version", version = "0.2" }
 
 anyhow.workspace = true
@@ -33,6 +33,7 @@ git-url-parse.workspace = true
 ignore.workspace = true
 lazy_static.workspace = true
 parse-changelog.workspace = true
+rand.workspace = true
 rayon.workspace = true
 regex.workspace = true
 # native-tls-alpn is needed for http2 support. https://doc.rust-lang.org/cargo/reference/registry-index.html#sparse-protocol
