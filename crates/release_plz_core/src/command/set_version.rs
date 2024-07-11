@@ -38,7 +38,7 @@ impl SetVersionRequest {
 }
 
 pub fn set_version(input: &SetVersionRequest) -> anyhow::Result<()> {
-    let mut workspace_manifest = LocalManifest::try_new(&input.manifest)?;
+    let workspace_manifest = LocalManifest::try_new(&input.manifest)?;
     let packages: BTreeMap<String, Package> = workspace_members(&input.metadata)?
         .map(|p| {
             let package_name = p.name.clone();
@@ -55,8 +55,8 @@ pub fn set_version(input: &SetVersionRequest) -> anyhow::Result<()> {
             &all_packages,
             pkg.package_path()?,
             &change.version,
-            workspace_manifest,
-        );
+            &workspace_manifest.path,
+        )?;
     }
     Ok(())
 }

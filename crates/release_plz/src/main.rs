@@ -13,9 +13,7 @@ use release_plz_core::{ReleasePrRequest, ReleaseRequest};
 use serde::Serialize;
 use tracing::error;
 
-use crate::args::{
-    manifest_command::ManifestCommand as _, repo_command::RepoCommand as _, CliArgs, Command,
-};
+use crate::args::{manifest_command::ManifestCommand as _, CliArgs, Command};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -83,7 +81,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         Command::Init => init::init()?,
         Command::SetVersion(cmd_args) => {
             let request = cmd_args.set_version_request()?;
-            release_plz_core::set_version(&request)?;
+            release_plz_core::set_version::set_version(&request)?;
         }
     }
     Ok(())

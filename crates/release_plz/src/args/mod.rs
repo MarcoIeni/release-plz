@@ -1,17 +1,18 @@
 mod generate_completions;
+pub mod manifest_command;
 mod release;
 mod release_pr;
 pub mod repo_command;
 mod set_version;
 mod update;
-pub mod manifest_command;
 
 use std::path::Path;
 
 use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
+use cargo_utils::CARGO_TOML;
 use clap::ValueEnum;
-use release_plz_core::{fs_utils::current_directory, CARGO_TOML};
+use release_plz_core::fs_utils::current_directory;
 use set_version::SetVersion;
 use tracing::info;
 

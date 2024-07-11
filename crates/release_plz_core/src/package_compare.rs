@@ -6,7 +6,7 @@ use cargo_metadata::{
 use cargo_utils::{get_manifest_metadata, CARGO_TOML};
 use tracing::debug;
 
-use crate::{cargo::run_cargo, };
+use crate::cargo::run_cargo;
 use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
