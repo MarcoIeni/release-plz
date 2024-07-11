@@ -56,7 +56,7 @@ pub enum Command {
     GenerateSchema,
     /// Initialize release-plz for the current GitHub repository, by storing the necessary tokens in the GitHub repository secrets and generating the release-plz.yml GitHub Actions workflow file.
     Init,
-    /// Edit the version of a package in Cargo.toml and changelog.
+    /// Edit the version of a package in Cargo.toml.
     /// Specify a version with the syntax `<package_name>@<version>`.
     /// E.g. `release-plz set-version rand@1.2.3`
     ///
@@ -65,8 +65,6 @@ pub enum Command {
     ///
     /// Note that this command is meant to edit the versions of the packages
     /// of your workspace, not the version of your dependencies.
-    ///
-    /// TODO: if `<package_name>@` is omitted, update the workspace version. Update the changelog of all the packages that inherit the version.
     SetVersion(SetVersion),
 }
 
