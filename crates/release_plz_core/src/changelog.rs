@@ -40,6 +40,7 @@ impl Changelog<'_> {
         add_package_context(&mut changelog, &self.package)?;
         add_release_link_context(&mut changelog, self.release_link.as_deref())?;
         let mut out = Vec::new();
+        println!("changelog_config: {changelog:#?}");
         changelog
             .generate(&mut out)
             .context("cannot generate changelog")?;
@@ -95,7 +96,9 @@ fn add_release_link_context(
         changelog
             .add_context(RELEASE_LINK, release_link)
             .with_context(|| {
-                format!("failed to add `{release_link:?}` to the `{RELEASE_LINK}` changelog context")
+                format!(
+                    "failed to add `{release_link:?}` to the `{RELEASE_LINK}` changelog context"
+                )
             })?;
     }
     Ok(())
@@ -326,7 +329,7 @@ fn default_changelog_config(header: Option<String>) -> ChangelogConfig {
 
 fn default_changelog_body_config() -> &'static str {
     r#"
-## [{{ version | trim_start_matches(pat="v") }}]{%- if commit.scope -%}({{ release_link }}){% endif %} - {{ timestamp | date(format="%Y-%m-%d") }}
+## [{{ version | trim_start_matches(pat="v") }}]{%- if release_link -%}({{ release_link }}){% endif %} - {{ timestamp | date(format="%Y-%m-%d") }}
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group | upper_first }}
 {% for commit in commits %}
