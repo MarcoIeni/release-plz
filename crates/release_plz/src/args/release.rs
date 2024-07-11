@@ -1,17 +1,16 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Context as _;
-use cargo_metadata::camino::Utf8Path;
 use clap::{
     builder::{NonEmptyStringValueParser, PathBufValueParser},
     ValueEnum,
 };
-use release_plz_core::{fs_utils::to_utf8_path, GitBackend, GitHub, GitLab, Gitea, ReleaseRequest};
+use release_plz_core::{GitBackend, GitHub, GitLab, Gitea, ReleaseRequest};
 use secrecy::SecretString;
 
 use crate::config::Config;
 
-use super::{repo_command::RepoCommand, OutputType};
+use super::{manifest_command::ManifestCommand, repo_command::RepoCommand, OutputType};
 
 #[derive(clap::Parser, Debug)]
 pub struct Release {
@@ -134,14 +133,14 @@ impl Release {
 }
 
 impl RepoCommand for Release {
-    fn optional_manifest_path(&self) -> Option<&Utf8Path> {
-        self.manifest_path
-            .as_deref()
-            .map(|p| to_utf8_path(p).unwrap())
-    }
-
     fn repo_url(&self) -> Option<&str> {
         self.repo_url.as_deref()
+    }
+}
+
+impl ManifestCommand for Release {
+    fn optional_manifest(&self) -> Option<&Path> {
+        self.manifest_path.as_deref()
     }
 }
 

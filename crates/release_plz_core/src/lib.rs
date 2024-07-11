@@ -37,4 +37,3 @@ pub use package_path::*;
 pub use pr::BRANCH_PREFIX;
 pub use repo_url::*;
 
-pub const CARGO_TOML: &str = "Cargo.toml";

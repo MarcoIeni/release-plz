@@ -1,10 +1,10 @@
 use crate::semver_check::SemverCheck;
-use crate::{root_repo_path_from_manifest_dir, CARGO_TOML};
+use crate::{root_repo_path_from_manifest_dir };
 use crate::{tmp_repo::TempRepo, PackagePath, UpdateRequest, UpdateResult};
 use anyhow::Context;
 use cargo_metadata::camino::Utf8Path;
 use cargo_metadata::{semver::Version, Package};
-use cargo_utils::upgrade_requirement;
+use cargo_utils::{upgrade_requirement, CARGO_TOML};
 use cargo_utils::LocalManifest;
 use git_cmd::Repo;
 use std::iter;
@@ -246,7 +246,7 @@ fn update_cargo_lock(root: &Utf8Path, update_all_dependencies: bool) -> anyhow::
 }
 
 #[instrument(skip(all_packages))]
-fn set_version(
+pub fn set_version(
     all_packages: &[Package],
     package_path: &Utf8Path,
     version: &Version,

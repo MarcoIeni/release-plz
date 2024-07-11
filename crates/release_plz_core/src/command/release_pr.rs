@@ -1,4 +1,5 @@
 use cargo_metadata::camino::Utf8Path;
+use cargo_utils::CARGO_TOML;
 use git_cmd::Repo;
 
 use anyhow::Context;
@@ -12,7 +13,6 @@ use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};
 use crate::{
     copy_to_temp_dir, new_manifest_dir_path, new_project_root, publishable_packages_from_manifest,
     root_repo_path_from_manifest_dir, update, GitBackend, PackagesUpdate, UpdateRequest,
-    CARGO_TOML,
 };
 
 #[derive(Debug)]

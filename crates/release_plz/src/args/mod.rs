@@ -2,7 +2,9 @@ mod generate_completions;
 mod release;
 mod release_pr;
 pub mod repo_command;
+mod set_version;
 mod update;
+pub mod manifest_command;
 
 use std::path::Path;
 
@@ -10,6 +12,7 @@ use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 use clap::ValueEnum;
 use release_plz_core::{fs_utils::current_directory, CARGO_TOML};
+use set_version::SetVersion;
 use tracing::info;
 
 use crate::config::Config;
@@ -52,6 +55,18 @@ pub enum Command {
     GenerateSchema,
     /// Initialize release-plz for the current GitHub repository, by storing the necessary tokens in the GitHub repository secrets and generating the release-plz.yml GitHub Actions workflow file.
     Init,
+    /// Edit the version of a package in Cargo.toml and changelog.
+    /// Specify a version with the syntax `<package_name>@<version>`.
+    /// E.g. `release-plz set-version rand@1.2.3`
+    ///
+    /// You can also set multiple versions, separated by space.
+    /// E.g. `release-plz set-version rand@1.2.3 serde@2.0.0`
+    ///
+    /// Note that this command is meant to edit the versions of the packages
+    /// of your workspace, not the version of your dependencies.
+    ///
+    /// TODO: if `<package_name>@` is omitted, update the workspace version. Update the changelog of all the packages that inherit the version.
+    SetVersion(SetVersion),
 }
 
 #[derive(ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]
