@@ -174,6 +174,16 @@ impl TestContext {
     }
 }
 
+pub fn run_set_version(directory: &Utf8Path, change: &str) {
+    let change: Vec<_> = change.split(' ').collect();
+    super::cmd::release_plz_cmd()
+        .current_dir(directory)
+        .env("RUST_LOG", log_level())
+        .arg("set-version")
+        .args(&change)
+        .assert();
+}
+
 fn log_level() -> String {
     if std::env::var("ENABLE_LOGS").is_ok() {
         std::env::var("RUST_LOG").unwrap_or("DEBUG,hyper=INFO".to_string())

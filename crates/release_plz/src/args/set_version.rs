@@ -1,10 +1,15 @@
-use std::path::{Path, PathBuf};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+};
 
 use cargo_metadata::semver::Version;
 use clap::builder::PathBufValueParser;
 use release_plz_core::set_version::{SetVersionRequest, VersionChange};
 
-use super::manifest_command::ManifestCommand;
+use crate::config::Config;
+
+use super::{config_command::ConfigCommand, manifest_command::ManifestCommand};
 
 #[derive(clap::Parser, Debug)]
 pub struct SetVersion {
@@ -15,10 +20,25 @@ pub struct SetVersion {
     /// Both Cargo workspaces and single packages are supported.
     #[arg(long, value_parser = PathBufValueParser::new())]
     manifest_path: Option<PathBuf>,
+    /// Path to the release-plz config file.
+    /// Default: `./release-plz.toml`.
+    /// If no config file is found, the default configuration is used.
+    #[arg(
+        long,
+        value_name = "PATH",
+        value_parser = PathBufValueParser::new()
+    )]
+    config: Option<PathBuf>,
+}
+
+impl ConfigCommand for SetVersion {
+    fn config_path(&self) -> Option<&Path> {
+        self.config.as_deref()
+    }
 }
 
 impl SetVersion {
-    fn parse_versions(self) -> anyhow::Result<Vec<VersionChange>> {
+    fn parse_versions(self) -> anyhow::Result<BTreeMap<String, VersionChange>> {
         self
             .versions
             .iter()
@@ -29,16 +49,18 @@ impl SetVersion {
                 let Some(package) = d.get(0) else {return error;};
                 let Some(version) = d.get(1) else {return error;};
                 let version = Version::parse(version).unwrap();
-                Ok(VersionChange::new(package.to_string(), version ))
+                Ok((package.to_string(), VersionChange::new( version )))
             })
             .collect()
     }
 
     /// Get [`SetVersionRequest`]
-    pub fn set_version_request(self) -> anyhow::Result<SetVersionRequest> {
+    pub fn set_version_request(self, config: &Config) -> anyhow::Result<SetVersionRequest> {
         let cargo_metadata = self.cargo_metadata()?;
         let version_changes = self.parse_versions()?;
-        SetVersionRequest::new(version_changes, cargo_metadata)
+        let mut request = SetVersionRequest::new(version_changes, cargo_metadata)?;
+        config.fill_set_version_config(&mut request)?;
+        Ok(request)
     }
 }
 

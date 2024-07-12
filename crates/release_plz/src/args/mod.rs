@@ -1,8 +1,9 @@
+pub(crate) mod config_command;
 mod generate_completions;
-pub mod manifest_command;
+pub(crate) mod manifest_command;
 mod release;
 mod release_pr;
-pub mod repo_command;
+pub(crate) mod repo_command;
 mod set_version;
 mod update;
 
@@ -56,7 +57,7 @@ pub enum Command {
     GenerateSchema,
     /// Initialize release-plz for the current GitHub repository, by storing the necessary tokens in the GitHub repository secrets and generating the release-plz.yml GitHub Actions workflow file.
     Init,
-    /// Edit the version of a package in Cargo.toml.
+    /// Edit the version of a package in Cargo.toml and changelog.
     /// Specify a version with the syntax `<package_name>@<version>`.
     /// E.g. `release-plz set-version rand@1.2.3`
     ///
