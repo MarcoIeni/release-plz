@@ -83,26 +83,60 @@ pub fn set_version(input: &SetVersionRequest) -> anyhow::Result<()> {
         })
         .collect();
     let all_packages: Vec<&Package> = packages.values().collect();
-    for (package, change) in &input.version_changes {
-        let pkg = packages
-            .get(package)
-            .with_context(|| format!("package {package} not found"))?;
-        let pkg_path = pkg.package_path()?;
-        super::update::set_version(
-            &all_packages,
-            pkg_path,
-            &change.version,
-            &workspace_manifest.path,
-        )?;
-
-        let default_changelog_path = pkg_path.join(CHANGELOG_FILENAME);
-        let changelog_path: &Utf8Path = change
-            .changelog_path
-            .as_deref()
-            .unwrap_or(&default_changelog_path);
-        update_changelog(changelog_path, &pkg.version, &change.version)
-            .with_context(|| format!("failed to update changelog at {changelog_path}"))?;
+    match &input.version_changes {
+        SetVersionSpec::Single(change) => {
+            anyhow::ensure!(
+                packages.len() == 1,
+                "your workspace contains multiple packages. Please specify the package name"
+            );
+            let package = packages.keys().next().unwrap();
+            set_version_in_package(
+                &packages,
+                package,
+                &all_packages,
+                change,
+                &workspace_manifest,
+            )?;
+        }
+        SetVersionSpec::Workspace(changes) => {
+            for (package, change) in changes {
+                set_version_in_package(
+                    &packages,
+                    package,
+                    &all_packages,
+                    change,
+                    &workspace_manifest,
+                )?;
+            }
+        }
     }
+    Ok(())
+}
+
+fn set_version_in_package(
+    packages: &BTreeMap<String, Package>,
+    package: &String,
+    all_packages: &[&Package],
+    change: &VersionChange,
+    workspace_manifest: &LocalManifest,
+) -> Result<(), anyhow::Error> {
+    let pkg = packages
+        .get(package)
+        .with_context(|| format!("package {package} not found"))?;
+    let pkg_path = pkg.package_path()?;
+    super::update::set_version(
+        all_packages,
+        pkg_path,
+        &change.version,
+        &workspace_manifest.path,
+    )?;
+    let default_changelog_path = pkg_path.join(CHANGELOG_FILENAME);
+    let changelog_path: &Utf8Path = change
+        .changelog_path
+        .as_deref()
+        .unwrap_or(&default_changelog_path);
+    update_changelog(changelog_path, &pkg.version, &change.version)
+        .with_context(|| format!("failed to update changelog at {changelog_path}"))?;
     Ok(())
 }
 
