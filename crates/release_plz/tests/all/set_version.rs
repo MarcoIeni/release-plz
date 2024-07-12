@@ -5,6 +5,7 @@ use release_plz_core::{copy_to_temp_dir, CHANGELOG_FILENAME};
 use crate::helpers::test_context::run_set_version;
 
 #[test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
 fn set_version_updates_version() {
     let fixture_dir = Utf8Path::new("../../tests/fixtures/set-version-in-workspace");
     assert!(fixture_dir.is_dir());
