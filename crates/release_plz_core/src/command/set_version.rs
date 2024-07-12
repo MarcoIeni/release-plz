@@ -20,7 +20,7 @@ pub struct SetVersionRequest {
 
 impl SetVersionRequest {
     pub fn set_changelog_path(&mut self, package: &str, changelog_path: Utf8PathBuf) {
-        match { &mut self.version_changes } {
+        match &mut self.version_changes {
             SetVersionSpec::Single(change) => {
                 change.changelog_path = Some(changelog_path);
             }
