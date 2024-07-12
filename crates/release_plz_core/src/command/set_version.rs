@@ -87,7 +87,7 @@ pub fn set_version(input: &SetVersionRequest) -> anyhow::Result<()> {
         SetVersionSpec::Single(change) => {
             anyhow::ensure!(
                 packages.len() == 1,
-                "your workspace contains multiple packages. Please specify the package name"
+                "Your workspace contains multiple packages. Please specify which package you want to update."
             );
             let package = packages.keys().next().unwrap();
             set_version_in_package(
