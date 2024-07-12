@@ -1,11 +1,17 @@
 # set-version
 
 Edit the version of a package in Cargo.toml and changelog.
-Specify a version with the syntax `<package_name>@<version>`.
-E.g. `release-plz set-version rand@1.2.3`
 
-You can also set multiple versions, separated by space.
-E.g. `release-plz set-version rand@1.2.3 serde@2.0.0`
+In a project containing a single package:
+
+- Pass the version you want to set. E.g. `release-plz set-version 1.2.3`
+
+In a workspace:
+
+- Specify a version with the syntax `<package_name>@<version>`.
+  E.g. `release-plz set-version rand@1.2.3`
+- You can also set multiple versions, separated by space.
+  E.g. `release-plz set-version rand@1.2.3 serde@2.0.0`
 
 :::info
 This command is meant to edit the versions of the packages
