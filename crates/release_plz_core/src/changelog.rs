@@ -40,7 +40,6 @@ impl Changelog<'_> {
         add_package_context(&mut changelog, &self.package)?;
         add_release_link_context(&mut changelog, self.release_link.as_deref())?;
         let mut out = Vec::new();
-        println!("changelog_config: {changelog:#?}");
         changelog
             .generate(&mut out)
             .context("cannot generate changelog")?;
