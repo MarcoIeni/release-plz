@@ -6,7 +6,7 @@ use crate::helpers::test_context::run_set_version;
 
 #[test]
 #[cfg_attr(not(feature = "docker-tests"), ignore)]
-fn set_version_updates_version() {
+fn set_version_updates_version_in_workspace() {
     let fixture_dir = Utf8Path::new("../../tests/fixtures/set-version-in-workspace");
     assert!(fixture_dir.is_dir());
     let dest_dir = copy_to_temp_dir(fixture_dir).unwrap();
@@ -72,4 +72,43 @@ fn set_version_updates_version() {
         - stuff in crate two
     "#]]
     .assert_eq(&fs_err::read_to_string(two_changelog).unwrap());
+}
+
+#[test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
+fn set_version_updates_version_in_package() {
+    let fixture_dir = Utf8Path::new("../../tests/fixtures/set-version-in-package");
+    assert!(fixture_dir.is_dir());
+    let dest_dir = copy_to_temp_dir(fixture_dir).unwrap();
+    let project_dir = dest_dir.path().join("set-version-in-package");
+    // There's a single crate in this project, so we don't need to specify the package name.
+    run_set_version(&project_dir, "0.1.1");
+
+    let manifest = project_dir.join(CARGO_TOML);
+    expect_test::expect![[r#"
+        [package]
+        name = "one"
+        version = "0.1.1"
+        edition = "2021"
+
+        [dependencies]
+    "#]]
+    .assert_eq(&fs_err::read_to_string(manifest).unwrap());
+
+    let changelog = project_dir.join(CHANGELOG_FILENAME);
+    expect_test::expect![[r#"
+        # Changelog
+        All notable changes to this project will be documented in this file.
+
+        The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+        and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+        ## [Unreleased]
+
+        ## [0.1.1] - 2024-05-16
+
+        ### Other
+        - stuff in crate one
+    "#]]
+    .assert_eq(&fs_err::read_to_string(changelog).unwrap());
 }
