@@ -627,7 +627,7 @@ Default:
 ```toml
 [changelog]
 body = """
-## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+## [{{ version | trim_start_matches(pat="v") }}]{%- if release_link -%}({{ release_link }}){% endif %} - {{ timestamp | date(format="%Y-%m-%d") }}
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group | upper_first }}
 {% for commit in commits %}
@@ -640,21 +640,6 @@ body = """
 {% endfor %}
 """
 ```
-
-:::tip
-The default `body` also links to the version release on GitHub.
-To do this, hardcode the link of your repository.
-E.g.:
-
-```toml
-[changelog]
-body = """
-## [{{ version | trim_start_matches(pat="v") }}](https://github.com/me/my-proj/{% if previous.version %}compare/{{ package }}-v{{ previous.version }}...{{ package }}-v{{ version }}{% else %}releases/tag/{{ package }}-v{{ version }}{% endif %}) - {{ timestamp | date(format="%Y-%m-%d") }}
-
-...rest of the body...
-```
-
-:::
 
 #### The `trim` field
 
