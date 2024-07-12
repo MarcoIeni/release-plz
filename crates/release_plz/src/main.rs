@@ -7,7 +7,7 @@ mod log;
 mod update_checker;
 
 use anyhow::Context;
-use args::OutputType;
+use args::{config_command::ConfigCommand as _, OutputType};
 use clap::Parser;
 use release_plz_core::{ReleasePrRequest, ReleaseRequest};
 use serde::Serialize;
@@ -80,7 +80,8 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         Command::GenerateSchema => generate_schema::generate_schema_to_disk()?,
         Command::Init => init::init()?,
         Command::SetVersion(cmd_args) => {
-            let request = cmd_args.set_version_request()?;
+            let config = cmd_args.config()?;
+            let request = cmd_args.set_version_request(&config)?;
             release_plz_core::set_version::set_version(&request)?;
         }
     }
