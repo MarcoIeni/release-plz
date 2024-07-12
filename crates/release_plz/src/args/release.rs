@@ -1,6 +1,5 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::Context as _;
 use clap::{
     builder::{NonEmptyStringValueParser, PathBufValueParser},
     ValueEnum,
@@ -10,7 +9,7 @@ use secrecy::SecretString;
 
 use crate::config::Config;
 
-use super::{manifest_command::ManifestCommand, repo_command::RepoCommand, OutputType};
+use super::{config_command::ConfigCommand, manifest_command::ManifestCommand, repo_command::RepoCommand, OutputType};
 
 #[derive(clap::Parser, Debug)]
 pub struct Release {
@@ -75,12 +74,13 @@ pub enum ReleaseGitBackendKind {
     Gitlab,
 }
 
-impl Release {
-    pub fn config(&self) -> anyhow::Result<Config> {
-        super::parse_config(self.config.as_deref())
-            .context("failed to parse release-plz configuration")
+impl ConfigCommand for Release {
+    fn config_path(&self) -> Option<&Path> {
+        self.config.as_deref()
     }
+}
 
+impl Release {
     pub fn release_request(
         self,
         config: &Config,
