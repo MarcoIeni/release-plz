@@ -87,9 +87,8 @@ fn set_version_updates_version_in_package() {
     let manifest = project_dir.join(CARGO_TOML);
     expect_test::expect![[r#"
         [package]
-        name = "one"
+        name = "set-version-in-package"
         version = "0.1.1"
-        edition = "2021"
 
         [dependencies]
     "#]]
@@ -108,7 +107,7 @@ fn set_version_updates_version_in_package() {
         ## [0.1.1] - 2024-05-16
 
         ### Other
-        - stuff in crate one
+        - stuff in crate
     "#]]
     .assert_eq(&fs_err::read_to_string(changelog).unwrap());
 }
