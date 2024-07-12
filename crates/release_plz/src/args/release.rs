@@ -9,7 +9,10 @@ use secrecy::SecretString;
 
 use crate::config::Config;
 
-use super::{config_command::ConfigCommand, manifest_command::ManifestCommand, repo_command::RepoCommand, OutputType};
+use super::{
+    config_command::ConfigCommand, manifest_command::ManifestCommand, repo_command::RepoCommand,
+    OutputType,
+};
 
 #[derive(clap::Parser, Debug)]
 pub struct Release {

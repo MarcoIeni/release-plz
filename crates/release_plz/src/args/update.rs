@@ -9,7 +9,9 @@ use release_plz_core::{fs_utils::to_utf8_path, ChangelogRequest, UpdateRequest};
 
 use crate::config::Config;
 
-use super::{config_command::ConfigCommand, manifest_command::ManifestCommand, repo_command::RepoCommand};
+use super::{
+    config_command::ConfigCommand, manifest_command::ManifestCommand, repo_command::RepoCommand,
+};
 
 /// Update your project locally, without opening a PR.
 /// If `repo_url` contains a GitHub URL, release-plz uses it to add a release
