@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.51](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.50...cargo_utils-v0.1.51) - 2024-07-12
+
+### Added
+- add `canonical_local_manifest` function ([#1546](https://github.com/MarcoIeni/release-plz/pull/1546))
+
+### Other
+- add missing READMEs ([#1551](https://github.com/MarcoIeni/release-plz/pull/1551))
+
 ## [0.1.50](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.49...cargo_utils-v0.1.50) - 2024-06-18
 
 ### Other

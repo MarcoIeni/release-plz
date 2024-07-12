@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.76](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.75...release-plz-v0.3.76) - 2024-07-12
+
+### Added
+- implement set-version command ([#1546](https://github.com/MarcoIeni/release-plz/pull/1546)) ([#1550](https://github.com/MarcoIeni/release-plz/pull/1550))
+- add release_link to context ([#1502](https://github.com/MarcoIeni/release-plz/pull/1502))
+
+### Other
+- add missing READMEs ([#1551](https://github.com/MarcoIeni/release-plz/pull/1551))
+
 ## [0.3.75](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.74...release-plz-v0.3.75) - 2024-06-30
 
 ### Other

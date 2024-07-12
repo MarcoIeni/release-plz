@@ -5,7 +5,7 @@ use std::{
 
 use cargo_metadata::semver::Version;
 use clap::builder::PathBufValueParser;
-use release_plz_core::set_version::{SetVersionRequest, VersionChange};
+use release_plz_core::set_version::{SetVersionRequest, SetVersionSpec, VersionChange};
 
 use crate::config::Config;
 
@@ -39,7 +39,18 @@ impl ConfigCommand for SetVersion {
 }
 
 impl SetVersion {
-    fn parse_versions(self) -> anyhow::Result<BTreeMap<String, VersionChange>> {
+    fn parse_versions(self) -> anyhow::Result<SetVersionSpec> {
+        let is_single_package = self.versions.len() == 1 && !self.versions[0].contains('@');
+        if is_single_package {
+            let version = Version::parse(&self.versions[0])?;
+            Ok(SetVersionSpec::Single(VersionChange::new(version)))
+        } else {
+            let version_changes = self.parse_workspace_versions()?;
+            Ok(SetVersionSpec::Workspace(version_changes))
+        }
+    }
+
+    fn parse_workspace_versions(self) -> anyhow::Result<BTreeMap<String, VersionChange>> {
         self
             .versions
             .iter()
@@ -49,7 +60,7 @@ impl SetVersion {
                 #[allow(clippy::get_first)]
                 let Some(package) = d.get(0) else {return error;};
                 let Some(version) = d.get(1) else {return error;};
-                let version = Version::parse(version).unwrap();
+                let version = Version::parse(version)?;
                 Ok((package.to_string(), VersionChange::new( version )))
             })
             .collect()
