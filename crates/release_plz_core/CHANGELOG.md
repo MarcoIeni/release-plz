@@ -9,9 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.24.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.23.1...release_plz_core-v0.24.0) - 2024-07-12
 
 ### Added
+- implement set-version command ([#1546](https://github.com/MarcoIeni/release-plz/pull/1546)) ([#1550](https://github.com/MarcoIeni/release-plz/pull/1550))
 - add release_link to context ([#1502](https://github.com/MarcoIeni/release-plz/pull/1502))
-- *(set-version)* update changelog ([#1550](https://github.com/MarcoIeni/release-plz/pull/1550))
-- implement set-version command ([#1546](https://github.com/MarcoIeni/release-plz/pull/1546))
 
 ### Other
 - add missing READMEs ([#1551](https://github.com/MarcoIeni/release-plz/pull/1551))
