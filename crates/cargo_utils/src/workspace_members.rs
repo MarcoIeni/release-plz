@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use cargo_metadata::{camino::Utf8Path, Metadata, Package};
 
 pub fn get_manifest_metadata(
@@ -11,7 +13,7 @@ pub fn get_manifest_metadata(
 
 /// Lookup all members of the current workspace
 pub fn workspace_members(metadata: &Metadata) -> anyhow::Result<impl Iterator<Item = Package>> {
-    let workspace_members: std::collections::BTreeSet<_> =
+    let workspace_members: BTreeSet<_> =
         metadata.workspace_members.clone().into_iter().collect();
     let workspace_members = metadata
         .packages

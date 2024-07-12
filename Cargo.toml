@@ -58,8 +58,10 @@ walkdir = "2.5.0"
 wiremock = "0.6.0"
 
 [workspace.lints.clippy]
+as_underscore = "warn"
 await_holding_lock = "warn"
 await_holding_refcell_ref = "warn"
+cargo_common_metadata = "warn"
 cast_lossless = "warn"
 cast_possible_wrap = "warn"
 cast_precision_loss = "warn"
