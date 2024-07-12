@@ -14,6 +14,7 @@ use super::{config_command::ConfigCommand, manifest_command::ManifestCommand};
 #[derive(clap::Parser, Debug)]
 pub struct SetVersion {
     /// New version of the package you want to update. Format: `<package_name>@<version-req>`.
+    /// If `<package_name>@` is omitted, the version of the workspace is updated.
     pub versions: Vec<String>,
     /// Path to the Cargo.toml of the project you want to update.
     /// If not provided, release-plz will use the Cargo.toml of the current directory.
