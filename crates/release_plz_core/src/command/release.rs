@@ -692,7 +692,7 @@ fn run_cargo_publish(
     args.push(package.manifest_path.as_ref());
     // We specify the package name to allow publishing root packages.
     // See https://github.com/MarcoIeni/release-plz/issues/1545
-    args.push("-p");
+    args.push("--package");
     args.push(&package.name);
     if let Some(registry) = &input.registry {
         args.push("--registry");
