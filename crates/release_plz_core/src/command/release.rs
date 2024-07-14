@@ -276,6 +276,11 @@ impl ReleaseConfig {
         self
     }
 
+    pub fn with_changelog_path(mut self, changelog_path: Utf8PathBuf) -> Self {
+        self.changelog_path = Some(changelog_path);
+        self
+    }
+
     pub fn publish(&self) -> &PublishConfig {
         &self.publish
     }

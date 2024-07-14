@@ -223,6 +223,9 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
             )
             .with_release(release);
 
+        if let Some(changelog_path) = value.changelog_path {
+            cfg = cfg.with_changelog_path(to_utf8_pathbuf(changelog_path).unwrap());
+        }
         if let Some(no_verify) = value.publish_no_verify {
             cfg = cfg.with_no_verify(no_verify);
         }
