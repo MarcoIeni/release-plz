@@ -2,7 +2,8 @@
 
 Edit the version of a package in Cargo.toml and changelog.
 
-- In a project containing a single package pass the version you want to set. E.g. `release-plz set-version 1.2.3`
+- In a project containing a single package pass the version you want to set.
+  E.g. `release-plz set-version 1.2.3`
 
 - In a workspace, specify a version with the syntax `<package_name>@<version>`.
   E.g. `release-plz set-version my_crate@1.2.3`.
