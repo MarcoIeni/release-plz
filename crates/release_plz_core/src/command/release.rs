@@ -238,7 +238,7 @@ pub struct ReleaseConfig {
     /// High-level toggle to process this package or ignore it
     release: bool,
     changelog_path: Option<Utf8PathBuf>,
-    /// Whether this package has a changelog that release-plz update or not.
+    /// Whether this package has a changelog that release-plz updates or not.
     /// Default: `true`.
     changelog_update: bool,
 }
