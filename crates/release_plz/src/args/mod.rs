@@ -64,6 +64,8 @@ pub enum Command {
     /// You can also set multiple versions, separated by space.
     /// E.g. `release-plz set-version rand@1.2.3 serde@2.0.0`
     ///
+    /// For single package projects, you can omit `<package_name>@`. E.g. `release-plz set-version 1.2.3`
+    ///
     /// Note that this command is meant to edit the versions of the packages
     /// of your workspace, not the version of your dependencies.
     SetVersion(SetVersion),
