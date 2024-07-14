@@ -276,6 +276,11 @@ impl ReleaseConfig {
         self
     }
 
+    pub fn with_changelog_path(mut self, changelog_path: Utf8PathBuf) -> Self {
+        self.changelog_path = Some(changelog_path);
+        self
+    }
+
     pub fn publish(&self) -> &PublishConfig {
         &self.publish
     }
@@ -732,6 +737,7 @@ fn release_body(req: &ReleaseRequest, package: &Package, changelog: &str) -> Str
 }
 
 fn last_changelog_entry(req: &ReleaseRequest, package: &Package) -> String {
+    info!("{:?}", req.packages_config);
     let changelog_path = req.changelog_path(package);
     match changelog_parser::last_changes(&changelog_path) {
         Ok(Some(changes)) => changes,
