@@ -223,6 +223,9 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
             )
             .with_release(release);
 
+        if let Some(changelog_update) = value.changelog_update {
+            cfg = cfg.with_changelog_update(changelog_update);
+        }
         if let Some(changelog_path) = value.changelog_path {
             cfg = cfg.with_changelog_path(to_utf8_pathbuf(changelog_path).unwrap());
         }
