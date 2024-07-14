@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.77](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.76...release-plz-v0.3.77) - 2024-07-14
+
+### Added
+- *(set-version)* support single crate project ([#1553](https://github.com/MarcoIeni/release-plz/pull/1553))
+
+### Other
+- *(set-version)* document single crate usage ([#1555](https://github.com/MarcoIeni/release-plz/pull/1555))
+
 ## [0.3.76](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.75...release-plz-v0.3.76) - 2024-07-12
 
 ### Added
