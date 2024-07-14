@@ -737,7 +737,6 @@ fn release_body(req: &ReleaseRequest, package: &Package, changelog: &str) -> Str
 }
 
 fn last_changelog_entry(req: &ReleaseRequest, package: &Package) -> String {
-    info!("{:?}", req.packages_config);
     let changelog_path = req.changelog_path(package);
     match changelog_parser::last_changes(&changelog_path) {
         Ok(Some(changes)) => changes,
