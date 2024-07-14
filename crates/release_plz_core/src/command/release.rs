@@ -238,6 +238,9 @@ pub struct ReleaseConfig {
     /// High-level toggle to process this package or ignore it
     release: bool,
     changelog_path: Option<Utf8PathBuf>,
+    /// Whether this package has a changelog that release-plz update or not.
+    /// Default: `true`.
+    changelog_update: bool,
 }
 
 impl ReleaseConfig {
@@ -281,6 +284,11 @@ impl ReleaseConfig {
         self
     }
 
+    pub fn with_changelog_update(mut self, changelog_update: bool) -> Self {
+        self.changelog_update = changelog_update;
+        self
+    }
+
     pub fn publish(&self) -> &PublishConfig {
         &self.publish
     }
@@ -301,6 +309,7 @@ impl Default for ReleaseConfig {
             features: vec![],
             release: true,
             changelog_path: None,
+            changelog_update: true,
         }
     }
 }
@@ -736,7 +745,12 @@ fn release_body(req: &ReleaseRequest, package: &Package, changelog: &str) -> Str
     )
 }
 
+/// Return an empty string if not found.
 fn last_changelog_entry(req: &ReleaseRequest, package: &Package) -> String {
+    let changelog_update = req.get_package_config(&package.name).changelog_update;
+    if !changelog_update {
+        return String::new();
+    }
     let changelog_path = req.changelog_path(package);
     match changelog_parser::last_changes(&changelog_path) {
         Ok(Some(changes)) => changes,
