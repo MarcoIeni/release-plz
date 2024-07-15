@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.24.1...release_plz_core-v0.24.2) - 2024-07-14
+
+### Fixed
+- *(release)* don't try to parse changelog if it doesn't exist ([#1563](https://github.com/MarcoIeni/release-plz/pull/1563))
+- *(release)* set changelog path ([#1561](https://github.com/MarcoIeni/release-plz/pull/1561))
+
 ## [0.24.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.24.0...release_plz_core-v0.24.1) - 2024-07-14
 
 ### Added
