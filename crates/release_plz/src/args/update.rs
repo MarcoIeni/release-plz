@@ -4,8 +4,9 @@ use anyhow::Context;
 use cargo_metadata::camino::Utf8Path;
 use chrono::NaiveDate;
 use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
-use git_cliff_core::config::Config as GitCliffConfig;
+use git_cliff_core::config::{Config as GitCliffConfig, Remote};
 use release_plz_core::{fs_utils::to_utf8_path, ChangelogRequest, UpdateRequest};
+use tracing::debug;
 
 use crate::config::Config;
 
@@ -158,9 +159,21 @@ impl Update {
                         .context("cannot parse release_date to y-m-d format")
                 })
                 .transpose()?;
+
             let changelog_req = ChangelogRequest {
                 release_date,
-                changelog_config: Some(self.changelog_config(&config)?),
+                changelog_config: Some(
+                    self.changelog_config(
+                        &config,
+                        self.get_repo_url(&config)
+                            .map(|r| Remote {
+                                owner: r.owner.clone(),
+                                repo: r.name.clone(),
+                                token: None,
+                            })
+                            .ok(),
+                    )?,
+                ),
             };
             update = update.with_changelog_req(changelog_req);
         }
@@ -177,7 +190,11 @@ impl Update {
         Ok(update)
     }
 
-    fn changelog_config(&self, config: &Config) -> anyhow::Result<GitCliffConfig> {
+    fn changelog_config(
+        &self,
+        config: &Config,
+        upstream_remote: Option<Remote>,
+    ) -> anyhow::Result<GitCliffConfig> {
         let default_config_path = dirs::config_dir()
             .context("cannot get config dir")?
             .join("git-cliff")
@@ -195,7 +212,7 @@ impl Update {
         };
 
         // Parse the configuration file.
-        let changelog_config = if path.exists() {
+        let mut changelog_config = if path.exists() {
             anyhow::ensure!(config.changelog.is_default(), "specifying the `[changelog]` configuration has no effect if `changelog_config` path is specified");
             GitCliffConfig::parse(path).context("failed to parse git-cliff config file")?
         } else {
@@ -205,6 +222,27 @@ impl Update {
                 .try_into()
                 .context("invalid `[changelog] config")?
         };
+        if let Some(remote) = upstream_remote {
+            // This matches https://github.com/orhun/git-cliff/blob/e7807e13c4b38aaa4a735ff05b69fdd6b57a7a85/git-cliff/src/lib.rs#L117
+            // even though it will only set the first unset remote
+            if !changelog_config.remote.github.is_set() {
+                debug!("No GitHub remote is set, using remote: {}", remote);
+                changelog_config.remote.github.owner = remote.owner;
+                changelog_config.remote.github.repo = remote.repo;
+            } else if !changelog_config.remote.gitlab.is_set() {
+                debug!("No GitLab remote is set, using remote: {}", remote);
+                changelog_config.remote.gitlab.owner = remote.owner;
+                changelog_config.remote.gitlab.repo = remote.repo;
+            } else if !changelog_config.remote.gitea.is_set() {
+                debug!("No Gitea remote is set, using remote: {}", remote);
+                changelog_config.remote.gitea.owner = remote.owner;
+                changelog_config.remote.gitea.repo = remote.repo;
+            } else if !changelog_config.remote.bitbucket.is_set() {
+                debug!("No Bitbucket remote is set, using remote: {}", remote);
+                changelog_config.remote.bitbucket.owner = remote.owner;
+                changelog_config.remote.bitbucket.repo = remote.repo;
+            }
+        }
 
         Ok(changelog_config)
     }
