@@ -104,6 +104,37 @@ you can use the following context in the template:
 }
 ```
 
+#### Forge integration
+
+Release-plz will try to guess your repository based on the remote configured in git.
+It will then make this information available as extra context.
+
+```json
+{
+  ...,
+  "remote": {
+    "github": {
+      "owner": "orhun",
+      "repo": "git-cliff"
+    },
+    "gitlab": {
+      "owner": "orhun",
+      "repo": "git-cliff"
+    },
+    "gitea": {
+      "owner": "orhun",
+      "repo": "git-cliff"
+    },
+    "bitbucket": {
+      "owner": "orhun",
+      "repo": "git-cliff"
+    }
+  }
+}
+```
+
+git-cliff will then make available [the integrations it has with each forge](https://git-cliff.org/docs/integration/github).
+
 #### Footers
 
 A conventional commit's body may end with any number of structured key-value pairs known as
