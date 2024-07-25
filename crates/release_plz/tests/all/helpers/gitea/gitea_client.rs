@@ -36,7 +36,7 @@ impl GiteaContext {
     async fn get_repo(&self, repo_name: &str) -> String {
         let repo: Repository = self
             .client
-            .get(&self.specific_repo_url(repo_name))
+            .get(self.specific_repo_url(repo_name))
             .basic_auth(&self.user.username, Some(&self.user.password))
             .send()
             .await
