@@ -35,10 +35,7 @@ impl Changelog<'_> {
     /// Generate the full changelog.
     pub fn generate(self) -> anyhow::Result<String> {
         let config = self.changelog_config(None);
-        let mut changelog = GitCliffChangelog::new(vec![self.release], &config)
-            .context("error while building changelog")?;
-        add_package_context(&mut changelog, &self.package)?;
-        add_release_link_context(&mut changelog, self.release_link.as_deref())?;
+        let changelog = self.get_changelog(&config)?;
         let mut out = Vec::new();
         changelog
             .generate(&mut out)
@@ -55,15 +52,23 @@ impl Changelog<'_> {
         }
         let old_header = changelog_parser::parse_header(&old_changelog);
         let config = self.changelog_config(old_header);
-        let mut changelog = GitCliffChangelog::new(vec![self.release], &config)
-            .context("error while building changelog")?;
-        add_package_context(&mut changelog, &self.package)?;
-        add_release_link_context(&mut changelog, self.release_link.as_deref())?;
+        let changelog = self.get_changelog(&config)?;
         let mut out = Vec::new();
         changelog
             .prepend(old_changelog, &mut out)
             .context("cannot update changelog")?;
         String::from_utf8(out).context("cannot convert bytes to string")
+    }
+
+    fn get_changelog<'a>(
+        &'a self,
+        config: &'a Config,
+    ) -> Result<GitCliffChangelog<'a>, anyhow::Error> {
+        let mut changelog = GitCliffChangelog::new(vec![self.release.clone()], config)
+            .context("error while building changelog")?;
+        add_package_context(&mut changelog, &self.package)?;
+        add_release_link_context(&mut changelog, self.release_link.as_deref())?;
+        Ok(changelog)
     }
 
     fn changelog_config(&self, header: Option<String>) -> Config {
