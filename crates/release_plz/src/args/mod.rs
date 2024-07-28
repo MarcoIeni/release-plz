@@ -46,6 +46,7 @@ pub enum Command {
     /// For each package not published to the cargo registry yet:
     /// - create and push upstream a tag in the format of `<package>-v<version>`.
     /// - publish the package to the cargo registry.
+    ///
     /// You can run this command in the CI on every commit in the main branch.
     Release(Release),
     /// Generate command autocompletions for various shells.
