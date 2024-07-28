@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";
 pub const RELEASE_LINK: &str = "release_link";
+pub const REMOTE_LINK: &str = "remote.link";
+pub const REMOTE_OWNER: &str = "remote.owner";
+pub const REMOTE_REPO: &str = "remote.repo";
 
 #[derive(Debug)]
 pub struct Changelog<'a> {
@@ -29,6 +32,18 @@ pub struct Changelog<'a> {
     config: Option<Config>,
     release_link: Option<String>,
     package: String,
+    remote: Option<Remote>,
+}
+
+#[derive(Debug)]
+pub struct Remote {
+    /// Owner of the repo. E.g. `MarcoIeni`.
+    pub owner: String,
+    /// Name of the repo. E.g. `release-plz`.
+    pub repo: String,
+    /// HTTP URL to the repository.
+    /// E.g. `https://github.com/MarcoIeni/release-plz`.
+    pub link: String,
 }
 
 impl Changelog<'_> {
@@ -68,6 +83,7 @@ impl Changelog<'_> {
             .context("error while building changelog")?;
         add_package_context(&mut changelog, &self.package)?;
         add_release_link_context(&mut changelog, self.release_link.as_deref())?;
+        add_remote_context(&mut changelog, self.remote.as_ref())?;
         Ok(changelog)
     }
 
@@ -106,6 +122,28 @@ fn add_release_link_context(
             })?;
     }
     Ok(())
+}
+
+fn add_remote_context(
+    changelog: &mut GitCliffChangelog,
+    remote: Option<&Remote>,
+) -> Result<(), anyhow::Error> {
+    if let Some(remote) = remote {
+        add_context(changelog, REMOTE_OWNER, &remote.owner)?;
+        add_context(changelog, REMOTE_LINK, &remote.link)?;
+        add_context(changelog, REMOTE_REPO, &remote.repo)?;
+    }
+    Ok(())
+}
+
+fn add_context(
+    changelog: &mut GitCliffChangelog,
+    key: &str,
+    value: &str,
+) -> Result<(), anyhow::Error> {
+    changelog
+        .add_context(key, value)
+        .with_context(|| format!("failed to add `{value}` to the `{key}` changelog context"))
 }
 
 /// Apply release-plz defaults
@@ -161,6 +199,7 @@ pub struct ChangelogBuilder<'a> {
     version: String,
     previous_version: Option<String>,
     config: Option<Config>,
+    remote: Option<Remote>,
     release_date: Option<NaiveDate>,
     release_link: Option<String>,
     package: String,
@@ -178,6 +217,7 @@ impl<'a> ChangelogBuilder<'a> {
             previous_version: None,
             config: None,
             release_date: None,
+            remote: None,
             release_link: None,
             package: package.into(),
         }
@@ -207,6 +247,13 @@ impl<'a> ChangelogBuilder<'a> {
     pub fn with_config(self, config: Config) -> Self {
         Self {
             config: Some(config),
+            ..self
+        }
+    }
+
+    pub fn with_remote(self, remote: Remote) -> Self {
+        Self {
+            remote: Some(remote),
             ..self
         }
     }
@@ -257,6 +304,7 @@ impl<'a> ChangelogBuilder<'a> {
                 message: None,
                 repository: None,
             },
+            remote: self.remote,
             release_link: self.release_link,
             config: self.config,
             package: self.package,
