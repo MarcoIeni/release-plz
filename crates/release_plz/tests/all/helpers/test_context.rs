@@ -97,7 +97,7 @@ impl TestContext {
 
     pub fn run_update(&self) -> Assert {
         super::cmd::release_plz_cmd()
-            .current_dir(&self.repo_dir())
+            .current_dir(self.repo_dir())
             .env("RUST_LOG", log_level())
             .arg("update")
             .arg("--verbose")
@@ -108,7 +108,7 @@ impl TestContext {
 
     pub fn run_release_pr(&self) -> Assert {
         super::cmd::release_plz_cmd()
-            .current_dir(&self.repo_dir())
+            .current_dir(self.repo_dir())
             .env("RUST_LOG", log_level())
             .arg("release-pr")
             .arg("--verbose")
@@ -125,7 +125,7 @@ impl TestContext {
 
     pub fn run_release(&self) -> Assert {
         super::cmd::release_plz_cmd()
-            .current_dir(&self.repo_dir())
+            .current_dir(self.repo_dir())
             .env("RUST_LOG", log_level())
             .arg("release")
             .arg("--verbose")

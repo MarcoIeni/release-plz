@@ -58,9 +58,9 @@ pub fn run_semver_check(
     let output = Command::new("cargo-semver-checks")
         .args(["semver-checks", "check-release"])
         .arg("--manifest-path")
-        .arg(&local_package.join(CARGO_TOML))
+        .arg(local_package.join(CARGO_TOML))
         .arg("--baseline-root")
-        .arg(&registry_package.join(CARGO_TOML))
+        .arg(registry_package.join(CARGO_TOML))
         .output()
         .with_context(|| format!("error while running cargo-semver-checks on {local_package:?}"))?;
 
