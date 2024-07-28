@@ -162,18 +162,7 @@ impl Update {
 
             let changelog_req = ChangelogRequest {
                 release_date,
-                changelog_config: Some(
-                    self.changelog_config(
-                        &config,
-                        self.get_repo_url(&config)
-                            .map(|r| Remote {
-                                owner: r.owner.clone(),
-                                repo: r.name.clone(),
-                                token: None,
-                            })
-                            .ok(),
-                    )?,
-                ),
+                changelog_config: Some(self.changelog_config(&config)?),
             };
             update = update.with_changelog_req(changelog_req);
         }
@@ -190,11 +179,16 @@ impl Update {
         Ok(update)
     }
 
-    fn changelog_config(
-        &self,
-        config: &Config,
-        upstream_remote: Option<Remote>,
-    ) -> anyhow::Result<GitCliffConfig> {
+    fn changelog_config(&self, config: &Config) -> anyhow::Result<GitCliffConfig> {
+        let upstream_remote = self
+            .get_repo_url(config)
+            .map(|r| Remote {
+                owner: r.owner.clone(),
+                repo: r.name.clone(),
+                token: None,
+            })
+            .ok();
+
         let default_config_path = dirs::config_dir()
             .context("cannot get config dir")?
             .join("git-cliff")
