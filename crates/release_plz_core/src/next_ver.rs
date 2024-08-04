@@ -13,7 +13,7 @@ use crate::{
     tmp_repo::TempRepo,
     toml_compare::are_toml_dependencies_updated,
     version::NextVersionFromDiff,
-    ChangelogBuilder, PackagesToUpdate, PackagesUpdate, CHANGELOG_FILENAME,
+    ChangelogBuilder, PackagesToUpdate, PackagesUpdate, Remote, CHANGELOG_FILENAME,
 };
 use anyhow::Context;
 use cargo_metadata::{
@@ -841,18 +841,16 @@ impl Updater<'_> {
         semver_check: SemverCheck,
         old_changelog: Option<&str>,
     ) -> anyhow::Result<UpdateResult> {
+        let repo_url = self.req.repo_url.as_ref();
         let release_link = {
             let prev_tag = self
                 .project
                 .git_tag(&package.name, &package.version.to_string());
             let next_tag = self.project.git_tag(&package.name, &version.to_string());
-            self.req
-                .repo_url
-                .as_ref()
-                .map(|r| r.git_release_link(&prev_tag, &next_tag))
+            repo_url.map(|r| r.git_release_link(&prev_tag, &next_tag))
         };
 
-        let pr_link = self.req.repo_url.as_ref().map(|r| r.git_pr_link());
+        let pr_link = repo_url.map(|r| r.git_pr_link());
 
         lazy_static::lazy_static! {
             // match PR/issue numbers, e.g. `#123`
@@ -894,6 +892,7 @@ impl Updater<'_> {
                         &version,
                         Some(r),
                         old_changelog,
+                        repo_url,
                         release_link.as_deref(),
                         package,
                     )
@@ -1173,6 +1172,7 @@ fn get_changelog(
     next_version: &Version,
     changelog_req: Option<ChangelogRequest>,
     old_changelog: Option<&str>,
+    repo_url: Option<&RepoUrl>,
     release_link: Option<&str>,
     package: &Package,
 ) -> anyhow::Result<String> {
@@ -1187,6 +1187,14 @@ fn get_changelog(
         }
         if let Some(link) = release_link {
             changelog_builder = changelog_builder.with_release_link(link);
+        }
+        if let Some(repo_url) = repo_url {
+            let remote = Remote {
+                owner: repo_url.owner.clone(),
+                repo: repo_url.name.clone(),
+                link: repo_url.full_host(),
+            };
+            changelog_builder = changelog_builder.with_remote(remote);
         }
         let is_unpublished_package = next_version == &package.version;
         if !is_unpublished_package {
@@ -1486,6 +1494,7 @@ mod tests {
             &next_version,
             Some(changelog_req),
             Some(old),
+            None,
             None,
             &fake_package::FakePackage::new("my_package").into(),
         )

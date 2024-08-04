@@ -84,7 +84,10 @@ async fn release_plz_adds_custom_changelog() {
     [changelog]
     header = "Changelog\n\n"
     body = """
-    == [{{ version }}]
+    owner: {{ remote.owner }}, repo: {{ remote.repo }}, link: {{ remote.link }}
+
+    == {{ package }} - [{{ version }}]({{ release_link }})
+
     {% for group, commits in commits | group_by(attribute="group") %}
     === {{ group | upper_first }}
     {% for commit in commits %}
@@ -94,7 +97,7 @@ async fn release_plz_adds_custom_changelog() {
     - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
     {% endif -%}
     {% endfor -%}
-    {% endfor %}"
+    {% endfor %}
     """
     trim = true
     "#;
@@ -109,18 +112,31 @@ async fn release_plz_adds_custom_changelog() {
         .gitea
         .get_file_content(opened_prs[0].branch(), "CHANGELOG.md")
         .await;
-    expect_test::expect![[r#"
-        Changelog
+    let expected_changelog = "Changelog\n\n";
+    let remote_string = format!(
+        "owner: {}, repo: {}, link: https://localhost/{}/{}\n\n",
+        context.gitea.user.username(),
+        context.gitea.repo,
+        context.gitea.user.username(),
+        context.gitea.repo,
+    );
+    let package_string = format!(
+        "== {} - [0.1.0](https://localhost/{}/{}/releases/tag/v0.1.0)\n\n",
+        context.gitea.repo,
+        context.gitea.user.username(),
+        context.gitea.repo,
+    );
+    let changes = r#"
+=== Other
+- add config file
+- cargo init
+- Initial commit
 
-        == [0.1.0]
+"#;
 
-        === Other
-        - add config file
-        - cargo init
-        - Initial commit
-        "
-    "#]]
-    .assert_eq(&changelog);
+    let expected_changelog =
+        format!("{expected_changelog}{remote_string}{package_string}{changes}");
+    assert_eq!(expected_changelog, changelog);
 }
 
 #[tokio::test]

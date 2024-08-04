@@ -62,6 +62,11 @@ you can use the following context in the template:
   "version": "0.1.1",
   "package": "my_crate",
   "release_link": "https://github.com/me/my_project/compare/my_project-v0.1.0...my_project-v0.1.1",
+  "remote": {
+    "owner": "<repo owner>",
+    "repo": "<repo name>",
+    "link": "<repo link>"
+  },
   "commits": [
     {
       "id": "e795460c9bb7275294d1fa53a9d73258fb51eb10",
