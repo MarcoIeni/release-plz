@@ -221,6 +221,7 @@ The GitHub action accepts the following input variables:
 - `config`: Release-plz config file location. (Defaults to
   `release-plz.toml` or `.release-plz.toml`).
 - `token`: Token used to publish to the cargo registry.
+- `backend`: Forge backend. Valid values: `github`, `gitea`. (Defaults to `github`).
 
 You can specify the input variables by using the `with` keyword.
 For example:
