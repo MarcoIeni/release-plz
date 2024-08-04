@@ -1,5 +1,19 @@
 use crate::{
-    changelog_parser::{self, ChangelogRelease}, copy_dir::copy_dir, diff::Diff, fs_utils::{strip_prefix, Utf8TempDir}, is_readme_updated, local_readme_override, lock_compare, package_compare::are_packages_equal, package_path::{manifest_dir, PackagePath}, registry_packages::{self, PackagesCollection, RegistryPackage}, repo_url::RepoUrl, semver_check::{self, SemverCheck}, tera::{tera_context, tera_var, PACKAGE_VAR, VERSION_VAR}, tmp_repo::TempRepo, toml_compare::are_toml_dependencies_updated, version::NextVersionFromDiff, ChangelogBuilder, PackagesToUpdate, PackagesUpdate, Remote, CHANGELOG_FILENAME
+    changelog_parser::{self, ChangelogRelease},
+    copy_dir::copy_dir,
+    diff::Diff,
+    fs_utils::{strip_prefix, Utf8TempDir},
+    is_readme_updated, local_readme_override, lock_compare,
+    package_compare::are_packages_equal,
+    package_path::{manifest_dir, PackagePath},
+    registry_packages::{self, PackagesCollection, RegistryPackage},
+    repo_url::RepoUrl,
+    semver_check::{self, SemverCheck},
+    tera::{tera_context, tera_var, PACKAGE_VAR, VERSION_VAR},
+    tmp_repo::TempRepo,
+    toml_compare::are_toml_dependencies_updated,
+    version::NextVersionFromDiff,
+    ChangelogBuilder, PackagesToUpdate, PackagesUpdate, Remote, CHANGELOG_FILENAME,
 };
 use anyhow::Context;
 use cargo_metadata::{
@@ -9,7 +23,7 @@ use cargo_metadata::{
 };
 use cargo_utils::{canonical_local_manifest, upgrade_requirement, LocalManifest, CARGO_TOML};
 use chrono::NaiveDate;
-use git_cliff_core::{commit::Commit};
+use git_cliff_core::commit::Commit;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
@@ -1480,6 +1494,7 @@ mod tests {
             &next_version,
             Some(changelog_req),
             Some(old),
+            None,
             None,
             &fake_package::FakePackage::new("my_package").into(),
         )
