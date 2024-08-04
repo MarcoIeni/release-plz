@@ -84,7 +84,10 @@ async fn release_plz_adds_custom_changelog() {
     [changelog]
     header = "Changelog\n\n"
     body = """
-    == [{{ version }}]
+    owner: {{ remote.owner }}, repo: {{ remote.repo }}, link: {{ remote.link }}
+
+    == {{ package }} - [{{ version }}]({{ release_link }})
+
     {% for group, commits in commits | group_by(attribute="group") %}
     === {{ group | upper_first }}
     {% for commit in commits %}
@@ -112,7 +115,10 @@ async fn release_plz_adds_custom_changelog() {
     expect_test::expect![[r#"
         Changelog
 
-        == [0.1.0]
+        owner: ldovxcid, repo: blysgeyn, link: https://localhost/ldovxcid/blysgeyn
+
+        == blysgeyn - [0.1.0](https://localhost/ldovxcid/blysgeyn/releases/tag/v0.1.0)
+
 
         === Other
         - add config file

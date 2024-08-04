@@ -7,6 +7,7 @@ use git_cliff_core::{
     release::Release,
 };
 use regex::Regex;
+use serde::Serialize;
 use tracing::warn;
 
 use crate::changelog_parser;
@@ -22,9 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";
 pub const RELEASE_LINK: &str = "release_link";
-pub const REMOTE_LINK: &str = "remote.link";
-pub const REMOTE_OWNER: &str = "remote.owner";
-pub const REMOTE_REPO: &str = "remote.repo";
+pub const REMOTE: &str = "remote";
 
 #[derive(Debug)]
 pub struct Changelog<'a> {
@@ -35,7 +34,7 @@ pub struct Changelog<'a> {
     remote: Option<Remote>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Remote {
     /// Owner of the repo. E.g. `MarcoIeni`.
     pub owner: String,
@@ -129,9 +128,7 @@ fn add_remote_context(
     remote: Option<&Remote>,
 ) -> Result<(), anyhow::Error> {
     if let Some(remote) = remote {
-        add_context(changelog, REMOTE_OWNER, &remote.owner)?;
-        add_context(changelog, REMOTE_LINK, &remote.link)?;
-        add_context(changelog, REMOTE_REPO, &remote.repo)?;
+        add_context(changelog, REMOTE, remote)?;
     }
     Ok(())
 }
@@ -139,11 +136,12 @@ fn add_remote_context(
 fn add_context(
     changelog: &mut GitCliffChangelog,
     key: &str,
-    value: &str,
+    value: impl serde::Serialize,
 ) -> Result<(), anyhow::Error> {
+    let value_str = serde_json::to_string(&value).context("failed to serialize value")?;
     changelog
         .add_context(key, value)
-        .with_context(|| format!("failed to add `{value}` to the `{key}` changelog context"))
+        .with_context(|| format!("failed to add `{value_str}` to the `{key}` changelog context"))
 }
 
 /// Apply release-plz defaults
