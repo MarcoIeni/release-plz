@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.80](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.79...release-plz-v0.3.80) - 2024-08-04
 
 ### Added
-- *(changelog)* set remote ([#1575](https://github.com/MarcoIeni/release-plz/pull/1575))
+- *(changelog)* add `remote` to the changelog context ([#1575](https://github.com/MarcoIeni/release-plz/pull/1575))
 
 ### Other
 - *(deps)* bump gix-attributes from 0.22.2 to 0.22.3 ([#1573](https://github.com/MarcoIeni/release-plz/pull/1573))
