@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.24.3...release_plz_core-v0.24.4) - 2024-08-04
+
+### Added
+- *(changelog)* set remote ([#1575](https://github.com/MarcoIeni/release-plz/pull/1575))
+
+### Other
+- extract `get_changelog` function ([#1574](https://github.com/MarcoIeni/release-plz/pull/1574))
+- *(deps)* bump gix-attributes from 0.22.2 to 0.22.3 ([#1573](https://github.com/MarcoIeni/release-plz/pull/1573))
+
 ## [0.24.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.24.2...release_plz_core-v0.24.3) - 2024-07-18
 
 ### Fixed
