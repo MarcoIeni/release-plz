@@ -8,6 +8,19 @@ export type TweetItem = Tweet & {
 
 const TWEETS: TweetItem[] = [
   {
+    url: 'https://hachyderm.io/@hds/112870965641243862',
+    handle: 'hds',
+    name: 'Hayden Stainsby',
+    date: 'Jul 29, 2024',
+    content: (
+      <>
+        Release-plz makes releasing tokio-console super easy.
+      </>
+    ),
+    showOnHomepage: true,
+    githubUsername: 'hds',
+  },
+  {
     url: 'https://twitter.com/algo_luca/status/1781977925299908816',
     handle: 'algo_luca',
     name: 'Luca Palmieri',
