@@ -563,6 +563,9 @@ async fn should_release(
     let prs = git_client.associated_prs(&last_commit).await?;
     let is_current_commit_from_release_pr =
         prs.iter().any(|pr| pr.branch().starts_with(BRANCH_PREFIX));
+    if !is_current_commit_from_release_pr {
+        info!("skipping release: current commit is not from a release PR");
+    }
     Ok(is_current_commit_from_release_pr)
 }
 
