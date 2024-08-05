@@ -1,7 +1,8 @@
 use cargo_metadata::camino::Utf8Path;
 use cargo_utils::to_utf8_pathbuf;
 use release_plz_core::{
-    fs_utils::to_utf8_path, set_version::SetVersionRequest, GitReleaseConfig, ReleaseRequest, UpdateRequest
+    fs_utils::to_utf8_path, set_version::SetVersionRequest, GitReleaseConfig, ReleaseRequest,
+    UpdateRequest,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
