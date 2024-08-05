@@ -75,7 +75,7 @@ pub struct CreateReleaseOption<'a> {
     draft: &'a bool,
     prerelease: &'a bool,
     /// Only supported by GitHub.
-    make_latest: Option<bool>,
+    make_latest: Option<String>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -196,7 +196,7 @@ impl GitClient {
             name: &release_info.release_name,
             draft: &release_info.draft,
             prerelease: &release_info.pre_release,
-            make_latest: release_info.latest,
+            make_latest: release_info.latest.map(|l| l.to_string()),
         };
         self.client
             .post(format!("{}/releases", self.repo_url()))
