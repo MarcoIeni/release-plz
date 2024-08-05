@@ -64,6 +64,7 @@ the following sections:
   - [`git_release_body`](#the-git_release_body-field) — Customize git release body pattern.
   - [`git_release_type`](#the-git_release_type-field) — Publish mode for git release.
   - [`git_release_draft`](#the-git_release_draft-field) — Publish git release as draft.
+  - [`git_release_latest`](#the-git_release_latest-field) — Publish git release as latest.
   - [`git_tag_enable`](#the-git_tag_enable-field) — Enable git tag.
   - [`git_tag_name`](#the-git_tag_name-field) — Customize git tag pattern.
   - [`pr_draft`](#the-pr_draft-field) — Open the release Pull Request as a draft.
@@ -88,6 +89,7 @@ the following sections:
   - [`git_release_body`](#the-git_release_body-field-package-section) — Customize git release body pattern.
   - [`git_release_type`](#the-git_release_type-field-package-section) — Git release type.
   - [`git_release_draft`](#the-git_release_draft-field-package-section) — Publish git release as draft.
+  - [`git_release_latest`](#the-git_release_latest-field-package-section) — Publish git release as latest.
   - [`git_tag_enable`](#the-git_tag_enable-field-package-section) — Enable git tag.
   - [`git_tag_name`](#the-git_tag_name-field-package-section) — Customize git tag pattern.
   - [`publish`](#the-publish-field-package-section) — Publish to cargo registry.
@@ -239,6 +241,17 @@ Supported values are:
 - If `false`, release-plz publishes the created git release. *(Default)*.
 
 *(GitHub, Gitea only)*.
+
+#### The `git_release_latest` field
+
+- If `true`, release-plz creates the git release as latest. *(Default)*.
+- If `false`, release-plz doesn't set the git release it creates as latest.
+
+*(GitHub only)*. Gitea doesn't support this feature.
+
+:::warning
+Drafts and prereleases cannot be set as latest.
+:::
 
 #### The `git_tag_enable` field
 
@@ -525,6 +538,10 @@ Overrides the [`workspace.git_release_type`](#the-git_release_type-field) field.
 #### The `git_release_draft` field (`package` section)
 
 Overrides the [`workspace.git_release_draft`](#the-git_release_draft-field) field.
+
+#### The `git_release_latest` field (`package` section)
+
+Overrides the [`workspace.git_release_latest`](#the-git_release_latest-field) field.
 
 #### The `git_tag_enable` field (`package` section)
 

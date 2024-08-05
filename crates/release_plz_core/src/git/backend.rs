@@ -74,6 +74,8 @@ pub struct CreateReleaseOption<'a> {
     name: &'a str,
     draft: &'a bool,
     prerelease: &'a bool,
+    /// Only supported by GitHub.
+    make_latest: Option<bool>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -185,12 +187,17 @@ impl GitClient {
 
     /// Same as Gitea.
     pub async fn create_github_release(&self, release_info: &GitReleaseInfo) -> anyhow::Result<()> {
+        if release_info.latest.is_some() && self.backend == BackendType::Gitea {
+            anyhow::bail!("Gitea does not support the `git_release_latest` option");
+        }
+        // TODO: don't send latest null
         let create_release_options = CreateReleaseOption {
             tag_name: &release_info.git_tag,
             body: &release_info.release_body,
             name: &release_info.release_name,
             draft: &release_info.draft,
             prerelease: &release_info.pre_release,
+            make_latest: release_info.latest,
         };
         self.client
             .post(format!("{}/releases", self.repo_url()))
