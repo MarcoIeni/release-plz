@@ -199,7 +199,6 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
         let is_publish_enabled = value.publish != Some(false);
         let is_git_release_enabled = value.git_release_enable != Some(false);
         let is_git_release_draft = value.git_release_draft == Some(true);
-        let is_git_release_not_latest = value.git_release_latest == Some(false);
         let git_release_type: release_plz_core::ReleaseType = value
             .git_release_type
             .map(|release_type| release_type.into())
@@ -215,7 +214,7 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
             .set_name_template(git_release_name)
             .set_body_template(git_release_body);
 
-        if is_git_release_not_latest {
+        if value.git_release_latest == Some(false) {
             git_release = git_release.set_latest(false);
         }
         let mut cfg = Self::default()
