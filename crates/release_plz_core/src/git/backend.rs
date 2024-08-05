@@ -3,6 +3,7 @@ use crate::{GitHub, GitReleaseInfo};
 
 use crate::pr::Pr;
 use anyhow::Context;
+use http::StatusCode;
 use reqwest::header::HeaderMap;
 use reqwest::Url;
 use reqwest_middleware::ClientBuilder;
@@ -408,7 +409,12 @@ impl GitClient {
             return Ok(vec![]);
         }
         debug!("Associated PR found. Status: {}", response.status());
-        let response = response.error_for_status()?;
+        let response = response.error_for_status().map_err(|e| match e.status() {
+            Some(StatusCode::UNPROCESSABLE_ENTITY) => {
+                anyhow::anyhow!("Received the following error from {}: {e:?}. Did you push the commit {commit}?", self.remote.base_url)
+            }
+            _ => anyhow::anyhow!(e),
+        })?;
 
         let prs = match self.backend {
             BackendType::Github => {
