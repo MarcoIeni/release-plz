@@ -3,6 +3,7 @@ use crate::{GitHub, GitReleaseInfo};
 
 use crate::pr::Pr;
 use anyhow::Context;
+use http::StatusCode;
 use reqwest::header::HeaderMap;
 use reqwest::Url;
 use reqwest_middleware::ClientBuilder;
@@ -74,6 +75,8 @@ pub struct CreateReleaseOption<'a> {
     name: &'a str,
     draft: &'a bool,
     prerelease: &'a bool,
+    /// Only supported by GitHub.
+    make_latest: Option<String>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -185,12 +188,16 @@ impl GitClient {
 
     /// Same as Gitea.
     pub async fn create_github_release(&self, release_info: &GitReleaseInfo) -> anyhow::Result<()> {
+        if release_info.latest.is_some() && self.backend == BackendType::Gitea {
+            anyhow::bail!("Gitea does not support the `git_release_latest` option");
+        }
         let create_release_options = CreateReleaseOption {
             tag_name: &release_info.git_tag,
             body: &release_info.release_body,
             name: &release_info.release_name,
             draft: &release_info.draft,
             prerelease: &release_info.pre_release,
+            make_latest: release_info.latest.map(|l| l.to_string()),
         };
         self.client
             .post(format!("{}/releases", self.repo_url()))
@@ -402,7 +409,12 @@ impl GitClient {
             return Ok(vec![]);
         }
         debug!("Associated PR found. Status: {}", response.status());
-        let response = response.error_for_status()?;
+        let response = response.error_for_status().map_err(|e| match e.status() {
+            Some(StatusCode::UNPROCESSABLE_ENTITY) => {
+                anyhow::anyhow!("Received the following error from {}: {e:?}. Did you push the commit {commit}?", self.remote.base_url)
+            }
+            _ => anyhow::anyhow!(e),
+        })?;
 
         let prs = match self.backend {
             BackendType::Github => {

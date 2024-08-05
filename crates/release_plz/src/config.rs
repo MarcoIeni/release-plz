@@ -1,7 +1,8 @@
 use cargo_metadata::camino::Utf8Path;
 use cargo_utils::to_utf8_pathbuf;
 use release_plz_core::{
-    fs_utils::to_utf8_path, set_version::SetVersionRequest, ReleaseRequest, UpdateRequest,
+    fs_utils::to_utf8_path, set_version::SetVersionRequest, GitReleaseConfig, ReleaseRequest,
+    UpdateRequest,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -197,26 +198,12 @@ pub struct PackageSpecificConfigWithName {
 impl From<PackageConfig> for release_plz_core::ReleaseConfig {
     fn from(value: PackageConfig) -> Self {
         let is_publish_enabled = value.publish != Some(false);
-        let is_git_release_enabled = value.git_release_enable != Some(false);
-        let is_git_release_draft = value.git_release_draft == Some(true);
-        let git_release_type: release_plz_core::ReleaseType = value
-            .git_release_type
-            .map(|release_type| release_type.into())
-            .unwrap_or_default();
-        let git_release_name = value.git_release_name.clone();
-        let git_release_body = value.git_release_body.clone();
         let is_git_tag_enabled = value.git_tag_enable != Some(false);
         let git_tag_name = value.git_tag_name.clone();
         let release = value.release != Some(false);
         let mut cfg = Self::default()
             .with_publish(release_plz_core::PublishConfig::enabled(is_publish_enabled))
-            .with_git_release(
-                release_plz_core::GitReleaseConfig::enabled(is_git_release_enabled)
-                    .set_draft(is_git_release_draft)
-                    .set_release_type(git_release_type)
-                    .set_name_template(git_release_name)
-                    .set_body_template(git_release_body),
-            )
+            .with_git_release(git_release(&value))
             .with_git_tag(
                 release_plz_core::GitTagConfig::enabled(is_git_tag_enabled)
                     .set_name_template(git_tag_name),
@@ -240,6 +227,28 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
         }
         cfg
     }
+}
+
+fn git_release(config: &PackageConfig) -> GitReleaseConfig {
+    let is_git_release_enabled = config.git_release_enable != Some(false);
+    let git_release_type: release_plz_core::ReleaseType = config
+        .git_release_type
+        .map(|release_type| release_type.into())
+        .unwrap_or_default();
+    let is_git_release_draft = config.git_release_draft == Some(true);
+    let git_release_name = config.git_release_name.clone();
+    let git_release_body = config.git_release_body.clone();
+    let mut git_release = release_plz_core::GitReleaseConfig::enabled(is_git_release_enabled)
+        .set_draft(is_git_release_draft)
+        .set_release_type(git_release_type)
+        .set_name_template(git_release_name)
+        .set_body_template(git_release_body);
+
+    if config.git_release_latest == Some(false) {
+        git_release = git_release.set_latest(false);
+    }
+
+    git_release
 }
 
 /// Configuration that can be specified both at the `[workspace]` and at the `[[package]]` level.
@@ -268,6 +277,9 @@ pub struct PackageConfig {
     /// # Git Release Draft
     /// If true, will not auto-publish the release.
     pub git_release_draft: Option<bool>,
+    /// # Git Release Latest
+    /// If true, will set the git release as latest.
+    pub git_release_latest: Option<bool>,
     /// # Git Release Name
     /// Tera template of the git release name created by release-plz.
     pub git_release_name: Option<String>,
@@ -330,6 +342,7 @@ impl PackageConfig {
             git_release_enable: self.git_release_enable.or(default.git_release_enable),
             git_release_type: self.git_release_type.or(default.git_release_type),
             git_release_draft: self.git_release_draft.or(default.git_release_draft),
+            git_release_latest: self.git_release_latest.or(default.git_release_latest),
             git_release_name: self.git_release_name.or(default.git_release_name),
             git_release_body: self.git_release_body.or(default.git_release_body),
 

@@ -347,6 +347,7 @@ pub enum ReleaseType {
 pub struct GitReleaseConfig {
     enabled: bool,
     draft: bool,
+    latest: Option<bool>,
     release_type: ReleaseType,
     name_template: Option<String>,
     body_template: Option<String>,
@@ -363,6 +364,7 @@ impl GitReleaseConfig {
         Self {
             enabled,
             draft: false,
+            latest: None,
             release_type: ReleaseType::default(),
             name_template: None,
             body_template: None,
@@ -375,6 +377,11 @@ impl GitReleaseConfig {
 
     pub fn set_draft(mut self, draft: bool) -> Self {
         self.draft = draft;
+        self
+    }
+
+    pub fn set_latest(mut self, latest: bool) -> Self {
+        self.latest = Some(latest);
         self
     }
 
@@ -556,6 +563,9 @@ async fn should_release(
     let prs = git_client.associated_prs(&last_commit).await?;
     let is_current_commit_from_release_pr =
         prs.iter().any(|pr| pr.branch().starts_with(BRANCH_PREFIX));
+    if !is_current_commit_from_release_pr {
+        info!("skipping release: current commit is not from a release PR");
+    }
     Ok(is_current_commit_from_release_pr)
 }
 
@@ -649,6 +659,7 @@ async fn release_package(
                 release_name,
                 release_body,
                 draft: release_config.draft,
+                latest: release_config.latest,
                 pre_release: is_pre_release,
             };
             git_client.create_release(&release_info).await?;
@@ -671,6 +682,7 @@ pub struct GitReleaseInfo {
     pub git_tag: String,
     pub release_name: String,
     pub release_body: String,
+    pub latest: Option<bool>,
     pub draft: bool,
     pub pre_release: bool,
 }
