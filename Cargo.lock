@@ -1402,7 +1402,7 @@ dependencies = [
  "lazy-regex",
  "lazy_static",
  "log",
- "next_version 0.2.18",
+ "next_version 0.2.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex",
  "rust-embed",
  "secrecy",
@@ -3113,9 +3113,7 @@ dependencies = [
 
 [[package]]
 name = "next_version"
-version = "0.2.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0c2cdfd777d2aef50e83560295f35b11a934efdaae1eb92c807c6b4844b435b"
+version = "0.2.19"
 dependencies = [
  "conventional_commit_parser",
  "regex",
@@ -3125,6 +3123,8 @@ dependencies = [
 [[package]]
 name = "next_version"
 version = "0.2.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "54d3c80a6b8295afdfca9e26fb8be25a5a258e593f9efe52aa7f2c7a508b797a"
 dependencies = [
  "conventional_commit_parser",
  "regex",
@@ -3807,7 +3807,7 @@ checksum = "7a66a03ae7c801facd77a29370b4faec201768915ac14a721ba36f20bc9c209b"
 
 [[package]]
 name = "release-plz"
-version = "0.3.80"
+version = "0.3.81"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -3847,7 +3847,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.24.4"
+version = "0.25.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
