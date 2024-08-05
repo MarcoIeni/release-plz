@@ -190,7 +190,6 @@ impl GitClient {
         if release_info.latest.is_some() && self.backend == BackendType::Gitea {
             anyhow::bail!("Gitea does not support the `git_release_latest` option");
         }
-        // TODO: don't send latest null
         let create_release_options = CreateReleaseOption {
             tag_name: &release_info.git_tag,
             body: &release_info.release_body,
