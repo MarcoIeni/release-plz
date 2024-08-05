@@ -244,7 +244,7 @@ jobs:
           command: release-pr
           registry: my-registry
           manifest_path: rust-crates/my-crate/Cargo.toml
-          version: release-plz-v0.2.45
+          version: 0.3.70
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

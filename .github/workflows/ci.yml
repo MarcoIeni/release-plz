@@ -18,11 +18,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Install cargo-semver-checks
-        uses: jaxxstorm/action-install-gh-release@v1.12.0
+        uses: taiki-e/install-action@v2
         with:
-          repo: obi1kenobi/cargo-semver-checks
-          tag: v0.31.0
-          cache: enable
+          tool: cargo-semver-checks@0.33
       - name: Start containers
         run: docker compose up -d --wait
         working-directory: ./tests
@@ -52,11 +50,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Install cargo-semver-checks
-        uses: jaxxstorm/action-install-gh-release@v1.12.0
+        uses: taiki-e/install-action@v2
         with:
-          repo: obi1kenobi/cargo-semver-checks
-          tag: v0.31.0
-          cache: enable
+          tool: cargo-semver-checks@0.33
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
