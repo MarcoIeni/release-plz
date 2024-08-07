@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.82](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.81...release-plz-v0.3.82) - 2024-08-07
 
 ### Fixed
-- GitHub release ([#1594](https://github.com/MarcoIeni/release-plz/pull/1594))
+- Fixed issue preventing creating GitHub releases ([#1594](https://github.com/MarcoIeni/release-plz/pull/1594))
 
 ## [0.3.81](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.80...release-plz-v0.3.81) - 2024-08-05
 
