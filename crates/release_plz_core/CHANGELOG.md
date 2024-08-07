@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.25.1...release_plz_core-v0.25.2) - 2024-08-07
+
+### Other
+- extract Project struct into its own file ([#1597](https://github.com/MarcoIeni/release-plz/pull/1597))
+
 ## [0.25.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.25.0...release_plz_core-v0.25.1) - 2024-08-07
 
 ### Fixed
