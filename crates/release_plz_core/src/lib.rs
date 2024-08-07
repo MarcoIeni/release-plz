@@ -23,6 +23,7 @@ mod tera;
 mod tmp_repo;
 mod toml_compare;
 mod version;
+mod project;
 
 pub use changelog::*;
 pub use command::*;
@@ -32,6 +33,7 @@ pub use git::gitea_client::Gitea;
 pub use git::github_client::GitHub;
 pub use git::gitlab_client::GitLab;
 pub use next_ver::*;
+pub use project::*;
 pub use package_compare::*;
 pub use package_path::*;
 pub use pr::BRANCH_PREFIX;
