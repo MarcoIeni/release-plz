@@ -70,6 +70,7 @@ feature-depth = 1
 # A list of advisory IDs to ignore. Note that ignored advisories will still
 # output a note when they are encountered.
 ignore = [
+    # Waiting for a fix in git-cliff
     "RUSTSEC-2024-0320"
 ]
 # If this is true, then cargo deny will use the git executable to fetch advisory database.
