@@ -76,6 +76,7 @@ pub struct CreateReleaseOption<'a> {
     draft: &'a bool,
     prerelease: &'a bool,
     /// Only supported by GitHub.
+    #[serde(skip_serializing_if = "Option::is_none")]
     make_latest: Option<String>,
 }
 
