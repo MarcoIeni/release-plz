@@ -9,7 +9,9 @@ use cargo_utils::CARGO_TOML;
 use tracing::debug;
 
 use crate::{
-    copy_to_temp_dir, fs_utils::strip_prefix, manifest_dir, new_manifest_dir_path, root_repo_path_from_manifest_dir, tmp_repo::TempRepo, workspace_packages, Publishable as _, ReleaseMetadata, ReleaseMetadataBuilder
+    copy_to_temp_dir, fs_utils::strip_prefix, manifest_dir, new_manifest_dir_path,
+    root_repo_path_from_manifest_dir, tmp_repo::TempRepo, workspace_packages, Publishable as _,
+    ReleaseMetadata, ReleaseMetadataBuilder,
 };
 use crate::{
     tera::{tera_context, tera_var, PACKAGE_VAR, VERSION_VAR},
@@ -82,7 +84,7 @@ impl Project {
         })
     }
 
-    pub fn root(&self)  -> &Utf8Path {
+    pub fn root(&self) -> &Utf8Path {
         &self.root
     }
 
