@@ -478,7 +478,7 @@ impl ResponseExt for reqwest::Response {
             body = format!("{json:#}");
         }
 
-        Err(err).context(anyhow::anyhow!("Response body:\n{body}"))
+        Err(err).context(format!("Response body:\n{body}"))
     }
 }
 
