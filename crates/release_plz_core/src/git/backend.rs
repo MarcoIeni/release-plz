@@ -459,6 +459,9 @@ pub fn contributors_from_commits(commits: &[PrCommit]) -> Vec<String> {
 }
 
 trait ResponseExt {
+    /// Better version of [`reqwest::Response::error_for_status`] that
+    /// also captures the response body in the error message. It will most
+    /// likely contain additional error details.
     async fn successful_status(self) -> anyhow::Result<reqwest::Response>;
 }
 
