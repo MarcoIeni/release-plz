@@ -302,7 +302,7 @@ impl GitClient {
             .query(&[(self.per_page(), page_size)])
             .send()
             .await?
-            .bail_on_error()
+            .successful_status()
             .await?
             .json()
             .await
@@ -346,7 +346,7 @@ impl GitClient {
             }))
             .send()
             .await?
-            .bail_on_error()
+            .successful_status()
             .await?
             .json()
             .await
@@ -375,7 +375,7 @@ impl GitClient {
             }))
             .send()
             .await?
-            .bail_on_error()
+            .successful_status()
             .await?;
         Ok(())
     }
@@ -385,7 +385,7 @@ impl GitClient {
             .get(format!("{}/{}/commits", self.pulls_url(), pr_number))
             .send()
             .await?
-            .bail_on_error()
+            .successful_status()
             .await?
             .json()
             .await
@@ -459,11 +459,11 @@ pub fn contributors_from_commits(commits: &[PrCommit]) -> Vec<String> {
 }
 
 trait ResponseExt {
-    async fn bail_on_error(self) -> anyhow::Result<reqwest::Response>;
+    async fn successful_status(self) -> anyhow::Result<reqwest::Response>;
 }
 
 impl ResponseExt for reqwest::Response {
-    async fn bail_on_error(self) -> anyhow::Result<reqwest::Response> {
+    async fn successful_status(self) -> anyhow::Result<reqwest::Response> {
         let Err(err) = self.error_for_status_ref() else {
             return Ok(self);
         };
