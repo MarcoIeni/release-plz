@@ -302,7 +302,8 @@ impl GitClient {
             .query(&[(self.per_page(), page_size)])
             .send()
             .await?
-            .error_for_status()?
+            .bail_on_error()
+            .await?
             .json()
             .await
             .context("failed to parse pr")
@@ -345,7 +346,8 @@ impl GitClient {
             }))
             .send()
             .await?
-            .error_for_status()?
+            .bail_on_error()
+            .await?
             .json()
             .await
             .context("Failed to parse PR")?;
@@ -373,7 +375,8 @@ impl GitClient {
             }))
             .send()
             .await?
-            .error_for_status()?;
+            .bail_on_error()
+            .await?;
         Ok(())
     }
 
@@ -382,7 +385,8 @@ impl GitClient {
             .get(format!("{}/{}/commits", self.pulls_url(), pr_number))
             .send()
             .await?
-            .error_for_status()?
+            .bail_on_error()
+            .await?
             .json()
             .await
             .context("can't parse commits")
@@ -452,6 +456,27 @@ pub fn contributors_from_commits(commits: &[PrCommit]) -> Vec<String> {
         .collect::<Vec<_>>();
     contributors.dedup();
     contributors
+}
+
+trait ResponseExt {
+    async fn bail_on_error(self) -> anyhow::Result<reqwest::Response>;
+}
+
+impl ResponseExt for reqwest::Response {
+    async fn bail_on_error(self) -> anyhow::Result<reqwest::Response> {
+        let Err(err) = self.error_for_status_ref() else {
+            return Ok(self);
+        };
+
+        let mut body = self.text().await?;
+
+        // If the response is JSON, try to pretty-print it.
+        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&body) {
+            body = format!("{json:#}");
+        }
+
+        Err(err).context(anyhow::anyhow!("Response body:\n{body}"))
+    }
 }
 
 #[cfg(test)]
