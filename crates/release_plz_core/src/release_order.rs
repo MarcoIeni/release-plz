@@ -77,7 +77,7 @@ fn is_dep_in_features(pkg: &Package, dep: &str) -> bool {
 /// Check if the dependency should be released before the current package.
 fn should_dep_be_released_before(dep: &Dependency, pkg: &Package) -> bool {
     // Ignore development dependencies. They don't need to be published before the current package...
-    matches!(dep.kind, DependencyKind::Normal | DependencyKind::Build)
+    matches!(dep.kind, DependencyKind::Normal | DependencyKind::Build | DependencyKind::Development)
       // ...unless they are in features. In fact, `cargo-publish` compiles crates that are in features
       // and dev-dependencies, even if they are not present in normal dependencies.
       || is_dep_in_features(pkg, &dep.name)
