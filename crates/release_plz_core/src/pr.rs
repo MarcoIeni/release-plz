@@ -1,6 +1,5 @@
-use chrono::SecondsFormat;
-
 use crate::PackagesUpdate;
+use chrono::SecondsFormat;
 
 pub const BRANCH_PREFIX: &str = "release-plz-";
 pub const OLD_BRANCH_PREFIX: &str = "release-plz/";
@@ -55,15 +54,23 @@ fn pr_title(
     packages_to_update: &PackagesUpdate,
     project_contains_multiple_pub_packages: bool,
 ) -> String {
-    if packages_to_update.updates().len() > 1 {
-        "chore: release".to_string()
-    } else {
-        let (package, update) = &packages_to_update.updates()[0];
-        if project_contains_multiple_pub_packages {
-            format!("chore({}): release v{}", package.name, update.version)
-        } else {
-            format!("chore: release v{}", update.version)
+    let updates = packages_to_update.updates();
+
+    if let [(_, first_update), rest @ ..] = updates {
+        let version = &first_update.version;
+
+        if rest.iter().all(|(_, update)| update.version == *version) {
+            return format!("chore: release v{version}");
         }
+
+        return "chore: release".to_string();
+    }
+
+    let (package, update) = &updates[0];
+    if project_contains_multiple_pub_packages {
+        format!("chore({}): release v{}", package.name, update.version)
+    } else {
+        format!("chore: release v{}", update.version)
     }
 }
 

@@ -62,7 +62,7 @@ pub struct ReleasePr {
 
 /// Open a pull request with the next packages versions of a local rust project
 /// Returns:
-/// - [`ReleasePrOutcome`] if release-plz opened or updated a PR.
+/// - [`ReleasePr`] if release-plz opened or updated a PR.
 /// - [`None`] if release-plz didn't open any pr. This happens when all packages
 ///   are up-to-date.
 #[instrument(skip_all)]
