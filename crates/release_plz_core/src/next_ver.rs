@@ -22,7 +22,7 @@ use cargo_metadata::{
 };
 use cargo_utils::{canonical_local_manifest, upgrade_requirement, LocalManifest, CARGO_TOML};
 use chrono::NaiveDate;
-use git_cliff_core::commit::Commit;
+use git_cliff_core::commit::{Commit, Signature};
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
@@ -775,7 +775,6 @@ impl Updater<'_> {
         let pathbufs_to_check = pathbufs_to_check(package_path, package);
         let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
         loop {
-            let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
             if let Some(registry_package) = registry_package {
                 debug!(
@@ -911,6 +910,38 @@ impl Updater<'_> {
             Ok(None)
         }
     }
+}
+
+fn current_commit(repository: &Repo) -> anyhow::Result<Commit> {
+    let separator = "_+SEP_SEP+_";
+    let info = [
+        "%H",  // hash
+        "%an", // author name
+        "%ae", // author email
+        "%cn", // committer name
+        "%ce", // committer email
+        "%B",  // message
+    ];
+    let format_string = format!("--pretty=format:{}", info.join(separator));
+    let current_commit_hash = repository.git(&["log", "-1", &format_string])?;
+    let (hash, author_name, author_email, committer_name, committer_email, message) =
+        current_commit_hash.split(separator).collect();
+
+    Ok(Commit {
+        id: hash.to_string(),
+        message: message.to_string(),
+        author: Signature {
+            name: author_name.to_string(),
+            email: author_email.to_string(),
+            timestamp: 0,
+        },
+        committer: Signature {
+            name: committer_name.to_string(),
+            email: committer_email.to_string(),
+            timestamp: 0,
+        },
+        ..Default::default()
+    })
 }
 
 struct OldChangelogs {
