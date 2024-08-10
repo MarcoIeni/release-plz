@@ -1,6 +1,5 @@
-use chrono::SecondsFormat;
-
 use crate::PackagesUpdate;
+use chrono::SecondsFormat;
 
 pub const BRANCH_PREFIX: &str = "release-plz-";
 pub const OLD_BRANCH_PREFIX: &str = "release-plz/";
@@ -55,15 +54,29 @@ fn pr_title(
     packages_to_update: &PackagesUpdate,
     project_contains_multiple_pub_packages: bool,
 ) -> String {
-    if packages_to_update.updates().len() > 1 {
+    let updates = packages_to_update.updates();
+    let first_version = &updates[0].1.version;
+
+    let are_all_versions_equal = || {
+        updates
+            .iter()
+            .all(|(_, update)| &update.version == first_version)
+    };
+
+    if updates.len() == 1 && project_contains_multiple_pub_packages {
+        let (package, _) = &updates[0];
+        // The project is a workspace with multiple public packages and we are only updating one of them.
+        // Specify which package is being updated in the PR title.
+        format!("chore({}): release v{}", package.name, first_version)
+    } else if updates.len() > 1 && !are_all_versions_equal() {
+        // We are updating multiple packages with different versions, so we don't specify the version in the PR title.
         "chore: release".to_string()
     } else {
-        let (package, update) = &packages_to_update.updates()[0];
-        if project_contains_multiple_pub_packages {
-            format!("chore({}): release v{}", package.name, update.version)
-        } else {
-            format!("chore: release v{}", update.version)
-        }
+        // We are updating either:
+        // - a single package without other public packages
+        // - multiple packages with the same version.
+        // In both cases, we can specify the version in the PR title.
+        format!("chore: release v{first_version}")
     }
 }
 

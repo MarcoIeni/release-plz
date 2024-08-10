@@ -7,7 +7,7 @@ pub fn init() {
     Lazy::force(&TEST_LOGS);
 }
 
-/// Initialize logs if `ENALBE_LOGS` environment variable is set.
+/// Initialize logs if `ENABLE_LOGS` environment variable is set.
 /// Use `debug` level by default, but you can customize it with `RUST_LOG` environment variable.
 fn _init() {
     if std::env::var("ENABLE_LOGS").is_ok() {
