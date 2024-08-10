@@ -55,22 +55,28 @@ fn pr_title(
     project_contains_multiple_pub_packages: bool,
 ) -> String {
     let updates = packages_to_update.updates();
+    let first_version = &updates[0].1.version;
 
-    if let [(_, first_update), rest @ ..] = updates {
-        let version = &first_update.version;
+    let are_all_versions_equal = || {
+        updates
+            .iter()
+            .all(|(_, update)| &update.version == first_version)
+    };
 
-        if rest.iter().all(|(_, update)| update.version == *version) {
-            return format!("chore: release v{version}");
-        }
-
-        return "chore: release".to_string();
-    }
-
-    let (package, update) = &updates[0];
-    if project_contains_multiple_pub_packages {
-        format!("chore({}): release v{}", package.name, update.version)
+    if updates.len() == 1 && project_contains_multiple_pub_packages {
+        let (package, _) = &updates[0];
+        // The project is a workspace with multiple public packages and we are only updating one of them.
+        // Specify which package is being updated in the PR title.
+        format!("chore({}): release v{}", package.name, first_version)
+    } else if updates.len() > 1 && !are_all_versions_equal() {
+        // We are updating multiple packages with different versions, so we don't specify the version in the PR title.
+        "chore: release".to_string()
     } else {
-        format!("chore: release v{}", update.version)
+        // We are updating either:
+        // - a single package without other public packages
+        // - multiple packages with the same version.
+        // In both cases, we can specify the version in the PR title.
+        format!("chore: release v{first_version}")
     }
 }
 
