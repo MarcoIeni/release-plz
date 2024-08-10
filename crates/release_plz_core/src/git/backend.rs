@@ -471,7 +471,10 @@ impl ResponseExt for reqwest::Response {
             return Ok(self);
         };
 
-        let mut body = self.text().await?;
+        let mut body = self
+            .text()
+            .await
+            .context("can't convert response body to text")?;
 
         // If the response is JSON, try to pretty-print it.
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&body) {
