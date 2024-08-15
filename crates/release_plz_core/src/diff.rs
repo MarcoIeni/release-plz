@@ -1,13 +1,13 @@
-use git_cliff_core::commit::Commit;
+use git_cliff_core::commit::Signature;
 use regex::Regex;
 
 use crate::semver_check::SemverCheck;
 
 /// Difference between local and registry package (i.e. the last released version)
-#[derive(Debug)]
-pub(crate) struct Diff<'a> {
+#[derive(Debug, Clone)]
+pub(crate) struct Diff {
     /// List of commits from last released version to last local changes.
-    pub commits: Vec<Commit<'a>>,
+    pub commits: Vec<Commit>,
     /// Whether the package name exists in the registry or not.
     pub registry_package_exists: bool,
     /// Whether the current local version is published to the registry.
@@ -17,7 +17,40 @@ pub(crate) struct Diff<'a> {
     pub semver_check: SemverCheck,
 }
 
-impl<'a> Diff<'a> {
+#[derive(Debug, PartialEq, Eq, Clone, Default)]
+pub struct Commit {
+    pub id: String,
+    pub message: String,
+    pub author: Signature,
+    pub committer: Signature,
+}
+
+impl Commit {
+    pub fn new(id: String, message: String) -> Self {
+        Self {
+            id,
+            message,
+            ..Self::default()
+        }
+    }
+
+    pub fn is_conventional(&self) -> bool {
+        let cliff = self.to_cliff_commit();
+        cliff.into_conventional().is_ok()
+    }
+
+    pub fn to_cliff_commit(&self) -> git_cliff_core::commit::Commit {
+        git_cliff_core::commit::Commit {
+            id: self.id.clone(),
+            message: self.message.clone(),
+            author: self.author.clone(),
+            committer: self.committer.clone(),
+            ..Default::default()
+        }
+    }
+}
+
+impl Diff {
     pub fn new(registry_package_exists: bool) -> Self {
         Self {
             commits: vec![],
@@ -39,7 +72,7 @@ impl<'a> Diff<'a> {
         self.semver_check = semver_check;
     }
 
-    pub fn add_commits(&mut self, commits: &[Commit<'a>]) {
+    pub fn add_commits(&mut self, commits: &[Commit]) {
         for c in commits {
             if !self.commits.contains(c) {
                 self.commits.push(c.clone());
@@ -59,9 +92,9 @@ impl<'a> Diff<'a> {
 mod tests {
     use super::*;
 
-    pub fn create_diff() -> Diff<'static> {
+    pub fn create_diff() -> Diff {
         let mut diff = Diff::new(false);
-        diff.add_commits(&vec![Commit::new(
+        diff.add_commits(&[Commit::new(
             "1e6903d".to_string(),
             "feature release".to_string(),
         )]);
