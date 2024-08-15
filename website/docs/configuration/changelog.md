@@ -1,10 +1,10 @@
-# Changelog format
+# Changelog
 
 Release-plz generates the changelog by using [git-cliff](https://git-cliff.org) as a library.
 By default, release-plz uses the
 [keep a changelog](https://keepachangelog.com/en/1.1.0/) format.
 
-You can customize the changelog format in the [`[changelog]`](./config.md#the-changelog-section)
+You can customize the changelog format in the [`[changelog]`](./reference.md#the-changelog-section)
 section of the configuration.
 
 ## How should I write my commits?
@@ -24,7 +24,7 @@ Commits that don't follow the Conventional Commit format result in a SemVer patc
 ## Body template
 
 A template is a text where variables and expressions get replaced with values when it is rendered.
-By providing a custom [`body`](./config.md#the-body-field) template, you can customize the
+By providing a custom [`body`](./reference.md#the-body-field) template, you can customize the
 changelog format.
 
 ### Syntax
@@ -55,7 +55,7 @@ For a conventional commit like:
 [footer(s)]
 ```
 
-you can use the following context in the template:
+You can use the following context in the template:
 
 ```json
 {
@@ -160,7 +160,7 @@ The `breaking` flag is set to `true` when:
 
 If the `BREAKING CHANGE:` footer is present, the footer is present in `commit.footers`.
 
-See also the [protect_breaking_commits](./config.md#the-protect_breaking_commits-field) field.
+See also the [protect_breaking_commits](./reference.md#the-protect_breaking_commits-field) field.
 
 ### `committer` vs `author`
 
@@ -171,27 +171,3 @@ From the [Git docs](https://git-scm.com/book/en/v2/Git-Basics-Viewing-the-Commit
 > last applied the work.
 > So, if you send in a patch to a project and one of the core members applies the patch,
 > both of you get credit — you as the author, and the core member as the committer.
-
-### Examples
-
-[Here](https://git-cliff.org/docs/templating/examples) you can find some examples of
-custom git-cliff templates.
-Converting the git-cliff configuration file into the
-[`[changelog]`](./config.md#the-changelog-section) section of the release-plz configuration file is easy.
-
-If you want to contribute your cool template using the release-plz configuration file,
-please open a PR! 🙏
-
-### Tips and tricks
-
-#### Discard duplicate commits
-
-```jinja2
-{% for commit in commits | unique(attribute="message") %}
-```
-
-#### Filter merge commits
-
-```jinja2
-{% for group, commits in commits | filter(attribute="merge_commit", value=false) %}
-```
