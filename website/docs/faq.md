@@ -41,7 +41,7 @@ files of the crate or one of its dependencies.
 
 By default, it will be listed under the section `### Other`.
 You can customize the changelog format with the
-[`[changelog]`](./config.md#the-changelog-section) configuration section.
+[`[changelog]`](./configuration/reference.md#the-changelog-section) configuration section.
 
 ## How do I know the branch of the release PR?
 

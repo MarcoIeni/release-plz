@@ -3,7 +3,7 @@
 By default, Release-plz creates a git tag for every crate that it releases.
 If you want to create a single tag for all the crates in your workspace,
 you can use the following
-`release-plz.toml` [configuration](../config.md):
+`release-plz.toml` [configuration](../configuration/reference.md):
 
 ```toml
 [workspace]
