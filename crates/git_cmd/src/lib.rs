@@ -276,10 +276,6 @@ impl Repo {
         self.git(&["log", "-1", &format!("--pretty=format:{info}"), commit_hash])
     }
 
-    pub fn current_commit_committer(&self) -> anyhow::Result<String> {
-        self.git(&["log", "-1", "--pretty=format:%cn"])
-    }
-
     /// Get the SHA1 of the current HEAD.
     pub fn current_commit_hash(&self) -> anyhow::Result<String> {
         self.git(&["log", "-1", "--pretty=format:%H"])
