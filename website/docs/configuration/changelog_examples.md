@@ -23,6 +23,7 @@ history](https://github.com/orhun/git-cliff-readme-example):
 * 81fbc63 docs(project): add README.md
 * a78bc36 Initial commit
 ```
+
 :::
 
 If you want to contribute your cool template,
@@ -123,6 +124,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Rename help argument due to conflict
+```
+
+</details>
+
+<details>
+  <summary>Rendered Output</summary>
+
+```mdx-code-block
+# Changelog
+All notable changes to this project will be documented in this file.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [Unreleased]
+### Added
+- Support multiple file formats
+### Changed
+- Use cache while fetching pages
+## [1.0.1](https://github.com/orhun/git-cliff-readme-example/compare/v1.0.0...v1.0.1) - 2021-07-18
+### Added
+- Add release script
+### Changed
+- Expose string functions
+## [1.0.0] - 2021-07-18
+### Added
+- Add README.md
+- Add ability to parse arrays
+- Add tested usage example
+### Fixed
 - Rename help argument due to conflict
 ```
 
@@ -255,6 +285,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 </details>
 
+<details>
+  <summary>Rendered Output</summary>
+
+```mdx-code-block
+# Changelog
+All notable changes to this project will be documented in this file.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [Unreleased]
+### ⛰️  Features
+- feat(config): support multiple file formats (a9d4050)
+- feat(cache): use cache while fetching pages (df6aef4)
+## [1.0.1](https://github.com/orhun/git-cliff-readme-example/compare/v1.0.0...v1.0.1)
+### 🚜 Refactor
+- refactor(parser): expose string functions (e4fd3cf)
+### ⚙️ Miscellaneous Tasks
+- chore(release): add release script (06412ac)
+## [1.0.0] - 2021-07-18
+### ⛰️  Features
+- feat(parser): add ability to parse arrays (a140cef)
+### 🐛 Bug Fixes
+- fix(args): rename help argument due to conflict (9add0d4)
+### 📚 Documentation
+- docs(project): add README.md (81fbc63)
+- docs(example)!: add tested usage example (ad27b43)
+```
+
+</details>
+
 ## Detailed
 
 <details>
@@ -348,6 +407,34 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - Add ability to parse arrays ([a140cef](a140cef0405e0bcbfb5de44ff59e091527d91b38))
+```
+
+</details>
+
+<details>
+  <summary>Rendered Output</summary>
+
+```mdx-code-block
+# Changelog
+All notable changes to this project will be documented in this file.
+## [unreleased]
+### Features
+- Support multiple file formats (a9d4050)
+- Use cache while fetching pages (df6aef4)
+## [1.0.1] - 2021-07-18
+ad27b43...06412ac
+### Miscellaneous Tasks
+- Add release script (06412ac)
+### Refactor
+- Expose string functions (e4fd3cf)
+## [1.0.0] - 2021-07-18
+### Bug Fixes
+- Rename help argument due to conflict (9add0d4)
+### Documentation
+- Add README.md (81fbc63)
+- Add tested usage example (ad27b43)
+### Features
+- Add ability to parse arrays (a140cef)
 ```
 
 </details>
