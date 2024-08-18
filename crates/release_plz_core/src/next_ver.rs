@@ -529,13 +529,11 @@ impl Updater<'_> {
             })
             .collect();
 
-        let mut packages_diffs = packages_diffs_res?;
-
+        let mut packages_diffs = self.fill_commits(&packages_diffs_res?, repository)?;
         let packages_commits: HashMap<String, Vec<Commit>> = packages_diffs
             .iter()
             .map(|(p, d)| (p.name.clone(), d.commits.clone()))
             .collect();
-        self.fill_commits(&packages_diffs, repository)?;
 
         let semver_check_result: anyhow::Result<()> =
             packages_diffs.par_iter_mut().try_for_each(|(p, diff)| {
