@@ -256,6 +256,26 @@ impl Repo {
         self.git(&["log", "-1", "--pretty=format:%B"])
     }
 
+    pub fn get_author_name(&self, commit_hash: &str) -> anyhow::Result<String> {
+        self.get_commit_info("%an", commit_hash)
+    }
+
+    pub fn get_author_email(&self, commit_hash: &str) -> anyhow::Result<String> {
+        self.get_commit_info("%ae", commit_hash)
+    }
+
+    pub fn get_committer_name(&self, commit_hash: &str) -> anyhow::Result<String> {
+        self.get_commit_info("%cn", commit_hash)
+    }
+
+    pub fn get_committer_email(&self, commit_hash: &str) -> anyhow::Result<String> {
+        self.get_commit_info("%ce", commit_hash)
+    }
+
+    fn get_commit_info(&self, info: &str, commit_hash: &str) -> anyhow::Result<String> {
+        self.git(&["log", "-1", &format!("--pretty=format:{info}"), commit_hash])
+    }
+
     /// Get the SHA1 of the current HEAD.
     pub fn current_commit_hash(&self) -> anyhow::Result<String> {
         self.git(&["log", "-1", "--pretty=format:%H"])

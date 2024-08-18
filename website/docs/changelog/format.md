@@ -91,12 +91,10 @@ You can use the following context in the template:
       "author": {
         "name": "User Name",
         "email": "user.email@example.com",
-        "timestamp": 1660330071
       },
       "committer": {
         "name": "User Name",
         "email": "user.email@example.com",
-        "timestamp": 1660330071
       }
     }
   ],

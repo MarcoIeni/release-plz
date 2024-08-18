@@ -24,7 +24,7 @@ impl NextVersionFromDiff for Version {
 
 #[cfg(test)]
 mod tests {
-    use git_cliff_core::commit::Commit;
+    use crate::diff::Commit;
 
     use crate::{semver_check::SemverCheck, NO_COMMIT_ID};
 

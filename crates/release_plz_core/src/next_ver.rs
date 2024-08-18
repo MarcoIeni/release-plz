@@ -1,4 +1,6 @@
+use crate::diff::Commit;
 use crate::{
+    changelog_filler::{fill_commit, get_required_info},
     changelog_parser::{self, ChangelogRelease},
     copy_dir::copy_dir,
     diff::Diff,
@@ -22,7 +24,6 @@ use cargo_metadata::{
 };
 use cargo_utils::{canonical_local_manifest, upgrade_requirement, LocalManifest, CARGO_TOML};
 use chrono::NaiveDate;
-use git_cliff_core::commit::Commit;
 use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
@@ -435,6 +436,7 @@ impl Updater<'_> {
         debug!("calculating local packages");
 
         let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
+
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate::default();
 
@@ -527,8 +529,7 @@ impl Updater<'_> {
             })
             .collect();
 
-        let mut packages_diffs = packages_diffs_res?;
-
+        let mut packages_diffs = self.fill_commits(&packages_diffs_res?, repository)?;
         let packages_commits: HashMap<String, Vec<Commit>> = packages_diffs
             .iter()
             .map(|(p, d)| (p.name.clone(), d.commits.clone()))
@@ -562,6 +563,25 @@ impl Updater<'_> {
             });
         semver_check_result?;
 
+        Ok(packages_diffs)
+    }
+
+    fn fill_commits<'a>(
+        &self,
+        packages_diffs: &[(&'a Package, Diff)],
+        repository: &Repo,
+    ) -> anyhow::Result<Vec<(&'a Package, Diff)>> {
+        let changelog_request: &ChangelogRequest = &self.req.changelog_req;
+        let mut all_commits: HashMap<String, &Commit> = HashMap::new();
+        let mut packages_diffs = packages_diffs.to_owned();
+        if let Some(changelog_config) = changelog_request.changelog_config.as_ref() {
+            let required_info = get_required_info(&changelog_config.changelog);
+            for (_package, diff) in &mut packages_diffs {
+                for commit in &mut diff.commits {
+                    fill_commit(commit, &required_info, repository, &mut all_commits)?;
+                }
+            }
+        }
         Ok(packages_diffs)
     }
 
@@ -662,13 +682,13 @@ impl Updater<'_> {
                 .into_iter()
                 // If not conventional commit, only consider the first line of the commit message.
                 .filter_map(|c| {
-                    if c.clone().into_conventional().is_ok() {
+                    if c.is_conventional() {
                         Some(c)
                     } else {
-                        c.message
-                            .lines()
-                            .next()
-                            .map(|line| Commit::new(c.id.clone(), line.to_string()))
+                        c.message.lines().next().map(|line| Commit {
+                            message: line.to_string(),
+                            ..c
+                        })
                     }
                 })
                 // replace #123 with [#123](https://link_to_pr).
@@ -676,7 +696,10 @@ impl Updater<'_> {
                 .map(|c| {
                     if let Some(pr_link) = &pr_link {
                         let result = PR_RE.replace_all(&c.message, format!("[#$1]({pr_link}/$1)"));
-                        Commit::new(c.id, result.to_string())
+                        Commit {
+                            message: result.to_string(),
+                            ..c
+                        }
                     } else {
                         c
                     }
@@ -685,7 +708,7 @@ impl Updater<'_> {
             changelog_req
                 .map(|r| {
                     get_changelog(
-                        commits,
+                        &commits,
                         &version,
                         Some(r),
                         old_changelog,
@@ -965,7 +988,7 @@ fn new_workspace_version(
 }
 
 fn get_changelog(
-    commits: Vec<Commit>,
+    commits: &[Commit],
     next_version: &Version,
     changelog_req: Option<ChangelogRequest>,
     old_changelog: Option<&str>,
@@ -973,6 +996,7 @@ fn get_changelog(
     release_link: Option<&str>,
     package: &Package,
 ) -> anyhow::Result<String> {
+    let commits = commits.iter().map(|c| c.to_cliff_commit()).collect();
     let mut changelog_builder =
         ChangelogBuilder::new(commits, next_version.to_string(), package.name.clone());
     if let Some(changelog_req) = changelog_req {
@@ -1197,7 +1221,7 @@ mod tests {
 - complex update
 "#;
         let new = get_changelog(
-            commits,
+            &commits,
             &next_version,
             Some(changelog_req),
             Some(old),
