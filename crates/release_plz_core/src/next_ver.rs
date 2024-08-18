@@ -685,10 +685,10 @@ impl Updater<'_> {
                     if c.is_conventional() {
                         Some(c)
                     } else {
-                        c.message
-                            .lines()
-                            .next()
-                            .map(|line| Commit::new(c.id.clone(), line.to_string()))
+                        c.message.lines().next().map(|line| Commit {
+                            message: line.to_string(),
+                            ..c
+                        })
                     }
                 })
                 // replace #123 with [#123](https://link_to_pr).
@@ -696,7 +696,10 @@ impl Updater<'_> {
                 .map(|c| {
                     if let Some(pr_link) = &pr_link {
                         let result = PR_RE.replace_all(&c.message, format!("[#$1]({pr_link}/$1)"));
-                        Commit::new(c.id, result.to_string())
+                        Commit {
+                            message: result.to_string(),
+                            ..c
+                        }
                     } else {
                         c
                     }
