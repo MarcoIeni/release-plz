@@ -31,8 +31,7 @@ history](https://github.com/orhun/git-cliff-readme-example):
 
 ## Release-plz default
 
-Release-plz uses the *keep a changelog* format. No need to use default
-configuration, purely here as a reference.
+Release-plz default configuration, purely here as a reference.
 
 <details>
   <summary>TOML configuration</summary>
