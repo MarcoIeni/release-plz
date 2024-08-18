@@ -769,7 +769,7 @@ By default, groups are showed in alphabetical order in the changelog.
 To customize the order, see
 [changing the group order](./changelog/tips-and-tricks.md#changing-the-group-order).
 
-Other examples:
+Here are some examples of parsers:
 
 - `{ body = ".*security", group = "Security" }`
   - Group the commit as "Security" if the commit body contains `security`.
