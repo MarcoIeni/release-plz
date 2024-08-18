@@ -638,7 +638,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Template that represents a single release in the changelog.
 It contains the commit messages.
-Learn more about the template syntax in the changelog format [docs](./changelog/changelog.md).
+Learn more about the template syntax in the changelog format [docs](./changelog/format.md).
 
 Default:
 
