@@ -34,19 +34,19 @@ Use HTML comments to force them into their desired positions:
 
 ```toml
 commit_parsers = [
-    { message = "^feat*", group = "<!-- 0 -->🚀 New features" },
-    { message = "^fix*", group = "<!-- 1 -->🐛 Bug fixes" },
-    { message = "^perf*", group = "<!-- 2 -->⚡ Performance" },
-    { message = "^chore*", group = "<!-- 3 -->⚙️ Miscellaneous" },
+    { message = "^feat*", group = "<!-- 0 -->New features" },
+    { message = "^fix*", group = "<!-- 1 -->Bug fixes" },
+    { message = "^perf*", group = "<!-- 2 -->Performance" },
+    { message = "^chore*", group = "<!-- 3 -->Miscellaneous" },
 ]
 ```
 
 This produces the following order:
 
-- 🚀 New features
-- 🐛 Bug fixes
-- ⚡ Performance
-- ⚙️ Miscellaneous
+- New features
+- Bug fixes
+- Performance
+- Miscellaneous
 
 Then strip the tags in the template with the series of filters:
 

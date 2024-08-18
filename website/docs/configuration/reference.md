@@ -697,6 +697,8 @@ For example, you can read the commit itself:
 
 #### The `commit_parsers` field
 
+An array of parsers allowing to group and skip commits.
+
 Default:
 
 ```toml
@@ -710,33 +712,9 @@ commit_parsers = [
 ]
 ```
 
-:::tip
-The groups come out in alphabetical order.
-To customize the order, use HTML comments:
+With the default configuration, a commit starting with `feat` will be grouped under "added" section in the changelog (e.g. `### Added`).
 
-```toml
-commit_parsers = [
-    { message = "^feat*", group = "<!-- 0 -->New features" },
-    { message = "^fix*", group = "<!-- 1 -->Bug fixes" },
-    { message = "^perf*", group = "<!-- 2 -->Performance" },
-    { message = "^chore*", group = "<!-- 3 -->Miscellaneous" },
-]
-```
-
-This produces the following order:
-
-- New features
-- Bug fixes
-- Performance
-- Miscellaneous
-
-Then strip the tags in the template with this series of filters:
-
-```jinja2
-### {{ group | striptags | trim | upper_first }}
-```
-
-:::
+By default, groups are showed in alphabetical order in the changelog. To customize the order, see [changing the group order](./tips-and-tricks.md#changing-the-group-order).
 
 #### The `link_parsers` field
 
