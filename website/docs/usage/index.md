@@ -10,6 +10,7 @@ There are three main commands:
 - [`release-plz release`](release.md) publishes the new versions of the packages.
 
 There are also some utility commands:
+
 - [`release-plz init`](init.md) initializes release-plz for the current GitHub repository.
 - [`release-plz generate-completions`](shell-completion.md) generates command completions for
   shells.
