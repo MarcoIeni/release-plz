@@ -38,6 +38,7 @@ const sidebars = {
       link: { type: "doc", id: "github/index" },
       items: ["github/quickstart", "github/output", "github/token", "github/update", "github/advanced", "github/security"],
     },
+    "config",
     {
       type: "category",
       label: "Changelog",

@@ -382,7 +382,7 @@ release = false
 - If true, release-plz release will try to release your packages every time you run it
   (e.g. on every commit in the main branch). *(Default)*.
   :::warning
-  Note that in this case, every package is published as soon as you commit it.
+  In this case, every package is published as soon as you commit it.
   :::
 
 - If false, `release-plz release` will try to release your packages only when you merge the
@@ -398,7 +398,7 @@ release = false
   (e.g. when you fix the CI), use this branch name format (e.g. `release-plz-fix-ci`).
   :::
   :::info
-  Note that the release pr is opened only when a file of the package is updated.
+  The release pr is opened only when a file of the package is updated.
   To verify your packaged files, run `cargo package --list`.
   :::
 
@@ -452,7 +452,9 @@ API breaking changes of your package:
 - If `true`, run it. *(Default)*.
 - If `false`, don't run it.
 
-Note that [cargo-semver-checks] only works with packages containing a library.
+:::info
+[cargo-semver-checks] only works with packages containing a library.
+:::
 
 This field can be overridden in the [`[package]`](#the-package-section) section.
 
