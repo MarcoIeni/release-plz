@@ -49,7 +49,7 @@ pub fn get_required_info(changelog_config: &ChangelogConfig) -> RequiredInfo {
 
     if let Some(body) = changelog_config.body.as_ref() {
         required_info.author_name = body.contains("author.name");
-        required_info.author_name = body.contains("author.email");
+        required_info.author_email = body.contains("author.email");
         required_info.committer_name = body.contains("committer.name");
         required_info.committer_email = body.contains("committer.email");
     }
