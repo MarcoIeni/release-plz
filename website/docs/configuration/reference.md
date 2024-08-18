@@ -719,15 +719,17 @@ By default, groups are showed in alphabetical order in the changelog. To customi
 Other examples:
 
 - `{ body = ".*security", group = "Security" }`
-  - Group the commit as "Security" if the commit body contains "security"
+  - Group the commit as "Security" if the commit body contains `security`.
 - `{ footer = "^changelog: ?ignore", skip = true }`
-  - Skip processing the commit if the commit footer contains "changelog: ignore":
+  - Skip processing the commit if the commit footer contains `changelog: ignore`.
 - `{ message = '^fix\((.*)\)', group = 'Fix (${1})' }`
-  - Use the matched scope value from the commit message in the group name:
+  - Use the matched scope value from the commit message in the group name.
+- `{ message = "^refactor\\(clippy\\)", skip = true }`
+  - Skip commits starting with the message `refactor(clippy)`.
 - `{ body = "$^", skip = true }`
-  - Skip commits with an empty body:
+  - Skip commits with an empty body.
 - `{ message = "^doc", group = "Documentation", default_scope = "other" }`
-  - If the commit starts with "doc", group the commit as "Documentation" and set the default scope to "other":
+  - If the commit starts with "doc", group the commit as "Documentation" and set the default scope to "other".
     E.g. `docs: xyz` will be processed as `docs(other): xyz`.
 - `{ sha = "f6f2472bdf0bbb5f9fcaf2d72c1fa9f98f772bb2", skip = true }`
   - Skip a specific commit by using its SHA1.
