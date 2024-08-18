@@ -12,7 +12,7 @@ use to take inspiration from. ✨
 All examples based on the following [Git
 history](https://github.com/orhun/git-cliff-readme-example):
 
-```
+```text
 * df6aef4 (HEAD -> master) feat(cache): use cache while fetching pages
 * a9d4050 feat(config): support multiple file formats
 * 06412ac (tag: v1.0.1) chore(release): add release script
