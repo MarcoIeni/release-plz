@@ -65,11 +65,3 @@ Then strip the tags in the template with the series of filters:
 ```jinja2
 {% for group, commits in commits | filter(attribute="merge_commit", value=false) %}
 ```
-
-## Skip commits with an empty body
-
-```toml
-commit_parsers = [
-  { body = "$^", skip = true },
-]
-```
