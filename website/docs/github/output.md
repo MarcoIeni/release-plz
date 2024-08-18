@@ -160,3 +160,42 @@ You can also add a milestone with `gh pr edit $pr_number --milestone <MILESTONE_
 :::tip
 Make sure your GitHub token has permission to do all the operations you need.
 :::
+
+## Example: commit files to the release PR
+
+You can commit files to the release PR opened by release-plz.
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
+        uses: MarcoIeni/release-plz-action@v0.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Update README in the release PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ steps.release-plz.outputs.pr }}
+        run: |
+          set -e
+
+          pr_number=${{ fromJSON(steps.release-plz.outputs.pr).number }}
+          if [[ -n "$pr_number" ]]; then
+            gh pr checkout $pr_number
+            # change "echo" with your commands
+            echo "new readme" > README.md
+            git add .
+            git commit -m "Update README"
+            git push
+          fi
+```
