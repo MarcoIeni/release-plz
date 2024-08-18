@@ -1,8 +1,15 @@
 # Changelog examples
 
-See the
-[examples](https://github.com/MarcoIeni/release-plz/tree/main/examples)
-directory for configuration files. All examples based on the following [Git
+Release-plz comes with a default changelog configuration that adheres to the
+[Keep a Changelog](https://keepachangelog.com/en/1.0.0/) specification.
+You can customize the changelog format by editing the
+[`[changelog]`](./reference.md#the-changelog-section) section of the configuration file.
+
+In the following there are some examples of changelog configurations that you can
+use to take inspiration from. ✨
+
+:::info
+All examples based on the following [Git
 history](https://github.com/orhun/git-cliff-readme-example):
 
 ```log
@@ -16,10 +23,10 @@ history](https://github.com/orhun/git-cliff-readme-example):
 * 81fbc63 docs(project): add README.md
 * a78bc36 Initial commit
 ```
+:::
 
-If you want to contribute your cool template using the `release-plz`
-configuration file, [please open a
-PR](https://github.com/MarcoIeni/release-plz/blob/main/CONTRIBUTING.md)! 🙏
+If you want to contribute your cool template,
+[open a PR](https://github.com/MarcoIeni/release-plz/blob/main/CONTRIBUTING.md)! 🙏
 
 ## [Release-plz default](https://github.com/MarcoIeni/release-plz/tree/main/examples/default.toml)
 
