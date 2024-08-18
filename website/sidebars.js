@@ -43,7 +43,7 @@ const sidebars = {
       label: "Configuration",
       collapsed: true,
       link: { type: "doc", id: "configuration/index" },
-      items: ["configuration/reference", "configuration/changelog", "configuration/examples", "configuration/tips-and-tricks" ],
+      items: ["configuration/reference", "configuration/changelog", "configuration/changelog_examples", "configuration/tips-and-tricks" ],
     },
     "semver-check",
     "faq",

@@ -1,4 +1,4 @@
-# Examples
+# Changelog examples
 
 See the
 [examples](https://github.com/MarcoIeni/release-plz/tree/main/examples)

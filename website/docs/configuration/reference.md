@@ -534,7 +534,7 @@ By default, release-plz runs [cargo-semver-checks] if the package is a library.
 ### The `[changelog]` section
 
 Here's an example configuration, more customization examples available in the
-[`Examples`](./examples.md) section.
+[Examples](./changelog_examples.md) section.
 
 ```toml
 [changelog]
