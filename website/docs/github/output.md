@@ -21,7 +21,7 @@ After the action runs, it outputs the following properties:
     - `html_url`: The URL of the PR.
     - `number`: The number of the PR.
   - `tag`: git tag name of the package that was released. It's returned even if you have
-    [git_tag_enable](../configuration/reference.md#the-git_tag_enable-field) set to `false`, so that
+    [git_tag_enable](../config.md#the-git_tag_enable-field) set to `false`, so that
     you can use this to create the git tag yourself.
   - `version`: The version of the package that was released.
 - `prs_created`: Whether release-plz created any release PR. *Boolean.*
@@ -103,7 +103,7 @@ With release-plz you can add a label to the PRs with the version they were relea
 :::info
 In this example, we are talking about the PRs containing code changes.
 We aren't talking about the release PRs created by release-plz.
-You can label release PRs with the [pr_labels](../configuration/reference.md#the-pr_labels-field)
+You can label release PRs with the [pr_labels](../config.md#the-pr_labels-field)
 configuration field.
 :::
 

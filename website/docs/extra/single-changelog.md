@@ -21,7 +21,7 @@ changelog_path = "./CHANGELOG.md"
 
 To include commits of other packages in the changelog of
 your main package, use the
-[changelog_include](../configuration/reference.md#the-changelog_include-field) field.
+[changelog_include](../config.md#the-changelog_include-field) field.
 
 ## All packages
 
@@ -57,7 +57,7 @@ the `{{package}}`.
 In this way, `package_a` and `package_b` changelogs are in the same file.
 Note that the changelog will contain duplicate changes.
 If you want to merge updates of different packages into one, check
-the [changelog_include](../configuration/reference.md#the-changelog_include-field) field.
+the [changelog_include](../config.md#the-changelog_include-field) field.
 
 Here's an example of the changelog output:
 
