@@ -97,7 +97,7 @@ If release-plz didn't release any packages, the `releases` array will be empty.
 ### The `tag` field
 
 The `tag` field is present even if the user disabled the tag creation with the
-[`git_tag_enable`](../config.md#the-git_tag_enable-field) field.rele
+[`git_tag_enable`](../config.md#the-git_tag_enable-field) field.
 This is because the user might want to use the tag name to create the tag
 by themselves.
 
