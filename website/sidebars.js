@@ -40,10 +40,10 @@ const sidebars = {
     },
     {
       type: "category",
-      label: "Configuration",
+      label: "Changelog",
       collapsed: true,
-      link: { type: "doc", id: "configuration/index" },
-      items: ["configuration/reference", "configuration/changelog", "configuration/changelog_examples", "configuration/tips-and-tricks" ],
+      link: { type: "doc", id: "changelog/index" },
+      items: ["changelog/changelog", "changelog/examples", "changelog/tips-and-tricks" ],
     },
     "semver-check",
     "faq",

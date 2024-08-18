@@ -1,9 +1,9 @@
-# Changelog examples
+# Examples
 
 Release-plz comes with a default changelog configuration that adheres to the
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) specification.
 You can customize the changelog format by editing the
-[`[changelog]`](./reference.md#the-changelog-section) section of the configuration file.
+[`[changelog]`](../config.md#the-changelog-section) section of the configuration file.
 
 In the following there are some examples of changelog configurations that you can
 use to take inspiration from. ✨

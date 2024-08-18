@@ -1,10 +1,9 @@
 # Changelog
 
-Release-plz generates the changelog by using [git-cliff](https://git-cliff.org) as a library.
 By default, release-plz uses the
 [keep a changelog](https://keepachangelog.com/en/1.1.0/) format.
 
-You can customize the changelog format in the [`[changelog]`](./reference.md#the-changelog-section)
+You can customize the changelog format in the [`[changelog]`](../config.md#the-changelog-section)
 section of the configuration.
 
 ## How should I write my commits?
@@ -24,7 +23,7 @@ Commits that don't follow the Conventional Commit format result in a SemVer patc
 ## Body template
 
 A template is a text where variables and expressions get replaced with values when it is rendered.
-By providing a custom [`body`](./reference.md#the-body-field) template, you can customize the
+By providing a custom [`body`](../config.md#the-body-field) template, you can customize the
 changelog format.
 
 ### Syntax
@@ -160,7 +159,7 @@ The `breaking` flag is set to `true` when:
 
 If the `BREAKING CHANGE:` footer is present, the footer is present in `commit.footers`.
 
-See also the [protect_breaking_commits](./reference.md#the-protect_breaking_commits-field) field.
+See also the [protect_breaking_commits](../config.md#the-protect_breaking_commits-field) field.
 
 ### `committer` vs `author`
 
