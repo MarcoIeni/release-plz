@@ -148,7 +148,6 @@ This field only affects the `release-plz update` and `release-plz release-pr` co
 
 Path to the [git-cliff] configuration file.
 If unspecified, release-plz uses the [keep a changelog](https://keepachangelog.com/en/1.1.0/) format.
-You can learn more in the [changelog format](changelog-format.md) section.
 
 :::warning
 This field is deprecated.
@@ -584,7 +583,8 @@ By default, release-plz runs [cargo-semver-checks] if the package is a library.
 
 ### The `[changelog]` section
 
-Example:
+Here's an example configuration, more customization examples available in the
+[Examples](./changelog/examples.md) section.
 
 ```toml
 [changelog]
@@ -630,6 +630,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
 """
 ```
 
@@ -637,7 +638,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Template that represents a single release in the changelog.
 It contains the commit messages.
-Learn more about the template syntax in the changelog format [docs](./changelog-format.md).
+Learn more about the template syntax in the changelog format [docs](./changelog/format.md).
 
 Default:
 
@@ -746,6 +747,8 @@ For example, you can read the commit itself:
 
 #### The `commit_parsers` field
 
+An array of parsers allowing to group and skip commits.
+
 Default:
 
 ```toml
@@ -759,33 +762,31 @@ commit_parsers = [
 ]
 ```
 
-:::tip
-The groups come out in alphabetical order.
-To customize the order, use HTML comments:
+With the default configuration, a commit starting with `feat` will be grouped under
+"Added" section in the changelog (e.g. `### Added`).
 
-```toml
-commit_parsers = [
-    { message = "^feat*", group = "<!-- 0 -->New features" },
-    { message = "^fix*", group = "<!-- 1 -->Bug fixes" },
-    { message = "^perf*", group = "<!-- 2 -->Performance" },
-    { message = "^chore*", group = "<!-- 3 -->Miscellaneous" },
-]
-```
+By default, groups are showed in alphabetical order in the changelog.
+To customize the order, see
+[changing the group order](./changelog/tips-and-tricks.md#changing-the-group-order).
 
-This produces the following order:
+Here are some examples of parsers:
 
-- New features
-- Bug fixes
-- Performance
-- Miscellaneous
-
-Then strip the tags in the template with this series of filters:
-
-```jinja2
-### {{ group | striptags | trim | upper_first }}
-```
-
-:::
+- `{ body = ".*security", group = "Security" }`
+  - Group the commit as "Security" if the commit body contains `security`.
+- `{ footer = "^changelog: ?ignore", skip = true }`
+  - Skip processing the commit if the commit footer contains `changelog: ignore`.
+- `{ message = '^fix\((.*)\)', group = 'Fix (${1})' }`
+  - Use the matched scope value from the commit message in the group name.
+- `{ message = "^refactor\\(clippy\\)", skip = true }`
+  - Skip commits starting with the message `refactor(clippy)`.
+- `{ body = "$^", skip = true }`
+  - Skip commits with an empty body.
+- `{ message = "^doc", group = "Documentation", default_scope = "other" }`
+  - If the commit starts with "doc", group the commit as "Documentation" and set the
+    default scope to "other".
+    E.g. `docs: xyz` will be processed as `docs(other): xyz`.
+- `{ sha = "f6f2472bdf0bbb5f9fcaf2d72c1fa9f98f772bb2", skip = true }`
+  - Skip a specific commit by using its SHA1.
 
 #### The `link_parsers` field
 
