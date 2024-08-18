@@ -43,7 +43,7 @@ const sidebars = {
       label: "Changelog",
       collapsed: true,
       link: { type: "doc", id: "changelog/index" },
-      items: ["changelog/changelog", "changelog/examples", "changelog/tips-and-tricks" ],
+      items: ["changelog/format", "changelog/examples", "changelog/tips-and-tricks" ],
     },
     "semver-check",
     "faq",
