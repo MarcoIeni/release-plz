@@ -6,13 +6,13 @@ on:
       - main
     paths-ignore:
       - "**.md"
-      - '**.js'
-      - '**.ts'
+      - "**.js"
+      - "**.ts"
   pull_request:
     paths-ignore:
       - "**.md"
-      - '**.js'
-      - '**.ts'
+      - "**.js"
+      - "**.ts"
 
 jobs:
   test:
@@ -24,7 +24,7 @@ jobs:
       - name: Install cargo-semver-checks
         uses: taiki-e/install-action@v2
         with:
-          tool: cargo-semver-checks@0.33
+          tool: cargo-semver-checks@0.34
       - name: Start containers
         run: docker compose up -d --wait
         working-directory: ./tests
@@ -56,7 +56,7 @@ jobs:
       - name: Install cargo-semver-checks
         uses: taiki-e/install-action@v2
         with:
-          tool: cargo-semver-checks@0.33
+          tool: cargo-semver-checks@0.34
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
