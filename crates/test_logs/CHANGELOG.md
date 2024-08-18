@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.28](https://github.com/MarcoIeni/release-plz/compare/test_logs-v0.1.27...test_logs-v0.1.28) - 2024-08-18
+
+### Other
+- Add version of the packages into PR name if they all use the same ([#1603](https://github.com/MarcoIeni/release-plz/pull/1603))
+
 ## [0.1.27](https://github.com/MarcoIeni/release-plz/compare/test_logs-v0.1.26...test_logs-v0.1.27) - 2024-07-12
 
 ### Other

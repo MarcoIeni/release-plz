@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.25.2...release_plz_core-v0.25.3) - 2024-08-18
+
+### Added
+- Add committer and author to changelog ([#1606](https://github.com/MarcoIeni/release-plz/pull/1606))
+- Add version of the packages into PR name if they all use the same ([#1603](https://github.com/MarcoIeni/release-plz/pull/1603))
+
 ## [0.25.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.25.1...release_plz_core-v0.25.2) - 2024-08-07
 
 ### Other
