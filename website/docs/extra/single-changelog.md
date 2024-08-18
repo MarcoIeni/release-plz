@@ -20,7 +20,8 @@ changelog_path = "./CHANGELOG.md"
 ```
 
 To include commits of other packages in the changelog of
-your main package, use the [changelog_include](../config.md#the-changelog_include-field) field.
+your main package, use the
+[changelog_include](../config.md#the-changelog_include-field) field.
 
 ## All packages
 

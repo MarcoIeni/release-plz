@@ -18,7 +18,7 @@ const sidebars = {
     {
       type: "category",
       label: "CLI Usage",
-      collapsed: false,
+      collapsed: true,
       link: { type: "doc", id: "usage/index" },
       items: [
         "usage/installation",
@@ -34,12 +34,17 @@ const sidebars = {
     {
       type: "category",
       label: "GitHub Action",
-      collapsed: false,
+      collapsed: true,
       link: { type: "doc", id: "github/index" },
       items: ["github/quickstart", "github/output", "github/token", "github/update", "github/advanced", "github/security"],
     },
-    "config",
-    "changelog-format",
+    {
+      type: "category",
+      label: "Changelog",
+      collapsed: true,
+      link: { type: "doc", id: "changelog/index" },
+      items: ["changelog/format", "changelog/examples", "changelog/tips-and-tricks" ],
+    },
     "semver-check",
     "faq",
     "why",
@@ -47,7 +52,7 @@ const sidebars = {
     {
       type: "category",
       label: "Extra",
-      collapsed: false,
+      collapsed: true,
       link: { type: "doc", id: "extra/index" },
       items: [
         "extra/releasing-binaries",
