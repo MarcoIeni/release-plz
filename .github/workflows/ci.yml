@@ -6,9 +6,13 @@ on:
       - main
     paths-ignore:
       - "**.md"
+      - '**.js'
+      - '**.ts'
   pull_request:
     paths-ignore:
       - "**.md"
+      - '**.js'
+      - '**.ts'
 
 jobs:
   test:
