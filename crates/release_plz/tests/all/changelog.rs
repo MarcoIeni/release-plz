@@ -94,7 +94,7 @@ async fn release_plz_adds_custom_changelog() {
     {%- if commit.scope -%}
     - *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
     {% else -%}
-    - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
+    - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }} by {{ commit.author.name }}
     {% endif -%}
     {% endfor -%}
     {% endfor %}
@@ -113,26 +113,24 @@ async fn release_plz_adds_custom_changelog() {
         .get_file_content(opened_prs[0].branch(), "CHANGELOG.md")
         .await;
     let expected_changelog = "Changelog\n\n";
-    let remote_string = format!(
-        "owner: {}, repo: {}, link: https://localhost/{}/{}\n\n",
-        context.gitea.user.username(),
-        context.gitea.repo,
-        context.gitea.user.username(),
-        context.gitea.repo,
-    );
-    let package_string = format!(
-        "== {} - [0.1.0](https://localhost/{}/{}/releases/tag/v0.1.0)\n\n",
-        context.gitea.repo,
-        context.gitea.user.username(),
-        context.gitea.repo,
-    );
-    let changes = r#"
+    let username = context.gitea.user.username();
+    let repo = context.gitea.repo;
+    let remote_string =
+        format!("owner: {username}, repo: {repo}, link: https://localhost/{username}/{repo}\n\n",);
+    let package_string =
+        format!("== {repo} - [0.1.0](https://localhost/{username}/{repo}/releases/tag/v0.1.0)\n\n");
+    let commits = ["add config file", "cargo init", "Initial commit"];
+    #[allow(clippy::format_collect)]
+    let commits_str = commits
+        .iter()
+        .map(|commit| format!("- {commit} by {username}\n"))
+        .collect::<String>();
+    let changes = format!(
+        "
 === Other
-- add config file
-- cargo init
-- Initial commit
-
-"#;
+{commits_str}
+"
+    );
 
     let expected_changelog =
         format!("{expected_changelog}{remote_string}{package_string}{changes}");
