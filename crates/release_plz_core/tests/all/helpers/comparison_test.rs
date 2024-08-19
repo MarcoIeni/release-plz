@@ -58,9 +58,9 @@ impl ComparisonTest {
             .unwrap()
     }
 
-    pub fn run_update(&self) {
+    pub async fn run_update(&self) {
         let update_request = self.update_request();
-        release_plz_core::update(&update_request).unwrap();
+        release_plz_core::update(&update_request).await.unwrap();
     }
 
     fn github_release_pr_request(&self, base_url: Url) -> ReleasePrRequest {
@@ -72,7 +72,8 @@ impl ComparisonTest {
             )
             .with_base_url(base_url),
         );
-        ReleasePrRequest::new(github, self.update_request())
+        let update_request = self.update_request().with_git_client(github);
+        ReleasePrRequest::new(update_request)
     }
 
     pub async fn github_open_release_pr(&self) -> anyhow::Result<()> {
@@ -86,7 +87,8 @@ impl ComparisonTest {
         let url = RepoUrl::new(&format!("{}{OWNER}/{REPO}", base_url.as_str()))
             .context("can't crate url")?;
         let git = GitBackend::Gitea(Gitea::new(url, Secret::from("token".to_string()))?);
-        Ok(ReleasePrRequest::new(git, self.update_request()))
+        let update_request = self.update_request().with_git_client(git);
+        Ok(ReleasePrRequest::new(update_request))
     }
 
     pub async fn gitea_open_release_pr(&self) -> anyhow::Result<()> {

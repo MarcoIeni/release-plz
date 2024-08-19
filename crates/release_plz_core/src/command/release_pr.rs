@@ -12,12 +12,11 @@ use crate::git::github_graphql;
 use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};
 use crate::{
     copy_to_temp_dir, new_manifest_dir_path, new_project_root, publishable_packages_from_manifest,
-    root_repo_path_from_manifest_dir, update, GitBackend, PackagesUpdate, UpdateRequest,
+    root_repo_path_from_manifest_dir, update, PackagesUpdate, UpdateRequest,
 };
 
 #[derive(Debug)]
 pub struct ReleasePrRequest {
-    pub git: GitBackend,
     /// If `true`, the created release PR will be marked as a draft.
     draft: bool,
     /// Labels to add to the release PR.
@@ -26,9 +25,8 @@ pub struct ReleasePrRequest {
 }
 
 impl ReleasePrRequest {
-    pub fn new(git: GitBackend, update_request: UpdateRequest) -> Self {
+    pub fn new(update_request: UpdateRequest) -> Self {
         Self {
-            git,
             draft: false,
             labels: vec![],
             update_request,
@@ -86,8 +84,11 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
         .set_local_manifest(&local_manifest)
         .context("can't find temporary project")?;
     let (packages_to_update, _temp_repository) =
-        update(&new_update_request).context("failed to update packages")?;
-    let git_client = GitClient::new(input.git.clone())?;
+        update(&new_update_request).await.context("failed to update packages")?;
+    let git_client = input
+        .update_request
+        .git_client()?
+        .context("can't find git client")?;
     if !packages_to_update.updates().is_empty() {
         let repo = Repo::new(tmp_project_root)?;
         let there_are_commits_to_push = repo.is_clean().is_err();

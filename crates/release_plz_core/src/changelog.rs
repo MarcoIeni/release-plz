@@ -5,6 +5,7 @@ use git_cliff_core::{
     commit::Commit,
     config::{Bump, ChangelogConfig, CommitParser, Config, GitConfig, RemoteConfig},
     release::Release,
+    remote::RemoteReleaseMetadata,
 };
 use regex::Regex;
 use serde::Serialize;
@@ -290,6 +291,8 @@ impl<'a> ChangelogBuilder<'a> {
             previous: None,
             message: None,
             repository: None,
+            github: RemoteReleaseMetadata::default(),
+            gitea: RemoteReleaseMetadata::default(),
         });
 
         Changelog {
@@ -301,6 +304,8 @@ impl<'a> ChangelogBuilder<'a> {
                 previous: previous.map(Box::new),
                 message: None,
                 repository: None,
+                github: RemoteReleaseMetadata::default(),
+                gitea: RemoteReleaseMetadata::default(),
             },
             remote: self.remote,
             release_link: self.release_link,

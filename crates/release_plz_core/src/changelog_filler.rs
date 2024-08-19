@@ -1,22 +1,25 @@
 use std::collections::HashMap;
 
-use git_cliff_core::config::ChangelogConfig;
+use anyhow::Context as _;
+use git_cliff_core::{config::ChangelogConfig, remote::RemoteContributor};
 use git_cmd::Repo;
 
-use crate::diff::Commit;
+use crate::{diff::Commit, GitClient};
 
 pub struct RequiredInfo {
     author_name: bool,
     author_email: bool,
     committer_name: bool,
     committer_email: bool,
+    remote: bool,
 }
 
-pub fn fill_commit<'a>(
+pub async fn fill_commit<'a>(
     commit: &'a mut Commit,
     required_info: &RequiredInfo,
     repository: &Repo,
     all_commits: &mut HashMap<String, &'a Commit>,
+    git_client: Option<&GitClient>,
 ) -> anyhow::Result<()> {
     if let Some(existing_commit) = all_commits.get(&commit.id) {
         commit.author = existing_commit.author.clone();
@@ -34,6 +37,16 @@ pub fn fill_commit<'a>(
         if required_info.committer_email {
             commit.committer.email = Some(repository.get_committer_email(&commit.id)?);
         }
+        if required_info.remote {
+            let remote_commit = git_client
+                .context("Remote contributor is required, but no git client is provided")?
+                .get_remote_commit(&commit.id)
+                .await?;
+            commit.remote = RemoteContributor {
+                username: remote_commit.username,
+                ..RemoteContributor::default()
+            }
+        }
         all_commits.insert(commit.id.clone(), commit);
     }
     Ok(())
@@ -45,6 +58,7 @@ pub fn get_required_info(changelog_config: &ChangelogConfig) -> RequiredInfo {
         author_email: false,
         committer_name: false,
         committer_email: false,
+        remote: false,
     };
 
     if let Some(body) = changelog_config.body.as_ref() {
@@ -52,6 +66,7 @@ pub fn get_required_info(changelog_config: &ChangelogConfig) -> RequiredInfo {
         required_info.author_email = body.contains("author.email");
         required_info.committer_name = body.contains("committer.name");
         required_info.committer_email = body.contains("committer.email");
+        required_info.remote = body.contains("commit.remote");
     }
 
     required_info

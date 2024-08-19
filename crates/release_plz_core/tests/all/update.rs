@@ -7,7 +7,7 @@ use crate::helpers::{comparison_test::ComparisonTest, user_mock};
 async fn up_to_date_project_is_not_touched() {
     let comparison_test = ComparisonTest::new().await;
 
-    comparison_test.run_update();
+    comparison_test.run_update().await;
 
     // The update shouldn't have changed anything.
     assert!(comparison_test.are_projects_equal());
@@ -19,7 +19,7 @@ async fn version_is_updated_when_project_changed() {
     let feature_message = "do awesome stuff";
     user_mock::add_feature(&comparison_test.local_project(), feature_message);
 
-    comparison_test.run_update();
+    comparison_test.run_update().await;
 
     let local_package = read_package(comparison_test.local_project()).unwrap();
     assert_eq!(local_package.version, Version::new(0, 1, 1));
@@ -55,7 +55,7 @@ async fn changelog_is_updated_if_changelog_already_exists() {
     let feature_message = "do awesome stuff";
     user_mock::add_feature(&comparison_test.local_project(), feature_message);
 
-    comparison_test.run_update();
+    comparison_test.run_update().await;
 
     let local_package = read_package(comparison_test.local_project()).unwrap();
     assert_eq!(local_package.version, Version::new(0, 1, 1));
