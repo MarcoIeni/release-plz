@@ -83,8 +83,9 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
         .clone()
         .set_local_manifest(&local_manifest)
         .context("can't find temporary project")?;
-    let (packages_to_update, _temp_repository) =
-        update(&new_update_request).await.context("failed to update packages")?;
+    let (packages_to_update, _temp_repository) = update(&new_update_request)
+        .await
+        .context("failed to update packages")?;
     let git_client = input
         .update_request
         .git_client()?

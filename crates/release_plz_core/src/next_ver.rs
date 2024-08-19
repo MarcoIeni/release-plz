@@ -395,8 +395,9 @@ pub async fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpd
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
-    let packages_to_update =
-        updater.packages_to_update(&registry_packages, &repository.repo, input.local_manifest()).await?;
+    let packages_to_update = updater
+        .packages_to_update(&registry_packages, &repository.repo, input.local_manifest())
+        .await?;
     Ok((packages_to_update, repository))
 }
 
