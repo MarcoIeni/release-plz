@@ -205,6 +205,7 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
                 topo_order: None,
                 sort_commits,
                 limit_commits: None,
+                ..Default::default()
             },
             remote: RemoteConfig::default(),
             bump: Bump::default(),
@@ -291,6 +292,7 @@ mod tests {
                 conventional_commits: None,
                 filter_unconventional: None,
                 split_commits: None,
+                ..Default::default()
             },
             remote: RemoteConfig::default(),
             bump: Bump::default(),
