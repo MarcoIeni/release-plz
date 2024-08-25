@@ -183,15 +183,6 @@ impl GitClient {
         }
     }
 
-    pub async fn get_remote_commit(&self, commit: &str) -> anyhow::Result<RemoteCommit> {
-        match self.backend {
-            BackendType::Github | BackendType::Gitea => self.get_github_remote_commit(commit).await,
-            BackendType::Gitlab => {
-                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
-            }
-        }
-    }
-
     /// Creates a GitHub/Gitea release.
     pub async fn create_release(&self, release_info: &GitReleaseInfo) -> anyhow::Result<()> {
         match self.backend {
@@ -459,10 +450,11 @@ impl GitClient {
         Ok(prs)
     }
 
-    async fn get_github_remote_commit(&self, commit: &str) -> Result<RemoteCommit, anyhow::Error> {
+    pub async fn get_remote_commit(&self, commit: &str) -> Result<RemoteCommit, anyhow::Error> {
+        let api_path = self.commits_api_path(commit);
         let github_commit: GitHubCommit = self
             .client
-            .get(format!("{}/commits/{commit}", self.repo_url()))
+            .get(api_path)
             .send()
             .await?
             .successful_status()
@@ -473,6 +465,20 @@ impl GitClient {
 
         let username = github_commit.author.and_then(|author| author.login);
         Ok(RemoteCommit { username })
+    }
+
+    fn commits_api_path(&self, commit: &str) -> String {
+        let commits_path = "commits/";
+        let commits_api_path = match self.backend {
+            BackendType::Gitea => {
+                format!("git/{commits_path}")
+            }
+            BackendType::Github => commits_path.to_string(),
+            BackendType::Gitlab => {
+                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
+            }
+        };
+        format!("{}/{commits_api_path}{commit}", self.repo_url())
     }
 }
 
