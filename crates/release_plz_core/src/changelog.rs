@@ -5,7 +5,6 @@ use git_cliff_core::{
     commit::Commit,
     config::{Bump, ChangelogConfig, CommitParser, Config, GitConfig, RemoteConfig},
     release::Release,
-    remote::RemoteReleaseMetadata,
 };
 use regex::Regex;
 use serde::Serialize;
@@ -21,6 +20,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 "#;
+
+/// Metadata of a remote release.
+#[derive(Debug, Default, Clone, Eq, PartialEq, Serialize)]
+pub struct RemoteReleaseMetadata {
+    pub contributors: Vec<RemoteContributor>,
+}
+
+/// Representation of a remote contributor.
+#[derive(Debug, Default, Clone, Eq, PartialEq, Serialize)]
+pub struct RemoteContributor {
+    pub username: Option<String>,
+}
 
 pub const CHANGELOG_FILENAME: &str = "CHANGELOG.md";
 pub const RELEASE_LINK: &str = "release_link";

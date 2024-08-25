@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
 use anyhow::Context as _;
-use git_cliff_core::{config::ChangelogConfig, remote::RemoteContributor};
+use git_cliff_core::config::ChangelogConfig;
 use git_cmd::Repo;
 
-use crate::{diff::Commit, GitClient};
+use crate::{diff::Commit, GitClient, RemoteContributor};
 
 pub struct RequiredInfo {
     author_name: bool,
@@ -44,7 +44,6 @@ pub async fn fill_commit<'a>(
                 .await?;
             commit.remote = RemoteContributor {
                 username: remote_commit.username,
-                ..RemoteContributor::default()
             }
         }
         all_commits.insert(commit.id.clone(), commit);
