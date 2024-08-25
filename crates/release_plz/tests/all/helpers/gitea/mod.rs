@@ -7,6 +7,12 @@ pub struct GiteaUser {
     password: String,
 }
 
+impl GiteaUser {
+    pub fn email(&self) -> String {
+        format!("{}@example.com", self.username)
+    }
+}
+
 #[derive(Debug)]
 pub struct GiteaContext {
     pub user: GiteaUser,

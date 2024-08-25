@@ -92,9 +92,9 @@ async fn release_plz_adds_custom_changelog() {
     === {{ group | upper_first }}
     {% for commit in commits %}
     {%- if commit.scope -%}
-    - *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
+    - *({{commit.scope}})* {{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
     {% else -%}
-    - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }} by {{ commit.author.name }}
+    - {{ commit.message }} by {{ commit.author.name }} (gitea: {{ commit.remote.username }})
     {% endif -%}
     {% endfor -%}
     {% endfor %}
@@ -123,7 +123,7 @@ async fn release_plz_adds_custom_changelog() {
     #[allow(clippy::format_collect)]
     let commits_str = commits
         .iter()
-        .map(|commit| format!("- {commit} by {username}\n"))
+        .map(|commit| format!("- {commit} by {username} (gitea: {username})\n"))
         .collect::<String>();
     let changes = format!(
         "

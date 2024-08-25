@@ -51,6 +51,7 @@ impl TestContext {
             repo,
         }
     }
+
     pub async fn new() -> Self {
         let context = Self::init_context().await;
         cargo_init(context.repo.directory());
@@ -207,7 +208,7 @@ fn configure_repo(repo_dir: &Utf8Path, gitea: &GiteaContext) -> Repo {
     // config local user
     repo.git(&["config", "user.name", username]).unwrap();
     // set email
-    repo.git(&["config", "user.email", "a@example.com"])
+    repo.git(&["config", "user.email", &gitea.user.email()])
         .unwrap();
 
     create_cargo_config(repo_dir, username);
