@@ -25,7 +25,7 @@ duration-str = { version = "0.11.2", default-features = false }
 expect-test = "1.5.0"
 fake = "2.9.2"
 fs-err = "2.11.0"
-git-cliff-core = { path = '../git-cliff/git-cliff-core', default-features = false }
+git-cliff-core = { git = "https://github.com/MarcoIeni/git-cliff.git", branch = "extra_map", default-features = false }
 git-url-parse = "0.4.4"
 http = "1.1.0"
 ignore = "0.4.22"

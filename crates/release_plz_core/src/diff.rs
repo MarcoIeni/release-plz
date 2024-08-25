@@ -46,11 +46,7 @@ impl Commit {
             message: self.message.clone(),
             author: self.author.clone(),
             committer: self.committer.clone(),
-            extra_map: [(
-                "remote".to_string(),
-                serde_json::to_value(self.remote.clone()).unwrap(),
-            )]
-            .into(),
+            extra_map: [("remote", serde_json::to_value(self.remote.clone()).unwrap())].into(),
             ..Default::default()
         }
     }

@@ -6,6 +6,7 @@ use git_cmd::Repo;
 
 use crate::{diff::Commit, GitClient, RemoteContributor};
 
+#[derive(Debug)]
 pub struct RequiredInfo {
     author_name: bool,
     author_email: bool,
@@ -44,7 +45,7 @@ pub async fn fill_commit<'a>(
                 .await?;
             commit.remote = RemoteContributor {
                 username: remote_commit.username,
-            }
+            };
         }
         all_commits.insert(commit.id.clone(), commit);
     }
