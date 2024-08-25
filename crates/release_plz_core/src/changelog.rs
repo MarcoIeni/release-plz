@@ -290,6 +290,7 @@ impl<'a> ChangelogBuilder<'a> {
             previous: None,
             message: None,
             repository: None,
+            ..Default::default()
         });
 
         Changelog {
@@ -301,6 +302,7 @@ impl<'a> ChangelogBuilder<'a> {
                 previous: previous.map(Box::new),
                 message: None,
                 repository: None,
+                ..Default::default()
             },
             remote: self.remote,
             release_link: self.release_link,
@@ -336,6 +338,7 @@ fn default_git_config() -> GitConfig {
         sort_commits: Some("newest".to_string()),
         commit_preprocessors: None,
         link_parsers: None,
+        ..Default::default()
     }
 }
 
