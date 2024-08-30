@@ -170,9 +170,7 @@ impl GitClient {
         match self.backend {
             BackendType::Github => "per_page",
             BackendType::Gitea => "limit",
-            BackendType::Gitlab => {
-                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
-            }
+            BackendType::Gitlab => "page",
         }
     }
 
@@ -404,7 +402,11 @@ impl GitClient {
                 format!("{}/commits/{}/pull", self.repo_url(), commit)
             }
             BackendType::Gitlab => {
-                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
+                format!(
+                    "{}/repository/commits/{}/merge_requests",
+                    self.repo_url(),
+                    commit
+                )
             }
         };
 
@@ -434,7 +436,11 @@ impl GitClient {
                 vec![pr]
             }
             BackendType::Gitlab => {
-                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
+                let prs: Vec<GitPr> = response
+                    .json()
+                    .await
+                    .context("can't parse associated PRs")?;
+                prs
             }
         };
 
