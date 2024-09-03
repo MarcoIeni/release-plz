@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::git::{gitea_client::Gitea, gitlab_client::GitLab};
 use crate::{GitHub, GitReleaseInfo};
 
@@ -389,7 +391,10 @@ impl GitClient {
     #[instrument(skip(self))]
     pub async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
         debug!("closing pr #{pr_number}");
-        let edit = PrEdit::new().with_state("closed");
+        let edit = match self.backend {
+            BackendType::Github | BackendType::Gitea => PrEdit::new().with_state("closed"),
+            BackendType::Gitlab => PrEdit::new().with_state("close"),
+        };
         self.edit_pr(pr_number, &edit)
             .await
             .with_context(|| format!("cannot close pr {pr_number}"))?;
@@ -399,12 +404,46 @@ impl GitClient {
 
     pub async fn edit_pr(&self, pr_number: u64, pr_edit: &PrEdit) -> anyhow::Result<()> {
         debug!("editing pr");
-        self.client
-            .patch(format!("{}/{}", self.pulls_url(), pr_number))
-            .json(pr_edit)
-            .send()
-            .await
-            .with_context(|| format!("cannot edit pr {pr_number}"))?;
+        let resp = match self.backend {
+            BackendType::Github | BackendType::Gitea => {
+                let req = self
+                    .client
+                    .patch(format!("{}/{}", self.pulls_url(), pr_number))
+                    .json(pr_edit);
+
+                debug!("editing pr: {req:?}");
+
+                req.send()
+                    .await
+                    .with_context(|| format!("cannot edit pr {pr_number}"))?
+            }
+            BackendType::Gitlab => {
+                let mut edit_mr: HashMap<String, String> = HashMap::new();
+                if let Some(title) = &pr_edit.title {
+                    edit_mr.insert("title".into(), title.clone());
+                }
+                if let Some(body) = &pr_edit.body {
+                    edit_mr.insert("description".into(), body.clone());
+                }
+                if let Some(state) = &pr_edit.state {
+                    edit_mr.insert("state_event".into(), state.clone());
+                }
+
+                let req = self
+                    .client
+                    .put(format!("{}/merge_requests/{pr_number}", self.repo_url()))
+                    .json(&edit_mr);
+
+                debug!("editing gitlab mr: {req:?}");
+
+                req.send()
+                    .await
+                    .with_context(|| format!("cannot edit gitlab mr {pr_number}"))?
+            }
+        };
+
+        debug!("editing pr response: {resp:?}");
+
         Ok(())
     }
 
