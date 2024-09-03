@@ -47,7 +47,7 @@ impl ReleasePrRequest {
 }
 
 /// Release pull request that release-plz opened/updated.
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ReleasePr {
     /// The name of the branch where the changes are implemented.
     pub head_branch: String,

@@ -5,7 +5,7 @@ use crate::pr::Pr;
 use anyhow::Context;
 use http::StatusCode;
 use reqwest::header::HeaderMap;
-use reqwest::Url;
+use reqwest::{Response, Url};
 use reqwest_middleware::ClientBuilder;
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use secrecy::SecretString;
@@ -95,6 +95,53 @@ impl GitPr {
     }
 }
 
+impl From<GitLabMr> for GitPr {
+    fn from(value: GitLabMr) -> Self {
+        let body = if value.description.is_empty() {
+            None
+        } else {
+            Some(value.description)
+        };
+        GitPr {
+            number: value.iid,
+            html_url: value.web_url,
+            head: Commit {
+                ref_field: value.source_branch,
+                sha: value.sha,
+            },
+            title: value.title,
+            body,
+        }
+    }
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct GitLabMr {
+    pub iid: u64,
+    pub web_url: Url,
+    pub sha: String,
+    pub source_branch: String,
+    pub title: String,
+    pub description: String,
+}
+
+impl From<GitPr> for GitLabMr {
+    fn from(value: GitPr) -> Self {
+        let description = match value.body {
+            Some(d) => d,
+            None => "".to_string(),
+        };
+        GitLabMr {
+            iid: value.number,
+            web_url: value.html_url,
+            sha: value.head.sha,
+            source_branch: value.head.ref_field,
+            title: value.title,
+            description,
+        }
+    }
+}
+
 #[derive(Deserialize, Clone, Debug)]
 pub struct Commit {
     #[serde(rename = "ref")]
@@ -168,9 +215,8 @@ impl GitClient {
 
     pub fn per_page(&self) -> &str {
         match self.backend {
-            BackendType::Github => "per_page",
+            BackendType::Github | BackendType::Gitlab => "per_page",
             BackendType::Gitea => "limit",
-            BackendType::Gitlab => "page",
         }
     }
 
@@ -249,19 +295,38 @@ impl GitClient {
     }
 
     pub fn pulls_url(&self) -> String {
-        format!("{}/pulls", self.repo_url())
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => {
+                format!("{}/pulls", self.repo_url())
+            }
+            BackendType::Gitlab => {
+                format!("{}/merge_requests", self.repo_url())
+            }
+        }
     }
 
     pub fn issues_url(&self) -> String {
         format!("{}/issues", self.repo_url())
     }
 
+    pub fn param_value_pr_state_open(&self) -> &'static str {
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => "open",
+            BackendType::Gitlab => "opened",
+        }
+    }
+
     fn repo_url(&self) -> String {
-        format!(
-            "{}repos/{}",
-            self.remote.base_url,
-            self.remote.owner_slash_repo()
-        )
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => {
+                format!(
+                    "{}repos/{}",
+                    self.remote.base_url,
+                    self.remote.owner_slash_repo()
+                )
+            }
+            BackendType::Gitlab => self.remote.base_url.to_string(),
+        }
     }
 
     /// Get all opened Prs which branch starts with the given `branch_prefix`.
@@ -293,18 +358,32 @@ impl GitClient {
     }
 
     async fn opened_prs_page(&self, page: i32, page_size: usize) -> anyhow::Result<Vec<GitPr>> {
-        self.client
+        let resp = self
+            .client
             .get(self.pulls_url())
-            .query(&[("state", "open")])
+            .query(&[("state", self.param_value_pr_state_open())])
             .query(&[("page", page)])
             .query(&[(self.per_page(), page_size)])
             .send()
             .await?
             .successful_status()
-            .await?
-            .json()
-            .await
-            .context("failed to parse pr")
+            .await?;
+
+        self.prs_from_response(resp).await
+    }
+
+    async fn prs_from_response(&self, resp: Response) -> anyhow::Result<Vec<GitPr>> {
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => {
+                resp.json().await.context("failed to parse pr")
+            }
+            BackendType::Gitlab => {
+                let gitlab_mrs: Vec<GitLabMr> =
+                    resp.json().await.context("failed to parse gitlab mr")?;
+                let gitprs: Vec<GitPr> = gitlab_mrs.into_iter().map(|e| e.into()).collect();
+                Ok(gitprs)
+            }
+        }
     }
 
     #[instrument(skip(self))]
@@ -332,23 +411,37 @@ impl GitClient {
     #[instrument(skip(self, pr))]
     pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<GitPr> {
         debug!("Opening PR in {}", self.remote.owner_slash_repo());
-        let git_pr: GitPr = self
-            .client
-            .post(self.pulls_url())
-            .json(&json!({
+
+        let req = match self.backend {
+            BackendType::Github | BackendType::Gitea => {
+                self.client.post(self.pulls_url()).json(&json!({
+                    "title": pr.title,
+                    "body": pr.body,
+                    "base": pr.base_branch,
+                    "head": pr.branch,
+                    "draft": pr.draft,
+                }))
+            }
+            BackendType::Gitlab => self.client.post(self.pulls_url()).json(&json!({
                 "title": pr.title,
-                "body": pr.body,
-                "base": pr.base_branch,
-                "head": pr.branch,
+                "description": pr.body,
+                "target_branch": pr.base_branch,
+                "source_branch": pr.branch,
                 "draft": pr.draft,
-            }))
-            .send()
-            .await?
-            .successful_status()
-            .await?
-            .json()
-            .await
-            .context("Failed to parse PR")?;
+            })),
+        };
+
+        let rep = req.send().await?.successful_status().await?;
+
+        let git_pr: GitPr = match self.backend {
+            BackendType::Github | BackendType::Gitea => {
+                rep.json().await.context("Failed to parse PR")?
+            }
+            BackendType::Gitlab => {
+                let gitlab_mr: GitLabMr = rep.json().await.context("Failed to parse Gitlab MR")?;
+                gitlab_mr.into()
+            }
+        };
 
         info!("opened pr: {}", git_pr.html_url);
         self.add_labels(pr, git_pr.number)
@@ -424,7 +517,7 @@ impl GitClient {
         })?;
 
         let prs = match self.backend {
-            BackendType::Github => {
+            BackendType::Github | BackendType::Gitlab => {
                 let prs: Vec<GitPr> = response
                     .json()
                     .await
@@ -434,13 +527,6 @@ impl GitClient {
             BackendType::Gitea => {
                 let pr: GitPr = response.json().await.context("can't parse associated PR")?;
                 vec![pr]
-            }
-            BackendType::Gitlab => {
-                let prs: Vec<GitPr> = response
-                    .json()
-                    .await
-                    .context("can't parse associated PRs")?;
-                prs
             }
         };
 
