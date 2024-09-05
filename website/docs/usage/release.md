@@ -31,18 +31,21 @@ To learn more, run `release-plz release --help`.
 
 ## Gitlab
 
-`releases-plz` supports creating releases on Gitlab with the `--backend gitlab` option.
+`release-plz release` also supports creating releases for repositories hosted on Gitlab with
+the `--backend gitlab` option:
 
-The default token in CI does not have permissions to create tags, so you will need to
-a custom [access token](https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html).
-The permissions you need are:
+You need to create a token in your Gitlab repo (Settings/Access Tokens) with the following
+permissions:
 
 - Role: `Maintainer` or higher
 - Scopes:
   - `api` (to create a release)
   - `write_repository` (to create tag)
 
-Then you can run `release-plz release` in Gitlab CI with the following arguments:
+See Gitlab docs:
+[project access tokens](https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html)
+
+Then you can run `release-plz release-pr` with the following arguments:
 
 `release-plz release --backend gitlab --git-token <gitlab_token>`
 

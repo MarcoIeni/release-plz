@@ -52,6 +52,26 @@ than making a commit locally and pushing the changes.
 This allows having a [Verified](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
 commit without specifying a GPG signature.
 
+## Gitlab
+
+`release-plz release-pr` also supports creating PRs for repositories hosted on Gitlab with
+the `--backend gitlab` option:
+
+You need to create a token in your Gitlab repo (Settings/Access Tokens) with the following
+permissions:
+
+- Role: `Maintainer` or higher
+- Scopes:
+  - `api` (to read/create/update a release-pr)
+  - `write_repository` (to push release-plz branch)
+
+See Gitlab docs:
+[project access tokens](https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html)
+
+Then you can run `release-plz release-pr` with the following arguments:
+
+`release-plz release-pr --backend gitlab --git-token <gitlab_token>`
+
 ## Json output
 
 You can get info about the outcome of this command by appending `-o json` to the command:
