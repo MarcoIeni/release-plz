@@ -61,6 +61,7 @@ async fn changelog_is_updated_if_changelog_already_exists() {
     assert_eq!(local_package.version, Version::new(0, 1, 1));
     expect_test::expect![[r#"
         # Changelog
+
         All notable changes to this project will be documented in this file.
 
         The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -71,6 +72,7 @@ async fn changelog_is_updated_if_changelog_already_exists() {
         ## [0.1.1] - 2015-05-15
 
         ### Added
+        
         - do awesome stuff
 
         ## [0.1.0] - 1970-01-01
