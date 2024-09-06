@@ -382,8 +382,8 @@ impl GitClient {
             BackendType::Gitlab => {
                 let gitlab_mrs: Vec<GitLabMr> =
                     resp.json().await.context("failed to parse gitlab mr")?;
-                let gitprs: Vec<GitPr> = gitlab_mrs.into_iter().map(|e| e.into()).collect();
-                Ok(gitprs)
+                let git_prs: Vec<GitPr> = gitlab_mrs.into_iter().map(|mr| mr.into()).collect();
+                Ok(git_prs)
             }
         }
     }
