@@ -391,15 +391,19 @@ impl GitClient {
     #[instrument(skip(self))]
     pub async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
         debug!("closing pr #{pr_number}");
-        let edit = match self.backend {
-            BackendType::Github | BackendType::Gitea => PrEdit::new().with_state("closed"),
-            BackendType::Gitlab => PrEdit::new().with_state("close"),
-        };
+        let edit = PrEdit::new().with_state(self.closed_pr_state());
         self.edit_pr(pr_number, &edit)
             .await
             .with_context(|| format!("cannot close pr {pr_number}"))?;
         info!("closed pr #{pr_number}");
         Ok(())
+    }
+
+    fn closed_pr_state(&self) -> &'static str {
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => "closed",
+            BackendType::Gitlab => "close",
+        }
     }
 
     pub async fn edit_pr(&self, pr_number: u64, pr_edit: &PrEdit) -> anyhow::Result<()> {
