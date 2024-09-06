@@ -262,12 +262,11 @@ fn update_pr_branch(
     // save local work
     repository.git(&["stash", "--include-untracked"])?;
 
-    reset_branch(opened_pr, commits_number, repository).map_err(|e| {
+    reset_branch(opened_pr, commits_number, repository).inspect_err(|_e| {
         // restore local work
         if let Err(e) = repository.stash_pop() {
             tracing::error!("cannot restore local work: {:?}", e);
         }
-        e
     })?;
     repository.stash_pop()?;
     Ok(())
