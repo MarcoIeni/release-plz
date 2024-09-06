@@ -19,11 +19,7 @@ impl NextVersionFromDiff for Version {
         self.next_from_diff_with_updater(diff, VersionUpdater::default())
     }
 
-    fn next_from_diff_with_updater(
-        &self,
-        diff: &Diff,
-        version_updater: VersionUpdater
-    ) -> Self {
+    fn next_from_diff_with_updater(&self, diff: &Diff, version_updater: VersionUpdater) -> Self {
         if !diff.should_update_version() {
             self.clone()
         } else if matches!(diff.semver_check, SemverCheck::Incompatible(_)) {

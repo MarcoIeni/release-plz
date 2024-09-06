@@ -181,7 +181,10 @@ impl UpdateConfig {
         }
     }
 
-    pub fn with_features_always_increment_minor(self, features_always_increment_minor: bool) -> Self {
+    pub fn with_features_always_increment_minor(
+        self,
+        features_always_increment_minor: bool,
+    ) -> Self {
         Self {
             features_always_increment_minor,
             ..self
@@ -493,10 +496,12 @@ impl Updater<'_> {
                 if workspace_version_pkgs.contains(p.name.as_str()) {
                     max_workspace_version.clone()
                 } else {
-                    p.version.next_from_diff_with_updater(&diff, version_updater)
+                    p.version
+                        .next_from_diff_with_updater(&diff, version_updater)
                 }
             } else {
-                p.version.next_from_diff_with_updater(&diff, version_updater)
+                p.version
+                    .next_from_diff_with_updater(&diff, version_updater)
             };
 
             debug!("diff: {:?}, next_version: {}", &diff, next_version);
