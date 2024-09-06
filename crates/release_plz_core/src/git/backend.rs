@@ -450,26 +450,31 @@ impl GitClient {
     pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<GitPr> {
         debug!("Opening PR in {}", self.remote.owner_slash_repo());
 
-        let req = match self.backend {
-            BackendType::Github | BackendType::Gitea => {
-                self.client.post(self.pulls_url()).json(&json!({
-                    "title": pr.title,
-                    "body": pr.body,
-                    "base": pr.base_branch,
-                    "head": pr.branch,
-                    "draft": pr.draft,
-                }))
-            }
-            BackendType::Gitlab => self.client.post(self.pulls_url()).json(&json!({
+        let json_body = match self.backend {
+            BackendType::Github | BackendType::Gitea => json!({
+                "title": pr.title,
+                "body": pr.body,
+                "base": pr.base_branch,
+                "head": pr.branch,
+                "draft": pr.draft,
+            }),
+            BackendType::Gitlab => json!({
                 "title": pr.title,
                 "description": pr.body,
                 "target_branch": pr.base_branch,
                 "source_branch": pr.branch,
                 "draft": pr.draft,
-            })),
+            }),
         };
 
-        let rep = req.send().await?.successful_status().await?;
+        let rep = self
+            .client
+            .post(self.pulls_url())
+            .json(&json_body)
+            .send()
+            .await?
+            .successful_status()
+            .await?;
 
         let git_pr: GitPr = match self.backend {
             BackendType::Github | BackendType::Gitea => {
