@@ -425,37 +425,23 @@ impl GitClient {
     }
 
     pub async fn edit_pr(&self, pr_number: u64, pr_edit: PrEdit) -> anyhow::Result<()> {
-        debug!("editing pr");
-        let resp = match self.backend {
-            BackendType::Github | BackendType::Gitea => {
-                let req = self
-                    .client
-                    .patch(format!("{}/{}", self.pulls_url(), pr_number))
-                    .json(&pr_edit);
-
-                debug!("editing pr: {req:?}");
-
-                req.send()
-                    .await
-                    .with_context(|| format!("cannot edit pr {pr_number}"))?
-            }
+        let req = match self.backend {
+            BackendType::Github | BackendType::Gitea => self
+                .client
+                .patch(format!("{}/{}", self.pulls_url(), pr_number))
+                .json(&pr_edit),
             BackendType::Gitlab => {
                 let edit_mr: GitLabMrEdit = pr_edit.into();
-
-                let req = self
-                    .client
+                self.client
                     .put(format!("{}/merge_requests/{pr_number}", self.repo_url()))
-                    .json(&edit_mr);
-
-                debug!("editing gitlab mr: {req:?}");
-
-                req.send()
-                    .await
-                    .with_context(|| format!("cannot edit gitlab mr {pr_number}"))?
+                    .json(&edit_mr)
             }
         };
+        debug!("editing pr: {req:?}");
 
-        debug!("editing pr response: {resp:?}");
+        req.send()
+            .await
+            .with_context(|| format!("cannot edit pr {pr_number}"))?;
 
         Ok(())
     }
