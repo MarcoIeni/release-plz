@@ -560,7 +560,7 @@ impl GitClient {
         })?;
 
         let prs = match self.backend {
-            BackendType::Github | BackendType::Gitlab => {
+            BackendType::Github => {
                 let prs: Vec<GitPr> = response
                     .json()
                     .await
@@ -570,6 +570,14 @@ impl GitClient {
             BackendType::Gitea => {
                 let pr: GitPr = response.json().await.context("can't parse associated PR")?;
                 vec![pr]
+            }
+            BackendType::Gitlab => {
+                let gitlab_mrs: Vec<GitLabMr> = response
+                    .json()
+                    .await
+                    .context("can't parse associated Gitlab MR")?;
+                let git_prs: Vec<GitPr> = gitlab_mrs.into_iter().map(|mr| mr.into()).collect();
+                git_prs
             }
         };
 
