@@ -13,7 +13,7 @@ async-trait = "0.1.81"
 base64 = "0.22.1"
 camino = "1.1.9"
 cargo_metadata = "0.18.1"
-cargo = { version = "0.81.0", default-features = false }
+cargo = { version = "0.82.0", default-features = false }
 chrono = { version = "0.4.38", default-features = false }
 clap = "4.5.16"
 clap_complete = "4.5.23"
