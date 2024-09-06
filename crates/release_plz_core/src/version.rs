@@ -1,5 +1,5 @@
 use cargo_metadata::semver::Version;
-use next_version::{NextVersion, VersionIncrement};
+use next_version::{VersionIncrement, VersionUpdater};
 
 use crate::{diff::Diff, semver_check::SemverCheck};
 
@@ -7,17 +7,30 @@ pub(crate) trait NextVersionFromDiff {
     /// Analyze commits and determine which part of version to increment based on
     /// [conventional commits](https://www.conventionalcommits.org/)
     fn next_from_diff(&self, diff: &Diff) -> Self;
+
+    /// Analyze commits and determine which part of version to increment based on
+    /// [conventional commits](https://www.conventionalcommits.org/) providing
+    /// a specialized version updater.
+    fn next_from_diff_with_updater(&self, diff: &Diff, version_updater: VersionUpdater) -> Self;
 }
 
 impl NextVersionFromDiff for Version {
     fn next_from_diff(&self, diff: &Diff) -> Self {
+        self.next_from_diff_with_updater(diff, VersionUpdater::default())
+    }
+
+    fn next_from_diff_with_updater(
+        &self,
+        diff: &Diff,
+        version_updater: VersionUpdater
+    ) -> Self {
         if !diff.should_update_version() {
             self.clone()
         } else if matches!(diff.semver_check, SemverCheck::Incompatible(_)) {
             let increment = VersionIncrement::breaking(self);
             increment.bump(self)
         } else {
-            self.next(diff.commits.iter().map(|c| &c.message))
+            version_updater.increment(self, diff.commits.iter().map(|c| &c.message))
         }
     }
 }

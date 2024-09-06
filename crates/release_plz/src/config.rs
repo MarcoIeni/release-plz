@@ -264,6 +264,10 @@ pub struct PackageConfig {
     /// Whether to create/update changelog or not.
     /// If unspecified, the changelog is updated.
     pub changelog_update: Option<bool>,
+    /// # Features Always Increment Minor Version Flag
+    /// - If `true`, feature commits will always bump the minor version, even in 0.x releases.
+    /// - If `false` (default), feature commits will only bump the minor version starting with 1.x releases.
+    pub features_always_increment_minor: Option<bool>,
     /// # Git Release Enable
     /// Publish the GitHub/Gitea release for the created git tag.
     /// Enabled by default.
@@ -318,6 +322,7 @@ impl From<PackageConfig> for release_plz_core::UpdateConfig {
             changelog_update: config.changelog_update != Some(false),
             release: config.release != Some(false),
             tag_name_template: config.git_tag_name,
+            features_always_increment_minor: config.features_always_increment_minor == Some(true),
             changelog_path: config.changelog_path.map(|p| to_utf8_pathbuf(p).unwrap()),
         }
     }
@@ -339,6 +344,7 @@ impl PackageConfig {
             semver_check: self.semver_check.or(default.semver_check),
             changelog_path: self.changelog_path.or(default.changelog_path),
             changelog_update: self.changelog_update.or(default.changelog_update),
+            features_always_increment_minor: self.features_always_increment_minor.or(default.features_always_increment_minor),
             git_release_enable: self.git_release_enable.or(default.git_release_enable),
             git_release_type: self.git_release_type.or(default.git_release_type),
             git_release_draft: self.git_release_draft.or(default.git_release_draft),

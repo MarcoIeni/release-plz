@@ -25,7 +25,7 @@ use cargo_metadata::{
 use cargo_utils::{canonical_local_manifest, upgrade_requirement, LocalManifest, CARGO_TOML};
 use chrono::NaiveDate;
 use git_cmd::{self, Repo};
-use next_version::NextVersion;
+use next_version::{NextVersion, VersionUpdater};
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
 use std::{
@@ -133,6 +133,9 @@ pub struct UpdateConfig {
     pub changelog_update: bool,
     /// High-level toggle to process this package or ignore it.
     pub release: bool,
+    /// - If `true`, feature commits will always bump the minor version, even in 0.x releases.
+    /// - If `false` (default), feature commits will only bump the minor version starting with 1.x releases.
+    pub features_always_increment_minor: bool,
     /// Template for the git tag created by release-plz.
     pub tag_name_template: Option<String>,
 }
@@ -163,6 +166,7 @@ impl Default for UpdateConfig {
             semver_check: true,
             changelog_update: true,
             release: true,
+            features_always_increment_minor: false,
             tag_name_template: None,
             changelog_path: None,
         }
@@ -177,11 +181,26 @@ impl UpdateConfig {
         }
     }
 
+    pub fn with_features_always_increment_minor(self, features_always_increment_minor: bool) -> Self {
+        Self {
+            features_always_increment_minor,
+            ..self
+        }
+    }
+
     pub fn with_changelog_update(self, changelog_update: bool) -> Self {
         Self {
             changelog_update,
             ..self
         }
+    }
+
+    pub fn version_updater(&self) -> VersionUpdater {
+        let mut vu = VersionUpdater::default();
+        if self.features_always_increment_minor {
+            vu = vu.with_features_always_increment_minor(true);
+        }
+        vu
     }
 }
 
@@ -466,15 +485,18 @@ impl Updater<'_> {
                     continue;
                 };
             }
+            // Configure version updater
+            let update_config = self.req.packages_config.get(&p.name);
+            let version_updater = update_config.generic.version_updater();
             // Calculate next version without taking into account workspace version
             let next_version = if let Some(max_workspace_version) = &new_workspace_version {
                 if workspace_version_pkgs.contains(p.name.as_str()) {
                     max_workspace_version.clone()
                 } else {
-                    p.version.next_from_diff(&diff)
+                    p.version.next_from_diff_with_updater(&diff, version_updater)
                 }
             } else {
-                p.version.next_from_diff(&diff)
+                p.version.next_from_diff_with_updater(&diff, version_updater)
             };
 
             debug!("diff: {:?}, next_version: {}", &diff, next_version);
@@ -973,6 +995,7 @@ fn new_workspace_version(
         .filter_map(|workspace_package| {
             for (p, diff) in packages_diffs {
                 if workspace_package == &p.name {
+                    // TO DO: Add features_always_increment_minor logic here.
                     let next = p.version.next_from_diff(diff);
                     if let Some(workspace_version) = &workspace_version {
                         if &next >= workspace_version {
