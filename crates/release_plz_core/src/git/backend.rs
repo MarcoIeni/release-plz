@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::git::{gitea_client::Gitea, gitlab_client::GitLab};
 use crate::{GitHub, GitReleaseInfo};
 
@@ -152,6 +150,16 @@ pub struct Commit {
 }
 
 #[derive(Serialize, Default)]
+pub struct GitLabMrEdit {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    state_event: Option<String>,
+}
+
+#[derive(Serialize, Default)]
 pub struct PrEdit {
     #[serde(skip_serializing_if = "Option::is_none")]
     title: Option<String>,
@@ -159,6 +167,16 @@ pub struct PrEdit {
     body: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     state: Option<String>,
+}
+
+impl From<PrEdit> for GitLabMrEdit {
+    fn from(value: PrEdit) -> Self {
+        GitLabMrEdit {
+            title: value.title,
+            description: value.body,
+            state_event: value.state,
+        }
+    }
 }
 
 impl PrEdit {
@@ -392,7 +410,7 @@ impl GitClient {
     pub async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
         debug!("closing pr #{pr_number}");
         let edit = PrEdit::new().with_state(self.closed_pr_state());
-        self.edit_pr(pr_number, &edit)
+        self.edit_pr(pr_number, edit)
             .await
             .with_context(|| format!("cannot close pr {pr_number}"))?;
         info!("closed pr #{pr_number}");
@@ -406,14 +424,14 @@ impl GitClient {
         }
     }
 
-    pub async fn edit_pr(&self, pr_number: u64, pr_edit: &PrEdit) -> anyhow::Result<()> {
+    pub async fn edit_pr(&self, pr_number: u64, pr_edit: PrEdit) -> anyhow::Result<()> {
         debug!("editing pr");
         let resp = match self.backend {
             BackendType::Github | BackendType::Gitea => {
                 let req = self
                     .client
                     .patch(format!("{}/{}", self.pulls_url(), pr_number))
-                    .json(pr_edit);
+                    .json(&pr_edit);
 
                 debug!("editing pr: {req:?}");
 
@@ -422,16 +440,7 @@ impl GitClient {
                     .with_context(|| format!("cannot edit pr {pr_number}"))?
             }
             BackendType::Gitlab => {
-                let mut edit_mr: HashMap<String, String> = HashMap::new();
-                if let Some(title) = &pr_edit.title {
-                    edit_mr.insert("title".into(), title.clone());
-                }
-                if let Some(body) = &pr_edit.body {
-                    edit_mr.insert("description".into(), body.clone());
-                }
-                if let Some(state) = &pr_edit.state {
-                    edit_mr.insert("state_event".into(), state.clone());
-                }
+                let edit_mr: GitLabMrEdit = pr_edit.into();
 
                 let req = self
                     .client

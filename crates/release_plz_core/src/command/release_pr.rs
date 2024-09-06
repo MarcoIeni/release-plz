@@ -246,7 +246,7 @@ async fn update_pr(
         pr_edit
     };
     if pr_edit.contains_edit() {
-        git_client.edit_pr(opened_pr.number, &pr_edit).await?;
+        git_client.edit_pr(opened_pr.number, pr_edit).await?;
     }
     info!("updated pr {}", opened_pr.html_url);
     Ok(())
