@@ -169,6 +169,7 @@ async fn release_plz_releases_after_release_pr_merged() {
         Welcome to this new release! Changes:
 
         ### Other
+        
         - add config file
         - cargo init
         - Initial commit"#]]
