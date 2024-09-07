@@ -338,6 +338,11 @@ pub fn is_file_ignored(repo_path: &Utf8Path, file: &Utf8Path) -> bool {
     git_in_dir(repo_path, &["check-ignore", "--no-index", file]).is_ok()
 }
 
+pub fn is_file_committed(repo_path: &Utf8Path, file: &Utf8Path) -> bool {
+    let file = file.as_str();
+    git_in_dir(repo_path, &["ls-files", "--error-unmatch", file]).is_ok()
+}
+
 fn changed_files(output: &str, filter: impl FnMut(&&str) -> bool) -> Vec<String> {
     output
         .lines()
