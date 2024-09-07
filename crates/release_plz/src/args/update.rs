@@ -126,7 +126,7 @@ impl Update {
         cargo_metadata: cargo_metadata::Metadata,
     ) -> anyhow::Result<UpdateRequest> {
         let project_manifest = self.manifest_path();
-        check_if_cargo_lock_is_ignored(&project_manifest)?;
+        check_if_cargo_lock_is_ignored_and_committed(&project_manifest)?;
         let mut update = UpdateRequest::new(cargo_metadata)
             .with_context(|| {
                 format!("Cannot find file {project_manifest:?}. Make sure you are inside a rust project or that --manifest-path points to a valid Cargo.toml file.")
@@ -217,12 +217,15 @@ impl Update {
     }
 }
 
-fn check_if_cargo_lock_is_ignored(local_manifest: &Utf8Path) -> anyhow::Result<()> {
+/// This function validates that the Cargo.lock file is not both ignored and committed,
+/// since this causes issues.
+fn check_if_cargo_lock_is_ignored_and_committed(local_manifest: &Utf8Path) -> anyhow::Result<()> {
     let repo_path = release_plz_core::root_repo_path(local_manifest)?;
     let cargo_lock_path = local_manifest.with_file_name("Cargo.lock");
-    let is_cargo_lock_ignored = git_cmd::is_file_ignored(&repo_path, &cargo_lock_path);
 
+    let is_cargo_lock_ignored = git_cmd::is_file_ignored(&repo_path, &cargo_lock_path);
     let is_cargo_lock_committed = git_cmd::is_file_committed(&repo_path, &cargo_lock_path);
+
     anyhow::ensure!(
         !(is_cargo_lock_ignored && is_cargo_lock_committed),
         "Cargo.lock is present in your .gitignore and is also committed. Remove it from your repository or from your `.gitignore` file."
