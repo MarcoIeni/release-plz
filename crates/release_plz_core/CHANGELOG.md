@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.25.4...release_plz_core-v0.25.5) - 2024-09-07
+
+### Added
+- add gitlab support for the `release-pr` command ([#1651](https://github.com/MarcoIeni/release-plz/pull/1651))
+
+### Other
+- fix inspect_err clippy lint ([#1658](https://github.com/MarcoIeni/release-plz/pull/1658))
+
 ## [0.25.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.25.3...release_plz_core-v0.25.4) - 2024-08-25
 
 ### Other
