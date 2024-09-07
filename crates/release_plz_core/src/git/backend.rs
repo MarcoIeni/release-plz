@@ -5,7 +5,7 @@ use crate::pr::Pr;
 use anyhow::Context;
 use http::StatusCode;
 use reqwest::header::HeaderMap;
-use reqwest::Url;
+use reqwest::{Response, Url};
 use reqwest_middleware::ClientBuilder;
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use secrecy::SecretString;
@@ -89,9 +89,58 @@ pub struct GitPr {
     pub body: Option<String>,
 }
 
+/// Pull request.
 impl GitPr {
     pub fn branch(&self) -> &str {
         self.head.ref_field.as_str()
+    }
+}
+
+impl From<GitLabMr> for GitPr {
+    fn from(value: GitLabMr) -> Self {
+        let body = if value.description.is_empty() {
+            None
+        } else {
+            Some(value.description)
+        };
+        GitPr {
+            number: value.iid,
+            html_url: value.web_url,
+            head: Commit {
+                ref_field: value.source_branch,
+                sha: value.sha,
+            },
+            title: value.title,
+            body,
+        }
+    }
+}
+
+/// Merge request.
+#[derive(Deserialize, Clone, Debug)]
+pub struct GitLabMr {
+    pub iid: u64,
+    pub web_url: Url,
+    pub sha: String,
+    pub source_branch: String,
+    pub title: String,
+    pub description: String,
+}
+
+impl From<GitPr> for GitLabMr {
+    fn from(value: GitPr) -> Self {
+        let description = match value.body {
+            Some(d) => d,
+            None => "".to_string(),
+        };
+        GitLabMr {
+            iid: value.number,
+            web_url: value.html_url,
+            sha: value.head.sha,
+            source_branch: value.head.ref_field,
+            title: value.title,
+            description,
+        }
     }
 }
 
@@ -103,6 +152,16 @@ pub struct Commit {
 }
 
 #[derive(Serialize, Default)]
+pub struct GitLabMrEdit {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    state_event: Option<String>,
+}
+
+#[derive(Serialize, Default)]
 pub struct PrEdit {
     #[serde(skip_serializing_if = "Option::is_none")]
     title: Option<String>,
@@ -110,6 +169,16 @@ pub struct PrEdit {
     body: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     state: Option<String>,
+}
+
+impl From<PrEdit> for GitLabMrEdit {
+    fn from(value: PrEdit) -> Self {
+        GitLabMrEdit {
+            title: value.title,
+            description: value.body,
+            state_event: value.state,
+        }
+    }
 }
 
 impl PrEdit {
@@ -168,11 +237,8 @@ impl GitClient {
 
     pub fn per_page(&self) -> &str {
         match self.backend {
-            BackendType::Github => "per_page",
+            BackendType::Github | BackendType::Gitlab => "per_page",
             BackendType::Gitea => "limit",
-            BackendType::Gitlab => {
-                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
-            }
         }
     }
 
@@ -251,19 +317,38 @@ impl GitClient {
     }
 
     pub fn pulls_url(&self) -> String {
-        format!("{}/pulls", self.repo_url())
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => {
+                format!("{}/pulls", self.repo_url())
+            }
+            BackendType::Gitlab => {
+                format!("{}/merge_requests", self.repo_url())
+            }
+        }
     }
 
     pub fn issues_url(&self) -> String {
         format!("{}/issues", self.repo_url())
     }
 
+    pub fn param_value_pr_state_open(&self) -> &'static str {
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => "open",
+            BackendType::Gitlab => "opened",
+        }
+    }
+
     fn repo_url(&self) -> String {
-        format!(
-            "{}repos/{}",
-            self.remote.base_url,
-            self.remote.owner_slash_repo()
-        )
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => {
+                format!(
+                    "{}repos/{}",
+                    self.remote.base_url,
+                    self.remote.owner_slash_repo()
+                )
+            }
+            BackendType::Gitlab => self.remote.base_url.to_string(),
+        }
     }
 
     /// Get all opened Prs which branch starts with the given `branch_prefix`.
@@ -295,62 +380,113 @@ impl GitClient {
     }
 
     async fn opened_prs_page(&self, page: i32, page_size: usize) -> anyhow::Result<Vec<GitPr>> {
-        self.client
+        let resp = self
+            .client
             .get(self.pulls_url())
-            .query(&[("state", "open")])
+            .query(&[("state", self.param_value_pr_state_open())])
             .query(&[("page", page)])
             .query(&[(self.per_page(), page_size)])
             .send()
             .await?
             .successful_status()
-            .await?
-            .json()
-            .await
-            .context("failed to parse pr")
+            .await?;
+
+        self.prs_from_response(resp).await
+    }
+
+    async fn prs_from_response(&self, resp: Response) -> anyhow::Result<Vec<GitPr>> {
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => {
+                resp.json().await.context("failed to parse pr")
+            }
+            BackendType::Gitlab => {
+                let gitlab_mrs: Vec<GitLabMr> =
+                    resp.json().await.context("failed to parse gitlab mr")?;
+                let git_prs: Vec<GitPr> = gitlab_mrs.into_iter().map(|mr| mr.into()).collect();
+                Ok(git_prs)
+            }
+        }
     }
 
     #[instrument(skip(self))]
     pub async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
         debug!("closing pr #{pr_number}");
-        let edit = PrEdit::new().with_state("closed");
-        self.edit_pr(pr_number, &edit)
+        let edit = PrEdit::new().with_state(self.closed_pr_state());
+        self.edit_pr(pr_number, edit)
             .await
             .with_context(|| format!("cannot close pr {pr_number}"))?;
         info!("closed pr #{pr_number}");
         Ok(())
     }
 
-    pub async fn edit_pr(&self, pr_number: u64, pr_edit: &PrEdit) -> anyhow::Result<()> {
-        debug!("editing pr");
-        self.client
-            .patch(format!("{}/{}", self.pulls_url(), pr_number))
-            .json(pr_edit)
-            .send()
+    fn closed_pr_state(&self) -> &'static str {
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => "closed",
+            BackendType::Gitlab => "close",
+        }
+    }
+
+    pub async fn edit_pr(&self, pr_number: u64, pr_edit: PrEdit) -> anyhow::Result<()> {
+        let req = match self.backend {
+            BackendType::Github | BackendType::Gitea => self
+                .client
+                .patch(format!("{}/{}", self.pulls_url(), pr_number))
+                .json(&pr_edit),
+            BackendType::Gitlab => {
+                let edit_mr: GitLabMrEdit = pr_edit.into();
+                self.client
+                    .put(format!("{}/merge_requests/{pr_number}", self.repo_url()))
+                    .json(&edit_mr)
+            }
+        };
+        debug!("editing pr: {req:?}");
+
+        req.send()
             .await
             .with_context(|| format!("cannot edit pr {pr_number}"))?;
+
         Ok(())
     }
 
     #[instrument(skip(self, pr))]
     pub async fn open_pr(&self, pr: &Pr) -> anyhow::Result<GitPr> {
         debug!("Opening PR in {}", self.remote.owner_slash_repo());
-        let git_pr: GitPr = self
-            .client
-            .post(self.pulls_url())
-            .json(&json!({
+
+        let json_body = match self.backend {
+            BackendType::Github | BackendType::Gitea => json!({
                 "title": pr.title,
                 "body": pr.body,
                 "base": pr.base_branch,
                 "head": pr.branch,
                 "draft": pr.draft,
-            }))
+            }),
+            BackendType::Gitlab => json!({
+                "title": pr.title,
+                "description": pr.body,
+                "target_branch": pr.base_branch,
+                "source_branch": pr.branch,
+                "draft": pr.draft,
+            }),
+        };
+
+        let rep = self
+            .client
+            .post(self.pulls_url())
+            .json(&json_body)
             .send()
             .await?
             .successful_status()
-            .await?
-            .json()
-            .await
-            .context("Failed to parse PR")?;
+            .await?;
+
+        let git_pr: GitPr = match self.backend {
+            BackendType::Github | BackendType::Gitea => {
+                rep.json().await.context("Failed to parse PR")?
+            }
+            BackendType::Gitlab => {
+                let gitlab_mr: GitLabMr = rep.json().await.context("Failed to parse Gitlab MR")?;
+                gitlab_mr.into()
+            }
+        };
 
         info!("opened pr: {}", git_pr.html_url);
         self.add_labels(pr, git_pr.number)
@@ -404,7 +540,11 @@ impl GitClient {
                 format!("{}/commits/{}/pull", self.repo_url(), commit)
             }
             BackendType::Gitlab => {
-                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
+                format!(
+                    "{}/repository/commits/{}/merge_requests",
+                    self.repo_url(),
+                    commit
+                )
             }
         };
 
@@ -434,7 +574,12 @@ impl GitClient {
                 vec![pr]
             }
             BackendType::Gitlab => {
-                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
+                let gitlab_mrs: Vec<GitLabMr> = response
+                    .json()
+                    .await
+                    .context("can't parse associated Gitlab MR")?;
+                let git_prs: Vec<GitPr> = gitlab_mrs.into_iter().map(|mr| mr.into()).collect();
+                git_prs
             }
         };
 
