@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.6](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.25.5...release_plz_core-v0.25.6) - 2024-09-07
+
+### Fixed
+- align changelog line breaks with keepachangelog spec ([#1653](https://github.com/MarcoIeni/release-plz/pull/1653))
+
 ## [0.25.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.25.4...release_plz_core-v0.25.5) - 2024-09-07
 
 ### Added
