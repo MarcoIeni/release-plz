@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.12](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.11...git_cmd-v0.6.12) - 2024-09-07
 
 ### Fixed
-- verify correctly if Cargo.lock is ignored and committed ([#1662](https://github.com/MarcoIeni/release-plz/pull/1662))
+- add function to check if file is committed ([#1662](https://github.com/MarcoIeni/release-plz/pull/1662))
 
 ## [0.6.11](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.10...git_cmd-v0.6.11) - 2024-08-18
 
