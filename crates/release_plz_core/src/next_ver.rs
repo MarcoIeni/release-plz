@@ -98,6 +98,7 @@ impl From<UpdateConfig> for PackageUpdateConfig {
         Self {
             generic: config,
             changelog_include: vec![],
+            version_group: None,
         }
     }
 }
@@ -145,6 +146,7 @@ pub struct PackageUpdateConfig {
     /// List of package names.
     /// Include the changelogs of these packages in the changelog of the current package.
     pub changelog_include: Vec<String>,
+    pub version_group: Option<String>,
 }
 
 impl PackageUpdateConfig {
@@ -436,6 +438,7 @@ impl Updater<'_> {
         debug!("calculating local packages");
 
         let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
+        let packages_diffs = self.apply_version_groups(packages_diffs);
 
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate::default();
@@ -508,6 +511,29 @@ impl Updater<'_> {
             self.dependent_packages(&packages_to_check_for_deps, &changed_packages)?;
         packages_to_update.updates_mut().extend(dependent_packages);
         Ok(packages_to_update)
+    }
+
+    fn apply_version_groups<'a>(
+        &self,
+        packages_diffs: Vec<(&'a Package, Diff)>,
+    ) -> Vec<(&'a Package, Diff)> {
+        let mut highest_version: HashMap<String, Version> = HashMap::new();
+
+        for (pkg, diff) in packages_diffs {
+            let pkg_config = self.req.get_package_config(&pkg.name);
+            if let Some(version_group) = pkg_config.version_group {
+                match highest_version.entry(version_group) {
+                    std::collections::hash_map::Entry::Occupied(v) => {
+                        let max = v.get();
+                        if max < diff.
+                    },
+                    std::collections::hash_map::Entry::Vacant(_) => todo!(),
+                }
+
+            }
+        }
+
+        vec![]
     }
 
     fn get_packages_diffs(

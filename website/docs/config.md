@@ -99,6 +99,7 @@ the following sections:
     features to pass to `cargo publish`.
   - [`release`](#the-release-field-package-section) - Enable the processing of this package.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
+  - [`version_group`](#the-version_group-field) — Group of packages with the same version.
     Don't verify package build.
 - [`[changelog]`](#the-changelog-section) — Changelog configuration.
   - [`header`](#the-header-field) — Changelog header.
@@ -582,6 +583,31 @@ By default, release-plz runs [cargo-semver-checks] if the package is a library.
 
 [cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
 [git-cliff]: https://git-cliff.org
+
+#### The `version_group` field
+
+The name of a group of packages that needs to have the same version.
+If two or more packages share the same `version_group` then release-plz will
+assign the same version to them (the highest among the next versions of the packages).
+
+:::tip
+Think of this as having a `Cargo.toml` workspace version shared among subgroups of packages
+instead of the entire workspace.
+:::
+
+In the following example, `release-plz update` and `release-plz release-pr`
+will set `aaa` and `bbb` to the same version (the highest of the two), while the other packages
+of the workspace are updated independently.
+
+```toml
+[[package]]
+name = "aaa"
+version_group = "group1"
+
+[[package]]
+name = "bbb"
+version_group = "group1"
+```
 
 ### The `[changelog]` section
 
