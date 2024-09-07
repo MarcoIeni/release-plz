@@ -42,10 +42,11 @@ permissions:
   - `api` (to create a release)
   - `write_repository` (to create tag)
 
-See Gitlab docs:
-[project access tokens](https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html)
+See the Gitlab [project access tokens](https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html)
+docs.
 
-Then you can run `release-plz release-pr` with the following arguments:
+
+Then you can run `release-plz release` with the following arguments:
 
 `release-plz release --backend gitlab --git-token <gitlab_token>`
 
