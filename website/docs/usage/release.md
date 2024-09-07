@@ -45,7 +45,6 @@ permissions:
 See the Gitlab [project access tokens](https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html)
 docs.
 
-
 Then you can run `release-plz release` with the following arguments:
 
 `release-plz release --backend gitlab --git-token <gitlab_token>`
