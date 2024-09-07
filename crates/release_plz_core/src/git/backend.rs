@@ -89,6 +89,7 @@ pub struct GitPr {
     pub body: Option<String>,
 }
 
+/// Pull request.
 impl GitPr {
     pub fn branch(&self) -> &str {
         self.head.ref_field.as_str()
@@ -115,6 +116,7 @@ impl From<GitLabMr> for GitPr {
     }
 }
 
+/// Merge request.
 #[derive(Deserialize, Clone, Debug)]
 pub struct GitLabMr {
     pub iid: u64,
