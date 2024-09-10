@@ -555,6 +555,7 @@ dependencies = [
  "dirs",
  "dunce",
  "fs-err",
+ "secrecy",
  "semver",
  "serde",
  "toml",

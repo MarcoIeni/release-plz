@@ -22,3 +22,4 @@ toml_edit.workspace = true
 semver.workspace = true
 url.workspace = true
 serde.workspace = true
+secrecy.workspace = true
