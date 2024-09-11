@@ -107,15 +107,13 @@ pub fn registry_token(registry: &Option<String>) -> anyhow::Result<Option<Secret
 /// Read credentials for a specific registry using environment variables.
 /// <https://doc.rust-lang.org/cargo/reference/registry-authentication.html#cargotoken>
 pub fn registry_token_from_env(registry: &Option<String>) -> Option<SecretString> {
-    if let Some(r) = registry {
-        std::env::var(format!("CARGO_REGISTRIES_{}_TOKEN", r.to_uppercase()))
-            .ok()
-            .map(SecretString::new)
+    let token = if let Some(r) = registry {
+        let env_var = format!("CARGO_REGISTRIES_{}_TOKEN", r.to_uppercase());
+        std::env::var(env_var)
     } else {
         std::env::var("CARGO_REGISTRY_TOKEN")
-            .ok()
-            .map(SecretString::new)
-    }
+    };
+    token.ok().map(SecretString::new)
 }
 
 /// Read credentials for a specific registry using file cargo/credentials.toml.
