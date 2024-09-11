@@ -121,24 +121,45 @@ pub fn registry_token_from_env(registry: &Option<String>) -> Option<SecretString
 pub fn registry_token_from_credential_file(
     registry: &Option<String>,
 ) -> anyhow::Result<Option<SecretString>> {
-    let mut path = cargo_home()?.join("credentials.toml");
+    let credentials = read_cargo_credentials()?;
+    let token = credentials
+        .and_then(|c| {
+            let token: Option<RegistryToken> = if let Some(r) = registry {
+                c.registries.get(r).cloned()
+            } else {
+                c.registry.as_ref().cloned()
+            };
+            token
+        })
+        .and_then(|r| r.token.clone())
+        .map(SecretString::new);
+    Ok(token)
+}
+
+fn read_cargo_credentials() -> anyhow::Result<Option<CargoCredentials>> {
+    let credentials_path = credentials_path()?;
+    let credentials = if let Some(credentials_path) = credentials_path {
+        let content = fs_err::read_to_string(&credentials_path)
+            .context("failed to read cargo credentials file")?;
+        let credentials = toml::from_str::<CargoCredentials>(&content)
+            .context("Invalid cargo credentials file")?;
+        Some(credentials)
+    } else {
+        None
+    };
+    Ok(credentials)
+}
+
+fn credentials_path() -> anyhow::Result<Option<PathBuf>> {
+    let cargo_home = cargo_home()?;
+    let mut path = cargo_home.join("credentials.toml");
     if !path.exists() {
-        path = cargo_home()?.join("credentials");
+        path = cargo_home.join("credentials");
     }
     if !path.exists() {
         return Ok(None);
     }
-    let content = fs_err::read_to_string(path).context("failed to read cargo credentials file")?;
-    let credentials =
-        toml::from_str::<CargoCredentials>(&content).context("Invalid cargo credentials file")?;
-    let token = if let Some(r) = registry {
-        credentials.registries.get(r)
-    } else {
-        credentials.registry.as_ref()
-    }
-    .and_then(|r| r.token.clone())
-    .map(SecretString::new);
-    Ok(token)
+    Ok(Some(path))
 }
 
 #[derive(Debug, Deserialize)]
@@ -169,7 +190,7 @@ struct CargoCredentials {
     registries: HashMap<String, RegistryToken>,
 }
 
-#[derive(Debug, Deserialize, Default, PartialEq)]
+#[derive(Debug, Deserialize, Default, PartialEq, Clone)]
 struct RegistryToken {
     token: Option<String>,
 }
