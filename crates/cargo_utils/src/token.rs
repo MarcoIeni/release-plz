@@ -83,7 +83,6 @@ struct RegistryToken {
     token: Option<String>,
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
