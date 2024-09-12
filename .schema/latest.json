@@ -282,7 +282,7 @@
           ]
         },
         "features_always_increment_minor": {
-          "title": "Features Always Increment Minor Version Flag",
+          "title": "Features Always Increment Minor Version",
           "description": "- If `true`, feature commits will always bump the minor version, even in 0.x releases. - If `false` (default), feature commits will only bump the minor version starting with 1.x releases.",
           "type": [
             "boolean",
@@ -520,7 +520,7 @@
           ]
         },
         "features_always_increment_minor": {
-          "title": "Features Always Increment Minor Version Flag",
+          "title": "Features Always Increment Minor Version",
           "description": "- If `true`, feature commits will always bump the minor version, even in 0.x releases. - If `false` (default), feature commits will only bump the minor version starting with 1.x releases.",
           "type": [
             "boolean",
