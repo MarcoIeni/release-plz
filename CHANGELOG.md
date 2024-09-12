@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.87](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.86...release-plz-v0.3.87) - 2024-09-07
+
+### Fixed
+- align changelog line breaks with keepachangelog spec ([#1653](https://github.com/MarcoIeni/release-plz/pull/1653))
+- verify correctly if Cargo.lock is ignored and committed ([#1662](https://github.com/MarcoIeni/release-plz/pull/1662))
+
+## [0.3.86](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.85...release-plz-v0.3.86) - 2024-09-07
+
+### Added
+- add gitlab support for the `release-pr` command ([#1651](https://github.com/MarcoIeni/release-plz/pull/1651))
+
+### Other
+- fix inspect_err clippy lint ([#1658](https://github.com/MarcoIeni/release-plz/pull/1658))
+
 ## [0.3.85](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.84...release-plz-v0.3.85) - 2024-08-25
 
 ### Other
