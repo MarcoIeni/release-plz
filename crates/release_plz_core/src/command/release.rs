@@ -15,7 +15,7 @@ use tracing::{info, instrument, warn};
 use url::Url;
 
 use crate::{
-    cargo::{is_published, run_cargo, wait_until_published, CargoIndex, CmdOutput},
+    cargo::{is_published, run_cargo, wait_until_published, CargoIndex, CargoRegistry, CmdOutput},
     changelog_parser,
     git::backend::GitClient,
     pr_parser::{prs_from_text, Pr},
@@ -184,7 +184,7 @@ impl ReleaseRequest {
         }
         .context(format!(
             "can't retreive token for registry: {:?}",
-            &registry
+            registry.clone().unwrap_or_else(|| "crates.io".to_string())
         ))
     }
 }
@@ -520,8 +520,8 @@ async fn release_package_if_needed(
         .context("can't determine registry indexes")?;
     let mut package_was_released = false;
     let changelog = last_changelog_entry(input, package);
-    for (registry, mut index) in registry_indexes {
-        let token = input.find_registry_token(&registry)?;
+    for CargoRegistry { name, mut index } in registry_indexes {
+        let token = input.find_registry_token(&name)?;
         if is_published(&mut index, package, input.publish_timeout, &token)
             .await
             .context("can't determine if package is published")?
@@ -580,7 +580,7 @@ async fn should_release(
 fn registry_indexes(
     package: &Package,
     registry: Option<String>,
-) -> anyhow::Result<Vec<(Option<String>, CargoIndex)>> {
+) -> anyhow::Result<Vec<CargoRegistry>> {
     let registries = registry
         .map(|r| vec![r])
         .unwrap_or_else(|| package.publish.clone().unwrap_or_default());
@@ -601,11 +601,17 @@ fn registry_indexes(
             } else {
                 GitIndex::from_url(&format!("registry+{u}")).map(CargoIndex::Git)
             }
-            .map(|index| (Some(registry), index))
+            .map(|index| CargoRegistry {
+                name: Some(registry),
+                index,
+            })
         })
-        .collect::<Result<Vec<(Option<String>, CargoIndex)>, crates_index::Error>>()?;
+        .collect::<Result<Vec<CargoRegistry>, crates_index::Error>>()?;
     if registry_indexes.is_empty() {
-        registry_indexes.push((None, CargoIndex::Git(GitIndex::new_cargo_default()?)));
+        registry_indexes.push(CargoRegistry {
+            name: None,
+            index: CargoIndex::Git(GitIndex::new_cargo_default()?),
+        });
     }
     Ok(registry_indexes)
 }
