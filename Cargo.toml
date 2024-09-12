@@ -36,7 +36,7 @@ pretty_assertions = "1.4.0"
 rayon = "1.10.0"
 rand = "0.8.5"
 regex = "1.10.6"
-reqwest = "0.12.7"
+reqwest = { version = "0.12.7", features = ["json", "native-tls-alpn"] }
 reqwest-middleware = { version = "0.3.3", features = ["json"] }
 reqwest-retry = "0.6.1"
 schemars = { version = "0.8.21", features = ["url"] }

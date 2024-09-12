@@ -3,7 +3,7 @@ use cargo_metadata::{camino::Utf8Path, Package};
 use crates_index::{Crate, GitIndex, SparseIndex};
 use tracing::{debug, info};
 
-use http::header;
+use http::{header, Version};
 use secrecy::{ExposeSecret, SecretString};
 use std::{
     env,
@@ -114,25 +114,17 @@ async fn fetch_sparse_metadata(
     crate_name: &str,
     token: &Option<SecretString>,
 ) -> anyhow::Result<Option<Crate>> {
-    let req = index.make_cache_request(crate_name)?;
-    let (parts, _) = req.body(())?.into_parts();
-    let req = http::Request::from_parts(parts, vec![]);
-
-    let mut req: reqwest::Request = req.try_into()?;
-    if let Some(token) = token {
-        let authorization = token
-            .expose_secret()
-            .parse()
-            .context("parse token as header value")?;
-        req.headers_mut()
-            .insert(header::AUTHORIZATION, authorization);
+    let mut res = request_for_sparse_metadata(index, crate_name, token, false).await;
+    if let Err(ref e) = res {
+        match e.downcast_ref::<reqwest::Error>() {
+            Some(e) if e.is_connect() => {
+                // TODO log info about fallbacking ? on connection error
+                res = request_for_sparse_metadata(index, crate_name, token, true).await;
+            }
+            _ => (),
+        }
     }
-
-    let client = reqwest::ClientBuilder::new()
-        .gzip(true)
-        .http2_prior_knowledge()
-        .build()?;
-    let res = client.execute(req).await?;
+    let res = res?;
 
     let mut builder = http::Response::builder()
         .status(res.status())
@@ -149,6 +141,41 @@ async fn fetch_sparse_metadata(
 
     Ok(crate_data)
 }
+
+async fn request_for_sparse_metadata(
+    index: &SparseIndex,
+    crate_name: &str,
+    token: &Option<SecretString>,
+    // default is http2
+    force_http11: bool,
+) -> anyhow::Result<reqwest::Response> {
+    let mut req = index.make_cache_request(crate_name)?;
+    if force_http11 {
+        req = req.version(Version::HTTP_11);
+    }
+    let (parts, _) = req.body(())?.into_parts();
+    let req = http::Request::from_parts(parts, vec![]);
+
+    let mut req: reqwest::Request = req.try_into()?;
+    if let Some(token) = token {
+        let authorization = token
+            .expose_secret()
+            .parse()
+            .context("parse token as header value")?;
+        req.headers_mut()
+            .insert(header::AUTHORIZATION, authorization);
+    }
+    
+    let mut client_builder = reqwest::ClientBuilder::new()
+        .gzip(true);
+    if ! force_http11 {
+        client_builder = client_builder.http2_prior_knowledge();
+    }
+
+    let client = client_builder.build()?;
+    client.execute(req).await.context("request_for_sparse_metadata")
+}
+
 
 pub async fn wait_until_published(
     index: &mut CargoIndex,
