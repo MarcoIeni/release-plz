@@ -264,7 +264,7 @@ pub struct PackageConfig {
     /// Whether to create/update changelog or not.
     /// If unspecified, the changelog is updated.
     pub changelog_update: Option<bool>,
-    /// # Features Always Increment Minor Version Flag
+    /// # Features Always Increment Minor Version
     /// - If `true`, feature commits will always bump the minor version, even in 0.x releases.
     /// - If `false` (default), feature commits will only bump the minor version starting with 1.x releases.
     pub features_always_increment_minor: Option<bool>,
