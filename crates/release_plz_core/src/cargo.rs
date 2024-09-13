@@ -165,17 +165,18 @@ async fn request_for_sparse_metadata(
         req.headers_mut()
             .insert(header::AUTHORIZATION, authorization);
     }
-    
-    let mut client_builder = reqwest::ClientBuilder::new()
-        .gzip(true);
-    if ! force_http11 {
+
+    let mut client_builder = reqwest::ClientBuilder::new().gzip(true);
+    if !force_http11 {
         client_builder = client_builder.http2_prior_knowledge();
     }
 
     let client = client_builder.build()?;
-    client.execute(req).await.context("request_for_sparse_metadata")
+    client
+        .execute(req)
+        .await
+        .context("request_for_sparse_metadata")
 }
-
 
 pub async fn wait_until_published(
     index: &mut CargoIndex,
