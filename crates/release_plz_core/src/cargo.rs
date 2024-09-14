@@ -118,7 +118,7 @@ async fn fetch_sparse_metadata(
     if let Err(ref e) = res {
         match e.downcast_ref::<reqwest::Error>() {
             Some(e) if e.is_connect() => {
-                // TODO log info about fallbacking ? on connection error
+                debug!("HTTP/2 sparse index request failed, trying HTTP/1.1");
                 res = request_for_sparse_metadata(index, crate_name, token, Version::HTTP_11).await;
             }
             _ => (),
@@ -148,8 +148,8 @@ async fn request_for_sparse_metadata(
     token: &Option<SecretString>,
     http_version: Version,
 ) -> anyhow::Result<reqwest::Response> {
-    // make_cache_request force version to HTTP_2
     let mut req = index.make_cache_request(crate_name)?;
+    // override default http version
     req = req.version(http_version);
     let (parts, _) = req.body(())?.into_parts();
     let req = http::Request::from_parts(parts, vec![]);
