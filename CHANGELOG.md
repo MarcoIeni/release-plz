@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.88](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.87...release-plz-v0.3.88) - 2024-09-14
+
+### Fixed
+
+- fallback to http 1.1 when http2 is not supported on fetching sparse metadata ([#1676](https://github.com/MarcoIeni/release-plz/pull/1676))
+
+### Other
+
+- update Cargo.lock dependencies
+
 ## [0.3.87](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.86...release-plz-v0.3.87) - 2024-09-07
 
 ### Fixed
