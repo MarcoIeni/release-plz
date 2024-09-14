@@ -114,12 +114,12 @@ async fn fetch_sparse_metadata(
     crate_name: &str,
     token: &Option<SecretString>,
 ) -> anyhow::Result<Option<Crate>> {
-    let mut res = request_for_sparse_metadata(index, crate_name, token, false).await;
+    let mut res = request_for_sparse_metadata(index, crate_name, token, Version::HTTP_2).await;
     if let Err(ref e) = res {
         match e.downcast_ref::<reqwest::Error>() {
             Some(e) if e.is_connect() => {
                 // TODO log info about fallbacking ? on connection error
-                res = request_for_sparse_metadata(index, crate_name, token, true).await;
+                res = request_for_sparse_metadata(index, crate_name, token, Version::HTTP_11).await;
             }
             _ => (),
         }
@@ -146,13 +146,11 @@ async fn request_for_sparse_metadata(
     index: &SparseIndex,
     crate_name: &str,
     token: &Option<SecretString>,
-    // default is http2
-    force_http11: bool,
+    http_version: Version,
 ) -> anyhow::Result<reqwest::Response> {
+    // make_cache_request force version to HTTP_2
     let mut req = index.make_cache_request(crate_name)?;
-    if force_http11 {
-        req = req.version(Version::HTTP_11);
-    }
+    req = req.version(http_version);
     let (parts, _) = req.body(())?.into_parts();
     let req = http::Request::from_parts(parts, vec![]);
 
@@ -167,10 +165,9 @@ async fn request_for_sparse_metadata(
     }
 
     let mut client_builder = reqwest::ClientBuilder::new().gzip(true);
-    if !force_http11 {
+    if http_version == Version::HTTP_2 {
         client_builder = client_builder.http2_prior_knowledge();
     }
-
     let client = client_builder.build()?;
     client
         .execute(req)
