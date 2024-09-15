@@ -1,4 +1,4 @@
-![release-plz-logo](website/static/img/release-plz-social-card.png)
+[![release-plz-logo](website/static/img/release-plz-social-card.png)](https://release-plz.ieni.dev/docs)
 
 [![Crates.io](https://img.shields.io/crates/v/release-plz.svg)](https://crates.io/crates/release-plz)
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
