@@ -13,6 +13,7 @@ use tracing::warn;
 use crate::changelog_parser;
 
 pub const CHANGELOG_HEADER: &str = r#"# Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -385,6 +386,7 @@ fn default_changelog_body_config() -> &'static str {
 ## [{{ version | trim_start_matches(pat="v") }}]{%- if release_link -%}({{ release_link }}){% endif %} - {{ timestamp | date(format="%Y-%m-%d") }}
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group | upper_first }}
+
 {% for commit in commits %}
 {%- if commit.scope -%}
 - *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
@@ -413,6 +415,7 @@ mod tests {
 
         expect_test::expect![[r#"
             # Changelog
+
             All notable changes to this project will be documented in this file.
 
             The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -423,9 +426,11 @@ mod tests {
             ## [1.1.1] - 2015-05-15
 
             ### Fixed
+
             - myfix
 
             ### Other
+
             - simple update
         "#]]
         .assert_eq(&changelog.generate().unwrap());
@@ -444,6 +449,7 @@ mod tests {
 
         expect_test::expect![[r#"
             # Changelog
+
             All notable changes to this project will be documented in this file.
 
             The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -454,6 +460,7 @@ mod tests {
             ## [1.1.1](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.2.24...release-plz-v0.2.25) - 2015-05-15
 
             ### Fixed
+
             - myfix
         "#]]
         .assert_eq(&changelog.generate().unwrap());
@@ -481,6 +488,7 @@ mod tests {
 
         expect_test::expect![[r#"
             # Changelog
+
             All notable changes to this project will be documented in this file.
 
             The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -491,17 +499,21 @@ mod tests {
             ## [1.1.2] - 2015-05-15
 
             ### Fixed
+
             - myfix2
 
             ### Other
+
             - complex update
 
             ## [1.1.1] - 2015-05-15
 
             ### Fixed
+
             - myfix
 
             ### Other
+
             - simple update
         "#]]
         .assert_eq(&changelog.prepend(generated_changelog).unwrap());
@@ -519,15 +531,18 @@ mod tests {
         let old_body = r#"## [1.1.0] - 1970-01-01
 
 ### fix bugs
+
 - my awesomefix
 
 ### other
+
 - complex update
 "#;
         let old = format!("{CHANGELOG_HEADER}\n{old_body}");
         let new = changelog.prepend(old).unwrap();
         expect_test::expect![[r#"
             # Changelog
+
             All notable changes to this project will be documented in this file.
 
             The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -538,17 +553,21 @@ mod tests {
             ## [1.1.1] - 2015-05-15
 
             ### Fixed
+
             - myfix
 
             ### Other
+
             - simple update
 
             ## [1.1.0] - 1970-01-01
 
             ### fix bugs
+
             - my awesomefix
 
             ### other
+
             - complex update
         "#]]
         .assert_eq(&new);
@@ -563,17 +582,21 @@ mod tests {
         let changelog = ChangelogBuilder::new(commits, "1.1.1", "my_pkg")
             .with_release_date(NaiveDate::from_ymd_opt(2015, 5, 15).unwrap())
             .build();
-        let old = r#"## [1.1.0] - 1970-01-01
+        let old = r#"
+## [1.1.0] - 1970-01-01
 
 ### fix bugs
+
 - my awesomefix
 
 ### other
+
 - complex update
 "#;
         let new = changelog.prepend(old);
         expect_test::expect![[r#"
             # Changelog
+
             All notable changes to this project will be documented in this file.
 
             The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -584,16 +607,21 @@ mod tests {
             ## [1.1.1] - 2015-05-15
 
             ### Fixed
+
             - myfix
 
             ### Other
+
             - simple update
+
             ## [1.1.0] - 1970-01-01
 
             ### fix bugs
+
             - my awesomefix
 
             ### other
+
             - complex update
         "#]]
         .assert_eq(&new.unwrap());
@@ -658,6 +686,7 @@ mod tests {
 
         expect_test::expect![[r#"
             # Changelog
+
             All notable changes to this project will be documented in this file.
 
             The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -668,6 +697,7 @@ mod tests {
             ## [1.1.1] - 2015-05-15
 
             ### Fixed
+
             - another fix
             - myfix
         "#]]
@@ -687,6 +717,7 @@ fn empty_changelog_is_updated() {
     let new = changelog.prepend(CHANGELOG_HEADER);
     expect_test::expect![[r#"
         # Changelog
+
         All notable changes to this project will be documented in this file.
 
         The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -697,9 +728,11 @@ fn empty_changelog_is_updated() {
         ## [1.1.1] - 2015-05-15
 
         ### Fixed
+
         - myfix
 
         ### Other
+
         - simple update
     "#]]
     .assert_eq(&new.unwrap());
