@@ -608,6 +608,16 @@ name = "bbb"
 version_group = "group1"
 ```
 
+:::note
+The version group is considered only when packages contain changes.
+
+Example: package `aaa` (version `0.1.0`) adds a non breaking change and `bbb` (version `0.2.0`)
+wasn't updated since last release.
+In this case release-plz will only update `aaa` to `0.1.1` and `bbb` will remain `0.2.0`.
+However, if `bbb` depends on `aaa`, then `bbb` is updated too and the version is set to `0.2.1`
+for both packages.
+:::
+
 ### The `[changelog]` section
 
 Here's an example configuration, more customization examples available in the
