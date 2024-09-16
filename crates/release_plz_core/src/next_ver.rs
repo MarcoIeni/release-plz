@@ -439,6 +439,7 @@ impl Updater<'_> {
 
         let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
         let version_groups = self.get_version_groups(&packages_diffs);
+        debug!("version groups: {:?}", version_groups);
 
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate::default();
@@ -471,21 +472,28 @@ impl Updater<'_> {
                 };
             }
             // Calculate next version without taking into account workspace version
-            let next_version = if let Some(max_workspace_version) = &new_workspace_version {
-                if workspace_version_pkgs.contains(p.name.as_str()) {
+            let next_version = match &new_workspace_version {
+                Some(max_workspace_version) if workspace_version_pkgs.contains(p.name.as_str()) => {
+                    debug!(
+                        "next version of {} is workspace version: {max_workspace_version}",
+                        p.name
+                    );
                     max_workspace_version.clone()
-                } else if let Some(version_group) = pkg_config.version_group {
-                    version_groups
-                        .get(&version_group)
-                        .with_context(|| {
-                            format!("failed to retrieve version for version group {version_group}")
-                        })?
-                        .clone()
-                } else {
-                    p.version.next_from_diff(&diff)
                 }
-            } else {
-                p.version.next_from_diff(&diff)
+                _ => {
+                    if let Some(version_group) = pkg_config.version_group {
+                        version_groups
+                            .get(&version_group)
+                            .with_context(|| {
+                                format!(
+                                    "failed to retrieve version for version group {version_group}"
+                                )
+                            })?
+                            .clone()
+                    } else {
+                        p.version.next_from_diff(&diff)
+                    }
+                }
             };
 
             debug!("diff: {:?}, next_version: {}", &diff, next_version);
