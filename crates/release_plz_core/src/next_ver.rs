@@ -539,7 +539,7 @@ impl Updater<'_> {
                 let next_pkg_ver = pkg.version.next_from_diff(diff);
                 match version_groups.entry(version_group.clone()) {
                     std::collections::hash_map::Entry::Occupied(v) => {
-                        // maximum version until now
+                        // maximum version of the group until now
                         let max = v.get();
                         if max < &next_pkg_ver {
                             version_groups.insert(version_group, next_pkg_ver);
