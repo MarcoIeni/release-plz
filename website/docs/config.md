@@ -594,8 +594,9 @@ Think of this as having a `Cargo.toml` workspace version shared among subgroups 
 instead of the entire workspace.
 :::
 
-In the following example, `release-plz update` and `release-plz release-pr`
-will set `aaa` and `bbb` to the same version (the highest of the two), while the other packages
+With the following configuration example, `release-plz update` and `release-plz release-pr`
+will set `aaa` and `bbb` to the same version
+(the highest of the next version of the `aaa` and `bbb` packages), while the other packages
 of the workspace are updated independently.
 
 ```toml
@@ -611,7 +612,9 @@ version_group = "group1"
 :::note
 The version group is considered only when packages contain changes.
 
-Example: package `aaa` (version `0.1.0`) adds a non breaking change and `bbb` (version `0.2.0`)
+**Example**
+
+Package `aaa` (version `0.1.0`) adds a non breaking change while `bbb` (version `0.2.0`)
 wasn't updated since last release.
 In this case release-plz will only update `aaa` to `0.1.1` and `bbb` will remain `0.2.0`.
 However, if `bbb` depends on `aaa`, then `bbb` is updated too and the version is set to `0.2.1`
