@@ -508,6 +508,7 @@ impl Updater<'_> {
                     diff.commits,
                     next_version,
                     p,
+                    diff.semver_check,
                     &mut old_changelogs,
                 )?;
                 packages_to_update
@@ -663,8 +664,13 @@ impl Updater<'_> {
                     "{}: dependencies changed. Next version is {next_version}",
                     p.name
                 );
-                let update_result =
-                    self.calculate_update_result(commits, next_version, p, &mut old_changelogs)?;
+                let update_result = self.calculate_update_result(
+                    commits,
+                    next_version,
+                    p,
+                    SemverCheck::Skipped,
+                    &mut old_changelogs,
+                )?;
                 Ok((p.clone(), update_result))
             })
             .collect::<anyhow::Result<Vec<_>>>()?;
@@ -676,6 +682,7 @@ impl Updater<'_> {
         commits: Vec<Commit>,
         next_version: Version,
         p: &Package,
+        semver_check: SemverCheck,
         old_changelogs: &mut OldChangelogs,
     ) -> Result<UpdateResult, anyhow::Error> {
         let changelog_path = self.req.changelog_path(p);
@@ -684,7 +691,7 @@ impl Updater<'_> {
             commits,
             next_version,
             p,
-            SemverCheck::Skipped,
+            semver_check,
             old_changelog.as_deref(),
         )?;
         if let Some(changelog) = &update_result.changelog {
