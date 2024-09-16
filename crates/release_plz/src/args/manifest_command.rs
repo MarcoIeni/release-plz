@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use anyhow::Context as _;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 use release_plz_core::fs_utils::to_utf8_path;
 
@@ -25,6 +26,6 @@ pub trait ManifestCommand {
             _ => {
                 anyhow::anyhow!(e)
             }
-        })
+        }).with_context(|| format!("Failed to read metadata from manifest at {manifest}"))
     }
 }
