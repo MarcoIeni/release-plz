@@ -98,6 +98,7 @@ impl From<UpdateConfig> for PackageUpdateConfig {
         Self {
             generic: config,
             changelog_include: vec![],
+            version_group: None,
         }
     }
 }
@@ -145,6 +146,7 @@ pub struct PackageUpdateConfig {
     /// List of package names.
     /// Include the changelogs of these packages in the changelog of the current package.
     pub changelog_include: Vec<String>,
+    pub version_group: Option<String>,
 }
 
 impl PackageUpdateConfig {
@@ -436,6 +438,8 @@ impl Updater<'_> {
         debug!("calculating local packages");
 
         let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
+        let version_groups = self.get_version_groups(&packages_diffs);
+        debug!("version groups: {:?}", version_groups);
 
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate::default();
@@ -461,20 +465,35 @@ impl Updater<'_> {
 
         let mut old_changelogs = OldChangelogs::new();
         for (p, diff) in packages_diffs {
+            let pkg_config = self.req.get_package_config(&p.name);
             if let Some(ref release_commits_regex) = self.req.release_commits {
                 if !diff.any_commit_matches(release_commits_regex) {
                     continue;
                 };
             }
             // Calculate next version without taking into account workspace version
-            let next_version = if let Some(max_workspace_version) = &new_workspace_version {
-                if workspace_version_pkgs.contains(p.name.as_str()) {
+            let next_version = match &new_workspace_version {
+                Some(max_workspace_version) if workspace_version_pkgs.contains(p.name.as_str()) => {
+                    debug!(
+                        "next version of {} is workspace version: {max_workspace_version}",
+                        p.name
+                    );
                     max_workspace_version.clone()
-                } else {
-                    p.version.next_from_diff(&diff)
                 }
-            } else {
-                p.version.next_from_diff(&diff)
+                _ => {
+                    if let Some(version_group) = pkg_config.version_group {
+                        version_groups
+                            .get(&version_group)
+                            .with_context(|| {
+                                format!(
+                                    "failed to retrieve version for version group {version_group}"
+                                )
+                            })?
+                            .clone()
+                    } else {
+                        p.version.next_from_diff(&diff)
+                    }
+                }
             };
 
             debug!("diff: {:?}, next_version: {}", &diff, next_version);
@@ -508,6 +527,32 @@ impl Updater<'_> {
             self.dependent_packages(&packages_to_check_for_deps, &changed_packages)?;
         packages_to_update.updates_mut().extend(dependent_packages);
         Ok(packages_to_update)
+    }
+
+    /// Get the highest next version of all packages for each version group.
+    fn get_version_groups(&self, packages_diffs: &[(&Package, Diff)]) -> HashMap<String, Version> {
+        let mut version_groups: HashMap<String, Version> = HashMap::new();
+
+        for (pkg, diff) in packages_diffs {
+            let pkg_config = self.req.get_package_config(&pkg.name);
+            if let Some(version_group) = pkg_config.version_group {
+                let next_pkg_ver = pkg.version.next_from_diff(diff);
+                match version_groups.entry(version_group.clone()) {
+                    std::collections::hash_map::Entry::Occupied(v) => {
+                        // maximum version of the group until now
+                        let max = v.get();
+                        if max < &next_pkg_ver {
+                            version_groups.insert(version_group, next_pkg_ver);
+                        }
+                    }
+                    std::collections::hash_map::Entry::Vacant(_) => {
+                        version_groups.insert(version_group, next_pkg_ver);
+                    }
+                }
+            }
+        }
+
+        version_groups
     }
 
     fn get_packages_diffs(

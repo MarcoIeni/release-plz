@@ -176,6 +176,9 @@ pub struct PackageSpecificConfig {
     /// List of package names.
     /// Include the changelogs of these packages in the changelog of the current package.
     changelog_include: Option<Vec<String>>,
+    /// # Version group
+    /// The name of a group of packages that needs to have the same version.
+    version_group: Option<String>,
 }
 
 impl PackageSpecificConfig {
@@ -184,6 +187,7 @@ impl PackageSpecificConfig {
         PackageSpecificConfig {
             common: self.common.merge(default),
             changelog_include: self.changelog_include,
+            version_group: self.version_group,
         }
     }
 }
@@ -328,6 +332,7 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
         Self {
             generic: config.common.into(),
             changelog_include: config.changelog_include.unwrap_or_default(),
+            version_group: config.version_group,
         }
     }
 }
@@ -464,6 +469,7 @@ mod tests {
                     ..Default::default()
                 },
                 changelog_include: None,
+                version_group: None,
             },
         }
     }
@@ -576,6 +582,7 @@ mod tests {
                         ..Default::default()
                     },
                     changelog_include: Some(vec!["pkg1".to_string()]),
+                    version_group: None,
                 },
             }]
             .into(),
