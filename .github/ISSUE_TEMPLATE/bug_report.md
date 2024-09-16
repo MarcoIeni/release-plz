@@ -15,14 +15,18 @@ assignees: ''
 
 ## To Reproduce
 
+<!--
+Make sure you are able to reproduce the bug in the main branch, too.
+Please try to reproduce the bug in a small example repository.
+Certain bugs can be reproduced locally running `release-plz update`.
+-->
+
 Steps to reproduce the behavior:
 
 1. ...
 2. ...
 3. ...
 4. ...
-
-<!-- Make sure you are able to reproduce the bug in the main branch, too. -->
 
 ## Expected behavior
 
