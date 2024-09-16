@@ -28,11 +28,13 @@ use git_cmd::{self, Repo};
 use next_version::NextVersion;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
+use std::path::PathBuf;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     io,
     path::Path,
 };
+use toml_edit::TableLike;
 use tracing::{debug, info, instrument, warn};
 
 // Used to indicate that this is a dummy commit with no corresponding ID available.
@@ -1221,26 +1223,15 @@ impl PackageDependencies for Package {
             let canonical_path = p.canonical_path()?;
             let matching_deps = package_manifest
                 .get_dependency_tables_mut()
-                .flat_map(|t| t.iter_mut().filter_map(|(_, d)| d.as_table_like_mut()))
+                .flat_map(|t| t.iter().filter_map(|(_, d)| d.as_table_like()))
                 .filter(|d| d.contains_key("version"))
                 .filter(|d| {
-                    let dependency_path = d
-                        .get("path")
-                        .and_then(|i| i.as_str())
-                        .and_then(|relpath| fs_err::canonicalize(package_dir.join(relpath)).ok());
-                    match dependency_path {
-                        Some(dep_path) => dep_path == canonical_path,
-                        None => false,
-                    }
+                    canonicalized_path(*d, &package_dir)
+                        .is_some_and(|dep_path| dep_path == canonical_path)
                 });
 
             for dep in matching_deps {
-                let old_req = dep
-                    .get("version")
-                    .expect("filter ensures this")
-                    .as_str()
-                    .unwrap_or("*");
-                if upgrade_requirement(old_req, next_ver)?.is_some() {
+                if should_update_dependency(dep, next_ver)? {
                     deps_to_update.push(p);
                 }
             }
@@ -1248,6 +1239,23 @@ impl PackageDependencies for Package {
 
         Ok(deps_to_update)
     }
+}
+
+fn canonicalized_path(dependency: &dyn TableLike, package_dir: &Utf8Path) -> Option<PathBuf> {
+    dependency
+        .get("path")
+        .and_then(|i| i.as_str())
+        .and_then(|relpath| fs_err::canonicalize(package_dir.join(relpath)).ok())
+}
+
+fn should_update_dependency(dep: &dyn TableLike, next_ver: &Version) -> anyhow::Result<bool> {
+    let old_req = dep
+        .get("version")
+        .expect("filter ensures this")
+        .as_str()
+        .unwrap_or("*");
+    let should_update_dep = upgrade_requirement(old_req, next_ver)?.is_some();
+    Ok(should_update_dep)
 }
 
 #[cfg(test)]
