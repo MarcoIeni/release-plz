@@ -642,41 +642,44 @@ impl Updater<'_> {
         let mut old_changelogs = OldChangelogs::new();
         let packages_to_update = packages_to_check_for_deps
             .iter()
-            .filter_map(|p| match p.dependencies_to_update(changed_packages) {
-                Ok(deps) => {
-                    if deps.is_empty() {
-                        None
-                    } else {
-                        Some((p, deps))
-                    }
-                }
-                Err(_e) => None,
+            .filter_map(|p| {
+                p.dependencies_to_update(changed_packages)
+                    .ok()
+                    .filter(|deps| !deps.is_empty())
+                    .map(|deps| (p, deps))
             })
-            .map(|(&p, deps)| {
-                let deps: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
-                let commits = {
-                    let change = format!(
-                        "chore: updated the following local packages: {}",
-                        deps.join(", ")
-                    );
-                    vec![Commit::new(NO_COMMIT_ID.to_string(), change)]
-                };
-                let next_version = { p.version.increment_patch() };
-                info!(
-                    "{}: dependencies changed. Next version is {next_version}",
-                    p.name
-                );
-                let update_result = self.calculate_update_result(
-                    commits,
-                    next_version,
-                    p,
-                    SemverCheck::Skipped,
-                    &mut old_changelogs,
-                )?;
-                Ok((p.clone(), update_result))
-            })
+            .map(|(&p, deps)| self.calculate_package_update_result(&deps, p, &mut old_changelogs))
             .collect::<anyhow::Result<Vec<_>>>()?;
         Ok(packages_to_update)
+    }
+
+    fn calculate_package_update_result(
+        &self,
+        deps: &[&Package],
+        p: &Package,
+        old_changelogs: &mut OldChangelogs,
+    ) -> anyhow::Result<(Package, UpdateResult)> {
+        let deps: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
+        let commits = {
+            let change = format!(
+                "chore: updated the following local packages: {}",
+                deps.join(", ")
+            );
+            vec![Commit::new(NO_COMMIT_ID.to_string(), change)]
+        };
+        let next_version = { p.version.increment_patch() };
+        info!(
+            "{}: dependencies changed. Next version is {next_version}",
+            p.name
+        );
+        let update_result = self.calculate_update_result(
+            commits,
+            next_version,
+            p,
+            SemverCheck::Skipped,
+            old_changelogs,
+        )?;
+        Ok((p.clone(), update_result))
     }
 
     fn calculate_update_result(
