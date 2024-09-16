@@ -528,15 +528,18 @@ impl Updater<'_> {
         for (pkg, diff) in packages_diffs {
             let pkg_config = self.req.get_package_config(&pkg.name);
             if let Some(version_group) = pkg_config.version_group {
+                let next_pkg_ver = pkg.version.next_from_diff(diff);
                 match version_groups.entry(version_group.clone()) {
                     std::collections::hash_map::Entry::Occupied(v) => {
+                        // maximum version until now
                         let max = v.get();
-                        let next_pkg_ver = pkg.version.next_from_diff(diff);
                         if max < &next_pkg_ver {
                             version_groups.insert(version_group, next_pkg_ver);
                         }
                     }
-                    std::collections::hash_map::Entry::Vacant(_) => todo!(),
+                    std::collections::hash_map::Entry::Vacant(_) => {
+                        version_groups.insert(version_group, next_pkg_ver);
+                    }
                 }
             }
         }
