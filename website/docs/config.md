@@ -100,7 +100,6 @@ the following sections:
   - [`release`](#the-release-field-package-section) - Enable the processing of this package.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
   - [`version_group`](#the-version_group-field) — Group of packages with the same version.
-    Don't verify package build.
 - [`[changelog]`](#the-changelog-section) — Changelog configuration.
   - [`header`](#the-header-field) — Changelog header.
   - [`body`](#the-body-field) — Changelog body.
