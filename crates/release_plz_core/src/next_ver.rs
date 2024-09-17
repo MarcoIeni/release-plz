@@ -1241,20 +1241,21 @@ impl PackageDependencies for Package {
         &self,
         updated_packages: &'a [(&Package, &Version)],
     ) -> anyhow::Result<Vec<&'a Package>> {
+        // Look into the toml manifest because `cargo_metadata` doesn't distinguish between
+        // empty `version` in Cargo.toml and `version = "*"`
         let mut package_manifest = LocalManifest::try_new(&self.manifest_path)?;
         let package_dir = manifest_dir(&package_manifest.path)?.to_owned();
 
         let mut deps_to_update: Vec<&Package> = vec![];
         for (p, next_ver) in updated_packages {
             let canonical_path = p.canonical_path()?;
+            // Find the dependencies that have the same path as the updated package.
             let matching_deps = package_manifest
                 .get_dependency_tables_mut()
-                .flat_map(|t| t.iter().filter_map(|(_, d)| d.as_table_like()))
+                .flat_map(|t| t.iter().filter_map(|(_name, d)| d.as_table_like()))
+                // Exclude path dependencies without `version`.
                 .filter(|d| d.contains_key("version"))
-                .filter(|d| {
-                    canonicalized_path(*d, &package_dir)
-                        .is_some_and(|dep_path| dep_path == canonical_path)
-                });
+                .filter(|d| is_dependency_referred_to_package(*d, &package_dir, &canonical_path));
 
             for dep in matching_deps {
                 if should_update_dependency(dep, next_ver)? {
@@ -1267,11 +1268,30 @@ impl PackageDependencies for Package {
     }
 }
 
+/// Check if `dependency` (contained in the Cargo.toml at `dependency_package_dir`) refers
+/// to the package at `package_dir`.
+/// I.e. if the absolute path of the dependency is the same as the absolute path of the package.
+pub(crate) fn is_dependency_referred_to_package(
+    dependency: &dyn TableLike,
+    package_dir: &Utf8Path,
+    dependency_package_dir: &Utf8Path,
+) -> bool {
+    canonicalized_path(dependency, package_dir)
+        .is_some_and(|dep_path| dep_path == dependency_package_dir)
+}
+
+/// Dependencies are expressed as relative paths in the Cargo.toml file.
+/// This function returns the absolute path of the dependency.
+///
+/// ## Args
+///
+/// - `package_dir`: directory containing the Cargo.toml where the dependency is listed
+/// - `dependency`: entry of the Cargo.toml
 fn canonicalized_path(dependency: &dyn TableLike, package_dir: &Utf8Path) -> Option<PathBuf> {
     dependency
         .get("path")
         .and_then(|i| i.as_str())
-        .and_then(|relpath| fs_err::canonicalize(package_dir.join(relpath)).ok())
+        .and_then(|relpath| dunce::canonicalize(package_dir.join(relpath)).ok())
 }
 
 fn should_update_dependency(dep: &dyn TableLike, next_ver: &Version) -> anyhow::Result<bool> {
