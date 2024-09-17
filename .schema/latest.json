@@ -410,6 +410,14 @@
             "boolean",
             "null"
           ]
+        },
+        "version_group": {
+          "title": "Version group",
+          "description": "The name of a group of packages that needs to have the same version.",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     },

@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.90](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.89...release-plz-v0.3.90) - 2024-09-16
+
+### Fixed
+
+- restore semver check report ([#1684](https://github.com/MarcoIeni/release-plz/pull/1684))
+
+## [0.3.89](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.88...release-plz-v0.3.89) - 2024-09-16
+
+### Added
+
+- allow specifying `version_group` field in package config ([#1661](https://github.com/MarcoIeni/release-plz/pull/1661))
+
+### Other
+
+- improve invalid file error message ([#1682](https://github.com/MarcoIeni/release-plz/pull/1682))
+- Make the banner image lead people straight to the website ([#1679](https://github.com/MarcoIeni/release-plz/pull/1679))
+
+## [0.3.88](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.87...release-plz-v0.3.88) - 2024-09-14
+
+### Fixed
+
+- fallback to http 1.1 when http2 is not supported on fetching sparse metadata ([#1676](https://github.com/MarcoIeni/release-plz/pull/1676))
+
 ## [0.3.87](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.86...release-plz-v0.3.87) - 2024-09-07
 
 ### Fixed
