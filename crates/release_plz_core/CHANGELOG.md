@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.26.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.26.1...release_plz_core-v0.26.2) - 2024-09-17
+
+### Added
+
+- support local dependencies in workspace manifest ([#1695](https://github.com/MarcoIeni/release-plz/pull/1695))
+
+### Other
+
+- improve `dependencies_to_update` fn ([#1694](https://github.com/MarcoIeni/release-plz/pull/1694))
+- add comments to package update code ([#1692](https://github.com/MarcoIeni/release-plz/pull/1692))
+- extract function from `packages_to_update` ([#1691](https://github.com/MarcoIeni/release-plz/pull/1691))
+- improve `dependent_packages` function ([#1689](https://github.com/MarcoIeni/release-plz/pull/1689))
+- improve dependencies_to_update function ([#1687](https://github.com/MarcoIeni/release-plz/pull/1687))
+
 ## [0.26.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.26.0...release_plz_core-v0.26.1) - 2024-09-16
 
 ### Fixed
