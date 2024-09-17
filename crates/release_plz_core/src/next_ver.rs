@@ -1254,7 +1254,7 @@ impl PackageDependencies for Package {
     ) -> anyhow::Result<Vec<&'a Package>> {
         // Look into the toml manifest because `cargo_metadata` doesn't distinguish between
         // empty `version` in Cargo.toml and `version = "*"`
-        let mut package_manifest = LocalManifest::try_new(&self.manifest_path)?;
+        let package_manifest = LocalManifest::try_new(&self.manifest_path)?;
         let package_dir = manifest_dir(&package_manifest.path)?.to_owned();
 
         let mut deps_to_update: Vec<&Package> = vec![];
@@ -1262,7 +1262,7 @@ impl PackageDependencies for Package {
             let canonical_path = p.canonical_path()?;
             // Find the dependencies that have the same path as the updated package.
             let matching_deps = package_manifest
-                .get_dependency_tables_mut()
+                .get_dependency_tables()
                 .flat_map(|t| {
                     t.iter().filter_map(|(name, d)| {
                         d.as_table_like().map(|d| {

@@ -73,6 +73,45 @@ impl LocalManifest {
         fs_err::write(&self.path, new_contents_bytes).context("Failed to write updated Cargo.toml")
     }
 
+    pub fn get_dependency_tables(&self) -> impl Iterator<Item = &dyn toml_edit::TableLike> + '_ {
+        let root = self.data.as_table();
+        root.iter().flat_map(|(key, v)| {
+            if DepTable::KINDS.iter().any(|kind| kind.kind_table() == key) {
+                v.as_table_like().into_iter().collect::<Vec<_>>()
+            } else if key == "workspace" {
+                v.as_table_like()
+                    .unwrap()
+                    .iter()
+                    .filter_map(|(k, v)| {
+                        if k == "dependencies" {
+                            v.as_table_like()
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<Vec<_>>()
+            } else if key == "target" {
+                v.as_table_like()
+                    .unwrap()
+                    .iter()
+                    .flat_map(|(_, v)| {
+                        v.as_table_like().into_iter().flat_map(|v| {
+                            v.iter().filter_map(|(k, v)| {
+                                if DepTable::KINDS.iter().any(|kind| kind.kind_table() == k) {
+                                    v.as_table_like()
+                                } else {
+                                    None
+                                }
+                            })
+                        })
+                    })
+                    .collect::<Vec<_>>()
+            } else {
+                Vec::new()
+            }
+        })
+    }
+
     /// Allow mutating depedencies, wherever they live
     pub fn get_dependency_tables_mut(
         &mut self,
