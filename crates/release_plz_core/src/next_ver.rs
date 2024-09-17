@@ -1241,7 +1241,7 @@ impl PackageDependencies for Package {
         &self,
         updated_packages: &'a [(&Package, &Version)],
     ) -> anyhow::Result<Vec<&'a Package>> {
-        // Look into the toml manifest because cargo metadata doesn't distinguish between
+        // Look into the toml manifest because `cargo_metadata` doesn't distinguish between
         // empty `version` in Cargo.toml and `version = "*"`
         let mut package_manifest = LocalManifest::try_new(&self.manifest_path)?;
         let package_dir = manifest_dir(&package_manifest.path)?.to_owned();
