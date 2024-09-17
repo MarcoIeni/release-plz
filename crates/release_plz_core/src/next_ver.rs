@@ -467,37 +467,18 @@ impl Updater<'_> {
 
         let mut old_changelogs = OldChangelogs::new();
         for (p, diff) in packages_diffs {
-            let pkg_config = self.req.get_package_config(&p.name);
             if let Some(ref release_commits_regex) = self.req.release_commits {
                 if !diff.any_commit_matches(release_commits_regex) {
                     continue;
                 };
             }
-            // Calculate next version without taking into account workspace version
-            let next_version = match &new_workspace_version {
-                Some(max_workspace_version) if workspace_version_pkgs.contains(p.name.as_str()) => {
-                    debug!(
-                        "next version of {} is workspace version: {max_workspace_version}",
-                        p.name
-                    );
-                    max_workspace_version.clone()
-                }
-                _ => {
-                    if let Some(version_group) = pkg_config.version_group {
-                        version_groups
-                            .get(&version_group)
-                            .with_context(|| {
-                                format!(
-                                    "failed to retrieve version for version group {version_group}"
-                                )
-                            })?
-                            .clone()
-                    } else {
-                        p.version.next_from_diff(&diff)
-                    }
-                }
-            };
-
+            let next_version = self.get_next_version(
+                new_workspace_version.as_ref(),
+                p,
+                &workspace_version_pkgs,
+                &version_groups,
+                &diff,
+            )?;
             debug!("diff: {:?}, next_version: {}", &diff, next_version);
             let current_version = p.version.clone();
             if next_version != current_version || !diff.registry_package_exists {
@@ -527,7 +508,7 @@ impl Updater<'_> {
             .map(|(p, u)| (p, &u.version))
             .collect();
         let dependent_packages =
-            self.dependent_packages(&packages_to_check_for_deps, &changed_packages)?;
+            self.dependent_packages_update(&packages_to_check_for_deps, &changed_packages)?;
         packages_to_update.updates_mut().extend(dependent_packages);
         Ok(packages_to_update)
     }
@@ -633,8 +614,8 @@ impl Updater<'_> {
         Ok(packages_diffs)
     }
 
-    /// Return the packages that depend on the `changed_packages`.
-    fn dependent_packages(
+    /// Return the update to apply to the packages that depend on the `changed_packages`.
+    fn dependent_packages_update(
         &self,
         packages_to_check_for_deps: &[&Package],
         changed_packages: &[(&Package, &Version)],
@@ -990,6 +971,39 @@ impl Updater<'_> {
         } else {
             Ok(None)
         }
+    }
+
+    fn get_next_version(
+        &self,
+        new_workspace_version: Option<&Version>,
+        p: &Package,
+        workspace_version_pkgs: &HashSet<String>,
+        version_groups: &HashMap<String, Version>,
+        diff: &Diff,
+    ) -> anyhow::Result<Version> {
+        let pkg_config = self.req.get_package_config(&p.name);
+        let next_version = match new_workspace_version {
+            Some(max_workspace_version) if workspace_version_pkgs.contains(p.name.as_str()) => {
+                debug!(
+                    "next version of {} is workspace version: {max_workspace_version}",
+                    p.name
+                );
+                max_workspace_version.clone()
+            }
+            _ => {
+                if let Some(version_group) = pkg_config.version_group {
+                    version_groups
+                        .get(&version_group)
+                        .with_context(|| {
+                            format!("failed to retrieve version for version group {version_group}")
+                        })?
+                        .clone()
+                } else {
+                    p.version.next_from_diff(diff)
+                }
+            }
+        };
+        Ok(next_version)
     }
 }
 
