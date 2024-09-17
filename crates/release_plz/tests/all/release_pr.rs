@@ -18,7 +18,7 @@ async fn release_plz_detects_edited_readme_cargo_toml_field() {
     let gitea_release = context.gitea.get_gitea_release(expected_tag).await;
     assert_eq!(gitea_release.name, expected_tag);
 
-    move_readme(&context);
+    move_readme(&context, "move readme");
 
     context.run_release_pr().success();
     context.merge_release_pr().await;
@@ -35,7 +35,46 @@ async fn release_plz_detects_edited_readme_cargo_toml_field() {
     .assert_eq(&gitea_release.body);
 }
 
-fn move_readme(context: &TestContext) {
+#[tokio::test]
+#[ignore = "This test fails in CI, but works locally on MacOS. TODO: fix this."]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_plz_honors_features_always_increment_minor_flag() {
+    let context = TestContext::new().await;
+
+    let config = r#"
+    [workspace]
+    features_always_increment_minor = true
+    "#;
+    context.write_release_plz_toml(config);
+
+    context.run_release_pr().success();
+    context.merge_release_pr().await;
+
+    let expected_tag = "v0.1.0";
+
+    context.run_release().success();
+
+    let gitea_release = context.gitea.get_gitea_release(expected_tag).await;
+    assert_eq!(gitea_release.name, expected_tag);
+
+    move_readme(&context, "feat: move readme");
+
+    context.run_release_pr().success();
+    context.merge_release_pr().await;
+
+    let expected_tag = "v0.2.0";
+
+    context.run_release().success();
+
+    let gitea_release = context.gitea.get_gitea_release(expected_tag).await;
+    assert_eq!(gitea_release.name, expected_tag);
+    expect_test::expect![[r#"
+        ### Added
+        - move readme"#]]
+    .assert_eq(&gitea_release.body);
+}
+
+fn move_readme(context: &TestContext, message: &str) {
     let readme = "README.md";
     let new_readme = format!("NEW_{readme}");
     let old_readme_path = context.repo_dir().join(readme);
@@ -47,6 +86,6 @@ fn move_readme(context: &TestContext) {
     cargo_toml.data["package"]["readme"] = toml_edit::value(new_readme);
     cargo_toml.write().unwrap();
 
-    context.repo.add_all_and_commit("move readme").unwrap();
+    context.repo.add_all_and_commit(message).unwrap();
     context.repo.git(&["push"]).unwrap();
 }
