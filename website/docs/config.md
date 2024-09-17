@@ -186,6 +186,13 @@ This field can be overridden in the [`[package]`](#the-package-section) section.
 - If `true`, feature commits will always bump the minor version, even in 0.x releases.
 - If `false` (default), feature commits will only bump the minor version starting with 1.x releases.
 
+:::warning
+This option violates the Cargo SemVer
+[rules](https://doc.rust-lang.org/cargo/reference/semver.html) because the transition from
+`0.x` to `0.(x+1)` is used for breaking changes.
+Instead, new features for `0.x` should bump the version from `0.x.y` to `0.x.(y+1)`.
+:::
+
 #### The `git_release_enable` field
 
 - If `true`, release-plz creates a git release for the created tag. *(Default)*.
