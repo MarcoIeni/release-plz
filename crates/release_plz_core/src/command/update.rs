@@ -360,6 +360,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
                     version: Version::parse("0.2.0").unwrap(),
                     changelog: Some(changelog.clone()),
                     semver_check: SemverCheck::Compatible,
+                    commits: vec![],
                 },
             ),
             (
@@ -368,6 +369,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
                     version: Version::parse("0.2.0").unwrap(),
                     changelog: Some(changelog),
                     semver_check: SemverCheck::Compatible,
+                    commits: vec![],
                 },
             ),
         ]);
@@ -435,6 +437,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
                 version: Version::parse("0.2.0").unwrap(),
                 changelog: Some(changelog),
                 semver_check: SemverCheck::Compatible,
+                commits: vec![],
             },
         )]);
         expect_test::expect![[r#"

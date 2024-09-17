@@ -48,8 +48,8 @@ pub fn last_release_from_str(changelog: &str) -> anyhow::Result<Option<Changelog
 }
 
 pub struct ChangelogRelease {
-    title: String,
-    notes: String,
+    pub title: String,
+    pub notes: String,
 }
 
 impl ChangelogRelease {

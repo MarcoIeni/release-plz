@@ -432,14 +432,27 @@ pub struct UpdateResult {
     pub version: Version,
     pub changelog: Option<String>,
     pub semver_check: SemverCheck,
+    pub commits: Vec<Commit>,
 }
 
 impl UpdateResult {
     pub fn last_changes(&self) -> anyhow::Result<Option<ChangelogRelease>> {
         match &self.changelog {
             Some(c) => changelog_parser::last_release_from_str(c),
-            None => Ok(None),
+            None => Ok(Some(ChangelogRelease {
+                title: self.version.to_string(),
+                notes: self.commit_list(),
+            })),
         }
+    }
+
+    fn commit_list(&self) -> String {
+        let lines: Vec<_> = self
+            .commits
+            .iter()
+            .map(|c| format!("- {}", c.message.clone()))
+            .collect();
+        lines.join("\n")
     }
 }
 
@@ -774,42 +787,12 @@ impl Updater<'_> {
 
         let pr_link = repo_url.map(|r| r.git_pr_link());
 
-        lazy_static::lazy_static! {
-            // match PR/issue numbers, e.g. `#123`
-            static ref PR_RE: Regex = Regex::new("#(\\d+)").unwrap();
-        }
+        let commits = get_commits(commits, pr_link.as_deref());
         let changelog = {
             let cfg = self.req.get_package_config(package.name.as_str());
             let changelog_req = cfg
                 .should_update_changelog()
                 .then_some(self.req.changelog_req.clone());
-            let commits: Vec<Commit> = commits
-                .into_iter()
-                // If not conventional commit, only consider the first line of the commit message.
-                .filter_map(|c| {
-                    if c.is_conventional() {
-                        Some(c)
-                    } else {
-                        c.message.lines().next().map(|line| Commit {
-                            message: line.to_string(),
-                            ..c
-                        })
-                    }
-                })
-                // replace #123 with [#123](https://link_to_pr).
-                // If the number refers to an issue, GitHub redirects the PR link to the issue link.
-                .map(|c| {
-                    if let Some(pr_link) = &pr_link {
-                        let result = PR_RE.replace_all(&c.message, format!("[#$1]({pr_link}/$1)"));
-                        Commit {
-                            message: result.to_string(),
-                            ..c
-                        }
-                    } else {
-                        c
-                    }
-                })
-                .collect();
             changelog_req
                 .map(|r| {
                     get_changelog(
@@ -829,6 +812,7 @@ impl Updater<'_> {
             version,
             changelog,
             semver_check,
+            commits,
         })
     }
 
@@ -1073,6 +1057,42 @@ impl Updater<'_> {
         };
         Ok(next_version)
     }
+}
+
+fn get_commits(commits: Vec<Commit>, pr_link: Option<&str>) -> Vec<Commit> {
+    lazy_static::lazy_static! {
+        // match PR/issue numbers, e.g. `#123`
+        static ref PR_RE: Regex = Regex::new("#(\\d+)").unwrap();
+    }
+
+    let commits: Vec<Commit> = commits
+        .into_iter()
+        // If not conventional commit, only consider the first line of the commit message.
+        .filter_map(|c| {
+            if c.is_conventional() {
+                Some(c)
+            } else {
+                c.message.lines().next().map(|line| Commit {
+                    message: line.to_string(),
+                    ..c
+                })
+            }
+        })
+        // replace #123 with [#123](https://link_to_pr).
+        // If the number refers to an issue, GitHub redirects the PR link to the issue link.
+        .map(|c| {
+            if let Some(pr_link) = &pr_link {
+                let result = PR_RE.replace_all(&c.message, format!("[#$1]({pr_link}/$1)"));
+                Commit {
+                    message: result.to_string(),
+                    ..c
+                }
+            } else {
+                c
+            }
+        })
+        .collect();
+    commits
 }
 
 struct OldChangelogs {
