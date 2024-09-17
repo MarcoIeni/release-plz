@@ -41,6 +41,7 @@
         "changelog_path": null,
         "changelog_update": null,
         "dependencies_update": null,
+        "features_always_increment_minor": null,
         "git_release_body": null,
         "git_release_draft": null,
         "git_release_enable": null,
@@ -280,6 +281,14 @@
             "null"
           ]
         },
+        "features_always_increment_minor": {
+          "title": "Features Always Increment Minor Version",
+          "description": "- If `true`, feature commits will always bump the minor version, even in 0.x releases. - If `false` (default), feature commits will only bump the minor version starting with 1.x releases.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
         "git_release_body": {
           "title": "Git Release Body",
           "description": "Tera template of the git release body created by release-plz.",
@@ -513,6 +522,14 @@
         "dependencies_update": {
           "title": "Dependencies Update",
           "description": "- If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`. - If `false` or [`Option::None`], only update the workspace packages by running `cargo update --workspace`.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "features_always_increment_minor": {
+          "title": "Features Always Increment Minor Version",
+          "description": "- If `true`, feature commits will always bump the minor version, even in 0.x releases. - If `false` (default), feature commits will only bump the minor version starting with 1.x releases.",
           "type": [
             "boolean",
             "null"

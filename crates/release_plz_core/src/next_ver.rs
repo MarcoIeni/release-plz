@@ -25,7 +25,7 @@ use cargo_metadata::{
 use cargo_utils::{canonical_local_manifest, upgrade_requirement, LocalManifest, CARGO_TOML};
 use chrono::NaiveDate;
 use git_cmd::{self, Repo};
-use next_version::NextVersion;
+use next_version::{NextVersion, VersionUpdater};
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
 use std::path::PathBuf;
@@ -136,6 +136,9 @@ pub struct UpdateConfig {
     pub changelog_update: bool,
     /// High-level toggle to process this package or ignore it.
     pub release: bool,
+    /// - If `true`, feature commits will always bump the minor version, even in 0.x releases.
+    /// - If `false` (default), feature commits will only bump the minor version starting with 1.x releases.
+    pub features_always_increment_minor: bool,
     /// Template for the git tag created by release-plz.
     pub tag_name_template: Option<String>,
 }
@@ -167,6 +170,7 @@ impl Default for UpdateConfig {
             semver_check: true,
             changelog_update: true,
             release: true,
+            features_always_increment_minor: false,
             tag_name_template: None,
             changelog_path: None,
         }
@@ -181,11 +185,26 @@ impl UpdateConfig {
         }
     }
 
+    pub fn with_features_always_increment_minor(
+        self,
+        features_always_increment_minor: bool,
+    ) -> Self {
+        Self {
+            features_always_increment_minor,
+            ..self
+        }
+    }
+
     pub fn with_changelog_update(self, changelog_update: bool) -> Self {
         Self {
             changelog_update,
             ..self
         }
+    }
+
+    pub fn version_updater(&self) -> VersionUpdater {
+        VersionUpdater::default()
+            .with_features_always_increment_minor(self.features_always_increment_minor)
     }
 }
 
@@ -456,7 +475,7 @@ impl Updater<'_> {
             .map(|(p, _)| p.name.clone())
             .collect();
 
-        let new_workspace_version = new_workspace_version(
+        let new_workspace_version = self.new_workspace_version(
             local_manifest_path,
             &packages_diffs,
             &workspace_version_pkgs,
@@ -523,8 +542,9 @@ impl Updater<'_> {
 
         for (pkg, diff) in packages_diffs {
             let pkg_config = self.req.get_package_config(&pkg.name);
+            let version_updater = pkg_config.generic.version_updater();
             if let Some(version_group) = pkg_config.version_group {
-                let next_pkg_ver = pkg.version.next_from_diff(diff);
+                let next_pkg_ver = pkg.version.next_from_diff(diff, version_updater);
                 match version_groups.entry(version_group.clone()) {
                     std::collections::hash_map::Entry::Occupied(v) => {
                         // maximum version of the group until now
@@ -541,6 +561,37 @@ impl Updater<'_> {
         }
 
         version_groups
+    }
+
+    fn new_workspace_version(
+        &self,
+        local_manifest_path: &Utf8Path,
+        packages_diffs: &[(&Package, Diff)],
+        workspace_version_pkgs: &HashSet<String>,
+    ) -> anyhow::Result<Option<Version>> {
+        let workspace_version = {
+            let local_manifest = LocalManifest::try_new(local_manifest_path)?;
+            local_manifest.get_workspace_version()
+        };
+        let new_workspace_version = workspace_version_pkgs
+            .iter()
+            .filter_map(|workspace_package| {
+                for (p, diff) in packages_diffs {
+                    if workspace_package == &p.name {
+                        let pkg_config = self.req.get_package_config(&p.name);
+                        let version_updater = pkg_config.generic.version_updater();
+                        let next = p.version.next_from_diff(diff, version_updater);
+                        if let Some(workspace_version) = &workspace_version {
+                            if &next >= workspace_version {
+                                return Some(next);
+                            }
+                        }
+                    }
+                }
+                None
+            })
+            .max();
+        Ok(new_workspace_version)
     }
 
     fn get_packages_diffs(
@@ -1015,7 +1066,8 @@ impl Updater<'_> {
                         })?
                         .clone()
                 } else {
-                    p.version.next_from_diff(diff)
+                    let version_updater = pkg_config.generic.version_updater();
+                    p.version.next_from_diff(diff, version_updater)
                 }
             }
         };
@@ -1044,34 +1096,6 @@ impl OldChangelogs {
     fn insert(&mut self, changelog_path: Utf8PathBuf, changelog: String) {
         self.old_changelogs.insert(changelog_path, changelog);
     }
-}
-
-fn new_workspace_version(
-    local_manifest_path: &Utf8Path,
-    packages_diffs: &[(&Package, Diff)],
-    workspace_version_pkgs: &HashSet<String>,
-) -> anyhow::Result<Option<Version>> {
-    let workspace_version = {
-        let local_manifest = LocalManifest::try_new(local_manifest_path)?;
-        local_manifest.get_workspace_version()
-    };
-    let new_workspace_version = workspace_version_pkgs
-        .iter()
-        .filter_map(|workspace_package| {
-            for (p, diff) in packages_diffs {
-                if workspace_package == &p.name {
-                    let next = p.version.next_from_diff(diff);
-                    if let Some(workspace_version) = &workspace_version {
-                        if &next >= workspace_version {
-                            return Some(next);
-                        }
-                    }
-                }
-            }
-            None
-        })
-        .max();
-    Ok(new_workspace_version)
 }
 
 fn get_changelog(
