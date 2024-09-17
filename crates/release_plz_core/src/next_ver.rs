@@ -518,8 +518,7 @@ impl Updater<'_> {
                             })?
                             .clone()
                     } else {
-                        p.version
-                            .next_from_diff_with_updater(&diff, version_updater)
+                        p.version.next_from_diff(&diff, version_updater)
                     }
                 }
             };
@@ -566,9 +565,7 @@ impl Updater<'_> {
             let pkg_config = self.req.get_package_config(&pkg.name);
             let version_updater = pkg_config.generic.version_updater();
             if let Some(version_group) = pkg_config.version_group {
-                let next_pkg_ver = pkg
-                    .version
-                    .next_from_diff_with_updater(diff, version_updater);
+                let next_pkg_ver = pkg.version.next_from_diff(diff, version_updater);
                 match version_groups.entry(version_group.clone()) {
                     std::collections::hash_map::Entry::Occupied(v) => {
                         // maximum version of the group until now
@@ -604,7 +601,7 @@ impl Updater<'_> {
                     if workspace_package == &p.name {
                         let pkg_config = self.req.get_package_config(&p.name);
                         let version_updater = pkg_config.generic.version_updater();
-                        let next = p.version.next_from_diff_with_updater(diff, version_updater);
+                        let next = p.version.next_from_diff(diff, version_updater);
                         if let Some(workspace_version) = &workspace_version {
                             if &next >= workspace_version {
                                 return Some(next);
