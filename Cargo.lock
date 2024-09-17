@@ -548,7 +548,7 @@ dependencies = [
 
 [[package]]
 name = "cargo_utils"
-version = "0.1.54"
+version = "0.1.55"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -564,9 +564,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.1.19"
+version = "1.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d74707dde2ba56f86ae90effb3b43ddd369504387e718014de010cec7959800"
+checksum = "45bcde016d64c21da4be18b655631e5ab6d3107607e71a73a9f53eb48aae23fb"
 dependencies = [
  "jobserver",
  "libc",
@@ -4070,7 +4070,7 @@ checksum = "7a66a03ae7c801facd77a29370b4faec201768915ac14a721ba36f20bc9c209b"
 
 [[package]]
 name = "release-plz"
-version = "0.3.90"
+version = "0.3.91"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -4110,7 +4110,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.26.1"
+version = "0.26.2"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -5358,9 +5358,9 @@ checksum = "e91b56cd4cadaeb79bbf1a5645f6b4f8dc5bde8834ad5894a8db35fda9efa1fe"
 
 [[package]]
 name = "unicode-normalization"
-version = "0.1.23"
+version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a56d1686db2308d901306f92a263857ef59ea39678a5458e7cb17f01415101f5"
+checksum = "5033c97c4262335cded6d6fc3e5c18ab755e1a3dc96376350f3d8e9f009ad956"
 dependencies = [
  "tinyvec",
 ]
