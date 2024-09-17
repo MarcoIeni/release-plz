@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.55](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.54...cargo_utils-v0.1.55) - 2024-09-17
+
+### Added
+
+- support local dependencies in workspace manifest ([#1695](https://github.com/MarcoIeni/release-plz/pull/1695))
+
 ## [0.1.54](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.53...cargo_utils-v0.1.54) - 2024-08-25
 
 ### Other
