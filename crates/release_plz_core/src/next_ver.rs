@@ -498,6 +498,7 @@ impl Updater<'_> {
                     .updates_mut()
                     .push((p.clone(), update_result));
             } else if diff.is_version_published {
+                // We need to update this package only if one of its dependencies has changed.
                 packages_to_check_for_deps.push(p);
             }
         }
@@ -615,6 +616,14 @@ impl Updater<'_> {
     }
 
     /// Return the update to apply to the packages that depend on the `changed_packages`.
+    ///
+    /// ## Args
+    ///
+    /// - `packages_to_check_for_deps`: The packages that might need to be updated.
+    ///   We update them if they depend on any of the `changed_packages`.
+    ///   If they don't depend on any of the `changed_packages`, they are not updated
+    ///   because they don't contain any new commits.
+    /// - `changed_packages`: The packages that have changed (i.e. contains commits).
     fn dependent_packages_update(
         &self,
         packages_to_check_for_deps: &[&Package],
