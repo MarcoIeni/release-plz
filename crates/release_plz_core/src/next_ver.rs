@@ -489,40 +489,18 @@ impl Updater<'_> {
 
         let mut old_changelogs = OldChangelogs::new();
         for (p, diff) in packages_diffs {
-            let pkg_config = self.req.get_package_config(&p.name);
             if let Some(ref release_commits_regex) = self.req.release_commits {
                 if !diff.any_commit_matches(release_commits_regex) {
                     continue;
                 };
             }
-            // Configure version updater
-            let update_config = self.req.packages_config.get(&p.name);
-            let version_updater = update_config.generic.version_updater();
-            // Calculate next version without taking into account workspace version
-            let next_version = match &new_workspace_version {
-                Some(max_workspace_version) if workspace_version_pkgs.contains(p.name.as_str()) => {
-                    debug!(
-                        "next version of {} is workspace version: {max_workspace_version}",
-                        p.name
-                    );
-                    max_workspace_version.clone()
-                }
-                _ => {
-                    if let Some(version_group) = pkg_config.version_group {
-                        version_groups
-                            .get(&version_group)
-                            .with_context(|| {
-                                format!(
-                                    "failed to retrieve version for version group {version_group}"
-                                )
-                            })?
-                            .clone()
-                    } else {
-                        p.version.next_from_diff(&diff, version_updater)
-                    }
-                }
-            };
-
+            let next_version = self.get_next_version(
+                new_workspace_version.as_ref(),
+                p,
+                &workspace_version_pkgs,
+                &version_groups,
+                &diff,
+            )?;
             debug!("diff: {:?}, next_version: {}", &diff, next_version);
             let current_version = p.version.clone();
             if next_version != current_version || !diff.registry_package_exists {
@@ -542,6 +520,7 @@ impl Updater<'_> {
                     .updates_mut()
                     .push((p.clone(), update_result));
             } else if diff.is_version_published {
+                // We need to update this package only if one of its dependencies has changed.
                 packages_to_check_for_deps.push(p);
             }
         }
@@ -552,7 +531,7 @@ impl Updater<'_> {
             .map(|(p, u)| (p, &u.version))
             .collect();
         let dependent_packages =
-            self.dependent_packages(&packages_to_check_for_deps, &changed_packages)?;
+            self.dependent_packages_update(&packages_to_check_for_deps, &changed_packages)?;
         packages_to_update.updates_mut().extend(dependent_packages);
         Ok(packages_to_update)
     }
@@ -690,8 +669,16 @@ impl Updater<'_> {
         Ok(packages_diffs)
     }
 
-    /// Return the packages that depend on the `changed_packages`.
-    fn dependent_packages(
+    /// Return the update to apply to the packages that depend on the `changed_packages`.
+    ///
+    /// ## Args
+    ///
+    /// - `packages_to_check_for_deps`: The packages that might need to be updated.
+    ///   We update them if they depend on any of the `changed_packages`.
+    ///   If they don't depend on any of the `changed_packages`, they are not updated
+    ///   because they don't contain any new commits.
+    /// - `changed_packages`: The packages that have changed (i.e. contains commits).
+    fn dependent_packages_update(
         &self,
         packages_to_check_for_deps: &[&Package],
         changed_packages: &[(&Package, &Version)],
@@ -1048,6 +1035,40 @@ impl Updater<'_> {
             Ok(None)
         }
     }
+
+    fn get_next_version(
+        &self,
+        new_workspace_version: Option<&Version>,
+        p: &Package,
+        workspace_version_pkgs: &HashSet<String>,
+        version_groups: &HashMap<String, Version>,
+        diff: &Diff,
+    ) -> anyhow::Result<Version> {
+        let pkg_config = self.req.get_package_config(&p.name);
+        let next_version = match new_workspace_version {
+            Some(max_workspace_version) if workspace_version_pkgs.contains(p.name.as_str()) => {
+                debug!(
+                    "next version of {} is workspace version: {max_workspace_version}",
+                    p.name
+                );
+                max_workspace_version.clone()
+            }
+            _ => {
+                if let Some(version_group) = pkg_config.version_group {
+                    version_groups
+                        .get(&version_group)
+                        .with_context(|| {
+                            format!("failed to retrieve version for version group {version_group}")
+                        })?
+                        .clone()
+                } else {
+                    let version_updater = pkg_config.generic.version_updater();
+                    p.version.next_from_diff(diff, version_updater)
+                }
+            }
+        };
+        Ok(next_version)
+    }
 }
 
 struct OldChangelogs {
@@ -1247,20 +1268,21 @@ impl PackageDependencies for Package {
         &self,
         updated_packages: &'a [(&Package, &Version)],
     ) -> anyhow::Result<Vec<&'a Package>> {
+        // Look into the toml manifest because `cargo_metadata` doesn't distinguish between
+        // empty `version` in Cargo.toml and `version = "*"`
         let mut package_manifest = LocalManifest::try_new(&self.manifest_path)?;
         let package_dir = manifest_dir(&package_manifest.path)?.to_owned();
 
         let mut deps_to_update: Vec<&Package> = vec![];
         for (p, next_ver) in updated_packages {
             let canonical_path = p.canonical_path()?;
+            // Find the dependencies that have the same path as the updated package.
             let matching_deps = package_manifest
                 .get_dependency_tables_mut()
-                .flat_map(|t| t.iter().filter_map(|(_, d)| d.as_table_like()))
+                .flat_map(|t| t.iter().filter_map(|(_name, d)| d.as_table_like()))
+                // Exclude path dependencies without `version`.
                 .filter(|d| d.contains_key("version"))
-                .filter(|d| {
-                    canonicalized_path(*d, &package_dir)
-                        .is_some_and(|dep_path| dep_path == canonical_path)
-                });
+                .filter(|d| is_dependency_referred_to_package(*d, &package_dir, &canonical_path));
 
             for dep in matching_deps {
                 if should_update_dependency(dep, next_ver)? {
@@ -1273,11 +1295,30 @@ impl PackageDependencies for Package {
     }
 }
 
+/// Check if `dependency` (contained in the Cargo.toml at `dependency_package_dir`) refers
+/// to the package at `package_dir`.
+/// I.e. if the absolute path of the dependency is the same as the absolute path of the package.
+pub(crate) fn is_dependency_referred_to_package(
+    dependency: &dyn TableLike,
+    package_dir: &Utf8Path,
+    dependency_package_dir: &Utf8Path,
+) -> bool {
+    canonicalized_path(dependency, package_dir)
+        .is_some_and(|dep_path| dep_path == dependency_package_dir)
+}
+
+/// Dependencies are expressed as relative paths in the Cargo.toml file.
+/// This function returns the absolute path of the dependency.
+///
+/// ## Args
+///
+/// - `package_dir`: directory containing the Cargo.toml where the dependency is listed
+/// - `dependency`: entry of the Cargo.toml
 fn canonicalized_path(dependency: &dyn TableLike, package_dir: &Utf8Path) -> Option<PathBuf> {
     dependency
         .get("path")
         .and_then(|i| i.as_str())
-        .and_then(|relpath| fs_err::canonicalize(package_dir.join(relpath)).ok())
+        .and_then(|relpath| dunce::canonicalize(package_dir.join(relpath)).ok())
 }
 
 fn should_update_dependency(dep: &dyn TableLike, next_ver: &Version) -> anyhow::Result<bool> {

@@ -303,16 +303,7 @@ fn update_dependencies(
             .get_dependency_tables_mut()
             .flat_map(|t| t.iter_mut().filter_map(|(_, d)| d.as_table_like_mut()))
             .filter(|d| d.contains_key("version"))
-            .filter(|d| {
-                let dependency_path = d
-                    .get("path")
-                    .and_then(|i| i.as_str())
-                    .and_then(|relpath| fs_err::canonicalize(manifest_dir.join(relpath)).ok());
-                match dependency_path {
-                    Some(dep_path) => dep_path == package_path,
-                    None => false,
-                }
-            });
+            .filter(|d| crate::is_dependency_referred_to_package(*d, &manifest_dir, package_path));
 
         for dep in deps_to_update {
             let old_req = dep
