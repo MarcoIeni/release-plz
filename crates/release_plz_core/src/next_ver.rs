@@ -479,7 +479,10 @@ impl Updater<'_> {
                 &version_groups,
                 &diff,
             )?;
-            debug!("diff: {:?}, next_version: {}", &diff, next_version);
+            debug!(
+                "package: {}, diff: {diff:?}, next_version: {next_version}",
+                p.name,
+            );
             let current_version = p.version.clone();
             if next_version != current_version || !diff.registry_package_exists {
                 info!(
@@ -629,11 +632,15 @@ impl Updater<'_> {
         packages_to_check_for_deps: &[&Package],
         changed_packages: &[(&Package, &Version)],
     ) -> anyhow::Result<PackagesToUpdate> {
+        let workspace_manifest = LocalManifest::try_new(self.req.local_manifest())?;
+        let workspace_dependencies = workspace_manifest.get_workspace_dependency_table();
+
         let mut old_changelogs = OldChangelogs::new();
+        let workspace_dir = manifest_dir(self.req.local_manifest())?;
         let packages_to_update = packages_to_check_for_deps
             .iter()
             .filter_map(|p| {
-                p.dependencies_to_update(changed_packages)
+                p.dependencies_to_update(changed_packages, workspace_dependencies, workspace_dir)
                     .ok()
                     .filter(|deps| !deps.is_empty())
                     .map(|deps| (p, deps))
@@ -1233,6 +1240,8 @@ trait PackageDependencies {
     fn dependencies_to_update<'a>(
         &self,
         updated_packages: &'a [(&Package, &Version)],
+        workspace_dependencies: Option<&dyn TableLike>,
+        workspace_dir: &Utf8Path,
     ) -> anyhow::Result<Vec<&'a Package>>;
 }
 
@@ -1240,6 +1249,8 @@ impl PackageDependencies for Package {
     fn dependencies_to_update<'a>(
         &self,
         updated_packages: &'a [(&Package, &Version)],
+        workspace_dependencies: Option<&dyn TableLike>,
+        workspace_dir: &Utf8Path,
     ) -> anyhow::Result<Vec<&'a Package>> {
         // Look into the toml manifest because `cargo_metadata` doesn't distinguish between
         // empty `version` in Cargo.toml and `version = "*"`
@@ -1252,10 +1263,33 @@ impl PackageDependencies for Package {
             // Find the dependencies that have the same path as the updated package.
             let matching_deps = package_manifest
                 .get_dependency_tables_mut()
-                .flat_map(|t| t.iter().filter_map(|(_name, d)| d.as_table_like()))
+                .flat_map(|t| {
+                    t.iter().filter_map(|(name, d)| {
+                        d.as_table_like().map(|d| {
+                            match workspace_dependencies {
+                                Some(workspace_dependencies) if is_workspace_dependency(d) => {
+                                    // Replace the dependency of the package of the Cargo.toml
+                                    // with the dependency of the workspace.
+                                    let dep = workspace_dependencies
+                                        .iter()
+                                        .find(|(n, _)| n == &name)
+                                        .and_then(|(_, d)| d.as_table_like())
+                                        .unwrap_or(d);
+                                    // Return also the path of the Cargo.toml so that we can resolve the
+                                    // relative path of the dependency later.
+                                    (workspace_dir, dep)
+                                }
+                                _ => (package_dir.as_path(), d),
+                            }
+                        })
+                    })
+                })
                 // Exclude path dependencies without `version`.
-                .filter(|d| d.contains_key("version"))
-                .filter(|d| is_dependency_referred_to_package(*d, &package_dir, &canonical_path));
+                .filter(|(_toml_base_path, d)| d.contains_key("version"))
+                .filter(|(toml_base_path, d)| {
+                    is_dependency_referred_to_package(*d, toml_base_path, &canonical_path)
+                })
+                .map(|(_, dep)| dep);
 
             for dep in matching_deps {
                 if should_update_dependency(dep, next_ver)? {
@@ -1266,6 +1300,14 @@ impl PackageDependencies for Package {
 
         Ok(deps_to_update)
     }
+}
+
+/// Check if the dependency is in the form of `dep_name.workspace = true`.
+fn is_workspace_dependency(d: &dyn TableLike) -> bool {
+    d.get("workspace")
+        .is_some_and(|w| w.as_bool() == Some(true))
+        && !d.contains_key("version")
+        && !d.contains_key("path")
 }
 
 /// Check if `dependency` (contained in the Cargo.toml at `dependency_package_dir`) refers

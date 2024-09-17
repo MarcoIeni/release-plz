@@ -129,6 +129,14 @@ impl LocalManifest {
             .as_table_like_mut()
     }
 
+    /// Iterates over the `[workspace.dependencies]`.
+    pub fn get_workspace_dependency_table(&self) -> Option<&dyn toml_edit::TableLike> {
+        self.data
+            .get("workspace")?
+            .get("dependencies")?
+            .as_table_like()
+    }
+
     /// Override the manifest's version
     pub fn set_package_version(&mut self, version: &Version) {
         self.data["package"]["version"] = toml_edit::value(version.to_string());
