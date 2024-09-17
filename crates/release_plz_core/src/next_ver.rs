@@ -1268,8 +1268,8 @@ impl PackageDependencies for Package {
                         d.as_table_like().map(|d| {
                             match workspace_dependencies {
                                 Some(workspace_dependencies) if is_workspace_dependency(d) => {
-                                    // Replace the dependency of the package of the Cargo.toml
-                                    // with the dependency of the workspace.
+                                    // The dependency of the package Cargo.toml is inherited from the workspace,
+                                    // so we find the dependency of the workspace and use it instead.
                                     let dep = workspace_dependencies
                                         .iter()
                                         .find(|(n, _)| n == &name)
