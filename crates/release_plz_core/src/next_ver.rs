@@ -1255,7 +1255,6 @@ impl PackageDependencies for Package {
                 .flat_map(|t| t.iter().filter_map(|(_name, d)| d.as_table_like()))
                 // Exclude path dependencies without `version`.
                 .filter(|d| d.contains_key("version"))
-                // Consider only the dependencies that have the same path as the updated package.
                 .filter(|d| is_dependency_referred_to_package(*d, &package_dir, &canonical_path));
 
             for dep in matching_deps {
@@ -1271,6 +1270,7 @@ impl PackageDependencies for Package {
 
 /// Check if `dependency` (contained in the Cargo.toml at `dependency_package_dir`) refers
 /// to the package at `package_dir`.
+/// I.e. if the absolute path of the dependency is the same as the absolute path of the package.
 pub(crate) fn is_dependency_referred_to_package(
     dependency: &dyn TableLike,
     package_dir: &Utf8Path,
