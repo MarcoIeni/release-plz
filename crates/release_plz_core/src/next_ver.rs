@@ -203,11 +203,8 @@ impl UpdateConfig {
     }
 
     pub fn version_updater(&self) -> VersionUpdater {
-        let mut vu = VersionUpdater::default();
-        if self.features_always_increment_minor {
-            vu = vu.with_features_always_increment_minor(true);
-        }
-        vu
+        VersionUpdater::default()
+            .with_features_always_increment_minor(self.features_always_increment_minor)
     }
 }
 
