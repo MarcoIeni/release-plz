@@ -105,6 +105,22 @@ impl Repo {
         Ok(changed_files)
     }
 
+    pub fn changes_current_commit(
+        &self,
+        filter: impl FnMut(&&str) -> bool,
+    ) -> anyhow::Result<Vec<String>> {
+        let output = self.git(&[
+            "show",
+            "--oneline",
+            "--name-only",
+            "--pretty=format:''",
+            &self.current_commit_hash()?,
+            "-r",
+        ])?;
+        let changed_files = changed_files(&output, filter);
+        Ok(changed_files)
+    }
+
     pub fn changes_except_typechanges(&self) -> anyhow::Result<Vec<String>> {
         self.changes(|line| !line.starts_with("T "))
     }

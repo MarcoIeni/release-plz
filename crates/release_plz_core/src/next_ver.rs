@@ -599,6 +599,27 @@ impl Updater<'_> {
         registry_packages: &PackagesCollection,
         repository: &Repo,
     ) -> anyhow::Result<Vec<(&Package, Diff)>> {
+        // Get the source files for each package and save them to a hashmap
+        // This ignores all files in .gitignore ore in the package.exclude field in the Cargo.toml
+        let path = repository.directory();
+        let context = cargo::util::context::GlobalContext::default()?;
+        let ws = cargo::core::Workspace::new(&path.as_std_path().join("Cargo.toml"), &context)?;
+
+        let mut sources = HashMap::new();
+        for pkg in ws.members() {
+            let context = ws.gctx();
+            let mut src =
+                cargo::sources::PathSource::new(pkg.root(), pkg.package_id().source_id(), context);
+            src.load().unwrap();
+
+            let src_files: Vec<String> = src
+                .list_files(pkg)?
+                .iter()
+                .map(|f| f.strip_prefix(path).unwrap().display().to_string())
+                .collect();
+            sources.insert(pkg.name().to_string(), src_files);
+        }
+
         // Store diff for each package. This operation is not thread safe, so we do it in one
         // package at a time.
         let packages_diffs_res: anyhow::Result<Vec<(&Package, Diff)>> = self
@@ -607,7 +628,12 @@ impl Updater<'_> {
             .iter()
             .map(|&p| {
                 let diff = self
-                    .get_diff(p, registry_packages, repository)
+                    .get_diff(
+                        p,
+                        registry_packages,
+                        repository,
+                        sources.entry(p.name.clone()).or_default(),
+                    )
                     .context("failed to retrieve difference between packages")?;
                 Ok((p, diff))
             })
@@ -842,6 +868,7 @@ impl Updater<'_> {
         package: &Package,
         registry_packages: &PackagesCollection,
         repository: &Repo,
+        sources: &[String],
     ) -> anyhow::Result<Diff> {
         let package_path = get_package_path(package, repository, self.project.root())
             .context("failed to determine package path")?;
@@ -884,6 +911,7 @@ impl Updater<'_> {
             repository,
             tag_commit.as_deref(),
             &mut diff,
+            sources,
         )?;
         repository
             .checkout_head()
@@ -891,6 +919,7 @@ impl Updater<'_> {
         Ok(diff)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn get_package_diff(
         &self,
         package_path: &Utf8Path,
@@ -899,12 +928,15 @@ impl Updater<'_> {
         repository: &Repo,
         tag_commit: Option<&str>,
         diff: &mut Diff,
+        sources: &[String],
     ) -> anyhow::Result<()> {
         let pathbufs_to_check = pathbufs_to_check(package_path, package);
         let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
         loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
+            let changes = repository.changes_current_commit(|_| true)?;
+
             if let Some(registry_package) = registry_package {
                 debug!(
                     "package {} found in cargo registry",
@@ -944,7 +976,7 @@ impl Updater<'_> {
                     info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
                     diff.set_version_unpublished();
                     break;
-                } else {
+                } else if sources.iter().any(|s| changes.contains(s)) {
                     debug!("packages are different");
                     // At this point of the git history, the two packages are different,
                     // which means that this commit is not present in the published package.
@@ -953,7 +985,7 @@ impl Updater<'_> {
                         current_commit_message.clone(),
                     ));
                 }
-            } else {
+            } else if sources.iter().any(|s| changes.contains(s)) {
                 diff.commits.push(Commit::new(
                     current_commit_hash,
                     current_commit_message.clone(),
