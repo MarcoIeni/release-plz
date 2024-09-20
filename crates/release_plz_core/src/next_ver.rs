@@ -1,4 +1,5 @@
 use crate::diff::Commit;
+use crate::run_cargo_package;
 use crate::{
     changelog_filler::{fill_commit, get_required_info},
     changelog_parser::{self, ChangelogRelease},
@@ -599,27 +600,6 @@ impl Updater<'_> {
         registry_packages: &PackagesCollection,
         repository: &Repo,
     ) -> anyhow::Result<Vec<(&Package, Diff)>> {
-        // Get the source files for each package and save them to a hashmap
-        // This ignores all files in .gitignore ore in the package.exclude field in the Cargo.toml
-        let path = repository.directory();
-        let context = cargo::util::context::GlobalContext::default()?;
-        let ws = cargo::core::Workspace::new(&path.as_std_path().join("Cargo.toml"), &context)?;
-
-        let mut sources = HashMap::new();
-        for pkg in ws.members() {
-            let context = ws.gctx();
-            let mut src =
-                cargo::sources::PathSource::new(pkg.root(), pkg.package_id().source_id(), context);
-            src.load().unwrap();
-
-            let src_files: Vec<String> = src
-                .list_files(pkg)?
-                .iter()
-                .map(|f| f.strip_prefix(path).unwrap().display().to_string())
-                .collect();
-            sources.insert(pkg.name().to_string(), src_files);
-        }
-
         // Store diff for each package. This operation is not thread safe, so we do it in one
         // package at a time.
         let packages_diffs_res: anyhow::Result<Vec<(&Package, Diff)>> = self
@@ -628,12 +608,7 @@ impl Updater<'_> {
             .iter()
             .map(|&p| {
                 let diff = self
-                    .get_diff(
-                        p,
-                        registry_packages,
-                        repository,
-                        sources.entry(p.name.clone()).or_default(),
-                    )
+                    .get_diff(p, registry_packages, repository)
                     .context("failed to retrieve difference between packages")?;
                 Ok((p, diff))
             })
@@ -868,7 +843,6 @@ impl Updater<'_> {
         package: &Package,
         registry_packages: &PackagesCollection,
         repository: &Repo,
-        sources: &[String],
     ) -> anyhow::Result<Diff> {
         let package_path = get_package_path(package, repository, self.project.root())
             .context("failed to determine package path")?;
@@ -911,7 +885,6 @@ impl Updater<'_> {
             repository,
             tag_commit.as_deref(),
             &mut diff,
-            sources,
         )?;
         repository
             .checkout_head()
@@ -919,7 +892,6 @@ impl Updater<'_> {
         Ok(diff)
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn get_package_diff(
         &self,
         package_path: &Utf8Path,
@@ -928,8 +900,20 @@ impl Updater<'_> {
         repository: &Repo,
         tag_commit: Option<&str>,
         diff: &mut Diff,
-        sources: &[String],
     ) -> anyhow::Result<()> {
+        let crate_relative_path = package_path.strip_prefix(repository.directory())?;
+        let sources: Vec<String> = run_cargo_package(package_path)?
+            .lines()
+            .map(|l| {
+                if crate_relative_path == "" {
+                    l.to_string()
+                } else {
+                    format!("{crate_relative_path}/{l}")
+                }
+            })
+            .filter(|l| l != "Cargo.toml.orig")
+            .collect();
+
         let pathbufs_to_check = pathbufs_to_check(package_path, package);
         let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
         loop {

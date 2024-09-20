@@ -102,7 +102,7 @@ fn rename(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<()> {
     fs_err::rename(from, to).with_context(|| format!("cannot rename {from:?} to {to:?}"))
 }
 
-fn run_cargo_package(package: &Utf8Path) -> anyhow::Result<String> {
+pub fn run_cargo_package(package: &Utf8Path) -> anyhow::Result<String> {
     // we use `--allow-dirty` because we have `Cargo.toml.orig.orig`, which is an uncommitted change.
     let args = ["package", "--list", "--quiet", "--allow-dirty"];
     let output = run_cargo(package, &args).context("cannot run `cargo package`")?;
