@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.92](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.91...release-plz-v0.3.92) - 2024-09-20
+
+### Added
+
+- Add `features_always_increment_minor` flag ([#1657](https://github.com/MarcoIeni/release-plz/pull/1657))
+
 ## [0.3.91](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.90...release-plz-v0.3.91) - 2024-09-17
 
 ### Added
