@@ -31,6 +31,7 @@ fs-err = { workspace = true, features = ["tokio"] }
 git-cliff-core.workspace = true
 git-url-parse.workspace = true
 ignore.workspace = true
+itertools.workspace = true
 lazy_static.workspace = true
 parse-changelog.workspace = true
 rand.workspace = true

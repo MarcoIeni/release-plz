@@ -4130,6 +4130,7 @@ dependencies = [
  "git_cmd",
  "http",
  "ignore",
+ "itertools",
  "lazy_static",
  "next_version 0.2.19",
  "parse-changelog",
