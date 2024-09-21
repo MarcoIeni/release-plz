@@ -60,7 +60,7 @@ pub fn get_registry_packages(
                 })
                 .collect(),
         ),
-        None => {
+        Option::None => {
             let temp_dir = tempdir().context("failed to get a temporary directory")?;
             let local_packages_names: Vec<&str> =
                 local_packages.iter().map(|c| c.name.as_str()).collect();
@@ -68,6 +68,10 @@ pub fn get_registry_packages(
 
             let mut downloader = download::PackageDownloader::new(local_packages_names, directory);
             if let Some(registry) = registry {
+                downloader = downloader.with_registry(registry.to_string());
+            } else if let Some(registry) = local_packages.iter().find_map(|p| p.publish.as_ref().and_then(|p| p.first())) {
+                // FIXME download each package from the registry defined in the Cargo.toml `publish` field.
+                // HACK use the first registry in the `publish` field of any of the packages. (expect that it's the same for all packages)
                 downloader = downloader.with_registry(registry.to_string());
             }
             let registry_packages = downloader
