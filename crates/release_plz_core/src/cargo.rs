@@ -12,7 +12,8 @@ use std::{
 };
 
 pub struct CargoRegistry {
-    /// name of the registry None means default 'crate.io'
+    /// Name of the registry.
+    /// [`Option::None`] means default 'crate.io'.
     pub name: Option<String>,
     pub index: CargoIndex,
 }
