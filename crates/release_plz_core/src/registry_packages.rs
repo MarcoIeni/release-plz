@@ -61,7 +61,7 @@ pub fn get_registry_packages(
                 })
                 .collect(),
         ),
-        Option::None => {
+        None => {
             let temp_dir = tempdir().context("failed to get a temporary directory")?;
             let directory = temp_dir.as_ref().to_str().context("invalid tempdir path")?;
 
