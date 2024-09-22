@@ -173,7 +173,7 @@ impl ReleaseRequest {
     fn find_registry_token(
         &self,
         registry: &Option<String>,
-    ) -> anyhow::Result<Option<secrecy::Secret<String>>> {
+    ) -> anyhow::Result<Option<SecretString>> {
         if self.registry == *registry {
             Ok(self
                 .token
