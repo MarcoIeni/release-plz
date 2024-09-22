@@ -172,18 +172,14 @@ impl ReleaseRequest {
 
     /// Find the token to use for the given `registry` ([`Option::None`] means crates.io).
     fn find_registry_token(&self, registry: Option<&str>) -> anyhow::Result<Option<SecretString>> {
-        if self.registry.as_deref() == registry {
-            Ok(self
-                .token
-                .clone()
-                .or(cargo_utils::registry_token(&self.registry)?))
-        } else {
-            cargo_utils::registry_token(&self.registry)
-        }
-        .context(format!(
-            "can't retreive token for registry: {:?}",
-            registry.unwrap_or("crates.io")
-        ))
+        let is_registry_same_as_request = self.registry.as_deref() == registry;
+        let token = is_registry_same_as_request
+            .then(|| self.token.clone())
+            .flatten()
+            // if the registry is not the same as the request or if there's no token in the request,
+            // try to find the token in the Cargo credentials file or in the environment variables.
+            .or(cargo_utils::registry_token(self.registry.as_deref())?);
+        Ok(token)
     }
 }
 

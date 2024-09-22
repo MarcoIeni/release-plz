@@ -4,17 +4,22 @@ use anyhow::Context as _;
 use secrecy::SecretString;
 use serde::Deserialize;
 
-pub fn registry_token(registry: &Option<String>) -> anyhow::Result<Option<SecretString>> {
+pub fn registry_token(registry: Option<&str>) -> anyhow::Result<Option<SecretString>> {
     let mut token = registry_token_from_env(registry);
     if token.is_none() {
-        token = registry_token_from_credential_file(registry)?;
+        token = registry_token_from_credential_file(registry).with_context(|| {
+            format!(
+                "can't retreive token from credential file for registry `{}`",
+                registry.unwrap_or("crates.io"),
+            )
+        })?;
     }
     Ok(token)
 }
 
 /// Read credentials for a specific registry using environment variables.
 /// <https://doc.rust-lang.org/cargo/reference/registry-authentication.html#cargotoken>
-pub fn registry_token_from_env(registry: &Option<String>) -> Option<SecretString> {
+pub fn registry_token_from_env(registry: Option<&str>) -> Option<SecretString> {
     let token = if let Some(r) = registry {
         let env_var = format!("CARGO_REGISTRIES_{}_TOKEN", r.to_uppercase());
         std::env::var(env_var)
@@ -27,7 +32,7 @@ pub fn registry_token_from_env(registry: &Option<String>) -> Option<SecretString
 /// Read credentials for a specific registry using file cargo/credentials.toml.
 /// <https://doc.rust-lang.org/cargo/reference/config.html#credentials>
 pub fn registry_token_from_credential_file(
-    registry: &Option<String>,
+    registry: Option<&str>,
 ) -> anyhow::Result<Option<SecretString>> {
     let credentials = read_cargo_credentials()?;
     let token = credentials
