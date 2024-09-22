@@ -170,6 +170,7 @@ impl ReleaseRequest {
         config.features.clone()
     }
 
+    /// Find the token to use for the given `registry` ([`Option::None`] means crates.io).
     fn find_registry_token(&self, registry: Option<&str>) -> anyhow::Result<Option<SecretString>> {
         if self.registry.as_deref() == registry {
             Ok(self
