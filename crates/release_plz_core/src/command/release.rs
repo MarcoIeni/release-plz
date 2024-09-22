@@ -170,11 +170,8 @@ impl ReleaseRequest {
         config.features.clone()
     }
 
-    fn find_registry_token(
-        &self,
-        registry: &Option<String>,
-    ) -> anyhow::Result<Option<SecretString>> {
-        if self.registry == *registry {
+    fn find_registry_token(&self, registry: Option<&str>) -> anyhow::Result<Option<SecretString>> {
+        if self.registry.as_deref() == registry {
             Ok(self
                 .token
                 .clone()
@@ -184,7 +181,7 @@ impl ReleaseRequest {
         }
         .context(format!(
             "can't retreive token for registry: {:?}",
-            registry.clone().unwrap_or_else(|| "crates.io".to_string())
+            registry.unwrap_or("crates.io")
         ))
     }
 }
@@ -521,7 +518,7 @@ async fn release_package_if_needed(
     let mut package_was_released = false;
     let changelog = last_changelog_entry(input, package);
     for CargoRegistry { name, mut index } in registry_indexes {
-        let token = input.find_registry_token(&name)?;
+        let token = input.find_registry_token(name.as_deref())?;
         if is_published(&mut index, package, input.publish_timeout, &token)
             .await
             .context("can't determine if package is published")?
@@ -863,9 +860,7 @@ mod tests {
         env::set_var(&token_env_var, token);
 
         let request = ReleaseRequest::new(fake_metadata()).with_registry(registry_name);
-        let registry_token = request
-            .find_registry_token(&Some(registry_name.to_string()))
-            .unwrap();
+        let registry_token = request.find_registry_token(Some(registry_name)).unwrap();
 
         if let Ok(old) = old_value {
             env::set_var(&token_env_var, old);
