@@ -65,17 +65,19 @@ pub fn get_registry_packages(
             let temp_dir = tempdir().context("failed to get a temporary directory")?;
             let directory = temp_dir.as_ref().to_str().context("invalid tempdir path")?;
 
-            // download packages from the registry defined in cli and fallback to the Cargo.toml `publish` field.
+            // select one registry from where to download the package.
+            // the selected registry is defined from cli and fallback to the Cargo.toml `publish` field.
             // HACK use the first registry in the `publish`
-            let mut registry_packages: Vec<Package> = vec![];
-            for (registry, packages) in &local_packages.iter().chunk_by(|p| {
+            let packages_grouped_by_registry = local_packages.iter().chunk_by(|p| {
                 registry.or_else(|| {
                     p.publish
                         .as_ref()
                         .and_then(|p| p.first())
                         .map(|x| x.as_str())
                 })
-            }) {
+            });
+            let mut registry_packages: Vec<Package> = vec![];
+            for (registry, packages) in &packages_grouped_by_registry {
                 let packages_names: Vec<&str> = packages.map(|p| p.name.as_str()).collect();
                 let mut downloader = download::PackageDownloader::new(packages_names, directory);
                 if let Some(registry) = registry {
