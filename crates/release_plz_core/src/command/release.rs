@@ -170,7 +170,7 @@ impl ReleaseRequest {
         config.features.clone()
     }
 
-    fn registry_token(&self) -> Option<secrecy::Secret<String>> {
+    fn registry_token(&self) -> Option<secrecy::SecretString> {
         self.registry
             .clone()
             .and_then(|r| {
@@ -178,7 +178,7 @@ impl ReleaseRequest {
                 // https://doc.rust-lang.org/cargo/reference/config.html#credentials
                 let env_token = env::var(format!("CARGO_REGISTRIES_{}_TOKEN", r.to_uppercase()))
                     .ok()
-                    .map(SecretString::new);
+                    .map(|s| s.into());
                 self.token.clone().or(env_token)
             })
             .or(self.token.clone())
