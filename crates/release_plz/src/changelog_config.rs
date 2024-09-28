@@ -189,6 +189,7 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
                 trim: cfg.trim,
                 postprocessors: None,
                 footer: None,
+                ..ChangelogConfig::default()
             },
             git: git_cliff_core::config::GitConfig {
                 conventional_commits: None,
@@ -216,8 +217,8 @@ impl TryFrom<ChangelogCfg> for git_cliff_core::config::Config {
 // write test to check that the configuration is deserialized correctly
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::config::Config;
-    use git_cliff_core::config::{Bump, RemoteConfig};
 
     #[test]
     fn test_deserialize_toml() {
@@ -244,12 +245,13 @@ mod tests {
         let cfg: Config = toml::from_str(toml).unwrap();
         let actual_cliff_config: git_cliff_core::config::Config = cfg.changelog.try_into().unwrap();
         let expected_cliff_config = git_cliff_core::config::Config {
-            changelog: git_cliff_core::config::ChangelogConfig {
+            changelog: ChangelogConfig {
                 header: Some("Changelog".to_string()),
                 body: Some("Body".to_string()),
                 trim: Some(true),
                 postprocessors: None,
                 footer: None,
+                ..ChangelogConfig::default()
             },
             git: git_cliff_core::config::GitConfig {
                 protect_breaking_commits: Some(true),

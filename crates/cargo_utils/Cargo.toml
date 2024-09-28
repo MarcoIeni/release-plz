@@ -1,6 +1,6 @@
 [package]
 name = "cargo_utils"
-version = "0.1.55"
+version = "0.1.56"
 edition.workspace = true
 description = "Utilities around cargo and Rust workspaces"
 repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/cargo_utils"
@@ -22,3 +22,4 @@ toml_edit.workspace = true
 semver.workspace = true
 url.workspace = true
 serde.workspace = true
+secrecy.workspace = true
