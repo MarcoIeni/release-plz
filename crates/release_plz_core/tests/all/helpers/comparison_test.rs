@@ -7,7 +7,7 @@ use release_plz_core::{
     are_packages_equal, copy_to_temp_dir, fs_utils::Utf8TempDir, ChangelogRequest, GitBackend,
     GitHub, Gitea, ReleasePrRequest, RepoUrl, UpdateRequest, CHANGELOG_FILENAME,
 };
-use secrecy::Secret;
+use secrecy::SecretString;
 use url::Url;
 
 use super::github_mock_server::GitHubMockServer;
@@ -68,7 +68,7 @@ impl ComparisonTest {
             GitHub::new(
                 OWNER.to_string(),
                 REPO.to_string(),
-                Secret::from("token".to_string()),
+                SecretString::from("token".to_string()),
             )
             .with_base_url(base_url),
         );
@@ -85,7 +85,7 @@ impl ComparisonTest {
     fn gitea_release_pr_request(&self, base_url: &Url) -> anyhow::Result<ReleasePrRequest> {
         let url = RepoUrl::new(&format!("{}{OWNER}/{REPO}", base_url.as_str()))
             .context("can't crate url")?;
-        let git = GitBackend::Gitea(Gitea::new(url, Secret::from("token".to_string()))?);
+        let git = GitBackend::Gitea(Gitea::new(url, SecretString::from("token".to_string()))?);
         Ok(ReleasePrRequest::new(git, self.update_request()))
     }
 
