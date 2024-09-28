@@ -26,7 +26,7 @@ pub fn registry_token_from_env(registry: Option<&str>) -> Option<SecretString> {
     } else {
         std::env::var("CARGO_REGISTRY_TOKEN")
     };
-    token.ok().map(SecretString::new)
+    token.ok().map(|t| t.into())
 }
 
 /// Read credentials for a specific registry using file cargo/credentials.toml.
@@ -45,7 +45,7 @@ pub fn registry_token_from_credential_file(
             token
         })
         .and_then(|r| r.token.clone())
-        .map(SecretString::new);
+        .map(|t| t.into());
     Ok(token)
 }
 
