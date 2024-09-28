@@ -84,6 +84,10 @@ fn pr_body(
     packages_to_update: &PackagesUpdate,
     project_contains_multiple_pub_packages: bool,
 ) -> String {
+    /// The Github API allows a max of 65536 bytes in the body field when trying to create a new PR
+    #[allow(clippy::decimal_literal_representation)]
+    const MAX_BODY_LEN: usize = 65536;
+
     let header = "## 🤖 New release";
 
     let summary = packages_to_update.summary();
@@ -96,5 +100,26 @@ fn pr_body(
 
     let footer =
         "---\nThis PR was generated with [release-plz](https://github.com/MarcoIeni/release-plz/).";
-    format!("{header}{summary}\n{changes}\n{footer}")
+    let mut formatted = format!("{header}{summary}\n{changes}\n{footer}");
+
+    // Make sure we don't go over the Github API's limit for PR body size
+    if formatted.len() >= MAX_BODY_LEN {
+        tracing::warn!("PR body is longer than 65535 bytes. Omitting full changelog.");
+        formatted = format!("{header}{summary}\n{footer}");
+
+        // Make extra sure the body is short enough.
+        // If it's not, give up trying to fail gracefully by truncating it to the nearest valid UTF-8 boundary.
+        // A grapheme cluster may be cut in half in the process.
+        if formatted.len() >= MAX_BODY_LEN {
+            tracing::warn!("PR body is still longer than 65535 bytes. Truncating as is.");
+            let mut str_end = MAX_BODY_LEN - 1;
+            while !formatted.is_char_boundary(str_end) {
+                str_end -= 1;
+            }
+
+            formatted.truncate(str_end);
+        }
+    }
+
+    formatted
 }
