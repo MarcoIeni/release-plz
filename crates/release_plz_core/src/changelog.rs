@@ -378,6 +378,7 @@ fn default_changelog_config(header: Option<String>) -> ChangelogConfig {
         footer: None,
         postprocessors: None,
         trim: Some(true),
+        ..ChangelogConfig::default()
     }
 }
 
