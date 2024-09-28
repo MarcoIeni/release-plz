@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.26.2...release_plz_core-v0.27.0) - 2024-09-28
+
+### Added
+
+- Add `features_always_increment_minor` flag ([#1657](https://github.com/MarcoIeni/release-plz/pull/1657))
+
+### Other
+
+- update to secrecy 10 ([#1719](https://github.com/MarcoIeni/release-plz/pull/1719))
+- update to git-cliff 2.6 ([#1718](https://github.com/MarcoIeni/release-plz/pull/1718))
+
 ## [0.26.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.26.1...release_plz_core-v0.26.2) - 2024-09-17
 
 ### Added
