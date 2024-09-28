@@ -38,10 +38,10 @@ pub fn are_packages_equal(
         registry_package.join("Cargo.toml.orig.orig"),
     )?;
 
-    let local_package_stdout = run_cargo_package(local_package).with_context(|| {
+    let local_package_stdout = get_cargo_package_files(local_package).with_context(|| {
         format!("cannot determine packaged files of local package {local_package:?}")
     })?;
-    let registry_package_stdout = run_cargo_package(registry_package).with_context(|| {
+    let registry_package_stdout = get_cargo_package_files(registry_package).with_context(|| {
         format!("cannot determine packaged files of registry package {registry_package:?}")
     })?;
 
@@ -52,10 +52,10 @@ pub fn are_packages_equal(
     )?;
 
     let local_files = local_package_stdout
-        .lines()
+        .iter()
         .filter(|file| *file != "Cargo.toml.orig" && *file != ".cargo_vcs_info.json");
 
-    let registry_files = registry_package_stdout.lines().filter(|file| {
+    let registry_files = registry_package_stdout.iter().filter(|file| {
         *file != "Cargo.toml.orig"
             && *file != "Cargo.toml.orig.orig"
             && *file != ".cargo_vcs_info.json"
@@ -102,7 +102,7 @@ fn rename(from: impl AsRef<Path>, to: impl AsRef<Path>) -> anyhow::Result<()> {
     fs_err::rename(from, to).with_context(|| format!("cannot rename {from:?} to {to:?}"))
 }
 
-pub fn run_cargo_package(package: &Utf8Path) -> anyhow::Result<String> {
+pub fn get_cargo_package_files(package: &Utf8Path) -> anyhow::Result<Vec<Utf8PathBuf>> {
     // we use `--allow-dirty` because we have `Cargo.toml.orig.orig`, which is an uncommitted change.
     let args = ["package", "--list", "--quiet", "--allow-dirty"];
     let output = run_cargo(package, &args).context("cannot run `cargo package`")?;
@@ -113,7 +113,8 @@ pub fn run_cargo_package(package: &Utf8Path) -> anyhow::Result<String> {
         output.stderr
     );
 
-    Ok(output.stdout)
+    let files = output.stdout.lines().map(Utf8PathBuf::from).collect();
+    Ok(files)
 }
 
 fn are_cargo_toml_equal(local_package: &Utf8Path, registry_package: &Utf8Path) -> bool {

@@ -105,10 +105,8 @@ impl Repo {
         Ok(changed_files)
     }
 
-    pub fn changes_current_commit(
-        &self,
-        filter: impl FnMut(&&str) -> bool,
-    ) -> anyhow::Result<Vec<String>> {
+    /// Get files changed in the current commit
+    pub fn files_of_current_commit(&self) -> anyhow::Result<Vec<Utf8PathBuf>> {
         let output = self.git(&[
             "show",
             "--oneline",
@@ -116,7 +114,7 @@ impl Repo {
             "--pretty=format:''",
             "-r",
         ])?;
-        let changed_files = changed_files(&output, filter);
+        let changed_files = output.lines().map(|l| Utf8PathBuf::from(l.trim())).collect();
         Ok(changed_files)
     }
 
