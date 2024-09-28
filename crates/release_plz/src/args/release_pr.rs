@@ -1,6 +1,3 @@
-use std::str::FromStr;
-
-use anyhow::Context;
 use clap::builder::NonEmptyStringValueParser;
 use clap::ValueEnum;
 use release_plz_core::{GitBackend, GitHub, GitLab, Gitea, RepoUrl};
@@ -36,7 +33,7 @@ pub enum GitBackendKind {
 
 impl ReleasePr {
     pub fn git_backend(&self, repo: RepoUrl) -> anyhow::Result<GitBackend> {
-        let token = SecretString::from_str(&self.git_token).context("Invalid git backend token")?;
+        let token = SecretString::from(self.git_token.clone());
         Ok(match self.backend {
             GitBackendKind::Github => {
                 anyhow::ensure!(
