@@ -52,7 +52,8 @@ pub struct Update {
     release_date: Option<String>,
     /// Registry where the packages are stored.
     /// The registry name needs to be present in the Cargo config.
-    /// If unspecified, crates.io is used.
+    /// If unspecified, the `publish` field of the package manifest is used.
+    /// If the `publish` field is empty, crates.io is used.
     #[arg(
         long,
         conflicts_with("registry_manifest_path"),

@@ -11,6 +11,13 @@ use std::{
     time::{Duration, Instant},
 };
 
+pub struct CargoRegistry {
+    /// Name of the registry.
+    /// [`Option::None`] means default 'crate.io'.
+    pub name: Option<String>,
+    pub index: CargoIndex,
+}
+
 pub enum CargoIndex {
     Git(GitIndex),
     Sparse(SparseIndex),

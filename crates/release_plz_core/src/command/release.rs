@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, env, time::Duration};
+use std::{collections::BTreeMap, time::Duration};
 
 use anyhow::Context;
 use cargo::util::VersionExt;
@@ -15,7 +15,7 @@ use tracing::{info, instrument, warn};
 use url::Url;
 
 use crate::{
-    cargo::{is_published, run_cargo, wait_until_published, CargoIndex, CmdOutput},
+    cargo::{is_published, run_cargo, wait_until_published, CargoIndex, CargoRegistry, CmdOutput},
     changelog_parser,
     git::backend::GitClient,
     pr_parser::{prs_from_text, Pr},
@@ -170,18 +170,16 @@ impl ReleaseRequest {
         config.features.clone()
     }
 
-    fn registry_token(&self) -> Option<secrecy::SecretString> {
-        self.registry
-            .clone()
-            .and_then(|r| {
-                // Credentials for a specific registry can be set using environment variables.
-                // https://doc.rust-lang.org/cargo/reference/config.html#credentials
-                let env_token = env::var(format!("CARGO_REGISTRIES_{}_TOKEN", r.to_uppercase()))
-                    .ok()
-                    .map(|s| s.into());
-                self.token.clone().or(env_token)
-            })
-            .or(self.token.clone())
+    /// Find the token to use for the given `registry` ([`Option::None`] means crates.io).
+    fn find_registry_token(&self, registry: Option<&str>) -> anyhow::Result<Option<SecretString>> {
+        let is_registry_same_as_request = self.registry.as_deref() == registry;
+        let token = is_registry_same_as_request
+            .then(|| self.token.clone())
+            .flatten()
+            // if the registry is not the same as the request or if there's no token in the request,
+            // try to find the token in the Cargo credentials file or in the environment variables.
+            .or(cargo_utils::registry_token(self.registry.as_deref())?);
+        Ok(token)
     }
 }
 
@@ -512,12 +510,12 @@ async fn release_package_if_needed(
         return Ok(None);
     }
 
-    let token = input.registry_token();
     let registry_indexes = registry_indexes(package, input.registry.clone())
         .context("can't determine registry indexes")?;
     let mut package_was_released = false;
     let changelog = last_changelog_entry(input, package);
-    for mut index in registry_indexes {
+    for CargoRegistry { name, mut index } in registry_indexes {
+        let token = input.find_registry_token(name.as_deref())?;
         if is_published(&mut index, package, input.publish_timeout, &token)
             .await
             .context("can't determine if package is published")?
@@ -534,6 +532,7 @@ async fn release_package_if_needed(
             repo,
             git_client,
             &changelog,
+            &token,
         )
         .await
         .context("failed to release package")?;
@@ -575,30 +574,38 @@ async fn should_release(
 fn registry_indexes(
     package: &Package,
     registry: Option<String>,
-) -> anyhow::Result<Vec<CargoIndex>> {
+) -> anyhow::Result<Vec<CargoRegistry>> {
     let registries = registry
         .map(|r| vec![r])
         .unwrap_or_else(|| package.publish.clone().unwrap_or_default());
     let registry_urls = registries
-        .iter()
+        .into_iter()
         .map(|r| {
-            cargo_utils::registry_url(package.manifest_path.as_ref(), Some(r))
+            cargo_utils::registry_url(package.manifest_path.as_ref(), Some(&r))
                 .context("failed to retrieve registry url")
+                .map(|url| (r, url))
         })
-        .collect::<anyhow::Result<Vec<Url>>>()?;
+        .collect::<anyhow::Result<Vec<(String, Url)>>>()?;
 
     let mut registry_indexes = registry_urls
-        .iter()
-        .map(|u| {
+        .into_iter()
+        .map(|(registry, u)| {
             if u.to_string().starts_with("sparse+") {
                 SparseIndex::from_url(u.as_str()).map(CargoIndex::Sparse)
             } else {
                 GitIndex::from_url(&format!("registry+{u}")).map(CargoIndex::Git)
             }
+            .map(|index| CargoRegistry {
+                name: Some(registry),
+                index,
+            })
         })
-        .collect::<Result<Vec<CargoIndex>, crates_index::Error>>()?;
+        .collect::<Result<Vec<CargoRegistry>, crates_index::Error>>()?;
     if registry_indexes.is_empty() {
-        registry_indexes.push(CargoIndex::Git(GitIndex::new_cargo_default()?));
+        registry_indexes.push(CargoRegistry {
+            name: None,
+            index: CargoIndex::Git(GitIndex::new_cargo_default()?),
+        });
     }
     Ok(registry_indexes)
 }
@@ -614,6 +621,7 @@ async fn release_package(
     repo: &Repo,
     git_client: &GitClient,
     changelog: &str,
+    token: &Option<SecretString>,
 ) -> anyhow::Result<bool> {
     let workspace_root = &input.metadata.workspace_root;
 
@@ -637,7 +645,7 @@ async fn release_package(
         Ok(false)
     } else {
         if publish {
-            wait_until_published(index, package, input.publish_timeout, &input.token).await?;
+            wait_until_published(index, package, input.publish_timeout, token).await?;
         }
 
         if input.is_git_tag_enabled(&package.name) {
@@ -789,6 +797,7 @@ fn last_changelog_entry(req: &ReleaseRequest, package: &Package) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::env;
     use std::sync::Mutex;
 
     use lazy_static::lazy_static;
@@ -848,7 +857,7 @@ mod tests {
         env::set_var(&token_env_var, token);
 
         let request = ReleaseRequest::new(fake_metadata()).with_registry(registry_name);
-        let registry_token = request.registry_token();
+        let registry_token = request.find_registry_token(Some(registry_name)).unwrap();
 
         if let Ok(old) = old_value {
             env::set_var(&token_env_var, old);

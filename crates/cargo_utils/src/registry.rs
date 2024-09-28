@@ -115,7 +115,7 @@ struct Registry {
     index: Option<String>,
 }
 
-fn cargo_home() -> anyhow::Result<PathBuf> {
+pub fn cargo_home() -> anyhow::Result<PathBuf> {
     let default_cargo_home = dirs::home_dir()
         .map(|x| x.join(".cargo"))
         .context("Failed to read home directory")?;

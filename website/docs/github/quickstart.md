@@ -213,7 +213,8 @@ The GitHub action accepts the following input variables:
   `release`. (By default it runs both commands).
 - `registry`: Registry where the packages are stored.
   The registry name needs to be present in the Cargo config.
-  If unspecified, crates.io is used. (Defaults to crates.io).
+  If unspecified, the `publish` field of the package manifest is used.
+  If the `publish` field is empty, crates.io is used.
 - `manifest_path`: Path to the Cargo.toml of the project you want to update.
   Both Cargo workspaces and single packages are supported. (Defaults to the root
   directory).
@@ -221,6 +222,8 @@ The GitHub action accepts the following input variables:
 - `config`: Release-plz config file location. (Defaults to
   `release-plz.toml` or `.release-plz.toml`).
 - `token`: Token used to publish to the cargo registry.
+  Override the `CARGO_REGISTRY_TOKEN` environment variable, or the `CARGO_REGISTRIES_<NAME>_TOKEN`
+  environment variable, used for registry specified in the `registry` input variable.
 - `backend`: Forge backend. Valid values: `github`, `gitea`. (Defaults to `github`).
 
 You can specify the input variables by using the `with` keyword.
