@@ -114,7 +114,6 @@ impl Repo {
             "--oneline",
             "--name-only",
             "--pretty=format:''",
-            &self.current_commit_hash()?,
             "-r",
         ])?;
         let changed_files = changed_files(&output, filter);
