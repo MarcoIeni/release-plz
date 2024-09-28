@@ -65,13 +65,13 @@ pub fn get_registry_packages(
             let temp_dir = tempdir().context("failed to get a temporary directory")?;
             let directory = temp_dir.as_ref().to_str().context("invalid tempdir path")?;
 
-            // select one registry from where to download the package.
-            // the selected registry is defined from cli and fallback to the Cargo.toml `publish` field.
-            // HACK use the first registry in the `publish`
+            // Find the registry from where to download each package.
             let packages_grouped_by_registry = local_packages.iter().chunk_by(|p| {
+                // If registry is not provided, fallback to the Cargo.toml `publish` field.
                 registry.or_else(|| {
                     p.publish
                         .as_ref()
+                        // Use the first registry in the `publish` field.
                         .and_then(|p| p.first())
                         .map(|x| x.as_str())
                 })
