@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.27.0...release_plz_core-v0.27.1) - 2024-09-30
+
+### Fixed
+
+- Disable changelog in PR body if it goes over github character limit ([#1716](https://github.com/MarcoIeni/release-plz/pull/1716))
+- retrieve token for each package's registry ala `cargo:token` ([#1669](https://github.com/MarcoIeni/release-plz/pull/1669))
+
 ## [0.27.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.26.2...release_plz_core-v0.27.0) - 2024-09-28
 
 ### Added

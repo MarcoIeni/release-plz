@@ -67,7 +67,6 @@ cast_lossless = "warn"
 cast_possible_wrap = "warn"
 cast_precision_loss = "warn"
 cast_sign_loss = "warn"
-decimal_literal_representation = "warn"
 default_trait_access = "warn"
 doc_markdown = "warn"
 exit = "warn"
@@ -128,6 +127,7 @@ zero_sized_map_values = "warn"
 
 # Allowing optional lints has no effect, but we list them to
 # make clear that we reviewed them and we decided to allow them
+decimal_literal_representation = "allow"
 map_unwrap_or = "allow"
 needless_raw_string_hashes = "allow"
 redundant_else = "allow"

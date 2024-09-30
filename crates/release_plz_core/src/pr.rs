@@ -84,6 +84,9 @@ fn pr_body(
     packages_to_update: &PackagesUpdate,
     project_contains_multiple_pub_packages: bool,
 ) -> String {
+    /// The Github API allows a max of 65536 characters in the body field when trying to create a new PR
+    const MAX_BODY_LEN: usize = 65536;
+
     let header = "## 🤖 New release";
 
     let summary = packages_to_update.summary();
@@ -96,5 +99,25 @@ fn pr_body(
 
     let footer =
         "---\nThis PR was generated with [release-plz](https://github.com/MarcoIeni/release-plz/).";
-    format!("{header}{summary}\n{changes}\n{footer}")
+    let mut formatted = format!("{header}{summary}\n{changes}\n{footer}");
+
+    // Make sure we don't go over the Github API's limit for PR body size
+    if formatted.chars().count() > MAX_BODY_LEN {
+        tracing::info!(
+            "PR body is longer than {MAX_BODY_LEN} characters. Omitting full changelog."
+        );
+        formatted = format!("{header}{summary}\n{footer}");
+
+        // Make extra sure the body is short enough.
+        // If it's not, give up trying to fail gracefully by truncating it to the nearest valid UTF-8 boundary.
+        // A grapheme cluster may be cut in half in the process.
+        if formatted.chars().count() > MAX_BODY_LEN {
+            tracing::warn!(
+                "PR body is still longer than {MAX_BODY_LEN} characters. Truncating as is."
+            );
+            formatted = formatted.chars().take(MAX_BODY_LEN).collect();
+        }
+    }
+
+    formatted
 }
