@@ -912,8 +912,7 @@ impl Updater<'_> {
             let changed_files = repository.files_of_current_commit()?;
 
             // Check if files changed in git commit belong to the current package.
-            let are_changed_files_in_package =
-                || package_files.iter().any(|s| changed_files.contains(s));
+            let are_changed_files_in_package = || !package_files.is_disjoint(&changed_files);
 
             if let Some(registry_package) = registry_package {
                 debug!(
@@ -1090,7 +1089,7 @@ impl Updater<'_> {
 fn get_package_files(
     package_path: &Utf8Path,
     repository: &Repo,
-) -> anyhow::Result<Vec<Utf8PathBuf>> {
+) -> anyhow::Result<HashSet<Utf8PathBuf>> {
     // Get relative path of the crate with respect to the repository because we need to compare
     // files with the git output.
     let crate_relative_path = package_path.strip_prefix(repository.directory())?;
