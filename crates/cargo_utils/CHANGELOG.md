@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.57](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.56...cargo_utils-v0.1.57) - 2024-09-30
+
+### Fixed
+
+- retrieve token for each package's registry ala `cargo:token` ([#1669](https://github.com/MarcoIeni/release-plz/pull/1669))
+
 ## [0.1.56](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.55...cargo_utils-v0.1.56) - 2024-09-28
 
 ### Other
