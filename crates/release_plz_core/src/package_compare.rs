@@ -38,10 +38,10 @@ pub fn are_packages_equal(
         registry_package.join("Cargo.toml.orig.orig"),
     )?;
 
-    let local_package_stdout = get_cargo_package_files(local_package).with_context(|| {
+    let local_package_files = get_cargo_package_files(local_package).with_context(|| {
         format!("cannot determine packaged files of local package {local_package:?}")
     })?;
-    let registry_package_stdout = get_cargo_package_files(registry_package).with_context(|| {
+    let registry_package_files = get_cargo_package_files(registry_package).with_context(|| {
         format!("cannot determine packaged files of registry package {registry_package:?}")
     })?;
 
@@ -51,11 +51,11 @@ pub fn are_packages_equal(
         registry_package.join("Cargo.toml.orig"),
     )?;
 
-    let local_files = local_package_stdout
+    let local_files = local_package_files
         .iter()
         .filter(|file| *file != "Cargo.toml.orig" && *file != ".cargo_vcs_info.json");
 
-    let registry_files = registry_package_stdout.iter().filter(|file| {
+    let registry_files = registry_package_files.iter().filter(|file| {
         *file != "Cargo.toml.orig"
             && *file != "Cargo.toml.orig.orig"
             && *file != ".cargo_vcs_info.json"
