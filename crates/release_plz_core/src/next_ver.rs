@@ -918,6 +918,7 @@ impl Updater<'_> {
                         "failed to get changed files of commit {current_commit_hash}: {}",
                         e
                     );
+                    // Assume that this commit contains changes to the package.
                     true
                 }
             };
