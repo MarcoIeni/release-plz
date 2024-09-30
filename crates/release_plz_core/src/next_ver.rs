@@ -909,17 +909,24 @@ impl Updater<'_> {
 
             // Check if files changed in git commit belong to the current package.
             // This is required because a package can contain another package in a subdirectory.
-            let are_changed_files_in_package = || -> anyhow::Result<bool> {
-                let package_files = get_package_files(package_path, repository)?;
-                let are_in_package = match repository.files_of_current_commit() {
-                    Ok(changed_files) => !package_files.is_disjoint(&changed_files),
-                    Err(e) => {
-                        warn!("failed to get changed files of commit {current_commit_hash}: {e}");
-                        // Assume that this commit contains changes to the package.
-                        true
-                    }
+            let are_changed_files_in_package = || {
+                let Ok(package_files) =
+                    get_package_files(package_path, repository).inspect_err(|e| {
+                        debug!(
+                            "failed to get package files at commit {current_commit_hash}: {e:?}"
+                        );
+                    })
+                else {
+                    // `cargo package` can fail if the package doesn't contain a Cargo.toml file yet.
+                    return true;
                 };
-                Ok(are_in_package)
+                let Ok(changed_files) = repository.files_of_current_commit().inspect_err(|e| {
+                    warn!("failed to get changed files of commit {current_commit_hash}: {e:?}");
+                }) else {
+                    // Assume that this commit contains changes to the package.
+                    return true;
+                };
+                !package_files.is_disjoint(&changed_files)
             };
 
             if let Some(registry_package) = registry_package {
@@ -961,7 +968,7 @@ impl Updater<'_> {
                     info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
                     diff.set_version_unpublished();
                     break;
-                } else if are_changed_files_in_package()? {
+                } else if are_changed_files_in_package() {
                     debug!("packages are different");
                     // At this point of the git history, the two packages are different,
                     // which means that this commit is not present in the published package.
@@ -970,7 +977,7 @@ impl Updater<'_> {
                         current_commit_message.clone(),
                     ));
                 }
-            } else if are_changed_files_in_package()? {
+            } else if are_changed_files_in_package() {
                 diff.commits.push(Commit::new(
                     current_commit_hash,
                     current_commit_message.clone(),
