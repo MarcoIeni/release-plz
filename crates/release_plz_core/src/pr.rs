@@ -85,7 +85,6 @@ fn pr_body(
     project_contains_multiple_pub_packages: bool,
 ) -> String {
     /// The Github API allows a max of 65536 characters in the body field when trying to create a new PR
-    #[allow(clippy::decimal_literal_representation)]
     const MAX_BODY_LEN: usize = 65536;
 
     let header = "## 🤖 New release";
