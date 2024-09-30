@@ -127,7 +127,7 @@ zero_sized_map_values = "warn"
 
 # Allowing optional lints has no effect, but we list them to
 # make clear that we reviewed them and we decided to allow them
-decimal_literal_representation = "warn"
+decimal_literal_representation = "allow"
 map_unwrap_or = "allow"
 needless_raw_string_hashes = "allow"
 redundant_else = "allow"
