@@ -909,11 +909,18 @@ impl Updater<'_> {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
 
-            let changed_files = repository.files_of_current_commit()?;
-
             // Check if files changed in git commit belong to the current package.
             // This is required because a package can contain another package in a subdirectory.
-            let are_changed_files_in_package = || !package_files.is_disjoint(&changed_files);
+            let are_changed_files_in_package = || match repository.files_of_current_commit() {
+                Ok(changed_files) => !package_files.is_disjoint(&changed_files),
+                Err(e) => {
+                    warn!(
+                        "failed to get changed files of commit {current_commit_hash}: {}",
+                        e
+                    );
+                    true
+                }
+            };
 
             if let Some(registry_package) = registry_package {
                 debug!(
