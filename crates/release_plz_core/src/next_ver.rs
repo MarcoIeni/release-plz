@@ -914,10 +914,7 @@ impl Updater<'_> {
             let are_changed_files_in_package = || match repository.files_of_current_commit() {
                 Ok(changed_files) => !package_files.is_disjoint(&changed_files),
                 Err(e) => {
-                    warn!(
-                        "failed to get changed files of commit {current_commit_hash}: {}",
-                        e
-                    );
+                    warn!("failed to get changed files of commit {current_commit_hash}: {e}");
                     // Assume that this commit contains changes to the package.
                     true
                 }
