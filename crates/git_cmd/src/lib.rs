@@ -110,7 +110,9 @@ impl Repo {
         let output = self.git(&["show", "--oneline", "--name-only", "--pretty=format:''"])?;
         let changed_files = output
             .lines()
-            .map(|l| Utf8PathBuf::from(l.trim()))
+            .map(|l| l.trim())
+            .filter(|l| !l.is_empty())
+            .map(Utf8PathBuf::from)
             .collect();
         Ok(changed_files)
     }
