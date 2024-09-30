@@ -107,14 +107,11 @@ impl Repo {
 
     /// Get files changed in the current commit
     pub fn files_of_current_commit(&self) -> anyhow::Result<Vec<Utf8PathBuf>> {
-        let output = self.git(&[
-            "show",
-            "--oneline",
-            "--name-only",
-            "--pretty=format:''",
-            "-r",
-        ])?;
-        let changed_files = output.lines().map(|l| Utf8PathBuf::from(l.trim())).collect();
+        let output = self.git(&["show", "--oneline", "--name-only", "--pretty=format:''"])?;
+        let changed_files = output
+            .lines()
+            .map(|l| Utf8PathBuf::from(l.trim()))
+            .collect();
         Ok(changed_files)
     }
 
