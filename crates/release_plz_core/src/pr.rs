@@ -103,7 +103,7 @@ fn pr_body(
 
     // Make sure we don't go over the Github API's limit for PR body size
     if formatted.chars().count() > MAX_BODY_LEN {
-        tracing::warn!("PR body is longer than 65536 characters. Omitting full changelog.");
+        tracing::info!("PR body is longer than {MAX_BODY_LEN} characters. Omitting full changelog.");
         formatted = format!("{header}{summary}\n{footer}");
 
         // Make extra sure the body is short enough.
