@@ -901,8 +901,6 @@ impl Updater<'_> {
         tag_commit: Option<&str>,
         diff: &mut Diff,
     ) -> anyhow::Result<()> {
-        let package_files = get_package_files(package_path, repository)?;
-
         let pathbufs_to_check = pathbufs_to_check(package_path, package);
         let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
         loop {
@@ -911,13 +909,17 @@ impl Updater<'_> {
 
             // Check if files changed in git commit belong to the current package.
             // This is required because a package can contain another package in a subdirectory.
-            let are_changed_files_in_package = || match repository.files_of_current_commit() {
-                Ok(changed_files) => !package_files.is_disjoint(&changed_files),
-                Err(e) => {
-                    warn!("failed to get changed files of commit {current_commit_hash}: {e}");
-                    // Assume that this commit contains changes to the package.
-                    true
-                }
+            let are_changed_files_in_package = || -> anyhow::Result<bool> {
+                let package_files = get_package_files(package_path, repository)?;
+                let are_in_package = match repository.files_of_current_commit() {
+                    Ok(changed_files) => !package_files.is_disjoint(&changed_files),
+                    Err(e) => {
+                        warn!("failed to get changed files of commit {current_commit_hash}: {e}");
+                        // Assume that this commit contains changes to the package.
+                        true
+                    }
+                };
+                Ok(are_in_package)
             };
 
             if let Some(registry_package) = registry_package {
@@ -959,7 +961,7 @@ impl Updater<'_> {
                     info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
                     diff.set_version_unpublished();
                     break;
-                } else if are_changed_files_in_package() {
+                } else if are_changed_files_in_package()? {
                     debug!("packages are different");
                     // At this point of the git history, the two packages are different,
                     // which means that this commit is not present in the published package.
@@ -968,7 +970,7 @@ impl Updater<'_> {
                         current_commit_message.clone(),
                     ));
                 }
-            } else if are_changed_files_in_package() {
+            } else if are_changed_files_in_package()? {
                 diff.commits.push(Commit::new(
                     current_commit_hash,
                     current_commit_message.clone(),
