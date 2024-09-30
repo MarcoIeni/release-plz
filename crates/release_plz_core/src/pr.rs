@@ -103,14 +103,18 @@ fn pr_body(
 
     // Make sure we don't go over the Github API's limit for PR body size
     if formatted.chars().count() > MAX_BODY_LEN {
-        tracing::info!("PR body is longer than {MAX_BODY_LEN} characters. Omitting full changelog.");
+        tracing::info!(
+            "PR body is longer than {MAX_BODY_LEN} characters. Omitting full changelog."
+        );
         formatted = format!("{header}{summary}\n{footer}");
 
         // Make extra sure the body is short enough.
         // If it's not, give up trying to fail gracefully by truncating it to the nearest valid UTF-8 boundary.
         // A grapheme cluster may be cut in half in the process.
         if formatted.chars().count() > MAX_BODY_LEN {
-            tracing::warn!("PR body is still longer than {MAX_BODY_LEN} characters. Truncating as is.");
+            tracing::warn!(
+                "PR body is still longer than {MAX_BODY_LEN} characters. Truncating as is."
+            );
             formatted = formatted.chars().take(MAX_BODY_LEN).collect();
         }
     }
