@@ -40,7 +40,7 @@ pub async fn fill_commit<'a>(
         }
         if required_info.remote {
             let remote_commit = git_client
-                .context("Remote contributor is required, but no git client is provided")?
+                .context("The changelog template requires information from the remote, but no git client is provided")?
                 .get_remote_commit(&commit.id)
                 .await?;
             commit.remote = RemoteContributor {
