@@ -6,6 +6,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.27.0...release_plz_core-v0.27.1) - 2024-09-30
+
+### Fixed
+
+- Disable changelog in PR body if it goes over github character limit ([#1716](https://github.com/MarcoIeni/release-plz/pull/1716))
+- retrieve token for each package's registry ala `cargo:token` ([#1669](https://github.com/MarcoIeni/release-plz/pull/1669))
+
+## [0.27.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.26.2...release_plz_core-v0.27.0) - 2024-09-28
+
+### Added
+
+- Add `features_always_increment_minor` flag ([#1657](https://github.com/MarcoIeni/release-plz/pull/1657))
+
+### Other
+
+- update to secrecy 10 ([#1719](https://github.com/MarcoIeni/release-plz/pull/1719))
+- update to git-cliff 2.6 ([#1718](https://github.com/MarcoIeni/release-plz/pull/1718))
+
+## [0.26.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.26.1...release_plz_core-v0.26.2) - 2024-09-17
+
+### Added
+
+- support local dependencies in workspace manifest ([#1695](https://github.com/MarcoIeni/release-plz/pull/1695))
+
+### Other
+
+- improve `dependencies_to_update` fn ([#1694](https://github.com/MarcoIeni/release-plz/pull/1694))
+- add comments to package update code ([#1692](https://github.com/MarcoIeni/release-plz/pull/1692))
+- extract function from `packages_to_update` ([#1691](https://github.com/MarcoIeni/release-plz/pull/1691))
+- improve `dependent_packages` function ([#1689](https://github.com/MarcoIeni/release-plz/pull/1689))
+- improve dependencies_to_update function ([#1687](https://github.com/MarcoIeni/release-plz/pull/1687))
+
+## [0.26.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.26.0...release_plz_core-v0.26.1) - 2024-09-16
+
+### Fixed
+
+- restore semver check report ([#1684](https://github.com/MarcoIeni/release-plz/pull/1684))
+
+## [0.26.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.25.7...release_plz_core-v0.26.0) - 2024-09-16
+
+### Added
+
+- allow specifying `version_group` field in package config ([#1661](https://github.com/MarcoIeni/release-plz/pull/1661))
+
+## [0.25.7](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.25.6...release_plz_core-v0.25.7) - 2024-09-14
+
+### Fixed
+
+- fallback to http 1.1 when http2 is not supported on fetching sparse metadata ([#1676](https://github.com/MarcoIeni/release-plz/pull/1676))
+
+## [0.25.6](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.25.5...release_plz_core-v0.25.6) - 2024-09-07
+
+### Fixed
+- align changelog line breaks with keepachangelog spec ([#1653](https://github.com/MarcoIeni/release-plz/pull/1653))
+
+## [0.25.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.25.4...release_plz_core-v0.25.5) - 2024-09-07
+
+### Added
+- add gitlab support for the `release-pr` command ([#1651](https://github.com/MarcoIeni/release-plz/pull/1651))
+
+### Other
+- fix inspect_err clippy lint ([#1658](https://github.com/MarcoIeni/release-plz/pull/1658))
+
 ## [0.25.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.25.3...release_plz_core-v0.25.4) - 2024-08-25
 
 ### Other

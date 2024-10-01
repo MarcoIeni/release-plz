@@ -174,6 +174,7 @@ async fn can_generate_single_changelog_for_multiple_packages_in_pr() {
         .await;
     expect_test::expect![[r#"
         # Changelog
+
         All notable changes to this project will be documented in this file.
 
         The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -225,6 +226,7 @@ async fn can_generate_single_changelog_for_multiple_packages_locally() {
 
     expect_test::expect![[r#"
         # Changelog
+        
         All notable changes to this project will be documented in this file.
 
         The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

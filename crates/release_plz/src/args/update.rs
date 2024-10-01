@@ -61,7 +61,8 @@ pub struct Update {
     release_date: Option<String>,
     /// Registry where the packages are stored.
     /// The registry name needs to be present in the Cargo config.
-    /// If unspecified, crates.io is used.
+    /// If unspecified, the `publish` field of the package manifest is used.
+    /// If the `publish` field is empty, crates.io is used.
     #[arg(
         long,
         conflicts_with("registry_manifest_path"),
@@ -114,6 +115,8 @@ pub enum GitBackendKind {
     Github,
     #[value(name = "gitea")]
     Gitea,
+    #[value(name = "gitlab")]
+    Gitlab,
 }
 
 impl RepoCommand for Update {
@@ -135,13 +138,9 @@ impl ConfigCommand for Update {
 }
 
 impl Update {
-    /// Returns [`None`] if the git token is not provided.
-    pub fn git_backend(&self, repo: RepoUrl) -> anyhow::Result<Option<GitBackend>> {
-        let Some(token) = self.git_token.as_ref() else {
-            return Ok(None);
-        };
-        let token = SecretString::from_str(token).context("Invalid git backend token")?;
-        Ok(Some(match self.backend {
+    pub fn git_backend(&self, repo: RepoUrl) -> anyhow::Result<GitBackend> {
+        let token = SecretString::from(self.git_token.clone());
+        Ok(match self.backend {
             GitBackendKind::Github => {
                 anyhow::ensure!(
                     repo.is_on_github(),
@@ -150,7 +149,9 @@ impl Update {
                 GitBackend::Github(GitHub::new(repo.owner, repo.name, token))
             }
             GitBackendKind::Gitea => GitBackend::Gitea(Gitea::new(repo, token)?),
-        }))
+            GitBackendKind::Gitlab => GitBackend::Gitlab(GitLab::new(repo, token)?),
+        })
+    }
     }
 
     fn dependencies_update(&self, config: &Config) -> bool {
@@ -167,7 +168,7 @@ impl Update {
         cargo_metadata: cargo_metadata::Metadata,
     ) -> anyhow::Result<UpdateRequest> {
         let project_manifest = self.manifest_path();
-        check_if_cargo_lock_is_ignored(&project_manifest)?;
+        check_if_cargo_lock_is_ignored_and_committed(&project_manifest)?;
         let mut update = UpdateRequest::new(cargo_metadata)
             .with_context(|| {
                 format!("Cannot find file {project_manifest:?}. Make sure you are inside a rust project or that --manifest-path points to a valid Cargo.toml file.")
@@ -263,12 +264,17 @@ impl Update {
     }
 }
 
-fn check_if_cargo_lock_is_ignored(local_manifest: &Utf8Path) -> anyhow::Result<()> {
+/// This function validates that the Cargo.lock file is not both ignored and committed,
+/// since this causes issues.
+fn check_if_cargo_lock_is_ignored_and_committed(local_manifest: &Utf8Path) -> anyhow::Result<()> {
     let repo_path = release_plz_core::root_repo_path(local_manifest)?;
     let cargo_lock_path = local_manifest.with_file_name("Cargo.lock");
+
     let is_cargo_lock_ignored = git_cmd::is_file_ignored(&repo_path, &cargo_lock_path);
+    let is_cargo_lock_committed = git_cmd::is_file_committed(&repo_path, &cargo_lock_path);
+
     anyhow::ensure!(
-        !(is_cargo_lock_ignored && cargo_lock_path.exists()),
+        !(is_cargo_lock_ignored && is_cargo_lock_committed),
         "Cargo.lock is present in your .gitignore and is also committed. Remove it from your repository or from your `.gitignore` file."
     );
     Ok(())

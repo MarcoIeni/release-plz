@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 use anyhow::Context;
 use cargo_metadata::{camino::Utf8Path, Package};
 use git_cmd::git_in_dir;
+use itertools::Itertools;
 use tempfile::{tempdir, TempDir};
 
 use crate::{cargo_vcs_info, download, next_ver, PackagePath};
@@ -62,17 +63,32 @@ pub fn get_registry_packages(
         ),
         None => {
             let temp_dir = tempdir().context("failed to get a temporary directory")?;
-            let local_packages_names: Vec<&str> =
-                local_packages.iter().map(|c| c.name.as_str()).collect();
             let directory = temp_dir.as_ref().to_str().context("invalid tempdir path")?;
 
-            let mut downloader = download::PackageDownloader::new(local_packages_names, directory);
-            if let Some(registry) = registry {
-                downloader = downloader.with_registry(registry.to_string());
+            // Find the registry from where to download each package.
+            let packages_grouped_by_registry = local_packages.iter().chunk_by(|p| {
+                // If registry is not provided, fallback to the Cargo.toml `publish` field.
+                registry.or_else(|| {
+                    p.publish
+                        .as_ref()
+                        // Use the first registry in the `publish` field.
+                        .and_then(|p| p.first())
+                        .map(|x| x.as_str())
+                })
+            });
+            let mut registry_packages: Vec<Package> = vec![];
+            for (registry, packages) in &packages_grouped_by_registry {
+                let packages_names: Vec<&str> = packages.map(|p| p.name.as_str()).collect();
+                let mut downloader = download::PackageDownloader::new(packages_names, directory);
+                if let Some(registry) = registry {
+                    downloader = downloader.with_registry(registry.to_string());
+                }
+                registry_packages.extend(
+                    downloader
+                        .download()
+                        .context("failed to download packages")?,
+                );
             }
-            let registry_packages = downloader
-                .download()
-                .context("failed to download packages")?;
 
             // After downloading the package, we initialize a git repo in the package.
             // This is because if cargo doesn't find a git repo in the package, it doesn't

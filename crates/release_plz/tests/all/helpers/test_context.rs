@@ -1,4 +1,4 @@
-use std::{process::Command, str::FromStr};
+use std::process::Command;
 
 use crate::helpers::gitea::CARGO_INDEX_REPO;
 use assert_cmd::assert::Assert;
@@ -258,7 +258,7 @@ fn git_client(repo_url: &str, token: &str) -> GitClient {
     let git_backend = GitBackend::Gitea(
         Gitea::new(
             RepoUrl::new(repo_url).unwrap(),
-            SecretString::from_str(token).unwrap(),
+            SecretString::from(token.to_string()),
         )
         .unwrap(),
     );

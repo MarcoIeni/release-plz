@@ -45,7 +45,7 @@ impl ReleasePrRequest {
 }
 
 /// Release pull request that release-plz opened/updated.
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ReleasePr {
     /// The name of the branch where the changes are implemented.
     pub head_branch: String,
@@ -248,7 +248,7 @@ async fn update_pr(
         pr_edit
     };
     if pr_edit.contains_edit() {
-        git_client.edit_pr(opened_pr.number, &pr_edit).await?;
+        git_client.edit_pr(opened_pr.number, pr_edit).await?;
     }
     info!("updated pr {}", opened_pr.html_url);
     Ok(())
@@ -264,12 +264,11 @@ fn update_pr_branch(
     // save local work
     repository.git(&["stash", "--include-untracked"])?;
 
-    reset_branch(opened_pr, commits_number, repository).map_err(|e| {
+    reset_branch(opened_pr, commits_number, repository).inspect_err(|_e| {
         // restore local work
         if let Err(e) = repository.stash_pop() {
             tracing::error!("cannot restore local work: {:?}", e);
         }
-        e
     })?;
     repository.stash_pop()?;
     Ok(())

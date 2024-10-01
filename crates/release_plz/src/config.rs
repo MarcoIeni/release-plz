@@ -176,6 +176,9 @@ pub struct PackageSpecificConfig {
     /// List of package names.
     /// Include the changelogs of these packages in the changelog of the current package.
     changelog_include: Option<Vec<String>>,
+    /// # Version group
+    /// The name of a group of packages that needs to have the same version.
+    version_group: Option<String>,
 }
 
 impl PackageSpecificConfig {
@@ -184,6 +187,7 @@ impl PackageSpecificConfig {
         PackageSpecificConfig {
             common: self.common.merge(default),
             changelog_include: self.changelog_include,
+            version_group: self.version_group,
         }
     }
 }
@@ -264,6 +268,10 @@ pub struct PackageConfig {
     /// Whether to create/update changelog or not.
     /// If unspecified, the changelog is updated.
     pub changelog_update: Option<bool>,
+    /// # Features Always Increment Minor Version
+    /// - If `true`, feature commits will always bump the minor version, even in 0.x releases.
+    /// - If `false` (default), feature commits will only bump the minor version starting with 1.x releases.
+    pub features_always_increment_minor: Option<bool>,
     /// # Git Release Enable
     /// Publish the GitHub/Gitea release for the created git tag.
     /// Enabled by default.
@@ -318,6 +326,7 @@ impl From<PackageConfig> for release_plz_core::UpdateConfig {
             changelog_update: config.changelog_update != Some(false),
             release: config.release != Some(false),
             tag_name_template: config.git_tag_name,
+            features_always_increment_minor: config.features_always_increment_minor == Some(true),
             changelog_path: config.changelog_path.map(|p| to_utf8_pathbuf(p).unwrap()),
         }
     }
@@ -328,6 +337,7 @@ impl From<PackageSpecificConfig> for release_plz_core::PackageUpdateConfig {
         Self {
             generic: config.common.into(),
             changelog_include: config.changelog_include.unwrap_or_default(),
+            version_group: config.version_group,
         }
     }
 }
@@ -339,6 +349,9 @@ impl PackageConfig {
             semver_check: self.semver_check.or(default.semver_check),
             changelog_path: self.changelog_path.or(default.changelog_path),
             changelog_update: self.changelog_update.or(default.changelog_update),
+            features_always_increment_minor: self
+                .features_always_increment_minor
+                .or(default.features_always_increment_minor),
             git_release_enable: self.git_release_enable.or(default.git_release_enable),
             git_release_type: self.git_release_type.or(default.git_release_type),
             git_release_draft: self.git_release_draft.or(default.git_release_draft),
@@ -464,6 +477,7 @@ mod tests {
                     ..Default::default()
                 },
                 changelog_include: None,
+                version_group: None,
             },
         }
     }
@@ -576,6 +590,7 @@ mod tests {
                         ..Default::default()
                     },
                     changelog_include: Some(vec!["pkg1".to_string()]),
+                    version_group: None,
                 },
             }]
             .into(),

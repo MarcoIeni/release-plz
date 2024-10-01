@@ -141,6 +141,7 @@ My custom changelog header
 My custom changelog header
 
 ## [0.2.5] - 2022-12-16
+
 ";
         let header = parse_header(changelog).unwrap();
         let expected_header = "\
@@ -161,11 +162,13 @@ My custom changelog header
 ## [0.2.5] - 2022-12-16
 
 ### Added
+
 - Incredible feature
 
 ## [0.2.5] - 2022-12-16
 
 ### Fixed
+
 - Incredible bug
 ";
         let header = parse_header(changelog).unwrap();
@@ -225,16 +228,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.5] - 2022-12-16
 
 ### Added
+
 - Add function to retrieve default branch (#372)
 
 ## [0.2.4] - 2022-12-12
 
 ### Changed
+
 - improved error message
 ";
         let changes = last_changes_from_str_test(changelog);
         let expected_changes = "\
 ### Added
+
 - Add function to retrieve default branch (#372)";
         assert_eq!(changes, expected_changes);
     }
@@ -243,6 +249,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     fn changelog_without_unreleased_section_is_parsed() {
         let changelog = "\
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -251,16 +258,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.5](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.2.4...git_cmd-v0.2.5) - 2022-12-16
 
 ### Added
+
 - Add function to retrieve default branch (#372)
 
 ## [0.2.4] - 2022-12-12
 
 ### Changed
+
 - improved error message
 ";
         let changes = last_changes_from_str_test(changelog);
         let expected_changes = "\
 ### Added
+
 - Add function to retrieve default branch (#372)";
         assert_eq!(changes, expected_changes);
     }

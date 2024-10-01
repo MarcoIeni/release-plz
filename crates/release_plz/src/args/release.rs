@@ -28,6 +28,8 @@ pub struct Release {
     #[arg(long)]
     registry: Option<String>,
     /// Token used to publish to the cargo registry.
+    /// Override the `CARGO_REGISTRY_TOKEN` environment variable, or the `CARGO_REGISTRIES_<NAME>_TOKEN`
+    /// environment variable, used for registry specified in the `registry` input variable.
     #[arg(long, value_parser = NonEmptyStringValueParser::new())]
     token: Option<String>,
     /// Perform all checks without uploading.

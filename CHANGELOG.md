@@ -6,6 +6,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.93](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.92...release-plz-v0.3.93) - 2024-09-30
+
+### Fixed
+
+- retrieve token for each package's registry ala `cargo:token` ([#1669](https://github.com/MarcoIeni/release-plz/pull/1669))
+- Disable changelog in PR body if it goes over github character limit ([#1716](https://github.com/MarcoIeni/release-plz/pull/1716))
+
+## [0.3.92](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.91...release-plz-v0.3.92) - 2024-09-28
+
+### Added
+
+- Add `features_always_increment_minor` flag ([#1657](https://github.com/MarcoIeni/release-plz/pull/1657))
+
+### Other
+
+- update to secrecy 10 ([#1719](https://github.com/MarcoIeni/release-plz/pull/1719))
+- update to git-cliff 2.6 ([#1718](https://github.com/MarcoIeni/release-plz/pull/1718))
+
+## [0.3.91](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.90...release-plz-v0.3.91) - 2024-09-17
+
+### Added
+
+- support local dependencies in workspace manifest ([#1695](https://github.com/MarcoIeni/release-plz/pull/1695))
+
+### Other
+
+- update Cargo.lock dependencies
+- improve `dependencies_to_update` fn ([#1694](https://github.com/MarcoIeni/release-plz/pull/1694))
+- add comments to package update code ([#1692](https://github.com/MarcoIeni/release-plz/pull/1692))
+- extract function from `packages_to_update` ([#1691](https://github.com/MarcoIeni/release-plz/pull/1691))
+- improve `dependent_packages` function ([#1689](https://github.com/MarcoIeni/release-plz/pull/1689))
+- improve dependencies_to_update function ([#1687](https://github.com/MarcoIeni/release-plz/pull/1687))
+
+## [0.3.90](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.89...release-plz-v0.3.90) - 2024-09-16
+
+### Fixed
+
+- restore semver check report ([#1684](https://github.com/MarcoIeni/release-plz/pull/1684))
+
+## [0.3.89](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.88...release-plz-v0.3.89) - 2024-09-16
+
+### Added
+
+- allow specifying `version_group` field in package config ([#1661](https://github.com/MarcoIeni/release-plz/pull/1661))
+
+### Other
+
+- improve invalid file error message ([#1682](https://github.com/MarcoIeni/release-plz/pull/1682))
+- Make the banner image lead people straight to the website ([#1679](https://github.com/MarcoIeni/release-plz/pull/1679))
+
+## [0.3.88](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.87...release-plz-v0.3.88) - 2024-09-14
+
+### Fixed
+
+- fallback to http 1.1 when http2 is not supported on fetching sparse metadata ([#1676](https://github.com/MarcoIeni/release-plz/pull/1676))
+
+## [0.3.87](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.86...release-plz-v0.3.87) - 2024-09-07
+
+### Fixed
+- align changelog line breaks with keepachangelog spec ([#1653](https://github.com/MarcoIeni/release-plz/pull/1653))
+- verify correctly if Cargo.lock is ignored and committed ([#1662](https://github.com/MarcoIeni/release-plz/pull/1662))
+
+## [0.3.86](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.85...release-plz-v0.3.86) - 2024-09-07
+
+### Added
+- add gitlab support for the `release-pr` command ([#1651](https://github.com/MarcoIeni/release-plz/pull/1651))
+
+### Other
+- fix inspect_err clippy lint ([#1658](https://github.com/MarcoIeni/release-plz/pull/1658))
+
 ## [0.3.85](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.84...release-plz-v0.3.85) - 2024-08-25
 
 ### Other

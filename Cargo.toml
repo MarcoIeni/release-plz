@@ -13,7 +13,7 @@ async-trait = "0.1.81"
 base64 = "0.22.1"
 camino = "1.1.9"
 cargo_metadata = "0.18.1"
-cargo = { version = "0.81.0", default-features = false }
+cargo = { version = "0.82.0", default-features = false }
 chrono = { version = "0.4.38", default-features = false }
 clap = "4.5.16"
 clap_complete = "4.5.23"
@@ -25,10 +25,11 @@ duration-str = { version = "0.11.2", default-features = false }
 expect-test = "1.5.0"
 fake = "2.9.2"
 fs-err = "2.11.0"
-git-cliff-core = { git = "https://github.com/MarcoIeni/git-cliff.git", branch = "extra_map", default-features = false }
+git-cliff-core = { version = "2.6.1", default-features = false }
 git-url-parse = "0.4.4"
 http = "1.1.0"
 ignore = "0.4.22"
+itertools = "0.13.0"
 lazy_static = "1.5.0"
 once_cell = "1.19.0"
 parse-changelog = { version = "0.6.8", default-features = false }
@@ -40,7 +41,7 @@ reqwest = "0.12.7"
 reqwest-middleware = { version = "0.3.3", features = ["json"] }
 reqwest-retry = "0.6.1"
 schemars = { version = "0.8.21", features = ["url"] }
-secrecy = "0.8.0"
+secrecy = "0.10.2"
 semver = "1.0.23"
 serde = "1.0.209"
 serde_json = "1.0.127"
@@ -53,7 +54,7 @@ toml_edit = { version = "0.22.20" }
 tracing = "0.1.40"
 tracing-log = "0.2.0"
 tracing-subscriber = "0.3.18"
-url = { version = "2.5.2", default-features = false }
+url = "2.5.2"
 walkdir = "2.5.0"
 wiremock = "0.6.1"
 
@@ -66,7 +67,6 @@ cast_lossless = "warn"
 cast_possible_wrap = "warn"
 cast_precision_loss = "warn"
 cast_sign_loss = "warn"
-decimal_literal_representation = "warn"
 default_trait_access = "warn"
 doc_markdown = "warn"
 exit = "warn"
@@ -127,6 +127,7 @@ zero_sized_map_values = "warn"
 
 # Allowing optional lints has no effect, but we list them to
 # make clear that we reviewed them and we decided to allow them
+decimal_literal_representation = "allow"
 map_unwrap_or = "allow"
 needless_raw_string_hashes = "allow"
 redundant_else = "allow"

@@ -46,11 +46,14 @@ impl PackageDownloader {
 
     #[instrument]
     pub fn download(&self) -> anyhow::Result<Vec<Package>> {
-        info!("downloading packages from cargo registry");
         let source: ClonerSource = match &self.registry {
             Some(registry) => ClonerSource::registry(registry),
             None => ClonerSource::crates_io(),
         };
+        info!(
+            "downloading packages from cargo registry {}",
+            source.cargo_source
+        );
         let crates: Vec<Crate> = self
             .packages
             .iter()

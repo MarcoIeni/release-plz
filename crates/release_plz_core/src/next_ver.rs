@@ -1,4 +1,5 @@
 use crate::diff::Commit;
+use crate::get_cargo_package_files;
 use crate::{
     changelog_filler::{fill_commit, get_required_info},
     changelog_parser::{self, ChangelogRelease},
@@ -26,14 +27,16 @@ use cargo_metadata::{
 use cargo_utils::{canonical_local_manifest, upgrade_requirement, LocalManifest, CARGO_TOML};
 use chrono::NaiveDate;
 use git_cmd::{self, Repo};
-use next_version::NextVersion;
+use next_version::{NextVersion, VersionUpdater};
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
+use std::path::PathBuf;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     io,
     path::Path,
 };
+use toml_edit::TableLike;
 use tracing::{debug, info, instrument, warn};
 
 // Used to indicate that this is a dummy commit with no corresponding ID available.
@@ -100,6 +103,7 @@ impl From<UpdateConfig> for PackageUpdateConfig {
         Self {
             generic: config,
             changelog_include: vec![],
+            version_group: None,
         }
     }
 }
@@ -135,6 +139,9 @@ pub struct UpdateConfig {
     pub changelog_update: bool,
     /// High-level toggle to process this package or ignore it.
     pub release: bool,
+    /// - If `true`, feature commits will always bump the minor version, even in 0.x releases.
+    /// - If `false` (default), feature commits will only bump the minor version starting with 1.x releases.
+    pub features_always_increment_minor: bool,
     /// Template for the git tag created by release-plz.
     pub tag_name_template: Option<String>,
 }
@@ -147,6 +154,7 @@ pub struct PackageUpdateConfig {
     /// List of package names.
     /// Include the changelogs of these packages in the changelog of the current package.
     pub changelog_include: Vec<String>,
+    pub version_group: Option<String>,
 }
 
 impl PackageUpdateConfig {
@@ -165,6 +173,7 @@ impl Default for UpdateConfig {
             semver_check: true,
             changelog_update: true,
             release: true,
+            features_always_increment_minor: false,
             tag_name_template: None,
             changelog_path: None,
         }
@@ -179,11 +188,26 @@ impl UpdateConfig {
         }
     }
 
+    pub fn with_features_always_increment_minor(
+        self,
+        features_always_increment_minor: bool,
+    ) -> Self {
+        Self {
+            features_always_increment_minor,
+            ..self
+        }
+    }
+
     pub fn with_changelog_update(self, changelog_update: bool) -> Self {
         Self {
             changelog_update,
             ..self
         }
+    }
+
+    pub fn version_updater(&self) -> VersionUpdater {
+        VersionUpdater::default()
+            .with_features_always_increment_minor(self.features_always_increment_minor)
     }
 }
 
@@ -453,9 +477,9 @@ impl Updater<'_> {
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
-        let packages_diffs = self
-            .get_packages_diffs(registry_packages, repository)
-            .await?;
+        let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
+        let version_groups = self.get_version_groups(&packages_diffs);
+        debug!("version groups: {:?}", version_groups);
 
         let mut packages_to_check_for_deps: Vec<&Package> = vec![];
         let mut packages_to_update = PackagesUpdate::default();
@@ -470,7 +494,7 @@ impl Updater<'_> {
             .map(|(p, _)| p.name.clone())
             .collect();
 
-        let new_workspace_version = new_workspace_version(
+        let new_workspace_version = self.new_workspace_version(
             local_manifest_path,
             &packages_diffs,
             &workspace_version_pkgs,
@@ -486,18 +510,17 @@ impl Updater<'_> {
                     continue;
                 };
             }
-            // Calculate next version without taking into account workspace version
-            let next_version = if let Some(max_workspace_version) = &new_workspace_version {
-                if workspace_version_pkgs.contains(p.name.as_str()) {
-                    max_workspace_version.clone()
-                } else {
-                    p.version.next_from_diff(&diff)
-                }
-            } else {
-                p.version.next_from_diff(&diff)
-            };
-
-            debug!("diff: {:?}, next_version: {}", &diff, next_version);
+            let next_version = self.get_next_version(
+                new_workspace_version.as_ref(),
+                p,
+                &workspace_version_pkgs,
+                &version_groups,
+                &diff,
+            )?;
+            debug!(
+                "package: {}, diff: {diff:?}, next_version: {next_version}",
+                p.name,
+            );
             let current_version = p.version.clone();
             if next_version != current_version || !diff.registry_package_exists {
                 info!(
@@ -509,12 +532,14 @@ impl Updater<'_> {
                     diff.commits,
                     next_version,
                     p,
+                    diff.semver_check,
                     &mut old_changelogs,
                 )?;
                 packages_to_update
                     .updates_mut()
                     .push((p.clone(), update_result));
             } else if diff.is_version_published {
+                // We need to update this package only if one of its dependencies has changed.
                 packages_to_check_for_deps.push(p);
             }
         }
@@ -525,9 +550,67 @@ impl Updater<'_> {
             .map(|(p, u)| (p, &u.version))
             .collect();
         let dependent_packages =
-            self.dependent_packages(&packages_to_check_for_deps, &changed_packages)?;
+            self.dependent_packages_update(&packages_to_check_for_deps, &changed_packages)?;
         packages_to_update.updates_mut().extend(dependent_packages);
         Ok(packages_to_update)
+    }
+
+    /// Get the highest next version of all packages for each version group.
+    fn get_version_groups(&self, packages_diffs: &[(&Package, Diff)]) -> HashMap<String, Version> {
+        let mut version_groups: HashMap<String, Version> = HashMap::new();
+
+        for (pkg, diff) in packages_diffs {
+            let pkg_config = self.req.get_package_config(&pkg.name);
+            let version_updater = pkg_config.generic.version_updater();
+            if let Some(version_group) = pkg_config.version_group {
+                let next_pkg_ver = pkg.version.next_from_diff(diff, version_updater);
+                match version_groups.entry(version_group.clone()) {
+                    std::collections::hash_map::Entry::Occupied(v) => {
+                        // maximum version of the group until now
+                        let max = v.get();
+                        if max < &next_pkg_ver {
+                            version_groups.insert(version_group, next_pkg_ver);
+                        }
+                    }
+                    std::collections::hash_map::Entry::Vacant(_) => {
+                        version_groups.insert(version_group, next_pkg_ver);
+                    }
+                }
+            }
+        }
+
+        version_groups
+    }
+
+    fn new_workspace_version(
+        &self,
+        local_manifest_path: &Utf8Path,
+        packages_diffs: &[(&Package, Diff)],
+        workspace_version_pkgs: &HashSet<String>,
+    ) -> anyhow::Result<Option<Version>> {
+        let workspace_version = {
+            let local_manifest = LocalManifest::try_new(local_manifest_path)?;
+            local_manifest.get_workspace_version()
+        };
+        let new_workspace_version = workspace_version_pkgs
+            .iter()
+            .filter_map(|workspace_package| {
+                for (p, diff) in packages_diffs {
+                    if workspace_package == &p.name {
+                        let pkg_config = self.req.get_package_config(&p.name);
+                        let version_updater = pkg_config.generic.version_updater();
+                        let next = p.version.next_from_diff(diff, version_updater);
+                        if let Some(workspace_version) = &workspace_version {
+                            if &next >= workspace_version {
+                                return Some(next);
+                            }
+                        }
+                    }
+                }
+                None
+            })
+            .max();
+        Ok(new_workspace_version)
     }
 
     async fn get_packages_diffs(
@@ -613,45 +696,65 @@ impl Updater<'_> {
         Ok(packages_diffs)
     }
 
-    /// Return the packages that depend on the `changed_packages`.
-    fn dependent_packages(
+    /// Return the update to apply to the packages that depend on the `changed_packages`.
+    ///
+    /// ## Args
+    ///
+    /// - `packages_to_check_for_deps`: The packages that might need to be updated.
+    ///   We update them if they depend on any of the `changed_packages`.
+    ///   If they don't depend on any of the `changed_packages`, they are not updated
+    ///   because they don't contain any new commits.
+    /// - `changed_packages`: The packages that have changed (i.e. contains commits).
+    fn dependent_packages_update(
         &self,
         packages_to_check_for_deps: &[&Package],
         changed_packages: &[(&Package, &Version)],
     ) -> anyhow::Result<PackagesToUpdate> {
+        let workspace_manifest = LocalManifest::try_new(self.req.local_manifest())?;
+        let workspace_dependencies = workspace_manifest.get_workspace_dependency_table();
+
         let mut old_changelogs = OldChangelogs::new();
+        let workspace_dir = manifest_dir(self.req.local_manifest())?;
         let packages_to_update = packages_to_check_for_deps
             .iter()
-            .filter_map(|p| match p.dependencies_to_update(changed_packages) {
-                Ok(deps) => {
-                    if deps.is_empty() {
-                        None
-                    } else {
-                        Some((p, deps))
-                    }
-                }
-                Err(_e) => None,
+            .filter_map(|p| {
+                p.dependencies_to_update(changed_packages, workspace_dependencies, workspace_dir)
+                    .ok()
+                    .filter(|deps| !deps.is_empty())
+                    .map(|deps| (p, deps))
             })
-            .map(|(&p, deps)| {
-                let deps: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
-                let commits = {
-                    let change = format!(
-                        "chore: updated the following local packages: {}",
-                        deps.join(", ")
-                    );
-                    vec![Commit::new(NO_COMMIT_ID.to_string(), change)]
-                };
-                let next_version = { p.version.increment_patch() };
-                info!(
-                    "{}: dependencies changed. Next version is {next_version}",
-                    p.name
-                );
-                let update_result =
-                    self.calculate_update_result(commits, next_version, p, &mut old_changelogs)?;
-                Ok((p.clone(), update_result))
-            })
+            .map(|(&p, deps)| self.calculate_package_update_result(&deps, p, &mut old_changelogs))
             .collect::<anyhow::Result<Vec<_>>>()?;
         Ok(packages_to_update)
+    }
+
+    fn calculate_package_update_result(
+        &self,
+        deps: &[&Package],
+        p: &Package,
+        old_changelogs: &mut OldChangelogs,
+    ) -> anyhow::Result<(Package, UpdateResult)> {
+        let deps: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
+        let commits = {
+            let change = format!(
+                "chore: updated the following local packages: {}",
+                deps.join(", ")
+            );
+            vec![Commit::new(NO_COMMIT_ID.to_string(), change)]
+        };
+        let next_version = { p.version.increment_patch() };
+        info!(
+            "{}: dependencies changed. Next version is {next_version}",
+            p.name
+        );
+        let update_result = self.calculate_update_result(
+            commits,
+            next_version,
+            p,
+            SemverCheck::Skipped,
+            old_changelogs,
+        )?;
+        Ok((p.clone(), update_result))
     }
 
     fn calculate_update_result(
@@ -659,6 +762,7 @@ impl Updater<'_> {
         commits: Vec<Commit>,
         next_version: Version,
         p: &Package,
+        semver_check: SemverCheck,
         old_changelogs: &mut OldChangelogs,
     ) -> Result<UpdateResult, anyhow::Error> {
         let changelog_path = self.req.changelog_path(p);
@@ -667,7 +771,7 @@ impl Updater<'_> {
             commits,
             next_version,
             p,
-            SemverCheck::Skipped,
+            semver_check,
             old_changelog.as_deref(),
         )?;
         if let Some(changelog) = &update_result.changelog {
@@ -828,6 +932,12 @@ impl Updater<'_> {
         loop {
             let current_commit_message = repository.current_commit_message()?;
             let current_commit_hash = repository.current_commit_hash()?;
+
+            // Check if files changed in git commit belong to the current package.
+            // This is required because a package can contain another package in a subdirectory.
+            let are_changed_files_in_pkg =
+                || are_changed_files_in_package(package_path, repository, &current_commit_hash);
+
             if let Some(registry_package) = registry_package {
                 debug!(
                     "package {} found in cargo registry",
@@ -867,7 +977,7 @@ impl Updater<'_> {
                     info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
                     diff.set_version_unpublished();
                     break;
-                } else {
+                } else if are_changed_files_in_pkg() {
                     debug!("packages are different");
                     // At this point of the git history, the two packages are different,
                     // which means that this commit is not present in the published package.
@@ -876,7 +986,7 @@ impl Updater<'_> {
                         current_commit_message.clone(),
                     ));
                 }
-            } else {
+            } else if are_changed_files_in_pkg() {
                 diff.commits.push(Commit::new(
                     current_commit_hash,
                     current_commit_message.clone(),
@@ -962,6 +1072,82 @@ impl Updater<'_> {
             Ok(None)
         }
     }
+
+    fn get_next_version(
+        &self,
+        new_workspace_version: Option<&Version>,
+        p: &Package,
+        workspace_version_pkgs: &HashSet<String>,
+        version_groups: &HashMap<String, Version>,
+        diff: &Diff,
+    ) -> anyhow::Result<Version> {
+        let pkg_config = self.req.get_package_config(&p.name);
+        let next_version = match new_workspace_version {
+            Some(max_workspace_version) if workspace_version_pkgs.contains(p.name.as_str()) => {
+                debug!(
+                    "next version of {} is workspace version: {max_workspace_version}",
+                    p.name
+                );
+                max_workspace_version.clone()
+            }
+            _ => {
+                if let Some(version_group) = pkg_config.version_group {
+                    version_groups
+                        .get(&version_group)
+                        .with_context(|| {
+                            format!("failed to retrieve version for version group {version_group}")
+                        })?
+                        .clone()
+                } else {
+                    let version_updater = pkg_config.generic.version_updater();
+                    p.version.next_from_diff(diff, version_updater)
+                }
+            }
+        };
+        Ok(next_version)
+    }
+}
+
+/// `hash` is only used for logging purposes.
+fn are_changed_files_in_package(package_path: &Utf8Path, repository: &Repo, hash: &str) -> bool {
+    let Ok(package_files) = get_package_files(package_path, repository).inspect_err(|e| {
+        debug!("failed to get package files at commit {hash}: {e:?}");
+    }) else {
+        // `cargo package` can fail if the package doesn't contain a Cargo.toml file yet.
+        return true;
+    };
+    let Ok(changed_files) = repository.files_of_current_commit().inspect_err(|e| {
+        warn!("failed to get changed files of commit {hash}: {e:?}");
+    }) else {
+        // Assume that this commit contains changes to the package.
+        return true;
+    };
+    !package_files.is_disjoint(&changed_files)
+}
+
+/// Get files that belong to the package.
+/// The paths are relative to the git repo root.
+fn get_package_files(
+    package_path: &Utf8Path,
+    repository: &Repo,
+) -> anyhow::Result<HashSet<Utf8PathBuf>> {
+    // Get relative path of the crate with respect to the repository because we need to compare
+    // files with the git output.
+    let crate_relative_path = package_path.strip_prefix(repository.directory())?;
+    let sources = get_cargo_package_files(package_path)?
+        .into_iter()
+        // filter file generated by `cargo package` that isn't in git.
+        .filter(|l| l != "Cargo.toml.orig" && l != ".cargo_vcs_info.json")
+        .map(|l| {
+            let is_crate_path_same_as_git_repo = crate_relative_path == "";
+            if is_crate_path_same_as_git_repo {
+                l
+            } else {
+                crate_relative_path.join(l)
+            }
+        })
+        .collect();
+    Ok(sources)
 }
 
 struct OldChangelogs {
@@ -985,34 +1171,6 @@ impl OldChangelogs {
     fn insert(&mut self, changelog_path: Utf8PathBuf, changelog: String) {
         self.old_changelogs.insert(changelog_path, changelog);
     }
-}
-
-fn new_workspace_version(
-    local_manifest_path: &Utf8Path,
-    packages_diffs: &[(&Package, Diff)],
-    workspace_version_pkgs: &HashSet<String>,
-) -> anyhow::Result<Option<Version>> {
-    let workspace_version = {
-        let local_manifest = LocalManifest::try_new(local_manifest_path)?;
-        local_manifest.get_workspace_version()
-    };
-    let new_workspace_version = workspace_version_pkgs
-        .iter()
-        .filter_map(|workspace_package| {
-            for (p, diff) in packages_diffs {
-                if workspace_package == &p.name {
-                    let next = p.version.next_from_diff(diff);
-                    if let Some(workspace_version) = &workspace_version {
-                        if &next >= workspace_version {
-                            return Some(next);
-                        }
-                    }
-                }
-            }
-            None
-        })
-        .max();
-    Ok(new_workspace_version)
 }
 
 fn get_changelog(
@@ -1181,6 +1339,8 @@ trait PackageDependencies {
     fn dependencies_to_update<'a>(
         &self,
         updated_packages: &'a [(&Package, &Version)],
+        workspace_dependencies: Option<&dyn TableLike>,
+        workspace_dir: &Utf8Path,
     ) -> anyhow::Result<Vec<&'a Package>>;
 }
 
@@ -1188,35 +1348,50 @@ impl PackageDependencies for Package {
     fn dependencies_to_update<'a>(
         &self,
         updated_packages: &'a [(&Package, &Version)],
+        workspace_dependencies: Option<&dyn TableLike>,
+        workspace_dir: &Utf8Path,
     ) -> anyhow::Result<Vec<&'a Package>> {
-        let mut package_manifest = LocalManifest::try_new(&self.manifest_path)?;
+        // Look into the toml manifest because `cargo_metadata` doesn't distinguish between
+        // empty `version` in Cargo.toml and `version = "*"`
+        let package_manifest = LocalManifest::try_new(&self.manifest_path)?;
         let package_dir = manifest_dir(&package_manifest.path)?.to_owned();
 
         let mut deps_to_update: Vec<&Package> = vec![];
         for (p, next_ver) in updated_packages {
             let canonical_path = p.canonical_path()?;
+            // Find the dependencies that have the same path as the updated package.
             let matching_deps = package_manifest
-                .get_dependency_tables_mut()
-                .flat_map(|t| t.iter_mut().filter_map(|(_, d)| d.as_table_like_mut()))
-                .filter(|d| d.contains_key("version"))
-                .filter(|d| {
-                    let dependency_path = d
-                        .get("path")
-                        .and_then(|i| i.as_str())
-                        .and_then(|relpath| fs_err::canonicalize(package_dir.join(relpath)).ok());
-                    match dependency_path {
-                        Some(dep_path) => dep_path == canonical_path,
-                        None => false,
-                    }
-                });
+                .get_dependency_tables()
+                .flat_map(|t| {
+                    t.iter().filter_map(|(name, d)| {
+                        d.as_table_like().map(|d| {
+                            match workspace_dependencies {
+                                Some(workspace_dependencies) if is_workspace_dependency(d) => {
+                                    // The dependency of the package Cargo.toml is inherited from the workspace,
+                                    // so we find the dependency of the workspace and use it instead.
+                                    let dep = workspace_dependencies
+                                        .iter()
+                                        .find(|(n, _)| n == &name)
+                                        .and_then(|(_, d)| d.as_table_like())
+                                        .unwrap_or(d);
+                                    // Return also the path of the Cargo.toml so that we can resolve the
+                                    // relative path of the dependency later.
+                                    (workspace_dir, dep)
+                                }
+                                _ => (package_dir.as_path(), d),
+                            }
+                        })
+                    })
+                })
+                // Exclude path dependencies without `version`.
+                .filter(|(_toml_base_path, d)| d.contains_key("version"))
+                .filter(|(toml_base_path, d)| {
+                    is_dependency_referred_to_package(*d, toml_base_path, &canonical_path)
+                })
+                .map(|(_, dep)| dep);
 
             for dep in matching_deps {
-                let old_req = dep
-                    .get("version")
-                    .expect("filter ensures this")
-                    .as_str()
-                    .unwrap_or("*");
-                if upgrade_requirement(old_req, next_ver)?.is_some() {
+                if should_update_dependency(dep, next_ver)? {
                     deps_to_update.push(p);
                 }
             }
@@ -1224,6 +1399,50 @@ impl PackageDependencies for Package {
 
         Ok(deps_to_update)
     }
+}
+
+/// Check if the dependency is in the form of `dep_name.workspace = true`.
+fn is_workspace_dependency(d: &dyn TableLike) -> bool {
+    d.get("workspace")
+        .is_some_and(|w| w.as_bool() == Some(true))
+        && !d.contains_key("version")
+        && !d.contains_key("path")
+}
+
+/// Check if `dependency` (contained in the Cargo.toml at `dependency_package_dir`) refers
+/// to the package at `package_dir`.
+/// I.e. if the absolute path of the dependency is the same as the absolute path of the package.
+pub(crate) fn is_dependency_referred_to_package(
+    dependency: &dyn TableLike,
+    package_dir: &Utf8Path,
+    dependency_package_dir: &Utf8Path,
+) -> bool {
+    canonicalized_path(dependency, package_dir)
+        .is_some_and(|dep_path| dep_path == dependency_package_dir)
+}
+
+/// Dependencies are expressed as relative paths in the Cargo.toml file.
+/// This function returns the absolute path of the dependency.
+///
+/// ## Args
+///
+/// - `package_dir`: directory containing the Cargo.toml where the dependency is listed
+/// - `dependency`: entry of the Cargo.toml
+fn canonicalized_path(dependency: &dyn TableLike, package_dir: &Utf8Path) -> Option<PathBuf> {
+    dependency
+        .get("path")
+        .and_then(|i| i.as_str())
+        .and_then(|relpath| dunce::canonicalize(package_dir.join(relpath)).ok())
+}
+
+fn should_update_dependency(dep: &dyn TableLike, next_ver: &Version) -> anyhow::Result<bool> {
+    let old_req = dep
+        .get("version")
+        .expect("filter ensures this")
+        .as_str()
+        .unwrap_or("*");
+    let should_update_dep = upgrade_requirement(old_req, next_ver)?.is_some();
+    Ok(should_update_dep)
 }
 
 #[cfg(test)]

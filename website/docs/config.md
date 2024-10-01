@@ -59,6 +59,8 @@ the following sections:
   - [`changelog_config`](#the-changelog_config-field) — Path to the [git-cliff] configuration file.
   - [`changelog_update`](#the-changelog_update-field) — Update changelog.
   - [`dependencies_update`](#the-dependencies_update-field) — Update all dependencies.
+  - [`features_always_increment_minor`](#the-features_always_increment_minor-field)
+    — Features increment minor in `0.x` versions.
   - [`git_release_enable`](#the-git_release_enable-field) — Enable git release.
   - [`git_release_name`](#the-git_release_name-field) — Customize git release name pattern.
   - [`git_release_body`](#the-git_release_body-field) — Customize git release body pattern.
@@ -84,6 +86,8 @@ the following sections:
   - [`changelog_include`](#the-changelog_include-field) — Include commits from other packages.
   - [`changelog_path`](#the-changelog_path-field-package-section) — Changelog path.
   - [`changelog_update`](#the-changelog_update-field-package-section) — Update changelog.
+  - [`features_always_increment_minor`](#the-features_always_increment_minor-field-package-section)
+    — Features increment minor in `0.x` versions.
   - [`git_release_enable`](#the-git_release_enable-field-package-section) — Enable git release.
   - [`git_release_name`](#the-git_release_name-field-package-section) — Customize git release name pattern.
   - [`git_release_body`](#the-git_release_body-field-package-section) — Customize git release body pattern.
@@ -99,7 +103,7 @@ the following sections:
     features to pass to `cargo publish`.
   - [`release`](#the-release-field-package-section) - Enable the processing of this package.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
-    Don't verify package build.
+  - [`version_group`](#the-version_group-field) — Group of packages with the same version.
 - [`[changelog]`](#the-changelog-section) — Changelog configuration.
   - [`header`](#the-header-field) — Changelog header.
   - [`body`](#the-body-field) — Changelog body.
@@ -176,6 +180,18 @@ This field can be overridden in the [`[package]`](#the-package-section) section.
 
 - If `true`, update all the dependencies in the `Cargo.lock` file by running `cargo update`.
 - If `false`, only update the workspace packages by running `cargo update --workspace`. *(Default)*.
+
+#### The `features_always_increment_minor` field
+
+- If `true`, feature commits will always bump the minor version, even in 0.x releases.
+- If `false` (default), feature commits will only bump the minor version starting with 1.x releases.
+
+:::warning
+This option violates the Cargo SemVer
+[rules](https://doc.rust-lang.org/cargo/reference/semver.html) because the transition from
+`0.x` to `0.(x+1)` is used for breaking changes.
+Instead, new features for `0.x` should bump the version from `0.x.y` to `0.x.(y+1)`.
+:::
 
 #### The `git_release_enable` field
 
@@ -520,6 +536,11 @@ This field cannot be set in the `[workspace]` section.
 - If `true`, update the changelog of this package. *(Default)*.
 - If `false`, don't.
 
+#### The `features_always_increment_minor` field (`package` section)
+
+Overrides the [`workspace.features_always_increment_minor`](#the-features_always_increment_minor-field)
+field.
+
 #### The `git_release_enable` field (`package` section)
 
 Overrides the [`workspace.git_release_enable`](#the-git_release_enable-field) field.
@@ -583,6 +604,44 @@ By default, release-plz runs [cargo-semver-checks] if the package is a library.
 [cargo-semver-checks]: https://github.com/obi1kenobi/cargo-semver-checks
 [git-cliff]: https://git-cliff.org
 
+#### The `version_group` field
+
+The name of a group of packages that needs to have the same version.
+If two or more packages share the same `version_group` then release-plz will
+assign the same version to them (the highest among the next versions of the packages).
+
+:::tip
+Think of this as having a `Cargo.toml` workspace version shared among subgroups of packages
+instead of the entire workspace.
+:::
+
+With the following configuration example, `release-plz update` and `release-plz release-pr`
+will set `aaa` and `bbb` to the same version
+(the highest of the next version of the `aaa` and `bbb` packages), while the other packages
+of the workspace are updated independently.
+
+```toml
+[[package]]
+name = "aaa"
+version_group = "group1"
+
+[[package]]
+name = "bbb"
+version_group = "group1"
+```
+
+:::note
+The version group is considered only when packages contain changes.
+
+**Example**
+
+Package `aaa` (version `0.1.0`) adds a non breaking change while `bbb` (version `0.2.0`)
+wasn't updated since last release.
+In this case release-plz will only update `aaa` to `0.1.1` and `bbb` will remain `0.2.0`.
+However, if `bbb` depends on `aaa`, then `bbb` is updated too and the version is set to `0.2.1`
+for both packages.
+:::
+
 ### The `[changelog]` section
 
 Here's an example configuration, more customization examples available in the
@@ -626,6 +685,7 @@ Default:
 ```toml
 [changelog]
 header = """# Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
