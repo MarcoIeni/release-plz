@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.13](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.12...git_cmd-v0.6.13) - 2024-10-01
+
+### Fixed
+
+- add function `files_of_current_commit` ([#1703](https://github.com/MarcoIeni/release-plz/pull/1703))
+
 ## [0.6.12](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.11...git_cmd-v0.6.12) - 2024-09-07
 
 ### Fixed
