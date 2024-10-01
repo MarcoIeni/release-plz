@@ -1,7 +1,7 @@
-use git_cliff_core::commit::Signature;
+use git_cliff_core::{commit::Signature, contributor::RemoteContributor};
 use regex::Regex;
 
-use crate::{semver_check::SemverCheck, RemoteContributor};
+use crate::semver_check::SemverCheck;
 
 /// Difference between local and registry package (i.e. the last released version)
 #[derive(Debug, Clone)]
@@ -46,7 +46,7 @@ impl Commit {
             message: self.message.clone(),
             author: self.author.clone(),
             committer: self.committer.clone(),
-            extra_map: [("remote", serde_json::to_value(self.remote.clone()).unwrap())].into(),
+            remote: Some(self.remote.clone()),
             ..Default::default()
         }
     }

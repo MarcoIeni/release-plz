@@ -1,7 +1,4 @@
-use std::{
-    path::{Path, PathBuf},
-    str::FromStr as _,
-};
+use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 use cargo_metadata::camino::Utf8Path;
@@ -12,7 +9,8 @@ use clap::{
 };
 use git_cliff_core::config::Config as GitCliffConfig;
 use release_plz_core::{
-    fs_utils::to_utf8_path, ChangelogRequest, GitBackend, GitHub, Gitea, RepoUrl, UpdateRequest,
+    fs_utils::to_utf8_path, ChangelogRequest, GitBackend, GitHub, GitLab, Gitea, RepoUrl,
+    UpdateRequest,
 };
 use secrecy::SecretString;
 
@@ -138,9 +136,12 @@ impl ConfigCommand for Update {
 }
 
 impl Update {
-    pub fn git_backend(&self, repo: RepoUrl) -> anyhow::Result<GitBackend> {
-        let token = SecretString::from(self.git_token.clone());
-        Ok(match self.backend {
+    pub fn git_backend(&self, repo: RepoUrl) -> anyhow::Result<Option<GitBackend>> {
+        let Some(token) = self.git_token.clone() else {
+            return Ok(None);
+        };
+        let token = SecretString::from(token);
+        Ok(Some(match self.backend {
             GitBackendKind::Github => {
                 anyhow::ensure!(
                     repo.is_on_github(),
@@ -150,8 +151,7 @@ impl Update {
             }
             GitBackendKind::Gitea => GitBackend::Gitea(Gitea::new(repo, token)?),
             GitBackendKind::Gitlab => GitBackend::Gitlab(GitLab::new(repo, token)?),
-        })
-    }
+        }))
     }
 
     fn dependencies_update(&self, config: &Config) -> bool {

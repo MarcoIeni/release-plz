@@ -1,8 +1,3 @@
-use clap::builder::NonEmptyStringValueParser;
-use clap::ValueEnum;
-use release_plz_core::{GitBackend, GitHub, GitLab, Gitea, RepoUrl};
-use secrecy::SecretString;
-
 use super::{update::Update, OutputType};
 
 #[derive(clap::Parser, Debug)]
