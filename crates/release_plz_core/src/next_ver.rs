@@ -477,7 +477,7 @@ impl Updater<'_> {
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
-        let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
+        let packages_diffs = self.get_packages_diffs(registry_packages, repository).await?;
         let version_groups = self.get_version_groups(&packages_diffs);
         debug!("version groups: {:?}", version_groups);
 
