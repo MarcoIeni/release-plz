@@ -4,7 +4,7 @@ mod cmd;
 #[cfg(feature = "test_fixture")]
 pub mod test_fixture;
 
-use std::{path::Path, process::Command};
+use std::{collections::HashSet, path::Path, process::Command};
 
 use anyhow::{anyhow, Context};
 use camino::{Utf8Path, Utf8PathBuf};
@@ -102,6 +102,17 @@ impl Repo {
     pub fn changes(&self, filter: impl FnMut(&&str) -> bool) -> anyhow::Result<Vec<String>> {
         let output = self.git(&["status", "--porcelain"])?;
         let changed_files = changed_files(&output, filter);
+        Ok(changed_files)
+    }
+
+    /// Get files changed in the current commit
+    pub fn files_of_current_commit(&self) -> anyhow::Result<HashSet<Utf8PathBuf>> {
+        let output = self.git(&["show", "--oneline", "--name-only", "--pretty=format:"])?;
+        let changed_files = output
+            .lines()
+            .map(|l| l.trim())
+            .map(Utf8PathBuf::from)
+            .collect();
         Ok(changed_files)
     }
 
