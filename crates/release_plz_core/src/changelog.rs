@@ -1,10 +1,7 @@
 use anyhow::Context;
 use chrono::{NaiveDate, TimeZone, Utc};
 use git_cliff_core::{
-    changelog::Changelog as GitCliffChangelog,
-    commit::Commit,
-    config::{Bump, ChangelogConfig, CommitParser, Config, GitConfig, RemoteConfig},
-    release::Release,
+    changelog::Changelog as GitCliffChangelog, commit::Commit, config::{Bump, ChangelogConfig, CommitParser, Config, GitConfig, RemoteConfig}, contributor::RemoteContributor, release::Release
 };
 use regex::Regex;
 use serde::Serialize;
@@ -44,6 +41,8 @@ pub struct Remote {
     /// HTTP URL to the repository.
     /// E.g. `https://github.com/MarcoIeni/release-plz`.
     pub link: String,
+    /// List of contributors.
+    pub contributors: Vec<RemoteContributor>,
 }
 
 impl Changelog<'_> {
