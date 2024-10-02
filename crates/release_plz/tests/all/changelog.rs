@@ -100,7 +100,7 @@ async fn release_plz_adds_custom_changelog() {
     {% endfor %}
     ### Contributors
     {% for contributor in remote.contributors %}
-      * @{{ contributor.username }}
+    * @{{ contributor.username }}
     {%- endfor -%}
     """
     trim = true
@@ -136,7 +136,7 @@ async fn release_plz_adds_custom_changelog() {
 "
     );
 
-    let contributors = format!("### Contributors\n * @{username}\n");
+    let contributors = format!("### Contributors\n\n* @{username}");
 
     let expected_changelog =
         format!("{expected_changelog}{remote_string}{package_string}{changes}{contributors}");

@@ -26,10 +26,12 @@ use cargo_metadata::{
 };
 use cargo_utils::{canonical_local_manifest, upgrade_requirement, LocalManifest, CARGO_TOML};
 use chrono::NaiveDate;
+use git_cliff_core::contributor::RemoteContributor;
 use git_cmd::{self, Repo};
 use next_version::{NextVersion, VersionUpdater};
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
+use std::collections::BTreeSet;
 use std::path::PathBuf;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
@@ -1206,7 +1208,7 @@ fn get_changelog(
                 owner: repo_url.owner.clone(),
                 repo: repo_url.name.clone(),
                 link: repo_url.full_host(),
-                contributors: commits.into_iter().filter_map(|c| c.remote).collect(),
+                contributors: get_contributors(&commits),
             };
             changelog_builder = changelog_builder.with_remote(remote);
         }
@@ -1228,6 +1230,15 @@ fn get_changelog(
         None => new_changelog.generate()?, // Old changelog doesn't exist.
     };
     Ok(changelog)
+}
+
+fn get_contributors(commits: &[git_cliff_core::commit::Commit]) -> Vec<RemoteContributor> {
+    let mut unique_contributors = BTreeSet::new();
+    commits
+        .iter()
+        .filter_map(|c| c.remote.clone())
+        .filter(|remote| unique_contributors.insert(remote.username.clone()))
+        .collect()
 }
 
 fn get_package_path(
