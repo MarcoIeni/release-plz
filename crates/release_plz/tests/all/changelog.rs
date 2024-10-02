@@ -98,6 +98,10 @@ async fn release_plz_adds_custom_changelog() {
     {% endif -%}
     {% endfor -%}
     {% endfor %}
+    ### Contributors
+    {% for contributor in remote.contributors %}
+      * @{{ contributor.username }}
+    {%- endfor -%}
     """
     trim = true
     "#;
@@ -132,8 +136,10 @@ async fn release_plz_adds_custom_changelog() {
 "
     );
 
+    let contributors = format!("### Contributors\n * @{username}\n");
+
     let expected_changelog =
-        format!("{expected_changelog}{remote_string}{package_string}{changes}");
+        format!("{expected_changelog}{remote_string}{package_string}{changes}{contributors}");
     assert_eq!(expected_changelog, changelog);
 }
 
@@ -226,7 +232,7 @@ async fn can_generate_single_changelog_for_multiple_packages_locally() {
 
     expect_test::expect![[r#"
         # Changelog
-        
+
         All notable changes to this project will be documented in this file.
 
         The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
