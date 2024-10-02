@@ -95,6 +95,9 @@ You can use the following context in the template:
       "committer": {
         "name": "User Name",
         "email": "user.email@example.com",
+      },
+      "remote": {
+        "username": "<GitHub/Gitea handle>",
       }
     }
   ],

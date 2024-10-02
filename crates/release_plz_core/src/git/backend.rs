@@ -151,6 +151,13 @@ pub struct Commit {
     pub sha: String,
 }
 
+/// Representation of a remote contributor.
+#[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
+pub struct RemoteCommit {
+    /// Username of the author.
+    pub username: Option<String>,
+}
+
 #[derive(Serialize, Default)]
 pub struct GitLabMrEdit {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -587,6 +594,53 @@ impl GitClient {
         debug!("Associated PRs for commit {commit}: {:?}", prs_numbers);
         Ok(prs)
     }
+
+    pub async fn get_remote_commit(&self, commit: &str) -> Result<RemoteCommit, anyhow::Error> {
+        let api_path = self.commits_api_path(commit);
+        let github_commit: GitHubCommit = self
+            .client
+            .get(api_path)
+            .send()
+            .await?
+            .successful_status()
+            .await?
+            .json()
+            .await
+            .context("can't parse commits")?;
+
+        let username = github_commit.author.and_then(|author| author.login);
+        Ok(RemoteCommit { username })
+    }
+
+    fn commits_api_path(&self, commit: &str) -> String {
+        let commits_path = "commits/";
+        let commits_api_path = match self.backend {
+            BackendType::Gitea => {
+                format!("git/{commits_path}")
+            }
+            BackendType::Github => commits_path.to_string(),
+            BackendType::Gitlab => {
+                unimplemented!("Gitlab support for `release-plz release-pr is not implemented yet")
+            }
+        };
+        format!("{}/{commits_api_path}{commit}", self.repo_url())
+    }
+}
+
+/// Representation of a single commit.
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct GitHubCommit {
+    /// SHA.
+    pub sha: String,
+    /// Author of the commit.
+    pub author: Option<GitHubCommitAuthor>,
+}
+
+/// Author of the commit.
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct GitHubCommitAuthor {
+    /// Username.
+    pub login: Option<String>,
 }
 
 /// Returns the list of contributors for the given commits,

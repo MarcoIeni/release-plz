@@ -1,4 +1,4 @@
-use git_cliff_core::commit::Signature;
+use git_cliff_core::{commit::Signature, contributor::RemoteContributor};
 use regex::Regex;
 
 use crate::semver_check::SemverCheck;
@@ -23,6 +23,7 @@ pub struct Commit {
     pub message: String,
     pub author: Signature,
     pub committer: Signature,
+    pub remote: RemoteContributor,
 }
 
 impl Commit {
@@ -45,6 +46,7 @@ impl Commit {
             message: self.message.clone(),
             author: self.author.clone(),
             committer: self.committer.clone(),
+            remote: Some(self.remote.clone()),
             ..Default::default()
         }
     }

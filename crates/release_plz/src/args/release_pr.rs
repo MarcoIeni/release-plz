@@ -1,51 +1,13 @@
-use clap::builder::NonEmptyStringValueParser;
-use clap::ValueEnum;
-use release_plz_core::{GitBackend, GitHub, GitLab, Gitea, RepoUrl};
-use secrecy::SecretString;
-
 use super::{update::Update, OutputType};
 
 #[derive(clap::Parser, Debug)]
 pub struct ReleasePr {
     #[command(flatten)]
     pub update: Update,
-    /// Git token used to create the pull request.
-    #[arg(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github-token", env, hide_env_values=true)]
-    git_token: String,
-    /// Kind of git host where your project is hosted.
-    #[arg(long, value_enum, default_value_t = GitBackendKind::Github)]
-    backend: GitBackendKind,
     /// Output format. If specified, prints the branch, URL and number of
     /// the release PR, if any.
     #[arg(short, long, value_enum)]
     pub output: Option<OutputType>,
-}
-
-#[derive(ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum GitBackendKind {
-    #[value(name = "github")]
-    Github,
-    #[value(name = "gitea")]
-    Gitea,
-    #[value(name = "gitlab")]
-    Gitlab,
-}
-
-impl ReleasePr {
-    pub fn git_backend(&self, repo: RepoUrl) -> anyhow::Result<GitBackend> {
-        let token = SecretString::from(self.git_token.clone());
-        Ok(match self.backend {
-            GitBackendKind::Github => {
-                anyhow::ensure!(
-                    repo.is_on_github(),
-                    "Can't create PR: the repository is not hosted in GitHub. Please select a different backend."
-                );
-                GitBackend::Github(GitHub::new(repo.owner, repo.name, token))
-            }
-            GitBackendKind::Gitea => GitBackend::Gitea(Gitea::new(repo, token)?),
-            GitBackendKind::Gitlab => GitBackend::Gitlab(GitLab::new(repo, token)?),
-        })
-    }
 }
 
 #[cfg(test)]

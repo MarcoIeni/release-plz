@@ -3,9 +3,16 @@ use std::path::{Path, PathBuf};
 use anyhow::Context;
 use cargo_metadata::camino::Utf8Path;
 use chrono::NaiveDate;
-use clap::builder::{NonEmptyStringValueParser, PathBufValueParser};
+use clap::{
+    builder::{NonEmptyStringValueParser, PathBufValueParser},
+    ValueEnum,
+};
 use git_cliff_core::config::Config as GitCliffConfig;
-use release_plz_core::{fs_utils::to_utf8_path, ChangelogRequest, UpdateRequest};
+use release_plz_core::{
+    fs_utils::to_utf8_path, ChangelogRequest, GitBackend, GitHub, GitLab, Gitea, RepoUrl,
+    UpdateRequest,
+};
+use secrecy::SecretString;
 
 use crate::config::Config;
 
@@ -92,6 +99,22 @@ pub struct Update {
         value_parser = PathBufValueParser::new()
     )]
     config: Option<PathBuf>,
+    /// Git token used to create the pull request.
+    #[arg(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github-token", env, hide_env_values=true)]
+    git_token: Option<String>,
+    /// Kind of git host where your project is hosted.
+    #[arg(long, value_enum, default_value_t = GitBackendKind::Github)]
+    backend: GitBackendKind,
+}
+
+#[derive(ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]
+pub enum GitBackendKind {
+    #[value(name = "github")]
+    Github,
+    #[value(name = "gitea")]
+    Gitea,
+    #[value(name = "gitlab")]
+    Gitlab,
 }
 
 impl RepoCommand for Update {
@@ -113,6 +136,24 @@ impl ConfigCommand for Update {
 }
 
 impl Update {
+    pub fn git_backend(&self, repo: RepoUrl) -> anyhow::Result<Option<GitBackend>> {
+        let Some(token) = self.git_token.clone() else {
+            return Ok(None);
+        };
+        let token = SecretString::from(token);
+        Ok(Some(match self.backend {
+            GitBackendKind::Github => {
+                anyhow::ensure!(
+                    repo.is_on_github(),
+                    "Can't create PR: the repository is not hosted in GitHub. Please select a different backend."
+                );
+                GitBackend::Github(GitHub::new(repo.owner, repo.name, token))
+            }
+            GitBackendKind::Gitea => GitBackend::Gitea(Gitea::new(repo, token)?),
+            GitBackendKind::Gitlab => GitBackend::Gitlab(GitLab::new(repo, token)?),
+        }))
+    }
+
     fn dependencies_update(&self, config: &Config) -> bool {
         self.update_deps || config.workspace.dependencies_update == Some(true)
     }
@@ -173,6 +214,11 @@ impl Update {
         }
         if let Some(release_commits) = config.workspace.release_commits {
             update = update.with_release_commits(&release_commits)?;
+        }
+        if let Some(repo) = update.repo_url() {
+            if let Some(git_client) = self.git_backend(repo.clone())? {
+                update = update.with_git_client(git_client);
+            }
         }
 
         Ok(update)
@@ -254,6 +300,8 @@ mod tests {
             allow_dirty: false,
             repo_url: None,
             config: None,
+            backend: GitBackendKind::Github,
+            git_token: None,
         };
         let config: Config = toml::from_str("").unwrap();
         let req = update_args.update_request(config, fake_metadata()).unwrap();

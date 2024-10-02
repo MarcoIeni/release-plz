@@ -99,7 +99,6 @@ async fn upload_registry_config(user_token: &str, username: &str, client: &reqwe
 }
 
 fn run_create_user_command(user: &GiteaUser) {
-    let email = format!("{}@example.com", user.username());
     Command::new("docker")
         .arg("exec")
         .arg("gitea")
@@ -112,7 +111,7 @@ fn run_create_user_command(user: &GiteaUser) {
         .arg("--password")
         .arg(user.password())
         .arg("--email")
-        .arg(email)
+        .arg(user.email())
         .arg("--must-change-password=false")
         .status()
         .expect("Failed to create user. Is the docker daemon running?");

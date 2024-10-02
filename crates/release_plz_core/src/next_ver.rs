@@ -17,6 +17,7 @@ use crate::{
     version::NextVersionFromDiff,
     ChangelogBuilder, PackagesToUpdate, PackagesUpdate, Project, Remote, CHANGELOG_FILENAME,
 };
+use crate::{GitBackend, GitClient};
 use anyhow::Context;
 use cargo_metadata::{
     camino::{Utf8Path, Utf8PathBuf},
@@ -85,6 +86,7 @@ pub struct UpdateRequest {
     /// Release Commits
     /// Prepare release only if at least one commit respects a regex.
     release_commits: Option<Regex>,
+    git: Option<GitBackend>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -232,6 +234,7 @@ impl UpdateRequest {
             repo_url: None,
             packages_config: PackagesConfig::default(),
             release_commits: None,
+            git: None,
         })
     }
 
@@ -249,6 +252,13 @@ impl UpdateRequest {
             })
     }
 
+    pub fn git_client(&self) -> anyhow::Result<Option<GitClient>> {
+        self.git
+            .as_ref()
+            .map(|git| GitClient::new(git.clone()))
+            .transpose()
+    }
+
     pub fn cargo_metadata(&self) -> &Metadata {
         &self.metadata
     }
@@ -258,6 +268,13 @@ impl UpdateRequest {
             local_manifest: canonical_local_manifest(local_manifest.as_ref())?,
             ..self
         })
+    }
+
+    pub fn with_git_client(self, git: GitBackend) -> Self {
+        Self {
+            git: Some(git),
+            ..self
+        }
     }
 
     pub fn with_registry_manifest_path(self, registry_manifest: &Utf8Path) -> io::Result<Self> {
@@ -374,7 +391,7 @@ impl ReleaseMetadataBuilder for UpdateRequest {
 
 /// Determine next version of packages
 #[instrument(skip_all)]
-pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
+pub async fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
     let overrides = input.packages_config.overrides.keys().cloned().collect();
     let local_project = Project::new(
         &input.local_manifest,
@@ -402,8 +419,9 @@ pub fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, T
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
-    let packages_to_update =
-        updater.packages_to_update(&registry_packages, &repository.repo, input.local_manifest())?;
+    let packages_to_update = updater
+        .packages_to_update(&registry_packages, &repository.repo, input.local_manifest())
+        .await?;
     Ok((packages_to_update, repository))
 }
 
@@ -451,7 +469,7 @@ pub struct Updater<'a> {
 
 impl Updater<'_> {
     #[instrument(skip_all)]
-    fn packages_to_update(
+    async fn packages_to_update(
         &self,
         registry_packages: &PackagesCollection,
         repository: &Repo,
@@ -459,7 +477,9 @@ impl Updater<'_> {
     ) -> anyhow::Result<PackagesUpdate> {
         debug!("calculating local packages");
 
-        let packages_diffs = self.get_packages_diffs(registry_packages, repository)?;
+        let packages_diffs = self
+            .get_packages_diffs(registry_packages, repository)
+            .await?;
         let version_groups = self.get_version_groups(&packages_diffs);
         debug!("version groups: {:?}", version_groups);
 
@@ -595,7 +615,7 @@ impl Updater<'_> {
         Ok(new_workspace_version)
     }
 
-    fn get_packages_diffs(
+    async fn get_packages_diffs(
         &self,
         registry_packages: &PackagesCollection,
         repository: &Repo,
@@ -614,7 +634,7 @@ impl Updater<'_> {
             })
             .collect();
 
-        let mut packages_diffs = self.fill_commits(&packages_diffs_res?, repository)?;
+        let mut packages_diffs = self.fill_commits(&packages_diffs_res?, repository).await?;
         let packages_commits: HashMap<String, Vec<Commit>> = packages_diffs
             .iter()
             .map(|(p, d)| (p.name.clone(), d.commits.clone()))
@@ -651,11 +671,12 @@ impl Updater<'_> {
         Ok(packages_diffs)
     }
 
-    fn fill_commits<'a>(
+    async fn fill_commits<'a>(
         &self,
         packages_diffs: &[(&'a Package, Diff)],
         repository: &Repo,
     ) -> anyhow::Result<Vec<(&'a Package, Diff)>> {
+        let git_client = self.req.git_client()?;
         let changelog_request: &ChangelogRequest = &self.req.changelog_req;
         let mut all_commits: HashMap<String, &Commit> = HashMap::new();
         let mut packages_diffs = packages_diffs.to_owned();
@@ -663,7 +684,14 @@ impl Updater<'_> {
             let required_info = get_required_info(&changelog_config.changelog);
             for (_package, diff) in &mut packages_diffs {
                 for commit in &mut diff.commits {
-                    fill_commit(commit, &required_info, repository, &mut all_commits)?;
+                    fill_commit(
+                        commit,
+                        &required_info,
+                        repository,
+                        &mut all_commits,
+                        git_client.as_ref(),
+                    )
+                    .await?;
                 }
             }
         }
