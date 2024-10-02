@@ -1,7 +1,11 @@
 use anyhow::Context;
 use chrono::{NaiveDate, TimeZone, Utc};
 use git_cliff_core::{
-    changelog::Changelog as GitCliffChangelog, commit::Commit, config::{Bump, ChangelogConfig, CommitParser, Config, GitConfig, RemoteConfig}, contributor::RemoteContributor, release::Release
+    changelog::Changelog as GitCliffChangelog,
+    commit::Commit,
+    config::{Bump, ChangelogConfig, CommitParser, Config, GitConfig, RemoteConfig},
+    contributor::RemoteContributor,
+    release::Release,
 };
 use regex::Regex;
 use serde::Serialize;
