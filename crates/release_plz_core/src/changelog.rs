@@ -46,6 +46,7 @@ pub struct Remote {
     /// E.g. `https://github.com/MarcoIeni/release-plz`.
     pub link: String,
     /// List of contributors.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub contributors: Vec<RemoteContributor>,
 }
 
