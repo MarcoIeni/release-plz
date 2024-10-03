@@ -659,8 +659,8 @@ async fn release_package(
                 "chore: Release package {} version {}",
                 release_info.package.name, release_info.package.version
             );
-            repo.tag(&release_info.git_tag, &message)?;
-            repo.push(&release_info.git_tag)?;
+            repo.tag(release_info.git_tag, &message)?;
+            repo.push(release_info.git_tag)?;
         }
 
         if input.is_git_release_enabled(&release_info.package.name) {
