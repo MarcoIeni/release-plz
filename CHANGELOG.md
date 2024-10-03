@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.95](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.94...release-plz-v0.3.95) - 2024-10-03
+
+### Added
+
+- add contributors username to context ([#1731](https://github.com/MarcoIeni/release-plz/pull/1731))
+- add remote contributor username to changelog ([#1635](https://github.com/MarcoIeni/release-plz/pull/1635))
+
 ## [0.3.94](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.93...release-plz-v0.3.94) - 2024-10-01
 
 ### Fixed
