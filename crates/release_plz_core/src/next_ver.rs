@@ -31,7 +31,6 @@ use git_cmd::{self, Repo};
 use next_version::{NextVersion, VersionUpdater};
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 use regex::Regex;
-use std::collections::BTreeSet;
 use std::path::PathBuf;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
@@ -1233,10 +1232,12 @@ fn get_changelog(
 }
 
 fn get_contributors(commits: &[git_cliff_core::commit::Commit]) -> Vec<RemoteContributor> {
-    let mut unique_contributors = BTreeSet::new();
+    let mut unique_contributors = HashSet::new();
     commits
         .iter()
         .filter_map(|c| c.remote.clone())
+        // Filter out duplicate contributors.
+        // `insert` returns false if the contributor is already in the set.
         .filter(|remote| unique_contributors.insert(remote.username.clone()))
         .collect()
 }
