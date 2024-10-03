@@ -673,7 +673,8 @@ async fn release_package(
         let contributors = git_client
             .get_prs_info(&prs_number)
             .await
-            .context("failed to get contributors")?
+            .inspect_err(|e| tracing::warn!("failed to retrieve contributors: {e}"))
+            .unwrap_or(vec![])
             .iter()
             .map(|pr| git_cliff_core::contributor::RemoteContributor {
                 username: Some(pr.user.login.clone()),
