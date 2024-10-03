@@ -514,6 +514,13 @@ async fn release_package_if_needed(
         .context("can't determine registry indexes")?;
     let mut package_was_released = false;
     let changelog = last_changelog_entry(input, package);
+    let prs = prs_from_text(&changelog);
+    let release_info = ReleaseInfo {
+        package,
+        git_tag: &git_tag,
+        release_name: &release_name,
+        changelog: &changelog,
+    };
     for CargoRegistry { name, mut index } in registry_indexes {
         let token = input.find_registry_token(name.as_deref())?;
         if is_published(&mut index, package, input.publish_timeout, &token)
@@ -523,19 +530,10 @@ async fn release_package_if_needed(
             info!("{} {}: already published", package.name, package.version);
             continue;
         }
-        let package_was_released_at_index = release_package(
-            &mut index,
-            package,
-            input,
-            git_tag.clone(),
-            release_name.clone(),
-            repo,
-            git_client,
-            &changelog,
-            &token,
-        )
-        .await
-        .context("failed to release package")?;
+        let package_was_released_at_index =
+            release_package(&mut index, input, repo, git_client, &release_info, &token)
+                .await
+                .context("failed to release package")?;
 
         if package_was_released_at_index {
             package_was_released = true;
@@ -545,7 +543,7 @@ async fn release_package_if_needed(
         package_name: package.name.clone(),
         version: package.version.clone(),
         tag: git_tag,
-        prs: prs_from_text(&changelog),
+        prs,
     });
     Ok(package_release)
 }
@@ -610,70 +608,82 @@ fn registry_indexes(
     Ok(registry_indexes)
 }
 
+struct ReleaseInfo<'a> {
+    package: &'a Package,
+    git_tag: &'a str,
+    release_name: &'a str,
+    changelog: &'a str,
+}
+
 /// Return `true` if package was published, `false` otherwise.
-#[allow(clippy::too_many_arguments)]
 async fn release_package(
     index: &mut CargoIndex,
-    package: &Package,
     input: &ReleaseRequest,
-    git_tag: String,
-    release_name: String,
     repo: &Repo,
     git_client: &GitClient,
-    changelog: &str,
+    release_info: &ReleaseInfo<'_>,
     token: &Option<SecretString>,
 ) -> anyhow::Result<bool> {
     let workspace_root = &input.metadata.workspace_root;
 
-    let publish = input.is_publish_enabled(&package.name);
+    let publish = input.is_publish_enabled(&release_info.package.name);
     if publish {
-        let output = run_cargo_publish(package, input, workspace_root)
+        let output = run_cargo_publish(release_info.package, input, workspace_root)
             .context("failed to run cargo publish")?;
         if !output.status.success()
             || !output.stderr.contains("Uploading")
             || output.stderr.contains("error:")
         {
-            anyhow::bail!("failed to publish {}: {}", package.name, output.stderr);
+            anyhow::bail!(
+                "failed to publish {}: {}",
+                release_info.package.name,
+                output.stderr
+            );
         }
     }
 
     if input.dry_run {
         info!(
             "{} {}: aborting upload due to dry run",
-            package.name, package.version
+            release_info.package.name, release_info.package.version
         );
         Ok(false)
     } else {
         if publish {
-            wait_until_published(index, package, input.publish_timeout, token).await?;
+            wait_until_published(index, release_info.package, input.publish_timeout, token).await?;
         }
 
-        if input.is_git_tag_enabled(&package.name) {
+        if input.is_git_tag_enabled(&release_info.package.name) {
             // Use same tag message of cargo-release
             let message = format!(
                 "chore: Release package {} version {}",
-                package.name, package.version
+                release_info.package.name, release_info.package.version
             );
-            repo.tag(&git_tag, &message)?;
-            repo.push(&git_tag)?;
+            repo.tag(&release_info.git_tag, &message)?;
+            repo.push(&release_info.git_tag)?;
         }
 
-        if input.is_git_release_enabled(&package.name) {
-            let release_body = release_body(input, package, changelog);
-            let release_config = input.get_package_config(&package.name).git_release;
-            let is_pre_release = release_config.is_pre_release(&package.version);
-            let release_info = GitReleaseInfo {
-                git_tag,
-                release_name,
+        if input.is_git_release_enabled(&release_info.package.name) {
+            let release_body = release_body(input, release_info.package, release_info.changelog);
+            let release_config = input
+                .get_package_config(&release_info.package.name)
+                .git_release;
+            let is_pre_release = release_config.is_pre_release(&release_info.package.version);
+            let git_release_info = GitReleaseInfo {
+                git_tag: release_info.git_tag.to_string(),
+                release_name: release_info.release_name.to_string(),
                 release_body,
                 draft: release_config.draft,
                 latest: release_config.latest,
                 pre_release: is_pre_release,
             };
-            git_client.create_release(&release_info).await?;
+            git_client.create_release(&git_release_info).await?;
         }
 
-        info!("published {} {}", package.name, package.version);
+        info!(
+            "published {} {}",
+            release_info.package.name, release_info.package.version
+        );
         Ok(true)
     }
 }
