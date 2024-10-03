@@ -56,7 +56,7 @@ impl SetVersion {
             .map(|v| {
                 let error = Err(anyhow::anyhow!("version {v} is invalid. Format need to be `<package_name>@<version>`. E.g. `release-plz set-version serde@1.2.3`"));
                 let d: Vec<_> = v.split('@').collect();
-                #[allow(clippy::get_first)]
+                #[expect(clippy::get_first)]
                 let Some(package) = d.get(0) else {return error;};
                 let Some(version) = d.get(1) else {return error;};
                 let version = Version::parse(version)?;

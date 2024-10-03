@@ -292,13 +292,12 @@ fn remove_feature_activation(
         .filter_map(|(idx, feature_activation)| {
             if let toml_edit::Value::String(feature_activation) = feature_activation {
                 let activation = feature_activation.value();
-                #[allow(clippy::unnecessary_lazy_evaluations)] // requires 1.62
                 match status {
                     FeatureStatus::None => activation == dep || activation.starts_with(dep_feature),
                     FeatureStatus::DepFeature => activation == dep,
                     FeatureStatus::Feature => false,
                 }
-                .then(|| idx)
+                .then_some(idx)
             } else {
                 None
             }
