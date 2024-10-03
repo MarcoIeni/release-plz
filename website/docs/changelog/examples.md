@@ -304,8 +304,8 @@ body = """
 ### {{ group | upper_first }}
     {% for commit in commits %}
         {%- if commit.scope -%}
-# highlight-next-line
             - *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}\
+# highlight-next-line
                 {{ commit.message }}{{ self::username(commit=commit) }}\
                 {%- if commit.links %} \
                     ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%})\
