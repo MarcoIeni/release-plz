@@ -304,25 +304,28 @@ body = """
 ### {{ group | upper_first }}
     {% for commit in commits %}
         {%- if commit.scope -%}
-            - *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}\
 # highlight-next-line
-                {{ commit.message }}{% if commit.remote.username %} (by @{{ commit.remote.username }}){% endif %}\
+            - *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}\
+                {{ commit.message }}{{ self::username(commit=commit) }}\
                 {%- if commit.links %} \
                     ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%})\
                 {% endif %}
         {% else -%}
 # highlight-next-line
-            - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }} (by @{{ commit.remote.username }})
+            - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{{ self::username(commit=commit) }}
         {% endif -%}
     {% endfor -%}
 {% endfor %}
 # highlight-start
-{% if remote.contributors -%}
+{%- if remote.contributors %}
 ### Contributors
 {% for contributor in remote.contributors %}
-* @{{ contributor.username }}
+    * @{{ contributor.username }}
 {%- endfor %}
-{% endif %}
+{% endif -%}
+{%- macro username(commit) -%}
+    {% if commit.remote.username %} (by @{{ commit.remote.username }}){% endif -%}
+{% endmacro -%}
 # highlight-end
 """
 ```
