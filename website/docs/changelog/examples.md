@@ -96,14 +96,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- Support multiple file formats
-
-### Changed
-
-- Use cache while fetching pages
-
 ## [1.0.1](https://github.com/orhun/git-cliff-readme-example/compare/v1.0.0...v1.0.1) - 2021-07-18
 
 ### Added
@@ -138,10 +130,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
-### Added
-- Support multiple file formats
-### Changed
-- Use cache while fetching pages
 ## [1.0.1](https://github.com/orhun/git-cliff-readme-example/compare/v1.0.0...v1.0.1) - 2021-07-18
 ### Added
 - Add release script
@@ -242,11 +230,6 @@ link_parsers = [
 
 ## [Unreleased]
 
-### ⛰️  Features
-
-- feat(config): support multiple file formats ([a9d4050](a9d4050212a18f6b3bd76e2e41fbb9045d268b80))
-- feat(cache): use cache while fetching pages ([df6aef4](df6aef41292f3ffe5887754232e6ea7831c50ba5))
-
 ## [1.0.1](https://github.com/orhun/git-cliff-readme-example/compare/v1.0.0...v1.0.1)
 
 ### 🚜 Refactor
@@ -284,9 +267,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
-### ⛰️  Features
-- feat(config): support multiple file formats (a9d4050)
-- feat(cache): use cache while fetching pages (df6aef4)
 ## [1.0.1](https://github.com/orhun/git-cliff-readme-example/compare/v1.0.0...v1.0.1)
 ### 🚜 Refactor
 - refactor(parser): expose string functions (e4fd3cf)
@@ -300,6 +280,124 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 📚 Documentation
 - docs(project): add README.md (81fbc63)
 - docs(example)!: add tested usage example (ad27b43)
+```
+
+</details>
+
+## Release-plz default + contributors
+
+Like Release-plz default configuration, but it also shows the
+GitHub/Gitea/GitLab username of the contributors.
+
+<details>
+  <summary>TOML configuration</summary>
+
+```toml
+[changelog]
+body = """
+## [{{ version | trim_start_matches(pat="v") }}]\
+    {%- if release_link -%}\
+        ({{ release_link }})\
+    {% endif %} \
+    - {{ timestamp | date(format="%Y-%m-%d") }}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | upper_first }}
+    {% for commit in commits %}
+        {%- if commit.scope -%}
+            - *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}\
+# highlight-next-line
+                {{ commit.message }} (by @{{ commit.contributor.username }})\
+                {%- if commit.links %} \
+                    ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%})\
+                {% endif %}
+        {% else -%}
+# highlight-next-line
+            - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }} (by @{{ commit.contributor.username }})
+        {% endif -%}
+    {% endfor -%}
+{% endfor %}
+# highlight-start
+### Contributors
+{% for contributor in remote.contributors %}
+* @{{ contributor.username }}
+{%- endfor -%}
+# highlight-end
+"""
+```
+
+</details>
+
+<details>
+  <summary>Raw Output</summary>
+
+```md
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [1.0.1](https://github.com/orhun/git-cliff-readme-example/compare/v1.0.0...v1.0.1) - 2021-07-18
+
+### Added
+
+- Add release script (by @orhun)
+
+### Changed
+
+- Expose string functions (by @orhun)
+
+### Contributors
+
+* @orhun
+
+## [1.0.0] - 2021-07-18
+
+### Added
+
+- Add README.md (by @orhun)
+- Add ability to parse arrays (by @orhun)
+- Add tested usage example (by @orhun)
+
+### Fixed
+
+- Rename help argument due to conflict (by @orhun)
+
+### Contributors
+
+* @orhun
+```
+
+</details>
+
+<details>
+  <summary>Rendered Output</summary>
+
+```mdx-code-block
+# Changelog
+All notable changes to this project will be documented in this file.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [Unreleased]
+## [1.0.1](https://github.com/orhun/git-cliff-readme-example/compare/v1.0.0...v1.0.1) - 2021-07-18
+### Added
+- Add release script (by @orhun)
+### Changed
+- Expose string functions (by @orhun)
+### Contributors
+* @orhun
+## [1.0.0] - 2021-07-18
+### Added
+- Add README.md (by @orhun)
+- Add ability to parse arrays (by @orhun)
+- Add tested usage example (by @orhun)
+### Fixed
+- Rename help argument due to conflict (by @orhun)
+### Contributors
+* @orhun
 ```
 
 </details>
