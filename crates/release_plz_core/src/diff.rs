@@ -41,12 +41,13 @@ impl Commit {
     }
 
     pub fn to_cliff_commit(&self) -> git_cliff_core::commit::Commit {
+        let remote = self.remote.username.is_some().then(|| self.remote.clone());
         git_cliff_core::commit::Commit {
             id: self.id.clone(),
             message: self.message.clone(),
             author: self.author.clone(),
             committer: self.committer.clone(),
-            remote: Some(self.remote.clone()),
+            remote,
             ..Default::default()
         }
     }

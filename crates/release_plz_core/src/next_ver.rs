@@ -26,6 +26,7 @@ use cargo_metadata::{
 };
 use cargo_utils::{canonical_local_manifest, upgrade_requirement, LocalManifest, CARGO_TOML};
 use chrono::NaiveDate;
+use git_cliff_core::contributor::RemoteContributor;
 use git_cmd::{self, Repo};
 use next_version::{NextVersion, VersionUpdater};
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
@@ -1184,9 +1185,13 @@ fn get_changelog(
     release_link: Option<&str>,
     package: &Package,
 ) -> anyhow::Result<String> {
-    let commits = commits.iter().map(|c| c.to_cliff_commit()).collect();
-    let mut changelog_builder =
-        ChangelogBuilder::new(commits, next_version.to_string(), package.name.clone());
+    let commits: Vec<git_cliff_core::commit::Commit> =
+        commits.iter().map(|c| c.to_cliff_commit()).collect();
+    let mut changelog_builder = ChangelogBuilder::new(
+        commits.clone(),
+        next_version.to_string(),
+        package.name.clone(),
+    );
     if let Some(changelog_req) = changelog_req {
         if let Some(release_date) = changelog_req.release_date {
             changelog_builder = changelog_builder.with_release_date(release_date);
@@ -1202,6 +1207,7 @@ fn get_changelog(
                 owner: repo_url.owner.clone(),
                 repo: repo_url.name.clone(),
                 link: repo_url.full_host(),
+                contributors: get_contributors(&commits),
             };
             changelog_builder = changelog_builder.with_remote(remote);
         }
@@ -1223,6 +1229,17 @@ fn get_changelog(
         None => new_changelog.generate()?, // Old changelog doesn't exist.
     };
     Ok(changelog)
+}
+
+fn get_contributors(commits: &[git_cliff_core::commit::Commit]) -> Vec<RemoteContributor> {
+    let mut unique_contributors = HashSet::new();
+    commits
+        .iter()
+        .filter_map(|c| c.remote.clone())
+        // Filter out duplicate contributors.
+        // `insert` returns false if the contributor is already in the set.
+        .filter(|remote| unique_contributors.insert(remote.username.clone()))
+        .collect()
 }
 
 fn get_package_path(

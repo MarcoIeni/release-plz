@@ -65,6 +65,11 @@ You can use the following context in the template:
     "owner": "<repo owner>",
     "repo": "<repo name>",
     "link": "<repo link>"
+    "contributors": [
+      {
+        "username": "<GitHub/Gitea/GitLab handle>",
+      }
+    ]
   },
   "commits": [
     {
@@ -97,7 +102,7 @@ You can use the following context in the template:
         "email": "user.email@example.com",
       },
       "remote": {
-        "username": "<GitHub/Gitea handle>",
+        "username": "<GitHub/Gitea/GitLab handle>",
       }
     }
   ],
