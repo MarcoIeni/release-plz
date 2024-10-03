@@ -20,8 +20,8 @@ use crate::{
     git::backend::GitClient,
     pr_parser::{prs_from_text, Pr},
     release_order::release_order,
-    GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, BRANCH_PREFIX,
-    CHANGELOG_FILENAME,
+    GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, Remote,
+    BRANCH_PREFIX, CHANGELOG_FILENAME,
 };
 
 #[derive(Debug)]
@@ -520,6 +520,7 @@ async fn release_package_if_needed(
         git_tag: &git_tag,
         release_name: &release_name,
         changelog: &changelog,
+        prs: &prs,
     };
     for CargoRegistry { name, mut index } in registry_indexes {
         let token = input.find_registry_token(name.as_deref())?;
@@ -613,6 +614,7 @@ struct ReleaseInfo<'a> {
     git_tag: &'a str,
     release_name: &'a str,
     changelog: &'a str,
+    prs: &'a [Pr],
 }
 
 /// Return `true` if package was published, `false` otherwise.
@@ -663,8 +665,31 @@ async fn release_package(
             repo.push(release_info.git_tag)?;
         }
 
+        let prs_number = release_info
+            .prs
+            .iter()
+            .map(|pr| pr.number)
+            .collect::<Vec<_>>();
+        let contributors = git_client
+            .get_prs_info(&prs_number)
+            .await
+            .context("failed to get contributors")?
+            .iter()
+            .map(|pr| git_cliff_core::contributor::RemoteContributor {
+                username: Some(pr.user.login.clone()),
+                ..Default::default()
+            })
+            .collect::<Vec<_>>();
+
+        // TODO fill the rest
+        let remote = Remote {
+            owner: "".to_string(),
+            repo: "".to_string(),
+            link: "".to_string(),
+            contributors,
+        };
         if input.is_git_release_enabled(&release_info.package.name) {
-            let release_body = release_body(input, release_info.package, release_info.changelog);
+            let release_body = release_body(input, release_info.package, release_info.changelog, &remote);
             let release_config = input
                 .get_package_config(&release_info.package.name)
                 .git_release;
@@ -766,7 +791,7 @@ fn run_cargo_publish(
 }
 
 /// Return an empty string if the changelog cannot be parsed.
-fn release_body(req: &ReleaseRequest, package: &Package, changelog: &str) -> String {
+fn release_body(req: &ReleaseRequest, package: &Package, changelog: &str, remote: &Remote) -> String {
     let body_template = req
         .get_package_config(&package.name)
         .git_release
@@ -775,7 +800,9 @@ fn release_body(req: &ReleaseRequest, package: &Package, changelog: &str) -> Str
         &package.name,
         &package.version.to_string(),
         changelog,
+        remote,
         body_template.as_deref(),
+
     )
 }
 
