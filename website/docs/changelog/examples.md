@@ -306,21 +306,23 @@ body = """
         {%- if commit.scope -%}
             - *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}\
 # highlight-next-line
-                {{ commit.message }} (by @{{ commit.contributor.username }})\
+                {{ commit.message }}{% if commit.remote.username %} (by @{{ commit.remote.username }}){% endif %}\
                 {%- if commit.links %} \
                     ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%})\
                 {% endif %}
         {% else -%}
 # highlight-next-line
-            - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }} (by @{{ commit.contributor.username }})
+            - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }} (by @{{ commit.remote.username }})
         {% endif -%}
     {% endfor -%}
 {% endfor %}
 # highlight-start
+{%- if remote.contributors -%}
 ### Contributors
 {% for contributor in remote.contributors %}
 * @{{ contributor.username }}
-{%- endfor -%}
+{%- endfor %}
+{%- endif -%}
 # highlight-end
 """
 ```
