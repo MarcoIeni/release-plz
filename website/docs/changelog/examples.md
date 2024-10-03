@@ -317,12 +317,12 @@ body = """
     {% endfor -%}
 {% endfor %}
 # highlight-start
-{%- if remote.contributors -%}
+{% if remote.contributors -%}
 ### Contributors
 {% for contributor in remote.contributors %}
 * @{{ contributor.username }}
 {%- endfor %}
-{%- endif -%}
+{% endif %}
 # highlight-end
 """
 ```
