@@ -689,7 +689,8 @@ async fn release_package(
             contributors,
         };
         if input.is_git_release_enabled(&release_info.package.name) {
-            let release_body = release_body(input, release_info.package, release_info.changelog, &remote);
+            let release_body =
+                release_body(input, release_info.package, release_info.changelog, &remote);
             let release_config = input
                 .get_package_config(&release_info.package.name)
                 .git_release;
@@ -791,7 +792,12 @@ fn run_cargo_publish(
 }
 
 /// Return an empty string if the changelog cannot be parsed.
-fn release_body(req: &ReleaseRequest, package: &Package, changelog: &str, remote: &Remote) -> String {
+fn release_body(
+    req: &ReleaseRequest,
+    package: &Package,
+    changelog: &str,
+    remote: &Remote,
+) -> String {
     let body_template = req
         .get_package_config(&package.name)
         .git_release
@@ -802,7 +808,6 @@ fn release_body(req: &ReleaseRequest, package: &Package, changelog: &str, remote
         changelog,
         remote,
         body_template.as_deref(),
-
     )
 }
 
