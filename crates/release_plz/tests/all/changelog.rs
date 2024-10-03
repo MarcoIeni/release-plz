@@ -124,7 +124,7 @@ async fn release_plz_adds_custom_changelog() {
     let package_string =
         format!("== {repo} - [0.1.0](https://localhost/{username}/{repo}/releases/tag/v0.1.0)\n\n");
     let commits = ["add config file", "cargo init", "Initial commit"];
-    #[allow(clippy::format_collect)]
+    #[expect(clippy::format_collect)]
     let commits_str = commits
         .iter()
         .map(|commit| format!("- {commit} by {username} (gitea: {username})\n"))

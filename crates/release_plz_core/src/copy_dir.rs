@@ -46,7 +46,7 @@ pub fn copy_dir(from: impl AsRef<Utf8Path>, to: impl AsRef<Utf8Path>) -> anyhow:
 
 /// `to` must exist.
 #[tracing::instrument]
-#[allow(clippy::filetype_is_file)] // we want to distinguish between files and symlinks
+#[expect(clippy::filetype_is_file)] // we want to distinguish between files and symlinks
 fn copy_directory(from: &Utf8Path, to: Utf8PathBuf) -> Result<(), anyhow::Error> {
     let walker = ignore::WalkBuilder::new(from)
         // Read hidden files
