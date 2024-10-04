@@ -19,9 +19,10 @@ impl Pr {
         default_branch: &str,
         packages_to_update: &PackagesUpdate,
         project_contains_multiple_pub_packages: bool,
+        branch_prefix: &str,
     ) -> Self {
         Self {
-            branch: release_branch(),
+            branch: release_branch(branch_prefix),
             base_branch: default_branch.to_string(),
             title: pr_title(packages_to_update, project_contains_multiple_pub_packages),
             body: pr_body(packages_to_update, project_contains_multiple_pub_packages),
@@ -41,13 +42,13 @@ impl Pr {
     }
 }
 
-fn release_branch() -> String {
+fn release_branch(prefix: &str) -> String {
     let now = chrono::offset::Utc::now();
     // Convert to a string of format "2018-01-26T18:30:09Z".
     let now = now.to_rfc3339_opts(SecondsFormat::Secs, true);
     // ':' is not a valid character for a branch name.
     let now = now.replace(':', "-");
-    format!("{BRANCH_PREFIX}{now}")
+    format!("{prefix}{now}")
 }
 
 fn pr_title(

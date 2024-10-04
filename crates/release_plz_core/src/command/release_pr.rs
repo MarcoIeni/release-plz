@@ -21,6 +21,8 @@ pub struct ReleasePrRequest {
     draft: bool,
     /// Labels to add to the release PR.
     labels: Vec<String>,
+    /// PR Branch Prefix
+    branch_prefix: String,
     pub update_request: UpdateRequest,
 }
 
@@ -29,6 +31,7 @@ impl ReleasePrRequest {
         Self {
             draft: false,
             labels: vec![],
+            branch_prefix: BRANCH_PREFIX.to_string(),
             update_request,
         }
     }
@@ -40,6 +43,13 @@ impl ReleasePrRequest {
 
     pub fn mark_as_draft(mut self, draft: bool) -> Self {
         self.draft = draft;
+        self
+    }
+
+    pub fn with_branch_prefix(mut self, pr_branch_prefix: Option<String>) -> Self {
+        if let Some(branch_prefix) = pr_branch_prefix {
+            self.branch_prefix = branch_prefix;
+        }
         self
     }
 }
@@ -101,6 +111,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
                 &repo,
                 input.draft,
                 input.labels.clone(),
+                input.branch_prefix.clone(),
             )
             .await?;
             return Ok(Some(pr));
@@ -117,6 +128,7 @@ async fn open_or_update_release_pr(
     repo: &Repo,
     draft: bool,
     pr_labels: Vec<String>,
+    pr_branch_prefix: String,
 ) -> anyhow::Result<ReleasePr> {
     let mut opened_release_prs = git_client
         .opened_prs(BRANCH_PREFIX)
@@ -149,6 +161,7 @@ async fn open_or_update_release_pr(
             repo.original_branch(),
             packages_to_update,
             project_contains_multiple_pub_packages,
+            &pr_branch_prefix,
         )
         .mark_as_draft(draft)
         .with_labels(pr_labels)

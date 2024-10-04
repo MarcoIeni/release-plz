@@ -38,12 +38,14 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         Command::ReleasePr(cmd_args) => {
             let cargo_metadata = cmd_args.update.cargo_metadata()?;
             let config = cmd_args.update.config()?;
+            let pr_branch_prefix = config.workspace.pr_branch_prefix.clone();
             let pr_labels = config.workspace.pr_labels.clone();
             let pr_draft = config.workspace.pr_draft;
             let update_request = cmd_args.update.update_request(config, cargo_metadata)?;
             let request = ReleasePrRequest::new(update_request)
                 .mark_as_draft(pr_draft)
-                .with_labels(pr_labels);
+                .with_labels(pr_labels)
+                .with_branch_prefix(pr_branch_prefix);
             let release_pr = release_plz_core::release_pr(&request).await?;
             if let Some(output_type) = cmd_args.output {
                 let prs = match release_pr {
