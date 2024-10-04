@@ -133,6 +133,8 @@ impl Release {
 
         req = config.fill_release_config(self.allow_dirty, self.no_verify, req);
 
+        req = req.with_branch_prefix(config.workspace.pr_branch_prefix.clone());
+
         Ok(req)
     }
 }
