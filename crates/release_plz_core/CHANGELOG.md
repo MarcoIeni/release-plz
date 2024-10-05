@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.28.0...release_plz_core-v0.29.0) - 2024-10-05
+
+### Added
+
+- add contributors to git release body context ([#1736](https://github.com/MarcoIeni/release-plz/pull/1736))
+
+### Other
+
+- fix `unnecessary_lazy_evaluations`lint ([#1734](https://github.com/MarcoIeni/release-plz/pull/1734))
+- fix `too_many_arguments` lint ([#1733](https://github.com/MarcoIeni/release-plz/pull/1733))
+
 ## [0.28.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.27.2...release_plz_core-v0.28.0) - 2024-10-03
 
 ### Added
