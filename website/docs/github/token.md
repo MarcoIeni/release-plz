@@ -121,7 +121,7 @@ jobs:
     name: Release-plz
     runs-on: ubuntu-latest
     concurrency:
-      group: release-plz
+      group: release-plz-${{ github.ref }}
       cancel-in-progress: false
     steps:
       - name: Checkout repository
