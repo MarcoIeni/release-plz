@@ -700,7 +700,10 @@ async fn release_package(
     }
 }
 
-async fn get_contributors(release_info: &ReleaseInfo<'_>, git_client: &GitClient) -> Vec<git_cliff_core::contributor::RemoteContributor> {
+async fn get_contributors(
+    release_info: &ReleaseInfo<'_>,
+    git_client: &GitClient,
+) -> Vec<git_cliff_core::contributor::RemoteContributor> {
     let prs_number = release_info
         .prs
         .iter()
