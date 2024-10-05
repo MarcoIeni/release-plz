@@ -234,7 +234,7 @@ In `git_release_body`, you can use the following variables:
 - `{{ changelog }}`: the changelog body of the new release.
 - `{{ package }}`: the name of the package.
 - `{{ version }}`: the new version of the package.
-- `{{ release.contributors }}`: array of contributors.
+- `{{ remote.contributors }}`: array of contributors.
   I.e. the username of the authors of the PRs present in the changelog.
   This means that your commit messages should contain the PR number, e.g. `(#123)`
   or `([#1421](https://github.com/me/proj/pull/1421))`.
