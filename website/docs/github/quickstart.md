@@ -120,6 +120,9 @@ jobs:
   release-plz:
     name: Release-plz
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-plz
+      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -156,6 +159,9 @@ jobs:
   release-plz:
     name: Release-plz
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-plz
+      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -196,6 +202,9 @@ jobs:
   release-plz:
     name: Release-plz
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-plz
+      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -239,6 +248,9 @@ jobs:
   release-plz:
     name: Release-plz
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-plz
+      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
