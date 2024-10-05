@@ -253,6 +253,7 @@ git_release_body = """
 {%- endfor %}
 {% endif -%}
 """
+```
 
 :::
 
