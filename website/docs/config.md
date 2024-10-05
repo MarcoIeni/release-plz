@@ -245,7 +245,6 @@ To list the contributors at the end of the release you can do the following:
 ```toml
 git_release_body = """
 {{ changelog }}
-
 {% if remote.contributors %}
 ### Contributors
 {% for contributor in remote.contributors %}
