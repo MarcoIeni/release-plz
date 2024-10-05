@@ -76,7 +76,7 @@ jobs:
     name: Release-plz
     runs-on: ubuntu-latest
     concurrency:
-      group: release-plz-${{ github.ref }}
+      group: release-plz
       cancel-in-progress: false
     steps:
       - name: Checkout repository
