@@ -665,22 +665,7 @@ async fn release_package(
             repo.push(release_info.git_tag)?;
         }
 
-        let prs_number = release_info
-            .prs
-            .iter()
-            .map(|pr| pr.number)
-            .collect::<Vec<_>>();
-        let contributors = git_client
-            .get_prs_info(&prs_number)
-            .await
-            .inspect_err(|e| tracing::warn!("failed to retrieve contributors: {e}"))
-            .unwrap_or(vec![])
-            .iter()
-            .map(|pr| git_cliff_core::contributor::RemoteContributor {
-                username: Some(pr.user.login.clone()),
-                ..Default::default()
-            })
-            .collect::<Vec<_>>();
+        let contributors = get_contributors(release_info, git_client).await;
 
         // TODO fill the rest
         let remote = Remote {
@@ -713,6 +698,26 @@ async fn release_package(
         );
         Ok(true)
     }
+}
+
+async fn get_contributors(release_info: &ReleaseInfo<'_>, git_client: &GitClient) -> Vec<git_cliff_core::contributor::RemoteContributor> {
+    let prs_number = release_info
+        .prs
+        .iter()
+        .map(|pr| pr.number)
+        .collect::<Vec<_>>();
+    let contributors = git_client
+        .get_prs_info(&prs_number)
+        .await
+        .inspect_err(|e| tracing::warn!("failed to retrieve contributors: {e}"))
+        .unwrap_or(vec![])
+        .iter()
+        .map(|pr| git_cliff_core::contributor::RemoteContributor {
+            username: Some(pr.user.login.clone()),
+            ..Default::default()
+        })
+        .collect::<Vec<_>>();
+    contributors
 }
 
 fn get_git_client(input: &ReleaseRequest) -> anyhow::Result<GitClient> {
