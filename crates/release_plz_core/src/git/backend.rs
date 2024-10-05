@@ -63,9 +63,9 @@ pub struct PrCommit {
     pub author: Option<Author>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct Author {
-    login: String,
+    pub login: String,
 }
 
 #[derive(Serialize)]
@@ -82,6 +82,7 @@ pub struct CreateReleaseOption<'a> {
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct GitPr {
+    pub user: Author,
     pub number: u64,
     pub html_url: Url,
     pub head: Commit,
@@ -112,6 +113,9 @@ impl From<GitLabMr> for GitPr {
             },
             title: value.title,
             body,
+            user: Author {
+                login: value.author.username,
+            },
         }
     }
 }
@@ -119,12 +123,18 @@ impl From<GitLabMr> for GitPr {
 /// Merge request.
 #[derive(Deserialize, Clone, Debug)]
 pub struct GitLabMr {
+    pub author: GitLabAuthor,
     pub iid: u64,
     pub web_url: Url,
     pub sha: String,
     pub source_branch: String,
     pub title: String,
     pub description: String,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct GitLabAuthor {
+    pub username: String,
 }
 
 impl From<GitPr> for GitLabMr {
@@ -134,6 +144,9 @@ impl From<GitPr> for GitLabMr {
             None => "".to_string(),
         };
         GitLabMr {
+            author: GitLabAuthor {
+                username: value.user.login,
+            },
             iid: value.number,
             web_url: value.html_url,
             sha: value.head.sha,
@@ -415,6 +428,18 @@ impl GitClient {
         }
     }
 
+    async fn pr_from_response(&self, resp: Response) -> anyhow::Result<GitPr> {
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => {
+                resp.json().await.context("failed to parse pr")
+            }
+            BackendType::Gitlab => {
+                let gitlab_mr: GitLabMr = resp.json().await.context("failed to parse gitlab mr")?;
+                Ok(gitlab_mr.into())
+            }
+        }
+    }
+
     #[instrument(skip(self))]
     pub async fn close_pr(&self, pr_number: u64) -> anyhow::Result<()> {
         debug!("closing pr #{pr_number}");
@@ -592,6 +617,27 @@ impl GitClient {
 
         let prs_numbers = prs.iter().map(|pr| pr.number).collect::<Vec<_>>();
         debug!("Associated PRs for commit {commit}: {:?}", prs_numbers);
+        Ok(prs)
+    }
+
+    pub async fn get_pr_info(&self, pr_number: u64) -> anyhow::Result<GitPr> {
+        let response = self
+            .client
+            .get(format!("{}/{}", self.pulls_url(), pr_number))
+            .send()
+            .await?
+            .successful_status()
+            .await?;
+
+        self.pr_from_response(response).await
+    }
+
+    pub async fn get_prs_info(&self, pr_numbers: &[u64]) -> anyhow::Result<Vec<GitPr>> {
+        let mut prs = vec![];
+        for pr_number in pr_numbers {
+            let pr = self.get_pr_info(*pr_number).await?;
+            prs.push(pr);
+        }
         Ok(prs)
     }
 
