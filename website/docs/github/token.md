@@ -120,6 +120,9 @@ jobs:
   release-plz:
     name: Release-plz
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-plz-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
