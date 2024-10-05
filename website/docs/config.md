@@ -250,8 +250,8 @@ git_release_body = """
 ### Contributors
 {% for contributor in remote.contributors %}
 * @{{ contributor.username }}
-{%- endfor %}
-{% endif -%}
+{% endfor %}
+{% endif %}
 """
 ```
 
