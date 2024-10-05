@@ -96,7 +96,8 @@ Notes:
 
 - `fetch-depth: 0` is needed to clone all the git history, which is necessary to
   determine the next version and build the changelog.
-- `concurrency`: if a new commit is pushed while the previous job is still running, the new job will wait for the previous one to finish.
+- `concurrency`: if a new commit is pushed while the previous job is still
+  running, the new job will wait for the previous one to finish.
   See GitHub [docs](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idconcurrency).
 
 ### Example: release-pr only
