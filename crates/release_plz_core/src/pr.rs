@@ -1,7 +1,7 @@
 use crate::PackagesUpdate;
 use chrono::SecondsFormat;
 
-pub const BRANCH_PREFIX: &str = "release-plz-";
+pub const DEFAULT_BRANCH_PREFIX: &str = "release-plz-";
 pub const OLD_BRANCH_PREFIX: &str = "release-plz/";
 
 #[derive(Debug)]

@@ -4,12 +4,12 @@ use git_cmd::Repo;
 
 use anyhow::Context;
 use serde::Serialize;
-use tracing::{info, instrument};
+use tracing::{debug, info, instrument};
 use url::Url;
 
 use crate::git::backend::{contributors_from_commits, BackendType, GitClient, GitPr, PrEdit};
 use crate::git::github_graphql;
-use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};
+use crate::pr::{Pr, DEFAULT_BRANCH_PREFIX, OLD_BRANCH_PREFIX};
 use crate::{
     copy_to_temp_dir, new_manifest_dir_path, new_project_root, publishable_packages_from_manifest,
     root_repo_path_from_manifest_dir, update, PackagesUpdate, UpdateRequest,
@@ -31,7 +31,7 @@ impl ReleasePrRequest {
         Self {
             draft: false,
             labels: vec![],
-            branch_prefix: BRANCH_PREFIX.to_string(),
+            branch_prefix: DEFAULT_BRANCH_PREFIX.to_string(),
             update_request,
         }
     }
@@ -235,7 +235,7 @@ async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Resu
     } else {
         create_release_branch(repo, &pr.branch)?;
     }
-    info!("changes committed to release branch {}", pr.branch);
+    debug!("changes committed to release branch {}", pr.branch);
 
     let git_pr = git_client.open_pr(pr).await.context("Failed to open PR")?;
     Ok(ReleasePr {
@@ -311,7 +311,9 @@ fn reset_branch(
 ) -> anyhow::Result<()> {
     // sanity check to avoid doing bad things on non-release-plz branches
     anyhow::ensure!(
-        pr.branch().starts_with(branch_prefix) || pr.branch().starts_with(OLD_BRANCH_PREFIX),
+        pr.branch().starts_with(branch_prefix)
+            || pr.branch().starts_with(DEFAULT_BRANCH_PREFIX)
+            || pr.branch().starts_with(OLD_BRANCH_PREFIX),
         "wrong branch name"
     );
 

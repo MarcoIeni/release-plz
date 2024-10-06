@@ -36,6 +36,6 @@ pub use git::gitlab_client::GitLab;
 pub use next_ver::*;
 pub use package_compare::*;
 pub use package_path::*;
-pub use pr::BRANCH_PREFIX;
+pub use pr::DEFAULT_BRANCH_PREFIX;
 pub use project::*;
 pub use repo_url::*;

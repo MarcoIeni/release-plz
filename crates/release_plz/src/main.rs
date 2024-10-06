@@ -8,7 +8,8 @@ mod update_checker;
 
 use args::{config_command::ConfigCommand as _, OutputType};
 use clap::Parser;
-use release_plz_core::{ReleasePrRequest, ReleaseRequest};
+use config::Config;
+use release_plz_core::{ReleasePrRequest, ReleaseRequest, UpdateRequest};
 use serde::Serialize;
 use tracing::error;
 
@@ -31,23 +32,18 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         Command::Update(cmd_args) => {
             let cargo_metadata = cmd_args.cargo_metadata()?;
             let config = cmd_args.config()?;
-            let update_request = cmd_args.update_request(config, cargo_metadata)?;
+            let update_request = cmd_args.update_request(&config, cargo_metadata)?;
             let updates = release_plz_core::update(&update_request).await?;
             println!("{}", updates.0.summary());
         }
         Command::ReleasePr(cmd_args) => {
             let cargo_metadata = cmd_args.update.cargo_metadata()?;
             let config = cmd_args.update.config()?;
-            let pr_branch_prefix = config.workspace.pr_branch_prefix.clone();
-            let pr_labels = config.workspace.pr_labels.clone();
-            let pr_draft = config.workspace.pr_draft;
-            let update_request = cmd_args.update.update_request(config, cargo_metadata)?;
-            let request = ReleasePrRequest::new(update_request)
-                .mark_as_draft(pr_draft)
-                .with_labels(pr_labels)
-                .with_branch_prefix(pr_branch_prefix);
+            let update_request = cmd_args.update.update_request(&config, cargo_metadata)?;
+            let cmd_args_output: Option<OutputType> = cmd_args.output;
+            let request = get_release_pr_req(&config, update_request)?;
             let release_pr = release_plz_core::release_pr(&request).await?;
-            if let Some(output_type) = cmd_args.output {
+            if let Some(output_type) = cmd_args_output {
                 let prs = match release_pr {
                     Some(pr) => vec![pr],
                     None => vec![],
@@ -81,6 +77,20 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         }
     }
     Ok(())
+}
+
+fn get_release_pr_req(
+    config: &Config,
+    update_request: UpdateRequest,
+) -> anyhow::Result<ReleasePrRequest> {
+    let pr_branch_prefix = config.workspace.pr_branch_prefix.clone();
+    let pr_labels = config.workspace.pr_labels.clone();
+    let pr_draft = config.workspace.pr_draft;
+    let request = ReleasePrRequest::new(update_request)
+        .mark_as_draft(pr_draft)
+        .with_labels(pr_labels)
+        .with_branch_prefix(pr_branch_prefix);
+    Ok(request)
 }
 
 fn print_output(output_type: OutputType, output: impl Serialize) {

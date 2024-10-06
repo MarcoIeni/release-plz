@@ -20,8 +20,8 @@ use crate::{
     git::backend::GitClient,
     pr_parser::{prs_from_text, Pr},
     release_order::release_order,
-    GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, BRANCH_PREFIX,
-    CHANGELOG_FILENAME,
+    GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, CHANGELOG_FILENAME,
+    DEFAULT_BRANCH_PREFIX,
 };
 
 #[derive(Debug)]
@@ -67,7 +67,7 @@ impl ReleaseRequest {
             packages_config: PackagesConfig::default(),
             publish_timeout: minutes_30,
             release_always: true,
-            branch_prefix: BRANCH_PREFIX.to_string(),
+            branch_prefix: DEFAULT_BRANCH_PREFIX.to_string(),
         }
     }
 
