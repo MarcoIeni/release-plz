@@ -1,13 +1,14 @@
 # Busy repositories
 
 This section discusses some considerations when using release-plz in busy repositories.
-For the purpose of this document, a busy repository is a repository with the following characteristics:
+For the purpose of this document, a busy repository is a repository with the following
+characteristics:
 
 - The CI runs in parallel on multiple commits of the main branch
   either because the CI is slow or because the repository is very active.
 - The repository is maintained by multiple developers that might
-  push commits to the main branch while `release-plz release` is running (typically, a solo maintainer
-  waits for the release to finish before pushing other commits to the repo).
+  push commits to the main branch while `release-plz release` is running (typically, a solo
+  maintainer waits for the release to finish before pushing other commits to the repo).
 
 If you are using release-plz in a busy repository, please read this section carefully.
 
@@ -22,8 +23,10 @@ concurrency:
   cancel-in-progress: false
 ```
 
-However, if you have [release_always](../config.md#the-release_always-field) set to `false`, your release will be skipped
-if release-plz is already running for a previous commit and a new commit is pushed after the release PR is merged.
+However, if you have [release_always](../config.md#the-release_always-field) set to `false`,
+your release will be skipped
+if release-plz is already running for a previous commit and a new commit is pushed after
+the release PR is merged.
 
 This is an example commit sequence where the release is skipped:
 
@@ -35,7 +38,7 @@ This is an example commit sequence where the release is skipped:
 
 If this is a concern, you might want to have two separate workflows:
 
-- One that runs [release-plz release](../github/quickstart.md#example-release-only) on every commit to the main branch
-  *without* the `concurrency` block.
+- One that runs [release-plz release](../github/quickstart.md#example-release-only) on every
+  commit to the main branch *without* the `concurrency` block.
 - One that runs [release-plz release-pr](../github/quickstart.md#example-release-pr-only)
   on every commit to the main branch *with* the `concurrency` block.
