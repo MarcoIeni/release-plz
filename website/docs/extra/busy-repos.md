@@ -2,8 +2,8 @@
 
 This section discusses some considerations when using release-plz in busy repositories.
 For the purpose of this document, a busy repository is a repository with the following characteristics:
-- the repository has a high commit rate,
-  i.e. commits to the main branch happen so frequently that the CI runs in parallel on multiple commits,
+
+- the CI runs in parallel on multiple commits of the main branch
   either because the CI is slow or because the repository is very active.
 - the repository is maintained by multiple developers that might
   push commits to the main branch while `release-plz release` is running (typically, a solo maintainer
