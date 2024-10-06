@@ -3,9 +3,9 @@
 This section discusses some considerations when using release-plz in busy repositories.
 For the purpose of this document, a busy repository is a repository with the following characteristics:
 
-- the CI runs in parallel on multiple commits of the main branch
+- The CI runs in parallel on multiple commits of the main branch
   either because the CI is slow or because the repository is very active.
-- the repository is maintained by multiple developers that might
+- The repository is maintained by multiple developers that might
   push commits to the main branch while `release-plz release` is running (typically, a solo maintainer
   waits for the release to finish before pushing other commits to the repo).
 
@@ -34,7 +34,7 @@ This is an example commit sequence where the release is skipped:
 
 If this is a concern, you might want to have two separate workflows:
 
-- one that runs [release-plz release](../github/quickstart.md#example-release-only) on every commit to the main branch
-  *without* the `concurrency` block
-- one that runs [release-plz release-pr](../github/quickstart.md#example-release-pr-only)
-  on every commit to the main branch *with* the `concurrency` block
+- One that runs [release-plz release](../github/quickstart.md#example-release-only) on every commit to the main branch
+  *without* the `concurrency` block.
+- One that runs [release-plz release-pr](../github/quickstart.md#example-release-pr-only)
+  on every commit to the main branch *with* the `concurrency` block.
