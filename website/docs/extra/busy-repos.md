@@ -13,7 +13,8 @@ If you are using release-plz in a busy repository, please read this section care
 
 ## Concurrency
 
-Release-plz docs suggest using the `concurrency` block like this to prevent multiple release-plz jobs from running at the same time:
+Release-plz [docs](../github/quickstart.md) suggest using the GitHub Actions
+`concurrency` block like this to prevent multiple release-plz jobs from running at the same time:
 
 ```yaml
 concurrency:
