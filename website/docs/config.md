@@ -453,12 +453,6 @@ Gitea should work when they implement the
 API (maybe in Gitea 1.22?).
 :::
 
-:::warning
-If you are in a "busy" repositories, where you have many commits in a short time,
-you might want to set `release_always = false`.
-See the [busy repositories](./extra/busy-repos.md) documentation for more information.
-:::
-
 #### The `release_commits` field
 
 In `release-plz update` and `release-plz release-pr`, `release-plz` bumps the version and updates
