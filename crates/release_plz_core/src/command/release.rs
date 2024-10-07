@@ -20,8 +20,8 @@ use crate::{
     git::backend::GitClient,
     pr_parser::{prs_from_text, Pr},
     release_order::release_order,
-    GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, CHANGELOG_FILENAME,
-    DEFAULT_BRANCH_PREFIX,
+    GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, Remote,
+    CHANGELOG_FILENAME, DEFAULT_BRANCH_PREFIX,
 };
 
 #[derive(Debug)]
