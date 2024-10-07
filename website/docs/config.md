@@ -318,8 +318,9 @@ Where:
 
 Prefix for the release PR branch. By default, it's set to: `release-plz-`
 
-:::warning 
+:::warning
 Before changing the release-plz branch you should close the old release PR
+:::
 
 #### The `pr_draft` field
 
@@ -428,6 +429,7 @@ release = false
 
 - If true, release-plz release will try to release your packages every time you run it
   (e.g. on every commit in the main branch). *(Default)*.
+  
   :::warning
   In this case, every package is published as soon as you commit it.
   :::
