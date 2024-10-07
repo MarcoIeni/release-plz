@@ -75,6 +75,9 @@ jobs:
   release-plz:
     name: Release-plz
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-plz-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -93,6 +96,12 @@ Notes:
 
 - `fetch-depth: 0` is needed to clone all the git history, which is necessary to
   determine the next version and build the changelog.
+- The `concurrency` block guarantees that if a new commit is pushed while the job of the previous
+  commit was still running, the new job will wait for the previous one to finish.
+  In this way, only one instance of release-plz will run in the repository at the same time for
+  the same branch, ensuring that there are no conflicts.
+  See the GitHub [docs](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idconcurrency)
+  to learn more.
 
 ### Example: release-pr only
 
@@ -115,6 +124,9 @@ jobs:
   release-plz:
     name: Release-plz
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-plz-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -151,6 +163,9 @@ jobs:
   release-plz:
     name: Release-plz
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-plz-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -191,6 +206,9 @@ jobs:
   release-plz:
     name: Release-plz
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-plz-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -234,6 +252,9 @@ jobs:
   release-plz:
     name: Release-plz
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-plz-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

@@ -237,6 +237,27 @@ In `git_release_body`, you can use the following variables:
 - `{{ changelog }}`: the changelog body of the new release.
 - `{{ package }}`: the name of the package.
 - `{{ version }}`: the new version of the package.
+- `{{ remote.contributors }}`: array of contributors.
+  I.e. the username of the authors of the PRs present in the changelog.
+  This means that your commit messages should contain the PR number, e.g. `(#123)`
+  or `([#1421](https://github.com/me/proj/pull/1421))`.
+
+:::tip
+To list the contributors at the end of the release you can do the following:
+
+```toml
+git_release_body = """
+{{ changelog }}
+{% if remote.contributors %}
+### Contributors
+{% for contributor in remote.contributors %}
+* @{{ contributor.username }}
+{% endfor %}
+{% endif %}
+"""
+```
+
+:::
 
 #### The `git_release_type` field
 

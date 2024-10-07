@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.58](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.57...cargo_utils-v0.1.58) - 2024-10-05
+
+### Other
+
+- fix `unnecessary_lazy_evaluations`lint ([#1734](https://github.com/MarcoIeni/release-plz/pull/1734))
+
 ## [0.1.57](https://github.com/MarcoIeni/release-plz/compare/cargo_utils-v0.1.56...cargo_utils-v0.1.57) - 2024-09-30
 
 ### Fixed

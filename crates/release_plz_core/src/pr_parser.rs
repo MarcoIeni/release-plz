@@ -5,7 +5,7 @@ use url::Url;
 #[derive(Debug, PartialEq, Serialize)]
 pub struct Pr {
     html_url: Url,
-    number: u64,
+    pub number: u64,
 }
 
 /// Parse PRs from text, e.g. a changelog entry.
