@@ -132,6 +132,7 @@ jobs:
           fetch-depth: 0
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@v0.5
         env:
@@ -192,6 +193,7 @@ mod tests {
                       fetch-depth: 0
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
+                  - uses: Swatinem/rust-cache@v2
                   - name: Run release-plz
                     uses: MarcoIeni/release-plz-action@v0.5
                     env:
