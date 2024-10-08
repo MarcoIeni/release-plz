@@ -21,7 +21,7 @@ use crate::{
     pr_parser::{prs_from_text, Pr},
     release_order::release_order,
     GitBackend, PackagePath, Project, ReleaseMetadata, ReleaseMetadataBuilder, Remote,
-    BRANCH_PREFIX, CHANGELOG_FILENAME,
+    CHANGELOG_FILENAME, DEFAULT_BRANCH_PREFIX,
 };
 
 #[derive(Debug)]
@@ -50,6 +50,8 @@ pub struct ReleaseRequest {
     packages_config: PackagesConfig,
     /// publish timeout
     publish_timeout: Duration,
+    /// PR Branch Prefix
+    branch_prefix: String,
 }
 
 impl ReleaseRequest {
@@ -65,6 +67,7 @@ impl ReleaseRequest {
             packages_config: PackagesConfig::default(),
             publish_timeout: minutes_30,
             release_always: true,
+            branch_prefix: DEFAULT_BRANCH_PREFIX.to_string(),
         }
     }
 
@@ -110,6 +113,13 @@ impl ReleaseRequest {
 
     pub fn with_release_always(mut self, release_always: bool) -> Self {
         self.release_always = release_always;
+        self
+    }
+
+    pub fn with_branch_prefix(mut self, pr_branch_prefix: Option<String>) -> Self {
+        if let Some(branch_prefix) = pr_branch_prefix {
+            self.branch_prefix = branch_prefix;
+        }
         self
     }
 
@@ -559,8 +569,9 @@ async fn should_release(
     }
     let last_commit = repo.current_commit_hash()?;
     let prs = git_client.associated_prs(&last_commit).await?;
-    let is_current_commit_from_release_pr =
-        prs.iter().any(|pr| pr.branch().starts_with(BRANCH_PREFIX));
+    let is_current_commit_from_release_pr = prs
+        .iter()
+        .any(|pr| pr.branch().starts_with(&input.branch_prefix));
     if !is_current_commit_from_release_pr {
         info!("skipping release: current commit is not from a release PR");
     }

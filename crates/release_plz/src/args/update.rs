@@ -164,7 +164,7 @@ impl Update {
 
     pub fn update_request(
         &self,
-        config: Config,
+        config: &Config,
         cargo_metadata: cargo_metadata::Metadata,
     ) -> anyhow::Result<UpdateRequest> {
         let project_manifest = self.manifest_path();
@@ -173,9 +173,9 @@ impl Update {
             .with_context(|| {
                 format!("Cannot find file {project_manifest:?}. Make sure you are inside a rust project or that --manifest-path points to a valid Cargo.toml file.")
             })?
-            .with_dependencies_update(self.dependencies_update(&config))
-            .with_allow_dirty(self.allow_dirty(&config));
-        match self.get_repo_url(&config) {
+            .with_dependencies_update(self.dependencies_update(config))
+            .with_allow_dirty(self.allow_dirty(config));
+        match self.get_repo_url(config) {
             Ok(repo_url) => {
                 update = update.with_repo_url(repo_url);
             }
@@ -202,7 +202,7 @@ impl Update {
                 .transpose()?;
             let changelog_req = ChangelogRequest {
                 release_date,
-                changelog_config: Some(self.changelog_config(&config)?),
+                changelog_config: Some(self.changelog_config(config)?),
             };
             update = update.with_changelog_req(changelog_req);
         }
@@ -212,8 +212,8 @@ impl Update {
         if let Some(registry) = &self.registry {
             update = update.with_registry(registry.clone());
         }
-        if let Some(release_commits) = config.workspace.release_commits {
-            update = update.with_release_commits(&release_commits)?;
+        if let Some(release_commits) = &config.workspace.release_commits {
+            update = update.with_release_commits(release_commits)?;
         }
         if let Some(repo) = update.repo_url() {
             if let Some(git_client) = self.git_backend(repo.clone())? {
@@ -304,7 +304,9 @@ mod tests {
             git_token: None,
         };
         let config: Config = toml::from_str("").unwrap();
-        let req = update_args.update_request(config, fake_metadata()).unwrap();
+        let req = update_args
+            .update_request(&config, fake_metadata())
+            .unwrap();
         let pkg_config = req.get_package_config("aaa");
         assert_eq!(pkg_config, release_plz_core::PackageUpdateConfig::default());
     }
