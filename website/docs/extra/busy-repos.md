@@ -36,3 +36,11 @@ If this is a concern, you might want to have two separate workflows:
   commit to the main branch *without* the `concurrency` block.
 - One that runs [release-plz release-pr](../github/quickstart.md#example-release-pr-only)
   on every commit to the main branch *with* the `concurrency` block.
+
+:::info
+This setup is also suggested if `release_always` is set to `true` and you want to avoid
+the release from containing commits merged after the release PR was merged.
+
+Maybe this should be the default setup for all repositories.
+See also [#1030](https://github.com/MarcoIeni/release-plz/issues/1030).
+:::
