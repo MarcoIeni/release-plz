@@ -41,6 +41,6 @@ If this is a concern, you might want to have two separate workflows:
 This setup is also suggested if `release_always` is set to `true` and you want to avoid
 the release from containing commits merged after the release PR was merged.
 
-Maybe this should be the default setup for all repositories.
+Maybe this should be the default setup for all repositories ([#1752](https://github.com/MarcoIeni/release-plz/issues/1752)).
 See also [#1030](https://github.com/MarcoIeni/release-plz/issues/1030).
 :::
