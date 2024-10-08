@@ -40,10 +40,9 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let cargo_metadata = cmd_args.update.cargo_metadata()?;
             let config = cmd_args.update.config()?;
             let update_request = cmd_args.update.update_request(&config, cargo_metadata)?;
-            let cmd_args_output: Option<OutputType> = cmd_args.output;
             let request = get_release_pr_req(&config, update_request)?;
             let release_pr = release_plz_core::release_pr(&request).await?;
-            if let Some(output_type) = cmd_args_output {
+            if let Some(output_type) = cmd_args.output {
                 let prs = match release_pr {
                     Some(pr) => vec![pr],
                     None => vec![],
