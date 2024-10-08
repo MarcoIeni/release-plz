@@ -4,12 +4,12 @@ use git_cmd::Repo;
 
 use anyhow::Context;
 use serde::Serialize;
-use tracing::{info, instrument};
+use tracing::{debug, info, instrument};
 use url::Url;
 
 use crate::git::backend::{contributors_from_commits, BackendType, GitClient, GitPr, PrEdit};
 use crate::git::github_graphql;
-use crate::pr::{Pr, BRANCH_PREFIX, OLD_BRANCH_PREFIX};
+use crate::pr::{Pr, DEFAULT_BRANCH_PREFIX, OLD_BRANCH_PREFIX};
 use crate::{
     copy_to_temp_dir, new_manifest_dir_path, new_project_root, publishable_packages_from_manifest,
     root_repo_path_from_manifest_dir, update, PackagesUpdate, UpdateRequest,
@@ -21,6 +21,8 @@ pub struct ReleasePrRequest {
     draft: bool,
     /// Labels to add to the release PR.
     labels: Vec<String>,
+    /// PR Branch Prefix
+    branch_prefix: String,
     pub update_request: UpdateRequest,
 }
 
@@ -29,6 +31,7 @@ impl ReleasePrRequest {
         Self {
             draft: false,
             labels: vec![],
+            branch_prefix: DEFAULT_BRANCH_PREFIX.to_string(),
             update_request,
         }
     }
@@ -40,6 +43,13 @@ impl ReleasePrRequest {
 
     pub fn mark_as_draft(mut self, draft: bool) -> Self {
         self.draft = draft;
+        self
+    }
+
+    pub fn with_branch_prefix(mut self, pr_branch_prefix: Option<String>) -> Self {
+        if let Some(branch_prefix) = pr_branch_prefix {
+            self.branch_prefix = branch_prefix;
+        }
         self
     }
 }
@@ -101,6 +111,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
                 &repo,
                 input.draft,
                 input.labels.clone(),
+                input.branch_prefix.clone(),
             )
             .await?;
             return Ok(Some(pr));
@@ -117,9 +128,10 @@ async fn open_or_update_release_pr(
     repo: &Repo,
     draft: bool,
     pr_labels: Vec<String>,
+    pr_branch_prefix: String,
 ) -> anyhow::Result<ReleasePr> {
     let mut opened_release_prs = git_client
-        .opened_prs(BRANCH_PREFIX)
+        .opened_prs(&pr_branch_prefix)
         .await
         .context("cannot get opened release-plz prs")?;
 
@@ -149,12 +161,15 @@ async fn open_or_update_release_pr(
             repo.original_branch(),
             packages_to_update,
             project_contains_multiple_pub_packages,
+            &pr_branch_prefix,
         )
         .mark_as_draft(draft)
         .with_labels(pr_labels)
     };
     match opened_release_prs.first() {
-        Some(opened_pr) => handle_opened_pr(git_client, opened_pr, repo, &new_pr).await,
+        Some(opened_pr) => {
+            handle_opened_pr(git_client, opened_pr, repo, &new_pr, &pr_branch_prefix).await
+        }
         None => create_pr(git_client, repo, &new_pr).await,
     }
 }
@@ -164,6 +179,7 @@ async fn handle_opened_pr(
     opened_pr: &GitPr,
     repo: &Repo,
     new_pr: &Pr,
+    branch_prefix: &str,
 ) -> Result<ReleasePr, anyhow::Error> {
     let pr_commits = git_client
         .pr_commits(opened_pr.number)
@@ -173,7 +189,16 @@ async fn handle_opened_pr(
     Ok(if pr_contributors.is_empty() {
         // There are no contributors, so we can force-push
         // in this PR, because we don't care about the git history.
-        match update_pr(git_client, opened_pr, pr_commits.len(), repo, new_pr).await {
+        match update_pr(
+            git_client,
+            opened_pr,
+            pr_commits.len(),
+            repo,
+            new_pr,
+            branch_prefix,
+        )
+        .await
+        {
             Ok(()) => ReleasePr {
                 number: opened_pr.number,
                 head_branch: opened_pr.branch().to_string(),
@@ -210,6 +235,8 @@ async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Resu
     } else {
         create_release_branch(repo, &pr.branch)?;
     }
+    debug!("changes committed to release branch {}", pr.branch);
+
     let git_pr = git_client.open_pr(pr).await.context("Failed to open PR")?;
     Ok(ReleasePr {
         number: git_pr.number,
@@ -225,8 +252,9 @@ async fn update_pr(
     commits_number: usize,
     repository: &Repo,
     new_pr: &Pr,
+    branch_prefix: &str,
 ) -> anyhow::Result<()> {
-    update_pr_branch(commits_number, opened_pr, repository).with_context(|| {
+    update_pr_branch(commits_number, opened_pr, repository, branch_prefix).with_context(|| {
         format!(
             "failed to update pr branch with changes from `{}` branch",
             repository.original_branch()
@@ -260,11 +288,12 @@ fn update_pr_branch(
     commits_number: usize,
     opened_pr: &GitPr,
     repository: &Repo,
+    branch_prefix: &str,
 ) -> anyhow::Result<()> {
     // save local work
     repository.git(&["stash", "--include-untracked"])?;
 
-    reset_branch(opened_pr, commits_number, repository).inspect_err(|_e| {
+    reset_branch(opened_pr, commits_number, repository, branch_prefix).inspect_err(|_e| {
         // restore local work
         if let Err(e) = repository.stash_pop() {
             tracing::error!("cannot restore local work: {:?}", e);
@@ -274,10 +303,17 @@ fn update_pr_branch(
     Ok(())
 }
 
-fn reset_branch(pr: &GitPr, commits_number: usize, repository: &Repo) -> anyhow::Result<()> {
+fn reset_branch(
+    pr: &GitPr,
+    commits_number: usize,
+    repository: &Repo,
+    branch_prefix: &str,
+) -> anyhow::Result<()> {
     // sanity check to avoid doing bad things on non-release-plz branches
     anyhow::ensure!(
-        pr.branch().starts_with(BRANCH_PREFIX) || pr.branch().starts_with(OLD_BRANCH_PREFIX),
+        pr.branch().starts_with(branch_prefix)
+            || pr.branch().starts_with(DEFAULT_BRANCH_PREFIX)
+            || pr.branch().starts_with(OLD_BRANCH_PREFIX),
         "wrong branch name"
     );
 

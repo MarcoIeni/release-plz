@@ -21,6 +21,7 @@ changelog_config = "config/git-cliff.toml" # use a custom git-cliff configuratio
 changelog_update = false # disable changelog updates
 dependencies_update = true # update dependencies with `cargo update`
 git_release_enable = false # disable GitHub/Gitea releases
+pr_branch_prefix = "release-plz-" # PR branch prefix
 pr_labels = ["release"] # add the `release` label to the release Pull Request
 publish_allow_dirty = true # add `--allow-dirty` to `cargo publish`
 semver_check = false # disable API breaking changes checks
@@ -69,6 +70,7 @@ the following sections:
   - [`git_release_latest`](#the-git_release_latest-field) — Publish git release as latest.
   - [`git_tag_enable`](#the-git_tag_enable-field) — Enable git tag.
   - [`git_tag_name`](#the-git_tag_name-field) — Customize git tag pattern.
+  - [`pr_branch_prefix`](#the-pr_branch_prefix-field) — Release PR branch prefix.
   - [`pr_draft`](#the-pr_draft-field) — Open the release Pull Request as a draft.
   - [`pr_labels`](#the-pr_labels-field) — Add labels to the release Pull Request.
   - [`publish`](#the-publish-field) — Publish to cargo registry.
@@ -130,6 +132,7 @@ changelog_config = "config/git-cliff.toml"
 changelog_update = false
 dependencies_update = true # update dependencies with `cargo update`
 git_release_enable = true
+pr_branch_prefix = "feat-pr-" # Release PR branch prefix
 publish_allow_dirty = true
 publish_no_verify = false
 repo_url = "https://github.com/<owner>/<repo>"
@@ -311,6 +314,14 @@ Where:
 - `{{ package }}` is the name of the package.
 - `{{ version }}` is the new version of the package.
 
+#### The `pr_branch_prefix` field
+
+Prefix for the release PR branch. By default, it's set to: `release-plz-`
+
+:::warning
+Before changing the release-plz branch you should close the old release PR.
+:::
+
 #### The `pr_draft` field
 
 - If `true`, release-plz creates the release PR as a draft.
@@ -418,6 +429,7 @@ release = false
 
 - If true, release-plz release will try to release your packages every time you run it
   (e.g. on every commit in the main branch). *(Default)*.
+
   :::warning
   In this case, every package is published as soon as you commit it.
   :::

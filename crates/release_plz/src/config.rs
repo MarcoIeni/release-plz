@@ -133,6 +133,9 @@ pub struct Workspace {
     /// Labels to add to the release PR.
     #[serde(default)]
     pub pr_labels: Vec<String>,
+    /// # PR Branch Prefix
+    /// Prefix for the PR Branch
+    pub pr_branch_prefix: Option<String>,
     /// # Publish Timeout
     /// Timeout for the publishing process
     pub publish_timeout: Option<String>,
@@ -429,6 +432,7 @@ mod tests {
         git_release_enable = true
         git_release_type = "prod"
         git_release_draft = false
+        pr_branch_prefix = "f-"
         publish_timeout = "10m"
         release_commits = "^feat:"
     "#;
@@ -456,6 +460,7 @@ mod tests {
                 },
                 pr_draft: false,
                 pr_labels: vec![],
+                pr_branch_prefix: Some("f-".to_string()),
                 publish_timeout: Some("10m".to_string()),
                 release_commits: Some("^feat:".to_string()),
                 release_always: None,
@@ -563,6 +568,7 @@ mod tests {
                 repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 pr_draft: false,
                 pr_labels: vec!["label1".to_string()],
+                pr_branch_prefix: Some("f-".to_string()),
                 packages_defaults: PackageConfig {
                     semver_check: None,
                     changelog_update: true.into(),
@@ -607,6 +613,7 @@ mod tests {
             changelog_config = "../git-cliff.toml"
             pr_draft = false
             pr_labels = ["label1"]
+            pr_branch_prefix = "f-"
             publish_timeout = "10m"
             repo_url = "https://github.com/MarcoIeni/release-plz"
             release_commits = "^feat:"
