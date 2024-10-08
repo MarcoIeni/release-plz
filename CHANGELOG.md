@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.98](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.97...release-plz-v0.3.98) - 2024-10-08
+
+### Added
+
+- add `pr_branch_prefix` option to configure branch prefix for release-pr ([#1728](https://github.com/MarcoIeni/release-plz/pull/1728)) ([#1737](https://github.com/MarcoIeni/release-plz/pull/1737))
+
 ## [0.3.97](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.96...release-plz-v0.3.97) - 2024-10-05
 
 ### Other
