@@ -36,7 +36,14 @@ const sidebars = {
       label: "GitHub Action",
       collapsed: true,
       link: { type: "doc", id: "github/index" },
-      items: ["github/quickstart", "github/output", "github/token", "github/update", "github/advanced", "github/security"],
+      items: [
+        "github/quickstart",
+        "github/output",
+        "github/token",
+        "github/update",
+        "github/advanced",
+        "github/security",
+      ],
     },
     "config",
     {
@@ -44,7 +51,7 @@ const sidebars = {
       label: "Changelog",
       collapsed: true,
       link: { type: "doc", id: "changelog/index" },
-      items: ["changelog/format", "changelog/examples", "changelog/tips-and-tricks" ],
+      items: ["changelog/format", "changelog/examples", "changelog/tips-and-tricks"],
     },
     "semver-check",
     "faq",
@@ -57,6 +64,7 @@ const sidebars = {
       link: { type: "doc", id: "extra/index" },
       items: [
         "extra/releasing-binaries",
+        "extra/busy-repos",
         "extra/single-changelog",
         "extra/single-tag",
         "extra/yanked-packages",
