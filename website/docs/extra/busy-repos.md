@@ -2,7 +2,7 @@
 
 This section discusses some considerations when using release-plz in busy repositories.
 For the purpose of this document, a busy repository is a repository where
-maintainers push commits to the main branch while `release-plz release` is still running
+maintainers push commits to the main branch while `release-plz release` is still running.
 
 If you are using release-plz in a busy repository, please read this section carefully.
 
