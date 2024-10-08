@@ -119,8 +119,24 @@ on:
       - {branch}
 
 jobs:
-  release-plz:
-    name: Release-plz
+  release-plz-release:
+    name: Release-plz release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.5
+        with:
+          command: release
+        env:
+          GITHUB_TOKEN: ${{{{ secrets.{github_token} }}}}
+          CARGO_REGISTRY_TOKEN: ${{{{ secrets.{CARGO_REGISTRY_TOKEN} }}}}
+
+  release-plz-pr:
+    name: Release-plz PR
     runs-on: ubuntu-latest
     concurrency:
       group: release-plz-${{{{ github.ref }}}}
@@ -134,6 +150,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@v0.5
+        with:
+          command: release-pr
         env:
           GITHUB_TOKEN: ${{{{ secrets.{github_token} }}}}
           CARGO_REGISTRY_TOKEN: ${{{{ secrets.{CARGO_REGISTRY_TOKEN} }}}}
@@ -179,8 +197,24 @@ mod tests {
                   - main
 
             jobs:
-              release-plz:
-                name: Release-plz
+              release-plz-release:
+                name: Release-plz release
+                runs-on: ubuntu-latest
+                steps:
+                  - name: Checkout repository
+                    uses: actions/checkout@v4
+                  - name: Install Rust toolchain
+                    uses: dtolnay/rust-toolchain@stable
+                  - name: Run release-plz
+                    uses: MarcoIeni/release-plz-action@v0.5
+                    with:
+                      command: release
+                    env:
+                      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+              release-plz-pr:
+                name: Release-plz PR
                 runs-on: ubuntu-latest
                 concurrency:
                   group: release-plz-${{ github.ref }}
@@ -194,6 +228,8 @@ mod tests {
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
                     uses: MarcoIeni/release-plz-action@v0.5
+                    with:
+                      command: release-pr
                     env:
                       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

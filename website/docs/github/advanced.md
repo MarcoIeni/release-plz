@@ -10,19 +10,12 @@ If your repository uses git submodules, set the `submodules` option in the `acti
 For example:
 
 ```yaml
-jobs:
-  release-plz:
-    name: Release-plz
-    runs-on: ubuntu-latest
-    concurrency:
-      group: release-plz-${{ github.ref }}
-      cancel-in-progress: false
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: recursive # <-- Add this line
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v4
+    with:
+      fetch-depth: 0
+      submodules: recursive # <-- Add this line
 ```
 
 To learn more, see GitHub [docs](https://github.com/actions/checkout/).
@@ -55,7 +48,7 @@ If you want to run other checks before releasing (e.g. `cargo test`), you have t
    ```yml
    jobs:
      release-plz:
-       name: Release-plz
+       name: Release-plz release
        runs-on: ubuntu-latest
        concurrency:
          group: release-plz-${{ github.ref }}
@@ -63,13 +56,13 @@ If you want to run other checks before releasing (e.g. `cargo test`), you have t
        steps:
          - name: Checkout repository
            uses: actions/checkout@v4
-           with:
-             fetch-depth: 0
          - name: Install Rust toolchain
            uses: dtolnay/rust-toolchain@stable
          - run: cargo test # <-- put any check you like here
          - name: Run release-plz
            uses: MarcoIeni/release-plz-action@v0.5
+           with:
+             command: release
            env:
              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
              CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -112,8 +105,10 @@ jobs:
           else
             echo "No open release PR"
           fi
-      - name: Run release-plz
+      - name: Run release-plz PR
         uses: MarcoIeni/release-plz-action@v0.5
+        with:
+          command: release-pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
