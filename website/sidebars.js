@@ -64,7 +64,6 @@ const sidebars = {
       link: { type: "doc", id: "extra/index" },
       items: [
         "extra/releasing-binaries",
-        "extra/busy-repos",
         "extra/single-changelog",
         "extra/single-tag",
         "extra/yanked-packages",

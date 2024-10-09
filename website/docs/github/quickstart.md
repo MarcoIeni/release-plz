@@ -183,6 +183,8 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
+### Concurrency
+
 The `concurrency` block guarantees that if a new commit is pushed while
 the job of the previous commit was still running, the new job will
 wait for the previous one to finish.
@@ -195,6 +197,14 @@ to learn more.
 We can't re-use the same `concurrency` block in the `release-plz-release` job
 because the `concurrency` block cancels the pending job if a new commit is
 pushed — we can't risk to skip a release.
+
+This is an example commit sequence where the release is skipped:
+
+- Commit 1: an initial commit is pushed to the main branch. Release-plz runs.
+- Commit 2: a second commit is pushed to the main branch. The job of this commit is pending,
+  waiting for Release-plz to finish on Commit 1.
+- Commit 3: a third commit is pushed to the main branch. The job of commit 2 is canceled,
+  and the job of commit 3 is pending, waiting for Release-plz to finish on Commit 1.
 
 </details>
 
