@@ -129,26 +129,36 @@ on:
 jobs:
 
   # Release unpublished packages.
+  # If you want release-plz to only update your packages,
+  # and you want to handle `cargo publish` and git tag push by yourself,
+  # remove this job.
   release-plz-release:
     name: Release-plz release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      # Use your favorite way to install the Rust toolchain.
+      # The action I'm using here is a popular choice.
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@v0.5
         with:
+          # Run `release-plz release` command.
           command: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   # Create a PR with the new versions and changelog, preparing the next release.
+  # If you want release-plz to only release your packages
+  # and you want to update `Cargo.toml` versions and changelogs by yourself,
+  # remove this job.
   release-plz-pr:
     name: Release-plz PR
     runs-on: ubuntu-latest
+    # The concurrency block is explained below (after the code block).
     concurrency:
       group: release-plz-${{ github.ref }}
       cancel-in-progress: false
@@ -165,34 +175,28 @@ jobs:
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@v0.5
         with:
+          # Run `release-plz release-pr` command.
           command: release-pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # In `release-plz-pr` this is only required if you are using a private registry.
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
+The `concurrency` block guarantees that if a new commit is pushed while
+the job of the previous commit was still running, the new job will
+wait for the previous one to finish.
+In this way, only one instance of `release-plz release-pr` will run in the
+repository at the same time for # the same branch, ensuring that there are
+no conflicts.
+See the GitHub [docs](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idconcurrency)
+to learn more.
+
+We can't re-use the same `concurrency` block in the `release-plz-release` job
+because the `concurrency` block cancels the pending job if a new commit is
+pushed — we can't risk to skip a release.
+
 </details>
-
-Notes:
-
-- The `concurrency` block guarantees that if a new commit is pushed while the job of the previous
-  commit was still running, the new job will wait for the previous one to finish.
-  In this way, only one instance of release-plz will run in the repository at the same time for
-  the same branch, ensuring that there are no conflicts.
-  See the GitHub [docs](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idconcurrency)
-  to learn more.
-- `CARGO_REGISTRY_TOKEN` in the `release-plz-pr` job is only required if you
-  are using a private registry.
-
-:::info
-
-- If you want release-plz to only update your packages,
-  and you want to handle `cargo publish` and git tag push by yourself,
-  remove the `release-plz-release` job.
-- If you want release-plz to only release your packages,
-  and you want to update `Cargo.toml` versions and changelogs by yourself.
-
-:::
 
 ## 4. Set input variables (optional)
 
