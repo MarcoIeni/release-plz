@@ -116,7 +116,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
-### Run on schedule
+## Run on schedule
 
 The [quickstart](./quickstart.md) guide configures release-plz to run every time you merge a
 commit to the `main` branch.
