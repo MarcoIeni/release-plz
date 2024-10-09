@@ -113,3 +113,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
+
+### Run on schedule
+
+The [quickstart](./quickstart.md) guide configures release-plz to run every time you merge a commit to the `main` branch.
+
+To run release-plz periodically, you can use the
+[`schedule`](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#schedule) event:
+
+```yaml
+# Trigger the workflow every Monday.
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 0 * * MON'
+```

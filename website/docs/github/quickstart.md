@@ -1,8 +1,9 @@
 # Quickstart
 
-By default, every time you merge a commit to the main branch, the
+This guide shows how to run the release-plz
 [GitHub Action](https://github.com/marketplace/actions/release-plz)
-runs two commands, one after the other:
+every time you merge a commit to the main branch.
+The workflow will have two jobs, running the following commands:
 
 - [`release-plz release-pr`](../usage/release-pr.md): creates the release pr.
 - [`release-plz release`](../usage/release.md): publishes the unpublished packages.
@@ -39,25 +40,15 @@ As specified in the `cargo publish`
 - Tokens for other registries shall be specified with environment variables of the form
   `CARGO_REGISTRIES_NAME_TOKEN` where `NAME` is the name of the registry in all capital letters.
 
-If you are creating a new crates.io token, specify the following scope:
+If you are creating a new crates.io token, specify the scopes `publish-new` and `publish-update`:
 
 ![token scope](../assets/token_scope.png)
 
 ## 3. Setup the workflow
 
-Add the release-plz workflow file under the `.github/workflows` directory.
-For example `.github/workflows/release-plz.yml`.
-
-Use one of the following examples as a starting point.
-
-### Example: release-pr and release
-
-This is the suggested configuration if you are getting started with release-plz.
-With this configuration, when you make changes to the `main` branch:
-
-- release-plz creates a pull request with the new versions,
-  where it prepares the next release.
-- release-plz releases the unpublished packages.
+Create the release-plz workflow file under the `.github/workflows` directory
+(for example `.github/workflows/release-plz.yml`)
+and copy the following workflow:
 
 ```yaml
 name: Release-plz
@@ -110,6 +101,12 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
+With this configuration, when you make changes to the `main` branch:
+
+- release-plz creates a pull request with the new versions,
+  where it prepares the next release.
+- release-plz releases the unpublished packages.
+
 Notes:
 
 - `fetch-depth: 0` is needed to clone all the git history, which is necessary to
@@ -120,126 +117,16 @@ Notes:
   the same branch, ensuring that there are no conflicts.
   See the GitHub [docs](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idconcurrency)
   to learn more.
+- `CARGO_REGISTRY_TOKEN` in the `release-plz-pr` job is only required if you
+  are using a private registry.
 
-### Example: release-pr only
-
-Use this configuration if you want release-plz to only update your packages,
-and you want to handle `cargo publish` and git tag push by yourself.
-
-```yaml
-name: Release-plz
-
-permissions:
-  pull-requests: write
-  contents: write
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  release-plz:
-    name: Release-plz PR
-    runs-on: ubuntu-latest
-    concurrency:
-      group: release-plz-${{ github.ref }}
-      cancel-in-progress: false
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
-        with:
-          command: release-pr
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
-
-### Example: release only
-
-Use this configuration if you want release-plz to only release your packages,
-and you want to update `Cargo.toml` versions and changelogs by yourself.
-
-```yaml
-name: Release-plz
-
-permissions:
-  pull-requests: write
-  contents: write
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  release-plz:
-    name: Release-plz
-    runs-on: ubuntu-latest
-    concurrency:
-      group: release-plz-${{ github.ref }}
-      cancel-in-progress: false
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
-        with:
-          command: release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-```
-
-### Example: release-pr and release on schedule
-
-In the above examples, release-plz runs every time you merge a commit to the `main` branch.
-
-To run release-plz periodically, you can use the
-[`schedule`](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#schedule) event:
-
-```yaml
-name: Release-plz
-
-permissions:
-  pull-requests: write
-  contents: write
-
-# Trigger the workflow every Monday.
-on:
-  schedule:
-    # * is a special character in YAML so you have to quote this string
-    - cron:  '0 0 * * MON'
-
-jobs:
-  release-plz:
-    name: Release-plz
-    runs-on: ubuntu-latest
-    concurrency:
-      group: release-plz-${{ github.ref }}
-      cancel-in-progress: false
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-```
+:::info
+- If you want release-plz to only update your packages,
+  and you want to handle `cargo publish` and git tag push by yourself,
+  remove the `release-plz-release` job.
+- If you want release-plz to only release your packages,
+  and you want to update `Cargo.toml` versions and changelogs by yourself.
+:::
 
 ## 4. Set input variables (optional)
 
@@ -266,28 +153,16 @@ You can specify the input variables by using the `with` keyword.
 For example:
 
 ```yaml
-jobs:
-  release-plz:
-    name: Release-plz
-    runs-on: ubuntu-latest
-    concurrency:
-      group: release-plz-${{ github.ref }}
-      cancel-in-progress: false
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
-        with: # <--- Input variables
-          command: release-pr
-          registry: my-registry
-          manifest_path: rust-crates/my-crate/Cargo.toml
-          version: 0.3.70
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+steps:
+  - ...
+  - name: Run release-plz
+    uses: MarcoIeni/release-plz-action@v0.5
+    with: # <--- Input variables
+      command: release-pr
+      registry: my-registry
+      manifest_path: rust-crates/my-crate/Cargo.toml
+      version: 0.3.70
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
