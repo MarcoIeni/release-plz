@@ -194,13 +194,12 @@ no conflicts.
 See the GitHub [docs](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idconcurrency)
 to learn more.
 
-We can't re-use the same `concurrency` block in the `release-plz-release` job
+We can't use the same `concurrency` block in the `release-plz-release` job
 because the `concurrency` block cancels the pending job if a new commit is
 pushed — we can't risk to skip a release.
+This is an example commit sequence where the release would be skipped:
 
-This is an example commit sequence where the release is skipped:
-
-- Commit 1: an initial commit is pushed to the main branch. Release-plz runs.
+- Commit 1: an initial commit is pushed to the main branch. `release-plz release` runs.
 - Commit 2: a second commit is pushed to the main branch. The job of this commit is pending,
   waiting for Release-plz to finish on Commit 1.
 - Commit 3: a third commit is pushed to the main branch. The job of commit 2 is canceled,
