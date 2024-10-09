@@ -104,12 +104,77 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
-### Workflow details
+<details>
+<summary>Workflow explanation</summary>
+
+This optional section adds comments to the above workflow,
+to explain it in detail.
+
+```yaml
+# Name of the workflow: you can change it.
+name: Release-plz
+
+permissions:
+  # Used to create and update pull requests.
+  pull-requests: write
+  # Used to push to branches, push tags, and create releases.
+  contents: write
+
+# The action runs on every push to the main branch.
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  # Release unpublished packages.
+  release-plz-release:
+    name: Release-plz release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.5
+        with:
+          command: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  # Create a PR with the new versions and changelog, preparing the next release.
+  release-plz-pr:
+    name: Release-plz PR
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release-plz-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # `fetch-depth: 0` is needed to clone all the git history, which is necessary to
+          # determine the next version and build the changelog.
+          # Note that it's not needed in the `release-plz-release` job.
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.5
+        with:
+          command: release-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+```
+
+</details>
 
 Notes:
 
-- `fetch-depth: 0` is needed to clone all the git history, which is necessary to
-  determine the next version and build the changelog.
 - The `concurrency` block guarantees that if a new commit is pushed while the job of the previous
   commit was still running, the new job will wait for the previous one to finish.
   In this way, only one instance of release-plz will run in the repository at the same time for
