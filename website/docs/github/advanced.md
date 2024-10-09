@@ -59,6 +59,7 @@ If you want to run other checks before releasing (e.g. `cargo test`), you have t
            uses: actions/checkout@v4
          - name: Install Rust toolchain
            uses: dtolnay/rust-toolchain@stable
+   # highlight-next-line
          - run: cargo test # <-- put any check you like here
          - name: Run release-plz
            uses: MarcoIeni/release-plz-action@v0.5
