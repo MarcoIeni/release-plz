@@ -185,11 +185,13 @@ Notes:
   are using a private registry.
 
 :::info
+
 - If you want release-plz to only update your packages,
   and you want to handle `cargo publish` and git tag push by yourself,
   remove the `release-plz-release` job.
 - If you want release-plz to only release your packages,
   and you want to update `Cargo.toml` versions and changelogs by yourself.
+
 :::
 
 ## 4. Set input variables (optional)

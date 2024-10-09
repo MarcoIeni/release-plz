@@ -116,7 +116,8 @@ jobs:
 
 ### Run on schedule
 
-The [quickstart](./quickstart.md) guide configures release-plz to run every time you merge a commit to the `main` branch.
+The [quickstart](./quickstart.md) guide configures release-plz to run every time you merge a
+commit to the `main` branch.
 
 To run release-plz periodically, you can use the
 [`schedule`](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#schedule) event:
