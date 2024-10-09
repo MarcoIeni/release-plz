@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.99](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.98...release-plz-v0.3.99) - 2024-10-09
+
+### Other
+
+- suggest running commands in parallel in action ([#1758](https://github.com/MarcoIeni/release-plz/pull/1758))
+
 ## [0.3.98](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.97...release-plz-v0.3.98) - 2024-10-08
 
 ### Added
