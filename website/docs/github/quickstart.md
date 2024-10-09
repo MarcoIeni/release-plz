@@ -63,6 +63,8 @@ on:
       - main
 
 jobs:
+
+  # Release unpublished packages.
   release-plz-release:
     name: Release-plz release
     runs-on: ubuntu-latest
@@ -79,6 +81,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
+  # Create a PR with the new versions and changelog, preparing the next release.
   release-plz-pr:
     name: Release-plz PR
     runs-on: ubuntu-latest
@@ -101,11 +104,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
-With this configuration, when you make changes to the `main` branch:
-
-- release-plz creates a pull request with the new versions,
-  where it prepares the next release.
-- release-plz releases the unpublished packages.
+### Workflow details
 
 Notes:
 
