@@ -206,7 +206,7 @@ You can commit files to the release PR opened by release-plz.
 
 ```yaml
 jobs:
-  test:
+  release-plz-pr:
     runs-on: ubuntu-latest
     concurrency:
       group: release-plz-${{ github.ref }}
