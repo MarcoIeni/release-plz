@@ -15,7 +15,8 @@ steps:
     uses: actions/checkout@v4
     with:
       fetch-depth: 0
-      submodules: recursive # <-- Add this line
+# highlight-next-line
+      submodules: recursive
 ```
 
 To learn more, see GitHub [docs](https://github.com/actions/checkout/).

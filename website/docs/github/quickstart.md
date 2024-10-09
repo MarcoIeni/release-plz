@@ -223,11 +223,14 @@ steps:
   - ...
   - name: Run release-plz
     uses: MarcoIeni/release-plz-action@v0.5
-    with: # <--- Input variables
+# highlight-start
+    # Input variables
+    with:
       command: release-pr
       registry: my-registry
       manifest_path: rust-crates/my-crate/Cargo.toml
       version: 0.3.70
+# highlight-end
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
