@@ -11,7 +11,7 @@ on:
 
 jobs:
   release-plz-release:
-    name: Release-plz Release
+    name: Release-plz release
     runs-on: ubuntu-24.04
     steps:
       # Generating a GitHub token, so that PRs and tags created by
@@ -30,11 +30,12 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@main
+        with:
+          command: release
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        with:
-          command: release
+
   release-plz-pr:
     name: Release-plz PR
     runs-on: ubuntu-24.04
@@ -59,8 +60,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@main
+        with:
+          command: release-pr
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        with:
-          command: release-pr

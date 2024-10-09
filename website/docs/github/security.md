@@ -51,6 +51,7 @@ jobs:
     steps:
       - ...
       - name: Run release-plz
+# highlight-next-line
         uses: MarcoIeni/release-plz-action@63ab0c2746bedc448370bad4b0b3d536458398b0 # v0.5.50
 
 ```

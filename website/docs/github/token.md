@@ -116,26 +116,23 @@ Once you generated your token, save it in the
 and pass it to both the `actions/checkout` and `release-plz` steps:
 
 ```yaml
-jobs:
-  release-plz:
-    name: Release-plz
-    runs-on: ubuntu-latest
-    concurrency:
-      group: release-plz-${{ github.ref }}
-      cancel-in-progress: false
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.RELEASE_PLZ_TOKEN }} # <-- PAT secret name
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }} # <-- PAT secret name
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v4
+    with:
+      fetch-depth: 0
+      # highlight-next-line
+      token: ${{ secrets.RELEASE_PLZ_TOKEN }} # <-- PAT secret name
+  - name: Install Rust toolchain
+    uses: dtolnay/rust-toolchain@stable
+  - name: Run release-plz
+    uses: MarcoIeni/release-plz-action@v0.5
+    env:
+      # highlight-next-line
+      GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }} # <-- PAT secret name
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+    with:
+      ...
 ```
 
 :::warning
@@ -182,24 +179,32 @@ Here's how to use a GitHub App to generate a GitHub token:
 
    ```yaml
    steps:
+   # highlight-start
      # Generating a GitHub token, so that PRs and tags created by
      # the release-plz-action can trigger actions workflows.
      - name: Generate GitHub token
        uses: actions/create-github-app-token@v1
        id: generate-token
        with:
-         app-id: ${{ secrets.APP_ID }} # <-- GitHub App ID secret name
-         private-key: ${{ secrets.APP_PRIVATE_KEY }} # <-- GitHub App private key secret name
+         # GitHub App ID secret name
+         app-id: ${{ secrets.APP_ID }}
+         # GitHub App private key secret name
+         private-key: ${{ secrets.APP_PRIVATE_KEY }}
+   # highlight-end
      - name: Checkout repository
        uses: actions/checkout@v4
        with:
          fetch-depth: 0
+   # highlight-next-line
          token: ${{ steps.generate-token.outputs.token }}
      - name: Install Rust toolchain
        uses: dtolnay/rust-toolchain@stable
      - name: Run release-plz
        uses: MarcoIeni/release-plz-action@main
        env:
+   # highlight-next-line
          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+       with:
+         ...
    ```
