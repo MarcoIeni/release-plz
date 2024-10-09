@@ -15,6 +15,7 @@ When the action runs with `command: release-pr`, it outputs the following proper
 - `prs_created`: Whether release-plz created any release PR. *Boolean.*
 
 When the action runs with `command: release`, it outputs the following properties:
+
 - `releases`: The JSON output of the `release` command.
   It's an array of JSON objects with the following properties:
   - `package_name`: The name of the package that was released.
