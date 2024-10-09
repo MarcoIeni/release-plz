@@ -1,6 +1,6 @@
 # Output
 
-After the action runs, it outputs the following properties:
+When the action runs with `command: release-pr`, it outputs the following properties:
 
 - `prs`: The release PRs opened by release-plz.
   It's an array of objects with the properties of `pr`.
@@ -12,6 +12,9 @@ After the action runs, it outputs the following properties:
     It is the default branch of the repository. E.g. `main`.
   - `html_url`: The URL of the PR.
   - `number`: The number of the PR.
+- `prs_created`: Whether release-plz created any release PR. *Boolean.*
+
+When the action runs with `command: release`, it outputs the following properties:
 - `releases`: The JSON output of the `release` command.
   It's an array of JSON objects with the following properties:
   - `package_name`: The name of the package that was released.
@@ -24,44 +27,35 @@ After the action runs, it outputs the following properties:
     [git_tag_enable](../config.md#the-git_tag_enable-field) set to `false`, so that
     you can use this to create the git tag yourself.
   - `version`: The version of the package that was released.
-- `prs_created`: Whether release-plz created any release PR. *Boolean.*
 - `releases_created`: Whether release-plz released any package. *Boolean.*
 
 ## Example: read the output
 
 ```yaml
 jobs:
-  test:
+
+  release-plz-release:
+    name: Release-plz release
     runs-on: ubuntu-latest
-    concurrency:
-      group: release-plz-${{ github.ref }}
-      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
         uses: MarcoIeni/release-plz-action@v0.5
+        with:
+          command: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
       - name: Read release output
         env:
           RELEASES: ${{ steps.release-plz.outputs.releases }}
-          PRS: ${{ steps.release-plz.outputs.prs }}
-          PR: ${{ steps.release-plz.outputs.pr }}
-          PRS_CREATED: ${{ steps.release-plz.outputs.prs_created }}
           RELEASES_CREATED: ${{ steps.release-plz.outputs.releases_created }}
         run: |
           set -e
           echo "releases: $RELEASES" # example: [{"package_name":"my-package","prs":[{"html_url":"https://github.com/user/proj/pull/1439","number":1439}],"tag":"v0.1.0","version":"0.1.0"}]
-          echo "prs: $PRS" # example: [{"base_branch":"main","head_branch":"release-plz-2024-05-01T20-38-05Z","html_url":"https://github.com/MarcoIeni/rust-workspace-example/pull/198","number":198}]
-          echo "pr: $PR" # example: {"base_branch":"main","head_branch":"release-plz-2024-05-01T20-38-05Z","html_url":"https://github.com/MarcoIeni/rust-workspace-example/pull/198","number":198}
-          echo "prs_created: $PRS_CREATED" # example: true
           echo "releases_created: $RELEASES_CREATED" # example: true
 
           # get the number of releases with jq
@@ -90,6 +84,37 @@ jobs:
               echo "released $package_name"
           done
 
+  release-plz-pr:
+    name: Release-plz PR
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release-plz-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.5
+        with:
+          command: release-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Read release-pr output
+        env:
+          PRS: ${{ steps.release-plz.outputs.prs }}
+          PR: ${{ steps.release-plz.outputs.pr }}
+          PRS_CREATED: ${{ steps.release-plz.outputs.prs_created }}
+        run: |
+          set -e
+          echo "prs: $PRS" # example: [{"base_branch":"main","head_branch":"release-plz-2024-05-01T20-38-05Z","html_url":"https://github.com/MarcoIeni/rust-workspace-example/pull/198","number":198}]
+          echo "pr: $PR" # example: {"base_branch":"main","head_branch":"release-plz-2024-05-01T20-38-05Z","html_url":"https://github.com/MarcoIeni/rust-workspace-example/pull/198","number":198}
+          echo "prs_created: $PRS_CREATED" # example: true
+
           echo "pr_number: ${{ fromJSON(steps.release-plz.outputs.pr).number }}"
           echo "pr_html_url: ${{ fromJSON(steps.release-plz.outputs.pr).html_url }}"
           echo "pr_head_branch: ${{ fromJSON(steps.release-plz.outputs.pr).head_branch }}"
@@ -112,7 +137,7 @@ configuration field.
 
 ```yaml
 jobs:
-  test:
+  release-plz-pr:
     runs-on: ubuntu-latest
     concurrency:
       group: release-plz-${{ github.ref }}
@@ -125,8 +150,11 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
+# highlight-next-line
         id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
         uses: MarcoIeni/release-plz-action@v0.5
+        with:
+          command: release-pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -186,8 +214,11 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
+# highlight-next-line
         id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
         uses: MarcoIeni/release-plz-action@v0.5
+        with:
+          command: release-pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
