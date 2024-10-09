@@ -44,7 +44,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-# higlight-next-line
+# highlight-next-line
         id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
         uses: MarcoIeni/release-plz-action@v0.5
         with:
@@ -101,7 +101,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-# higlight-next-line
+# highlight-next-line
         id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
         uses: MarcoIeni/release-plz-action@v0.5
         with:
