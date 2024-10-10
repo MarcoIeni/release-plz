@@ -301,6 +301,9 @@ pub struct PackageConfig {
     /// # Git Tag Name
     /// Tera template of the git tag name created by release-plz.
     pub git_tag_name: Option<String>,
+    /// # PR Name
+    /// Tera template of the pull request's name created by release-plz.
+    pub pr_name: Option<String>,
     /// # Publish
     /// If `false`, don't run `cargo publish`.
     pub publish: Option<bool>,
@@ -369,6 +372,8 @@ impl PackageConfig {
             git_tag_enable: self.git_tag_enable.or(default.git_tag_enable),
             git_tag_name: self.git_tag_name.or(default.git_tag_name),
             release: self.release.or(default.release),
+
+            pr_name: self.pr_name.or(default.pr_name),
         }
     }
 

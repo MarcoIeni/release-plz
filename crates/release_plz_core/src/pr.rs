@@ -64,20 +64,23 @@ fn pr_title(
             .all(|(_, update)| &update.version == first_version)
     };
 
+    // TODO @justbeyou seems like this piece of code is not covered by tests
+    // TODO @justbeyou we should probably add here the option to process a template if available
+    // otherwise we should keep the old behaviour
     if updates.len() == 1 && project_contains_multiple_pub_packages {
         let (package, _) = &updates[0];
         // The project is a workspace with multiple public packages and we are only updating one of them.
         // Specify which package is being updated in the PR title.
-        format!("chore({}): release v{}", package.name, first_version)
+        "fake 1".to_string()
     } else if updates.len() > 1 && !are_all_versions_equal() {
         // We are updating multiple packages with different versions, so we don't specify the version in the PR title.
-        "chore: release".to_string()
+        "fake 2".to_string()
     } else {
         // We are updating either:
         // - a single package without other public packages
         // - multiple packages with the same version.
         // In both cases, we can specify the version in the PR title.
-        format!("chore: release v{first_version}")
+        "fake 3".to_string()
     }
 }
 

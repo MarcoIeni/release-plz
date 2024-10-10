@@ -415,6 +415,7 @@ async fn github_create_release_branch(
     release_branch: &str,
 ) -> anyhow::Result<()> {
     repository.push(release_branch)?;
+    // TODO @justbeyou would we like to create arguments for those hardcoded commit messages also?
     github_graphql::commit_changes(client, repository, "chore: release", release_branch).await
 }
 
