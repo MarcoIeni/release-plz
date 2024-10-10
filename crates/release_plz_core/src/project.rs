@@ -131,9 +131,6 @@ impl Project {
     }
 
     fn render_template(&self, package_name: &str, version: &str, field: TemplateField) -> String {
-        let mut tera = tera::Tera::default();
-        let context = tera_context(package_name, version);
-
         let release_metadata = self.release_metadata.get(package_name);
 
         let (template_name, template) = match field {
@@ -155,7 +152,8 @@ impl Project {
             }
         });
 
-        crate::tera::render_template(&mut tera, &template, &context, template_name)
+        let context = tera_context(package_name, version);
+        crate::tera::render_template(&template, &context, template_name)
     }
 
     pub fn cargo_lock_path(&self) -> Utf8PathBuf {

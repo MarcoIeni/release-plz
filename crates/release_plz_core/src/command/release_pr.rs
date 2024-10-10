@@ -17,6 +17,8 @@ use crate::{
 
 #[derive(Debug)]
 pub struct ReleasePrRequest {
+    /// Tera template for the pull request's name.
+    name_template: Option<String>,
     /// If `true`, the created release PR will be marked as a draft.
     draft: bool,
     /// Labels to add to the release PR.
@@ -29,11 +31,17 @@ pub struct ReleasePrRequest {
 impl ReleasePrRequest {
     pub fn new(update_request: UpdateRequest) -> Self {
         Self {
+            name_template: None,
             draft: false,
             labels: vec![],
             branch_prefix: DEFAULT_BRANCH_PREFIX.to_string(),
             update_request,
         }
+    }
+
+    pub fn with_name_template(mut self, name_template: Option<String>) -> Self {
+        self.name_template = name_template;
+        self
     }
 
     pub fn with_labels(mut self, labels: Vec<String>) -> Self {
@@ -109,9 +117,12 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
                 &packages_to_update,
                 &git_client,
                 &repo,
-                input.draft,
-                input.labels.clone(),
-                input.branch_prefix.clone(),
+                ReleasePrOptions {
+                    draft: input.draft,
+                    pr_name: input.name_template.clone(),
+                    pr_labels: input.labels.clone(),
+                    pr_branch_prefix: input.branch_prefix.clone(),
+                },
             )
             .await?;
             return Ok(Some(pr));
@@ -121,17 +132,22 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
     Ok(None)
 }
 
+struct ReleasePrOptions {
+    draft: bool,
+    pr_name: Option<String>,
+    pr_labels: Vec<String>,
+    pr_branch_prefix: String,
+}
+
 async fn open_or_update_release_pr(
     local_manifest: &Utf8Path,
     packages_to_update: &PackagesUpdate,
     git_client: &GitClient,
     repo: &Repo,
-    draft: bool,
-    pr_labels: Vec<String>,
-    pr_branch_prefix: String,
+    release_pr_options: ReleasePrOptions,
 ) -> anyhow::Result<ReleasePr> {
     let mut opened_release_prs = git_client
-        .opened_prs(&pr_branch_prefix)
+        .opened_prs(&release_pr_options.pr_branch_prefix)
         .await
         .context("cannot get opened release-plz prs")?;
 
@@ -161,14 +177,22 @@ async fn open_or_update_release_pr(
             repo.original_branch(),
             packages_to_update,
             project_contains_multiple_pub_packages,
-            &pr_branch_prefix,
+            &release_pr_options.pr_branch_prefix,
+            release_pr_options.pr_name,
         )
-        .mark_as_draft(draft)
-        .with_labels(pr_labels)
+        .mark_as_draft(release_pr_options.draft)
+        .with_labels(release_pr_options.pr_labels)
     };
     match opened_release_prs.first() {
         Some(opened_pr) => {
-            handle_opened_pr(git_client, opened_pr, repo, &new_pr, &pr_branch_prefix).await
+            handle_opened_pr(
+                git_client,
+                opened_pr,
+                repo,
+                &new_pr,
+                &release_pr_options.pr_branch_prefix,
+            )
+            .await
         }
         None => create_pr(git_client, repo, &new_pr).await,
     }
