@@ -427,7 +427,7 @@ release = false
 
 #### The `release_always` field
 
-- If true, release-plz release will try to release your packages every time you run it
+- If true, `release-plz release` will try to release your packages every time you run it
   (e.g. on every commit in the main branch). *(Default)*.
 
   :::warning
