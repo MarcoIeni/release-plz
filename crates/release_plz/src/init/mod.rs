@@ -6,6 +6,7 @@ use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 
 const CARGO_REGISTRY_TOKEN: &str = "CARGO_REGISTRY_TOKEN";
+const GITHUB_TOKEN : &str = "GITHUB_TOKEN";
 
 pub fn init() -> anyhow::Result<()> {
     ensure_gh_is_installed()?;
@@ -63,7 +64,7 @@ fn store_github_token() -> anyhow::Result<&'static str> {
         release_plz_token
     } else {
         // default github token
-        "GITHUB_TOKEN"
+        GITHUB_TOKEN
     };
     Ok(github_token)
 }
@@ -106,6 +107,9 @@ fn write_actions_yaml(github_token: &str) -> anyhow::Result<()> {
 }
 
 fn action_yaml(branch: &str, github_token: &str) -> String {
+  let with_github_token = 
+  if github_token == "GITHUB_TOKEN" {
+  }
     format!(
         "name: Release Plz
 
