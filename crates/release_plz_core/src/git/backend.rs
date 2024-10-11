@@ -660,7 +660,10 @@ impl GitClient {
         let associated_prs = self.associated_prs(commit).await?;
         let pr_number = associated_prs.first().map(|pr| pr.number);
 
-        Ok(RemoteCommit { username, pr_number })
+        Ok(RemoteCommit {
+            username,
+            pr_number,
+        })
     }
 
     fn commits_api_path(&self, commit: &str) -> String {

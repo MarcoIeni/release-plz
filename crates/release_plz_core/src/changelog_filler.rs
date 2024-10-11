@@ -44,7 +44,7 @@ pub async fn fill_commit<'a>(
                 .context("The changelog template requires information from the remote, but git token wasn't provided")?
                 .get_remote_commit(&commit.id)
                 .await?;
-            
+
             let associated_prs = git_client.unwrap().associated_prs(&commit.id).await?;
             let pr_number = associated_prs.first().map(|pr| pr.number as i64);
 
