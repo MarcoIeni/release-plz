@@ -492,12 +492,30 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<Option<Release>> 
         repo.checkout(commit)?;
     }
 
+    // Don't return the error immediately because we want to go back to the previous commit if needed
+    let release = release_packages(input, &project, &repo, &git_client).await;
+
+    if let ShouldRelease::YesWithCommit(_) = should_release {
+        // Go back to the previous commit so that the user finds
+        // the repository in the same commit they launched release-plz.
+        repo.checkout("-")?;
+    }
+
+    release
+}
+
+async fn release_packages(
+    input: &ReleaseRequest,
+    project: &Project,
+    repo: &Repo,
+    git_client: &GitClient,
+) -> anyhow::Result<Option<Release>> {
     let packages = project.publishable_packages();
     let release_order = release_order(&packages).context("cannot determine release order")?;
     let mut package_releases: Vec<PackageRelease> = vec![];
     for package in release_order {
         if let Some(pkg_release) =
-            release_package_if_needed(input, &project, package, &repo, &git_client).await?
+            release_package_if_needed(input, project, package, repo, git_client).await?
         {
             package_releases.push(pkg_release);
         }
@@ -505,12 +523,6 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<Option<Release>> 
     let release = (!package_releases.is_empty()).then_some(Release {
         releases: package_releases,
     });
-
-    if let ShouldRelease::YesWithCommit(_) = should_release {
-        // Go back to the previous commit
-        // TODO: do this even if the release fails
-        repo.checkout("-")?;
-    }
     Ok(release)
 }
 
