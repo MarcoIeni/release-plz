@@ -33,6 +33,12 @@ pub struct Project {
     contains_multiple_pub_packages: bool,
 }
 
+#[derive(Clone, Copy, Debug)]
+enum TemplateField {
+    ReleaseName,
+    GitTagName,
+}
+
 impl Project {
     pub fn new(
         local_manifest: &Utf8Path,
@@ -117,41 +123,39 @@ impl Project {
     }
 
     pub fn git_tag(&self, package_name: &str, version: &str) -> String {
-        let mut tera = tera::Tera::default();
-        let context = tera_context(package_name, version);
-
-        let tag_template = self
-            .release_metadata
-            .get(package_name)
-            .and_then(|m| m.tag_name_template.clone())
-            .unwrap_or({
-                if self.contains_multiple_pub_packages {
-                    format!("{}-v{}", tera_var(PACKAGE_VAR), tera_var(VERSION_VAR))
-                } else {
-                    format!("v{}", tera_var(VERSION_VAR))
-                }
-            });
-
-        crate::tera::render_template(&mut tera, &tag_template, &context, "tag_name")
+        self.render_template(package_name, version, TemplateField::GitTagName)
     }
 
     pub fn release_name(&self, package_name: &str, version: &str) -> String {
+        self.render_template(package_name, version, TemplateField::ReleaseName)
+    }
+
+    fn render_template(&self, package_name: &str, version: &str, field: TemplateField) -> String {
         let mut tera = tera::Tera::default();
         let context = tera_context(package_name, version);
 
-        let name_template = self
-            .release_metadata
-            .get(package_name)
-            .and_then(|m| m.release_name_template.clone())
-            .unwrap_or({
-                if self.contains_multiple_pub_packages {
-                    format!("{}-v{}", tera_var(PACKAGE_VAR), tera_var(VERSION_VAR))
-                } else {
-                    format!("v{}", tera_var(VERSION_VAR))
-                }
-            });
+        let release_metadata = self.release_metadata.get(package_name);
 
-        crate::tera::render_template(&mut tera, &name_template, &context, "release_name")
+        let (template_name, template) = match field {
+            TemplateField::GitTagName => (
+                "tag_name",
+                release_metadata.and_then(|m| m.tag_name_template.clone()),
+            ),
+            TemplateField::ReleaseName => (
+                "release_name",
+                release_metadata.and_then(|m| m.release_name_template.clone()),
+            ),
+        };
+
+        let template = template.unwrap_or({
+            if self.contains_multiple_pub_packages {
+                format!("{}-v{}", tera_var(PACKAGE_VAR), tera_var(VERSION_VAR))
+            } else {
+                format!("v{}", tera_var(VERSION_VAR))
+            }
+        });
+
+        crate::tera::render_template(&mut tera, &template, &context, template_name)
     }
 
     pub fn cargo_lock_path(&self) -> Utf8PathBuf {
