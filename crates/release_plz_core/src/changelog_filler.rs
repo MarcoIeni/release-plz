@@ -25,6 +25,7 @@ pub async fn fill_commit<'a>(
     if let Some(existing_commit) = all_commits.get(&commit.id) {
         commit.author = existing_commit.author.clone();
         commit.committer = existing_commit.committer.clone();
+        commit.remote = existing_commit.remote.clone();
     } else {
         if required_info.author_name {
             commit.author.name = Some(repository.get_author_name(&commit.id)?);
@@ -43,8 +44,13 @@ pub async fn fill_commit<'a>(
                 .context("The changelog template requires information from the remote, but git token wasn't provided")?
                 .get_remote_commit(&commit.id)
                 .await?;
+            
+            let associated_prs = git_client.unwrap().associated_prs(&commit.id).await?;
+            let pr_number = associated_prs.first().map(|pr| pr.number as i64);
+
             commit.remote = RemoteContributor {
                 username: remote_commit.username,
+                pr_number,
                 ..RemoteContributor::default()
             };
         }
