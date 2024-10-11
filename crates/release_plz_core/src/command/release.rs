@@ -603,6 +603,7 @@ async fn should_release(
     match associated_release_pr {
         Some(pr) => {
             let pr_commits = git_client.pr_commits(pr.number).await?;
+            // Get the last commit of the PR, i.e. the last commit that was pushed before the PR was merged
             match pr_commits.last() {
                 Some(commit) => {
                     if commit.sha == last_commit {
