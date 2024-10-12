@@ -15,12 +15,15 @@ async fn release_plz_should_set_custom_pr_details() {
     context.write_release_plz_toml(config);
     context.run_release_pr().success();
 
+    let expected_title = format!("release: {} 0.1.0", context.gitea.repo);
     let opened_prs = context.opened_release_prs().await;
     assert_eq!(opened_prs.len(), 1);
-    assert_eq!(
-        opened_prs[0].title,
-        format!("release: {} 0.1.0", context.gitea.repo)
-    );
+    assert_eq!(opened_prs[0].title, expected_title);
+
+    context.merge_release_pr().await;
+    // The commit contains the PR id number
+    let expected_commit = format!("{expected_title} (#1)");
+    assert_eq!(context.get_last_commit(), expected_commit);
 }
 
 #[tokio::test]

@@ -255,9 +255,9 @@ async fn handle_opened_pr(
 async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Result<ReleasePr> {
     repo.checkout_new_branch(&pr.branch)?;
     if matches!(git_client.backend, BackendType::Github) {
-        github_create_release_branch(git_client, repo, &pr.branch).await?;
+        github_create_release_branch(git_client, repo, &pr.branch, &pr.title).await?;
     } else {
-        create_release_branch(repo, &pr.branch)?;
+        create_release_branch(repo, &pr.branch, &pr.title)?;
     }
     debug!("changes committed to release branch {}", pr.branch);
 
@@ -362,7 +362,7 @@ fn reset_branch(
 }
 
 fn force_push(pr: &GitPr, repository: &Repo) -> anyhow::Result<()> {
-    add_changes_and_commit(repository)?;
+    add_changes_and_commit(repository, &pr.title)?;
     repository.force_push(pr.branch())?;
     Ok(())
 }
@@ -386,7 +386,7 @@ async fn github_force_push(
     // - If we revert the last commit of the release PR branch, GitHub will close the release PR
     //   because the branch is the same as the default branch. So we can't revert the latest release-plz commit and push the new one.
     // To learn more, see https://github.com/MarcoIeni/release-plz/issues/1487
-    github_create_release_branch(client, repository, &tmp_release_branch.name).await?;
+    github_create_release_branch(client, repository, &tmp_release_branch.name, &pr.title).await?;
 
     repository.fetch(&tmp_release_branch.name)?;
 
@@ -427,8 +427,12 @@ impl Drop for TmpBranch<'_> {
     }
 }
 
-fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {
-    add_changes_and_commit(repository)?;
+fn create_release_branch(
+    repository: &Repo,
+    release_branch: &str,
+    commit_message: &str,
+) -> anyhow::Result<()> {
+    add_changes_and_commit(repository, commit_message)?;
     repository.push(release_branch)?;
     Ok(())
 }
@@ -437,14 +441,15 @@ async fn github_create_release_branch(
     client: &GitClient,
     repository: &Repo,
     release_branch: &str,
+    commit_message: &str,
 ) -> anyhow::Result<()> {
     repository.push(release_branch)?;
-    github_graphql::commit_changes(client, repository, "chore: release", release_branch).await
+    github_graphql::commit_changes(client, repository, commit_message, release_branch).await
 }
 
-fn add_changes_and_commit(repository: &Repo) -> anyhow::Result<()> {
+fn add_changes_and_commit(repository: &Repo, commit_message: &str) -> anyhow::Result<()> {
     let changes_expect_typechanges = repository.changes_except_typechanges()?;
     repository.add(&changes_expect_typechanges)?;
-    repository.commit_signed("chore: release")?;
+    repository.commit_signed(commit_message)?;
     Ok(())
 }
