@@ -18,7 +18,7 @@ use crate::{
 #[derive(Debug)]
 pub struct ReleasePrRequest {
     /// Tera template for the pull request's name.
-    name_template: Option<String>,
+    pr_name_template: Option<String>,
     /// If `true`, the created release PR will be marked as a draft.
     draft: bool,
     /// Labels to add to the release PR.
@@ -31,7 +31,7 @@ pub struct ReleasePrRequest {
 impl ReleasePrRequest {
     pub fn new(update_request: UpdateRequest) -> Self {
         Self {
-            name_template: None,
+            pr_name_template: None,
             draft: false,
             labels: vec![],
             branch_prefix: DEFAULT_BRANCH_PREFIX.to_string(),
@@ -39,8 +39,8 @@ impl ReleasePrRequest {
         }
     }
 
-    pub fn with_name_template(mut self, name_template: Option<String>) -> Self {
-        self.name_template = name_template;
+    pub fn with_pr_name_template(mut self, pr_name_template: Option<String>) -> Self {
+        self.pr_name_template = pr_name_template;
         self
     }
 
@@ -119,7 +119,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
                 &repo,
                 ReleasePrOptions {
                     draft: input.draft,
-                    pr_name: input.name_template.clone(),
+                    pr_name: input.pr_name_template.clone(),
                     pr_labels: input.labels.clone(),
                     pr_branch_prefix: input.branch_prefix.clone(),
                 },

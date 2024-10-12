@@ -90,7 +90,7 @@ fn get_release_pr_req(
         .mark_as_draft(pr_draft)
         .with_labels(pr_labels)
         .with_branch_prefix(pr_branch_prefix)
-        .with_name_template(pr_name);
+        .with_pr_name_template(pr_name);
     Ok(request)
 }
 
