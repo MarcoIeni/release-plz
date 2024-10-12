@@ -45,9 +45,11 @@ pub async fn fill_commit<'a>(
                 .get_remote_commit(&commit.id)
                 .await?;
 
+            let associated_prs = git_client.unwrap().associated_prs(&commit.id).await?;
+            let pr_number = associated_prs.first().map(|pr| pr.number);
             commit.remote = RemoteContributor {
                 username: remote_commit.username,
-                pr_number: remote_commit.pr_number.and_then(|n| i64::try_from(n).ok()),
+                pr_number: pr_number.and_then(|n| i64::try_from(n).ok()),
                 ..RemoteContributor::default()
             };
         }

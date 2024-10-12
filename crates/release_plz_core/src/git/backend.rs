@@ -169,8 +169,6 @@ pub struct Commit {
 pub struct RemoteCommit {
     /// Username of the author.
     pub username: Option<String>,
-    /// PR number associated with this commit.
-    pub pr_number: Option<u64>,
 }
 
 #[derive(Serialize, Default)]
@@ -657,13 +655,8 @@ impl GitClient {
             .context("can't parse commits")?;
 
         let username = github_commit.author.and_then(|author| author.login);
-        let associated_prs = self.associated_prs(commit).await?;
-        let pr_number = associated_prs.first().map(|pr| pr.number);
 
-        Ok(RemoteCommit {
-            username,
-            pr_number,
-        })
+        Ok(RemoteCommit { username })
     }
 
     fn commits_api_path(&self, commit: &str) -> String {
