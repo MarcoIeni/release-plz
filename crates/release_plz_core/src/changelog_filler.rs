@@ -40,7 +40,7 @@ pub async fn fill_commit<'a>(
             commit.committer.email = Some(repository.get_committer_email(&commit.id)?);
         }
         if required_info.remote {
-            let git_client =git_client
+            let git_client = git_client
                 .context("The changelog template requires information from the remote, but git token wasn't provided")?;
             let remote_commit = git_client.get_remote_commit(&commit.id).await?;
 
