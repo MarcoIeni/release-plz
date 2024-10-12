@@ -1,5 +1,5 @@
 use crate::{
-    tera::{render_template, tera_context},
+    tera::{render_template, PACKAGE_VAR, VERSION_VAR},
     PackagesUpdate,
 };
 use chrono::SecondsFormat;
@@ -74,18 +74,16 @@ fn pr_title(
     };
 
     if let Some(title_template) = title_template {
-        let package_name = if updates.len() == 1 {
-            &updates[0].0.name
-        } else {
-            ""
-        };
-        let first_version = first_version.to_string().clone();
-        let version = if are_all_versions_equal() {
-            first_version.as_str()
-        } else {
-            ""
-        };
-        let context = tera_context(package_name, version);
+        let mut context = tera::Context::new();
+
+        if updates.len() == 1 {
+            context.insert(PACKAGE_VAR, &updates[0].0.name);
+        }
+
+        if are_all_versions_equal() {
+            context.insert(VERSION_VAR, first_version.to_string().as_str());
+        }
+
         render_template(&title_template, &context, "pr_name")
     } else if updates.len() == 1 && project_contains_multiple_pub_packages {
         let (package, _) = &updates[0];
