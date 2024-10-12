@@ -655,7 +655,6 @@ impl GitClient {
             .context("can't parse commits")?;
 
         let username = github_commit.author.and_then(|author| author.login);
-
         Ok(RemoteCommit { username })
     }
 
