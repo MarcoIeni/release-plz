@@ -40,12 +40,11 @@ pub async fn fill_commit<'a>(
             commit.committer.email = Some(repository.get_committer_email(&commit.id)?);
         }
         if required_info.remote {
-            let remote_commit = git_client
-                .context("The changelog template requires information from the remote, but git token wasn't provided")?
-                .get_remote_commit(&commit.id)
-                .await?;
+            let git_client =git_client
+                .context("The changelog template requires information from the remote, but git token wasn't provided")?;
+            let remote_commit = git_client.get_remote_commit(&commit.id).await?;
 
-            let associated_prs = git_client.unwrap().associated_prs(&commit.id).await?;
+            let associated_prs = git_client.associated_prs(&commit.id).await?;
             let pr_number = associated_prs.first().map(|pr| pr.number);
             commit.remote = RemoteContributor {
                 username: remote_commit.username,
