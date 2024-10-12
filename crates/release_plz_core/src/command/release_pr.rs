@@ -17,7 +17,7 @@ use crate::{
 
 #[derive(Debug)]
 pub struct ReleasePrRequest {
-    /// Tera template for the pull request's name.
+    /// Tera template for the release pull request name.
     pr_name_template: Option<String>,
     /// If `true`, the created release PR will be marked as a draft.
     draft: bool,
