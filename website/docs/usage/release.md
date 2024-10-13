@@ -29,7 +29,8 @@ To learn more, run `release-plz release --help`.
 
 ## Git Backends
 
-GitHub is the default release-plz backend. You can use the `--backend` flag to specify a different backend.
+GitHub is the default release-plz backend. You can use the `--backend` flag to
+specify a different backend.
 
 ### Gitlab
 
@@ -133,16 +134,20 @@ before releasing.
 
 If you merge with the
 ["squash and merge"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github#squashing-your-merge-commits)
-strategy, this has no effect, because when you merge to the main branch, you create a new commit, so release-plz won't find the commit of the PR and will release the latest commit of the main branch.
+strategy, this has no effect, because when you merge to the main branch, you create a new commit,
+so release-plz won't find the commit of the PR and will release the latest commit
+of the main branch.
 
 However, if you merge with the
 ["merge"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github)
 strategy (the GitHub default), release-plz will release the last commit
 of the PR, not the "Merge pull request" commit created by GitHub.
 
-This allows to avoid race conditions happening when the release PR is merged together with other PRs that aren't meant to be released.
+This allows to avoid race conditions happening when the release PR is merged together with other
+PRs that aren't meant to be released.
 
-This is common in repositories that have a merge queue enabled and multiple PRs are merged one after the other.
+This is common in repositories that have a merge queue enabled and multiple PRs are merged one
+after the other.
 
 <details>
 <summary>Merge queue example</summary>
@@ -155,7 +160,8 @@ This is common in repositories that have a merge queue enabled and multiple PRs 
 6. PR 22 is merged into master
 7. master's workflow runs that does the publish for PR 22
 
-This means your release includes changes from PR 21 which will be missing from the changelog and might contain breaking changes.
+This means your release includes changes from PR 21 which will be missing from the changelog
+and might contain breaking changes.
 
 ```mermaid
 flowchart LR
