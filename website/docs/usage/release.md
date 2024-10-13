@@ -130,38 +130,41 @@ or if you are the only maintainer of your repository.
 
 To avoid race conditions when the release PR is merged,
 `release-plz release` does a `git checkout` to the latest commit of the PR
-before releasing.
+before releasing (if the commit of the PR exists in the main branch).
 
-If you merge with the
-["squash and merge"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github#squashing-your-merge-commits)
-strategy, this has no effect, because when you merge to the main branch, you create a new commit,
-so release-plz won't find the commit of the PR and will release the latest commit
-of the main branch.
+Depending on the merge strategy you use, this can have different effects:
 
-However, if you merge with the
-["merge"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github)
-strategy (the GitHub default), release-plz will release the last commit
-of the PR, not the "Merge pull request" commit created by GitHub.
+- If you merge with the
+  [squash and merge](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github#squashing-your-merge-commits)
+  strategy, the `git checkout` won't happen because when you merge the PR to the main branch, GitHub creates a new commit,
+  so release-plz won't find the commit of the PR and will release the latest commit
+  of the main branch.
+- If you merge with the
+  [merge](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github)
+  strategy (the GitHub default), release-plz will release the last commit
+  of the PR instead of the "Merge pull request" commit created by GitHub.
 
-This allows to avoid race conditions happening when the release PR is merged together with other
-PRs that aren't meant to be released.
+Takeaway: if you are concerned about PRs being released by mistake
+(because you have a merge queue enabled or because your repository
+has multiple maintainers), you should merge release PRs with the
+default merge strategy.
+Release-plz will handle the rest, avoiding race conditions happening when
+the release PR is merged immediately after other PRs that aren't meant to be released. 👍
 
-This is common in repositories that have a merge queue enabled and multiple PRs are merged one
-after the other.
+Here's an example of race condition that could happen if release-plz
+didn't do the `git checkout` to the latest PR commit:
 
 <details>
 <summary>Merge queue example</summary>
 
-1. Person A adds PR 20 to the merge queue (e.g. `@bors r+`)
-2. Person B adds PR 21 to the merge queue
-3. PR 20 is merged into master
-4. Person A sees PR 20 is merged and adds the release PR (PR 22) to the merge queue
-5. PR 21 is merged into master
-6. PR 22 is merged into master
-7. master's workflow runs that does the publish for PR 22
-
-This means your release includes changes from PR 21 which will be missing from the changelog
-and might contain breaking changes.
+1. Person A adds PR 20 to the merge queue (e.g. `@bors r+`).
+2. Person B adds PR 21 to the merge queue.
+3. PR 20 is merged into master.
+4. Person A sees PR 20 is merged and adds the release PR (PR 22) to the merge queue.
+5. PR 21 is merged into master.
+6. PR 22 is merged into master. The `release-plz release-pr` workflow for PR 21 didn't
+   finish in time, so the release PR is out of date.
+7. master's workflow runs that does the publish for PR 22.
 
 ```mermaid
 flowchart LR
@@ -185,7 +188,12 @@ flowchart LR
   pr21_merge --> pr22_merge
 ```
 
-If your PRs are merged into `main` with merge-commits, then
+This means that if release-plz didn't do the `git checkout`,
+your release would include changes from PR 21 which will be missing from the changelog
+and might contain breaking changes.
+
+However, thanks to the `git checkout` to the latest commit of the PR,
+if the release PR was merged into `main` with the default merge strategy, then
 this race condition doesn't happen because the ancestor of the latest commit
 of PR 22 is PR 20, not PR 21.
 
