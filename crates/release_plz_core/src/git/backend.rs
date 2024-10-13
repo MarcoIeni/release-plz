@@ -573,6 +573,10 @@ impl GitClient {
             .await?
             .successful_status()
             .await?;
+        self.parse_pr_commits(resp).await
+    }
+
+    async fn parse_pr_commits(&self, resp: Response) -> anyhow::Result<Vec<PrCommit>> {
         match self.backend {
             BackendType::Github | BackendType::Gitea => {
                 resp.json().await.context("failed to parse pr commits")
