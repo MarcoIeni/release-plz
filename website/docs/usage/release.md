@@ -136,7 +136,8 @@ Depending on the merge strategy you use, this can have different effects:
 
 - If you merge with the
   [squash and merge](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github#squashing-your-merge-commits)
-  strategy, the `git checkout` won't happen because when you merge the PR to the main branch, GitHub creates a new commit,
+  strategy, the `git checkout` won't happen because when you merge the PR to the main branch,
+  GitHub creates a new commit,
   so release-plz won't find the commit of the PR and will release the latest commit
   of the main branch.
 - If you merge with the
