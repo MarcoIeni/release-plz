@@ -88,10 +88,6 @@ impl TestContext {
         self.repo.git(&["pull"]).unwrap();
     }
 
-    pub fn get_last_commit(&self) -> String {
-        self.repo.git(&["log", "-1", "--pretty=%B"]).unwrap()
-    }
-
     fn generate_cargo_lock(&self) {
         assert_cmd::Command::new("cargo")
             .current_dir(self.repo.directory())
