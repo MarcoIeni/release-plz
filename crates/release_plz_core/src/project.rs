@@ -174,14 +174,14 @@ impl Project {
             }
         }
 
-        if !missing_fields.is_empty() {
+        if missing_fields.is_empty() {
+            Ok(())
+        } else {
             let error_message = format!(
                 "The following mandatory fields are missing in Cargo.toml:\n{}",
                 missing_fields.join("\n")
             );
             Err(anyhow::anyhow!(error_message))
-        } else {
-            Ok(())
         }
     }
 }
