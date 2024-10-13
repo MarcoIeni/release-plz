@@ -40,7 +40,11 @@ async fn release_plz_should_fail_for_multi_package_pr() {
     "#;
 
     context.write_release_plz_toml(config);
-    context.run_release_pr().failure();
+    // This should fail because the workspace contains multiple packages
+    // so the `package` variable is not available
+    let outcome = context.run_release_pr().failure();
+    let stderr = String::from_utf8_lossy(&outcome.get_output().stderr);
+    assert!(stderr.contains("failed to render pr_name"));
 }
 
 #[tokio::test]
