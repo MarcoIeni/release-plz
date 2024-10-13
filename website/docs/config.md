@@ -342,6 +342,13 @@ When using a custom template:
 - `{{ version }}` is populated only when releasing a single package or multiple packages with the
   same version.
 
+Here's an example of how you can customize the PR name template:
+
+```toml
+[workspace]
+pr_name = "release: {{ package }} {{ version }}"
+```
+
 #### The `pr_branch_prefix` field
 
 Prefix for the release PR branch. By default, it's set to: `release-plz-`
