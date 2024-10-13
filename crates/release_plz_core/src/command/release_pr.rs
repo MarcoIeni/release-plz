@@ -17,6 +17,8 @@ use crate::{
 
 #[derive(Debug)]
 pub struct ReleasePrRequest {
+    /// Tera template for the release pull request name.
+    pr_name_template: Option<String>,
     /// If `true`, the created release PR will be marked as a draft.
     draft: bool,
     /// Labels to add to the release PR.
@@ -29,11 +31,17 @@ pub struct ReleasePrRequest {
 impl ReleasePrRequest {
     pub fn new(update_request: UpdateRequest) -> Self {
         Self {
+            pr_name_template: None,
             draft: false,
             labels: vec![],
             branch_prefix: DEFAULT_BRANCH_PREFIX.to_string(),
             update_request,
         }
+    }
+
+    pub fn with_pr_name_template(mut self, pr_name_template: Option<String>) -> Self {
+        self.pr_name_template = pr_name_template;
+        self
     }
 
     pub fn with_labels(mut self, labels: Vec<String>) -> Self {
@@ -109,9 +117,12 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
                 &packages_to_update,
                 &git_client,
                 &repo,
-                input.draft,
-                input.labels.clone(),
-                input.branch_prefix.clone(),
+                ReleasePrOptions {
+                    draft: input.draft,
+                    pr_name: input.pr_name_template.clone(),
+                    pr_labels: input.labels.clone(),
+                    pr_branch_prefix: input.branch_prefix.clone(),
+                },
             )
             .await?;
             return Ok(Some(pr));
@@ -121,17 +132,22 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
     Ok(None)
 }
 
+struct ReleasePrOptions {
+    draft: bool,
+    pr_name: Option<String>,
+    pr_labels: Vec<String>,
+    pr_branch_prefix: String,
+}
+
 async fn open_or_update_release_pr(
     local_manifest: &Utf8Path,
     packages_to_update: &PackagesUpdate,
     git_client: &GitClient,
     repo: &Repo,
-    draft: bool,
-    pr_labels: Vec<String>,
-    pr_branch_prefix: String,
+    release_pr_options: ReleasePrOptions,
 ) -> anyhow::Result<ReleasePr> {
     let mut opened_release_prs = git_client
-        .opened_prs(&pr_branch_prefix)
+        .opened_prs(&release_pr_options.pr_branch_prefix)
         .await
         .context("cannot get opened release-plz prs")?;
 
@@ -161,14 +177,22 @@ async fn open_or_update_release_pr(
             repo.original_branch(),
             packages_to_update,
             project_contains_multiple_pub_packages,
-            &pr_branch_prefix,
+            &release_pr_options.pr_branch_prefix,
+            release_pr_options.pr_name,
         )
-        .mark_as_draft(draft)
-        .with_labels(pr_labels)
+        .mark_as_draft(release_pr_options.draft)
+        .with_labels(release_pr_options.pr_labels)
     };
     match opened_release_prs.first() {
         Some(opened_pr) => {
-            handle_opened_pr(git_client, opened_pr, repo, &new_pr, &pr_branch_prefix).await
+            handle_opened_pr(
+                git_client,
+                opened_pr,
+                repo,
+                &new_pr,
+                &release_pr_options.pr_branch_prefix,
+            )
+            .await
         }
         None => create_pr(git_client, repo, &new_pr).await,
     }
@@ -231,9 +255,9 @@ async fn handle_opened_pr(
 async fn create_pr(git_client: &GitClient, repo: &Repo, pr: &Pr) -> anyhow::Result<ReleasePr> {
     repo.checkout_new_branch(&pr.branch)?;
     if matches!(git_client.backend, BackendType::Github) {
-        github_create_release_branch(git_client, repo, &pr.branch).await?;
+        github_create_release_branch(git_client, repo, &pr.branch, &pr.title).await?;
     } else {
-        create_release_branch(repo, &pr.branch)?;
+        create_release_branch(repo, &pr.branch, &pr.title)?;
     }
     debug!("changes committed to release branch {}", pr.branch);
 
@@ -338,7 +362,7 @@ fn reset_branch(
 }
 
 fn force_push(pr: &GitPr, repository: &Repo) -> anyhow::Result<()> {
-    add_changes_and_commit(repository)?;
+    add_changes_and_commit(repository, &pr.title)?;
     repository.force_push(pr.branch())?;
     Ok(())
 }
@@ -362,7 +386,7 @@ async fn github_force_push(
     // - If we revert the last commit of the release PR branch, GitHub will close the release PR
     //   because the branch is the same as the default branch. So we can't revert the latest release-plz commit and push the new one.
     // To learn more, see https://github.com/MarcoIeni/release-plz/issues/1487
-    github_create_release_branch(client, repository, &tmp_release_branch.name).await?;
+    github_create_release_branch(client, repository, &tmp_release_branch.name, &pr.title).await?;
 
     repository.fetch(&tmp_release_branch.name)?;
 
@@ -403,8 +427,12 @@ impl Drop for TmpBranch<'_> {
     }
 }
 
-fn create_release_branch(repository: &Repo, release_branch: &str) -> anyhow::Result<()> {
-    add_changes_and_commit(repository)?;
+fn create_release_branch(
+    repository: &Repo,
+    release_branch: &str,
+    commit_message: &str,
+) -> anyhow::Result<()> {
+    add_changes_and_commit(repository, commit_message)?;
     repository.push(release_branch)?;
     Ok(())
 }
@@ -413,14 +441,15 @@ async fn github_create_release_branch(
     client: &GitClient,
     repository: &Repo,
     release_branch: &str,
+    commit_message: &str,
 ) -> anyhow::Result<()> {
     repository.push(release_branch)?;
-    github_graphql::commit_changes(client, repository, "chore: release", release_branch).await
+    github_graphql::commit_changes(client, repository, commit_message, release_branch).await
 }
 
-fn add_changes_and_commit(repository: &Repo) -> anyhow::Result<()> {
+fn add_changes_and_commit(repository: &Repo, commit_message: &str) -> anyhow::Result<()> {
     let changes_expect_typechanges = repository.changes_except_typechanges()?;
     repository.add(&changes_expect_typechanges)?;
-    repository.commit_signed("chore: release")?;
+    repository.commit_signed(commit_message)?;
     Ok(())
 }

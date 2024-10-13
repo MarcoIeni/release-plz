@@ -3,6 +3,51 @@ use cargo_utils::LocalManifest;
 use crate::helpers::test_context::TestContext;
 
 #[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_plz_should_set_custom_pr_details() {
+    let context = TestContext::new().await;
+
+    let config = r#"
+    [workspace]
+    pr_name = "release: {{ package }} {{ version }}"
+    "#;
+
+    context.write_release_plz_toml(config);
+    context.run_release_pr().success();
+
+    let expected_title = format!("release: {} 0.1.0", context.gitea.repo);
+    let opened_prs = context.opened_release_prs().await;
+    assert_eq!(opened_prs.len(), 1);
+    assert_eq!(opened_prs[0].title, expected_title);
+
+    context.merge_release_pr().await;
+    // The commit contains the PR id number
+    let expected_commit = format!("{expected_title} (#1)");
+    assert_eq!(
+        context.repo.current_commit_message().unwrap(),
+        expected_commit
+    );
+}
+
+#[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_plz_should_fail_for_multi_package_pr() {
+    let context = TestContext::new_workspace(&["crates/one", "crates/two"]).await;
+
+    let config = r#"
+    [workspace]
+    pr_name = "release: {{ package }} {{ version }}"
+    "#;
+
+    context.write_release_plz_toml(config);
+    // This should fail because the workspace contains multiple packages
+    // so the `package` variable is not available
+    let outcome = context.run_release_pr().failure();
+    let stderr = String::from_utf8_lossy(&outcome.get_output().stderr);
+    assert!(stderr.contains("failed to render pr_name"));
+}
+
+#[tokio::test]
 #[ignore = "This test fails in CI, but works locally on MacOS. TODO: fix this."]
 #[cfg_attr(not(feature = "docker-tests"), ignore)]
 async fn release_plz_detects_edited_readme_cargo_toml_field() {

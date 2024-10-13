@@ -53,6 +53,7 @@
         "pr_branch_prefix": null,
         "pr_draft": false,
         "pr_labels": [],
+        "pr_name": null,
         "publish": null,
         "publish_allow_dirty": null,
         "publish_features": null,
@@ -626,6 +627,14 @@
           "items": {
             "type": "string"
           }
+        },
+        "pr_name": {
+          "title": "PR Name",
+          "description": "Tera template of the pull request's name created by release-plz.",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "publish": {
           "title": "Publish",
