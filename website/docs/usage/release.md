@@ -121,8 +121,10 @@ Each entry of the array is an object containing:
 ## What commit is released
 
 :::info
-This is an advanced section, describe certain design choices of release-plz.
-You can skip it if you are just getting started with release-plz.
+This is an advanced section that describes certain design choices of release-plz,
+mainly relevant for repositories with a merge queue enabled.
+You can skip it if you are just getting started with release-plz
+or if you are the only maintainer of your repository.
 :::
 
 To avoid race conditions when the release PR is merged,
@@ -141,6 +143,44 @@ of the PR, not the "Merge pull request" commit created by GitHub.
 This allows to avoid race conditions happening when the release PR is merged together with other PRs that aren't meant to be released.
 
 This is common in repositories that have a merge queue enabled and multiple PRs are merged one after the other.
-Here's an example:
 
-TODO
+<details>
+<summary>Merge queue example</summary>
+
+1. Person A adds PR 20 to the merge queue (e.g. `@bors r+`)
+2. Person B adds PR 21 to the merge queue
+3. PR 20 is merged into master
+4. Person A sees PR 20 is merged and adds the release PR (PR 22) to the merge queue
+5. PR 21 is merged into master
+6. PR 22 is merged into master
+7. master's workflow runs that does the publish for PR 22
+
+This means your release includes changes from PR 21 which will be missing from the changelog and might contain breaking changes.
+
+```mermaid
+flowchart LR
+  pr20(["PR 20 (fix)"])
+  pr20_merge["master
+  (PR 20 merge commit)"]
+  pr21(["PR 21 (breaking change)"])
+  pr21_merge["master
+  (PR 21 merge commit)"]
+  pr22(["PR 22 (release)"])
+  pr22_merge["master
+  (PR 22 merge commit)"]
+  master --> pr20
+  master --> pr20_merge
+  pr20 --> pr20_merge
+  master --> pr21
+  pr20_merge --> pr21_merge
+  pr21 --> pr21_merge
+  pr20_merge --> pr22
+  pr22 --> pr22_merge
+  pr21_merge --> pr22_merge
+```
+
+If your PRs are merged into `main` with merge-commits, then
+this race condition doesn't happen because the ancestor of the latest commit
+of PR 22 is PR 20, not PR 21.
+
+</details>
