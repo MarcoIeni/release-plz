@@ -77,10 +77,7 @@ pub struct GitLabMrCommit {
 
 impl From<GitLabMrCommit> for PrCommit {
     fn from(value: GitLabMrCommit) -> Self {
-        let author = match value.author {
-            Some(a) => Some(Author { login: a.username }),
-            None => None,
-        };
+        let author = value.author.map(|a| Author { login: a.username });
         PrCommit {
             author,
             sha: value.sha,
