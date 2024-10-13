@@ -605,16 +605,14 @@ async fn should_release(
             let pr_commits = git_client.pr_commits(pr.number).await?;
             // Get the last commit of the PR, i.e. the last commit that was pushed before the PR was merged
             match pr_commits.last() {
-                Some(commit) => {
-                    if commit.sha == last_commit {
-                        // I'm already at the right commit
-                        Ok(ShouldRelease::Yes)
-                    } else {
-                        // I need to checkout the last commit of the PR
-                        Ok(ShouldRelease::YesWithCommit(commit.sha.clone()))
-                    }
+                Some(commit) if commit.sha != last_commit => {
+                    // I need to checkout the last commit of the PR
+                    Ok(ShouldRelease::YesWithCommit(commit.sha.clone()))
                 }
-                None => Ok(ShouldRelease::Yes),
+                _ => {
+                    // I'm already at the right commit
+                    Ok(ShouldRelease::Yes)
+                }
             }
         }
         None => {
