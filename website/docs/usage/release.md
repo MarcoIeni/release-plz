@@ -11,11 +11,9 @@ The `release-plz release` command releases all the unpublished packages.
 For every release, release-plz:
 
 - Creates a git tag named `<package_name>-v<version>` (e.g. `tokio-v1.8.1`).
+  `<package_name>-` is omitted if there's only one package to publish.
 - Publishes the package to the cargo registry by running `cargo publish`.
 - Publishes a GitHub/Gitea/GitLab release based on the git tag.
-
-In the tag name, `<package_name>-` is omitted if there's only one
-package to publish (i.e. with `publish != false` in the `Cargo.toml` file).
 
 :::info
 `release-plz release` doesn't edit your `Cargo.toml` files and doesn't
@@ -29,7 +27,11 @@ If all packages are already published, the `release-plz release` command does no
 
 To learn more, run `release-plz release --help`.
 
-## Gitlab
+## Git Backends
+
+GitHub is the default release-plz backend. You can use the `--backend` flag to specify a different backend.
+
+### Gitlab
 
 `release-plz release` also supports creating releases for repositories hosted on Gitlab with
 the `--backend gitlab` option:
@@ -49,7 +51,7 @@ Then you can run `release-plz release` with the following arguments:
 
 `release-plz release --backend gitlab --git-token <gitlab_token>`
 
-## Gitea
+### Gitea
 
 `releases-plz` supports creating releases on Gitea with the `--backend gitea` option.
 
@@ -115,3 +117,30 @@ Each entry of the array is an object containing:
 
 - `html_url`: The URL of the PR.
 - `number`: The number of the PR.
+
+## What commit is released
+
+:::info
+This is an advanced section, describe certain design choices of release-plz.
+You can skip it if you are just getting started with release-plz.
+:::
+
+To avoid race conditions when the release PR is merged,
+`release-plz release` does a `git checkout` to the latest commit of the PR
+before releasing.
+
+If you merge with the
+["squash and merge"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github#squashing-your-merge-commits)
+strategy, this has no effect, because when you merge to the main branch, you create a new commit, so release-plz won't find the commit of the PR and will release the latest commit of the main branch.
+
+However, if you merge with the
+["merge"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github)
+strategy (the GitHub default), release-plz will release the last commit
+of the PR, not the "Merge pull request" commit created by GitHub.
+
+This allows to avoid race conditions happening when the release PR is merged together with other PRs that aren't meant to be released.
+
+This is common in repositories that have a merge queue enabled and multiple PRs are merged one after the other.
+Here's an example:
+
+TODO
