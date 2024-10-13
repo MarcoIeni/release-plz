@@ -610,7 +610,7 @@ async fn should_release(
                         // I'm already at the right commit
                         Ok(ShouldRelease::Yes)
                     } else {
-                        // I need to checkout to the commit of the PR
+                        // I need to checkout the last commit of the PR
                         Ok(ShouldRelease::YesWithCommit(commit.sha.clone()))
                     }
                 }
