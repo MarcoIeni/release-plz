@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- add pr_name config field ([#1765](https://github.com/MarcoIeni/release-plz/pull/1765))
+- add `pr_name` config field ([#1765](https://github.com/MarcoIeni/release-plz/pull/1765))
 - add `remote.pr_number` to `remote` context of commits in changelog ([#1768](https://github.com/MarcoIeni/release-plz/pull/1768))
 
 ### Other
