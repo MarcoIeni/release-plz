@@ -22,6 +22,7 @@ changelog_update = false # disable changelog updates
 dependencies_update = true # update dependencies with `cargo update`
 git_release_enable = false # disable GitHub/Gitea releases
 pr_branch_prefix = "release-plz-" # PR branch prefix
+pr_name = "Release {{ package }} v{{ version }}" # template for the PR name
 pr_labels = ["release"] # add the `release` label to the release Pull Request
 publish_allow_dirty = true # add `--allow-dirty` to `cargo publish`
 semver_check = false # disable API breaking changes checks
@@ -72,6 +73,7 @@ the following sections:
   - [`git_tag_name`](#the-git_tag_name-field) — Customize git tag pattern.
   - [`pr_branch_prefix`](#the-pr_branch_prefix-field) — Release PR branch prefix.
   - [`pr_draft`](#the-pr_draft-field) — Open the release Pull Request as a draft.
+  - [`pr_name`](#the-pr_name-field) — Customize the name of the release Pull Request.
   - [`pr_labels`](#the-pr_labels-field) — Add labels to the release Pull Request.
   - [`publish`](#the-publish-field) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
@@ -313,6 +315,39 @@ Where:
 
 - `{{ package }}` is the name of the package.
 - `{{ version }}` is the new version of the package.
+
+#### The `pr_name` field
+
+[Tera template](https://keats.github.io/tera/docs/#templates) of pull request's name that
+release-plz creates.
+
+By default, it's:
+
+- `chore({{ package }}): release v{{ version }}` for releasing only one package from a workspace with
+multiple publishable packages.
+  This happens when only one package changed.
+- `chore: release v{{ version }}` for releasing either:
+  - the only package of the project
+  - multiple packages with the same version
+- `chore: release` for releasing multiple packages with different versions.
+
+Where:
+
+- `{{ package }}` is the name of the package.
+- `{{ version }}` is the new version of the package(s).
+
+When using a custom template:
+
+- `{{ package }}` is populated only when releasing a single package.
+- `{{ version }}` is populated only when releasing a single package or multiple packages with the
+  same version.
+
+Here's an example of how you can customize the PR name template:
+
+```toml
+[workspace]
+pr_name = "release: {{ package }} {{ version }}"
+```
 
 #### The `pr_branch_prefix` field
 
