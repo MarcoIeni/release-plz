@@ -23,7 +23,10 @@ async fn release_plz_should_set_custom_pr_details() {
     context.merge_release_pr().await;
     // The commit contains the PR id number
     let expected_commit = format!("{expected_title} (#1)");
-    assert_eq!(context.repo.current_commit_message().unwrap(), expected_commit);
+    assert_eq!(
+        context.repo.current_commit_message().unwrap(),
+        expected_commit
+    );
 }
 
 #[tokio::test]

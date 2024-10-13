@@ -77,7 +77,8 @@ fn pr_title(
         let mut context = tera::Context::new();
 
         if updates.len() == 1 {
-            context.insert(PACKAGE_VAR, &updates[0].0.name);
+            let (package, _) = &updates[0];
+            context.insert(PACKAGE_VAR, &package.name);
         }
 
         if are_all_versions_equal() {
