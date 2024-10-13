@@ -30,7 +30,6 @@ async fn release_plz_should_set_custom_pr_details() {
 }
 
 #[tokio::test]
-#[should_panic]
 #[cfg_attr(not(feature = "docker-tests"), ignore)]
 async fn release_plz_should_fail_for_multi_package_pr() {
     let context = TestContext::new_workspace(&["crates/one", "crates/two"]).await;
@@ -41,7 +40,7 @@ async fn release_plz_should_fail_for_multi_package_pr() {
     "#;
 
     context.write_release_plz_toml(config);
-    context.run_release_pr().success();
+    context.run_release_pr().failure();
 }
 
 #[tokio::test]
