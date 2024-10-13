@@ -313,7 +313,7 @@ body = """
                 {% endif %}
         {% else -%}
 # highlight-next-line
-            - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{{ self::username(commit=commit) }}
+            - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{{ self::username(commit=commit) }}{{ self::pr(commit=commit) }}
         {% endif -%}
     {% endfor -%}
 {% endfor %}
@@ -326,6 +326,9 @@ body = """
 {% endif -%}
 {%- macro username(commit) -%}
     {% if commit.remote.username %} (by @{{ commit.remote.username }}){% endif -%}
+{% endmacro -%}
+{%- macro pr(commit) -%}
+    {% if commit.remote.pr_number %} - #{{ commit.remote.pr_number }}{% endif -%}
 {% endmacro -%}
 # highlight-end
 """

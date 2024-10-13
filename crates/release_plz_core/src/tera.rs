@@ -16,7 +16,6 @@ pub fn release_body_from_template(
     remote: &Remote,
     body_template: Option<&str>,
 ) -> String {
-    let mut tera = tera::Tera::default();
     let mut context = tera_context(package_name, version);
     context.insert(CHANGELOG_VAR, changelog);
     context.insert(REMOTE_VAR, remote);
@@ -24,15 +23,12 @@ pub fn release_body_from_template(
     let default_body_template = tera_var(CHANGELOG_VAR);
     let body_template = body_template.unwrap_or(&default_body_template);
 
-    render_template(&mut tera, body_template, &context, "release_body")
+    render_template(body_template, &context, "release_body")
 }
 
-pub fn render_template(
-    tera: &mut tera::Tera,
-    template: &str,
-    context: &tera::Context,
-    template_name: &str,
-) -> String {
+pub fn render_template(template: &str, context: &tera::Context, template_name: &str) -> String {
+    let mut tera = tera::Tera::default();
+
     tera.add_raw_template(template_name, template)
         .expect("failed to add release_body raw template");
 

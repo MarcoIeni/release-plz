@@ -83,12 +83,14 @@ fn get_release_pr_req(
     update_request: UpdateRequest,
 ) -> anyhow::Result<ReleasePrRequest> {
     let pr_branch_prefix = config.workspace.pr_branch_prefix.clone();
+    let pr_name = config.workspace.pr_name.clone();
     let pr_labels = config.workspace.pr_labels.clone();
     let pr_draft = config.workspace.pr_draft;
     let request = ReleasePrRequest::new(update_request)
         .mark_as_draft(pr_draft)
         .with_labels(pr_labels)
-        .with_branch_prefix(pr_branch_prefix);
+        .with_branch_prefix(pr_branch_prefix)
+        .with_pr_name_template(pr_name);
     Ok(request)
 }
 

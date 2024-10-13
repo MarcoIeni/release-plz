@@ -103,6 +103,7 @@ You can use the following context in the template:
       },
       "remote": {
         "username": "<GitHub/Gitea/GitLab handle>",
+        "pr_number": "<Number of the PR/MR associated with the commit>",
       }
     }
   ],
