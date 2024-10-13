@@ -172,10 +172,14 @@ impl Project {
             } else {
                 // Check non-publishable packages
                 if package.license.is_none() {
-                    missing_fields.push(format!("License for non-public package '{}'", package.name));
+                    missing_fields
+                        .push(format!("License for non-public package '{}'", package.name));
                 }
                 if package.description.is_none() {
-                    missing_fields.push(format!("Description for non-public package '{}'", package.name));
+                    missing_fields.push(format!(
+                        "Description for non-public package '{}'",
+                        package.name
+                    ));
                 }
             }
         }
