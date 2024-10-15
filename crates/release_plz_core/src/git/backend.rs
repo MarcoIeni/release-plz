@@ -506,9 +506,11 @@ impl GitClient {
             .post(self.pulls_url())
             .json(&json_body)
             .send()
-            .await?
+            .await
+            .context("failed when sending the response")?
             .successful_status()
-            .await?;
+            .await
+            .context("received unexpected response")?;
 
         let git_pr: GitPr = match self.backend {
             BackendType::Github | BackendType::Gitea => {
