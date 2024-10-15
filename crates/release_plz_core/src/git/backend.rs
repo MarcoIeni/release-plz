@@ -61,11 +61,28 @@ impl Remote {
 #[derive(Deserialize)]
 pub struct PrCommit {
     pub author: Option<Author>,
+    pub sha: String,
 }
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct Author {
     pub login: String,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct GitLabMrCommit {
+    pub author: Option<GitLabAuthor>,
+    pub sha: String,
+}
+
+impl From<GitLabMrCommit> for PrCommit {
+    fn from(value: GitLabMrCommit) -> Self {
+        let author = value.author.map(|a| Author { login: a.username });
+        PrCommit {
+            author,
+            sha: value.sha,
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -551,15 +568,31 @@ impl GitClient {
     }
 
     pub async fn pr_commits(&self, pr_number: u64) -> anyhow::Result<Vec<PrCommit>> {
-        self.client
+        let resp = self
+            .client
             .get(format!("{}/{}/commits", self.pulls_url(), pr_number))
             .send()
             .await?
             .successful_status()
-            .await?
-            .json()
-            .await
-            .context("can't parse commits")
+            .await?;
+        self.parse_pr_commits(resp).await
+    }
+
+    async fn parse_pr_commits(&self, resp: Response) -> anyhow::Result<Vec<PrCommit>> {
+        match self.backend {
+            BackendType::Github | BackendType::Gitea => {
+                resp.json().await.context("failed to parse pr commits")
+            }
+            BackendType::Gitlab => {
+                let gitlab_commits: Vec<GitLabMrCommit> =
+                    resp.json().await.context("failed to parse gitlab mr")?;
+                let pr_commits = gitlab_commits
+                    .into_iter()
+                    .map(|commit| commit.into())
+                    .collect();
+                Ok(pr_commits)
+            }
+        }
     }
 
     /// Only works for GitHub.
@@ -743,18 +776,24 @@ mod tests {
                 author: Some(Author {
                     login: "bob".to_string(),
                 }),
+                sha: "abc".to_string(),
             },
             PrCommit {
                 author: Some(Author {
                     login: "marco".to_string(),
                 }),
+                sha: "abc".to_string(),
             },
             PrCommit {
                 author: Some(Author {
                     login: "release[bot]".to_string(),
                 }),
+                sha: "abc".to_string(),
             },
-            PrCommit { author: None },
+            PrCommit {
+                author: None,
+                sha: "abc".to_string(),
+            },
         ];
         let contributors = contributors_from_commits(&commits);
         assert_eq!(contributors, vec!["marco"]);
