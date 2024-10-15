@@ -160,28 +160,28 @@ didn't do the `git checkout` to the latest PR commit:
 
 1. Person A adds PR 20 to the merge queue (e.g. `@bors r+`).
 2. Person B adds PR 21 to the merge queue.
-3. PR 20 is merged into master.
+3. PR 20 is merged into `main`.
 4. Person A sees PR 20 is merged and adds the release PR (PR 22) to the merge queue.
-5. PR 21 is merged into master.
-6. PR 22 is merged into master. The `release-plz release-pr` workflow for PR 21 didn't
+5. PR 21 is merged into `main`.
+6. PR 22 is merged into `main`. The `release-plz release-pr` workflow for PR 21 didn't
    finish in time, so the release PR is out of date.
-7. master's workflow runs that does the publish for PR 22.
+7. `main`'s workflow runs that does the publish for PR 22.
 
 ```mermaid
 flowchart LR
   pr20(["PR 20 (fix)"])
-  pr20_merge["master
+  pr20_merge["main
   (PR 20 merge commit)"]
   pr21(["PR 21 (breaking change)"])
-  pr21_merge["master
+  pr21_merge["main
   (PR 21 merge commit)"]
   pr22(["PR 22 (release)"])
-  pr22_merge["master
+  pr22_merge["main
   (PR 22 merge commit)"]
-  master --> pr20
-  master --> pr20_merge
+  main --> pr20
+  main --> pr20_merge
   pr20 --> pr20_merge
-  master --> pr21
+  main --> pr21
   pr20_merge --> pr21_merge
   pr21 --> pr21_merge
   pr20_merge --> pr22
