@@ -12,10 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - checkout on release commit ([#1761](https://github.com/MarcoIeni/release-plz/pull/1761))
 
-### Other
-
-- errors
-
 ## [0.30.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.0...release_plz_core-v0.30.1) - 2024-10-13
 
 ### Added
