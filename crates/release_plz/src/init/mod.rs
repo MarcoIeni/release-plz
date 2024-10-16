@@ -245,6 +245,7 @@ mod tests {
                     uses: actions/checkout@v4
                     with:
                       fetch-depth: 0
+                      github_token: ${{ secrets.GITHUB_TOKEN }}
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
