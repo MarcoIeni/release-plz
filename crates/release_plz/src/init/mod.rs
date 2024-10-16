@@ -109,15 +109,17 @@ fn write_actions_yaml(github_token: &str) -> anyhow::Result<()> {
 
 fn action_yaml(branch: &str, github_token: &str) -> String {
     let checkout_token_line = if github_token == GITHUB_TOKEN {
-        format!("github_token: ${{{{ secrets.{github_token} }}}}")
+        format!(
+            "
+          github_token: ${{{{ secrets.{github_token} }}}}"
+        )
     } else {
         "".to_string()
     };
     let with_github_token = if github_token == GITHUB_TOKEN {
         format!(
             "
-        with:
-          {checkout_token_line}"
+        with:{checkout_token_line}"
         )
     } else {
         "".to_string()
@@ -162,7 +164,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0{checkout_token_line}
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
