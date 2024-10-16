@@ -113,7 +113,7 @@ fn action_yaml(branch: &str, github_token: &str) -> String {
     } else {
         format!(
             "
-          github_token: ${{{{ secrets.{github_token} }}}}"
+          token: ${{{{ secrets.{github_token} }}}}"
         )
     };
     let with_github_token = if github_token == GITHUB_TOKEN {
