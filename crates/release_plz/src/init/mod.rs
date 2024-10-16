@@ -111,8 +111,10 @@ fn action_yaml(branch: &str, github_token: &str) -> String {
     let checkout_token_line = if github_token == GITHUB_TOKEN {
         "".to_string()
     } else {
-        format!("
-          github_token: ${{{{ secrets.{github_token} }}}}")
+        format!(
+            "
+          github_token: ${{{{ secrets.{github_token} }}}}"
+        )
     };
     let with_github_token = if github_token == GITHUB_TOKEN {
         "".to_string()
