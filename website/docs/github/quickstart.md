@@ -71,6 +71,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
@@ -138,6 +140,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # `fetch-depth: 0` is needed to clone all the git history, which is necessary to
+          # release from the latest commit of the release PR.
+          fetch-depth: 0
       # Use your favorite way to install the Rust toolchain.
       # The action I'm using here is a popular choice.
       - name: Install Rust toolchain
@@ -168,7 +174,6 @@ jobs:
         with:
           # `fetch-depth: 0` is needed to clone all the git history, which is necessary to
           # determine the next version and build the changelog.
-          # Note that it's not needed in the `release-plz-release` job.
           fetch-depth: 0
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable

@@ -218,6 +218,8 @@ mod tests {
                 steps:
                   - name: Checkout repository
                     uses: actions/checkout@v4
+                    with:
+                      fetch-depth: 0
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
