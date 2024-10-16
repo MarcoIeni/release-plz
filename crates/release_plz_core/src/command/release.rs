@@ -488,9 +488,13 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<Option<Release>> 
         return Ok(None);
     }
 
+    let mut checkout_done = false;
     if let ShouldRelease::YesWithCommit(commit) = &should_release {
-        debug!("releasing commit {commit}");
-        repo.checkout(commit)?;
+        // The commit does not exist if the PR was squashed.
+        if let Ok(()) = repo.checkout(commit) {
+            debug!("releasing commit {commit}");
+            checkout_done = true;
+        }
     }
 
     // Don't return the error immediately because we want to go back to the previous commit if needed
@@ -499,7 +503,9 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<Option<Release>> 
     if let ShouldRelease::YesWithCommit(_) = should_release {
         // Go back to the previous commit so that the user finds
         // the repository in the same commit they launched release-plz.
-        repo.checkout("-")?;
+        if checkout_done {
+            repo.checkout("-")?;
+        }
     }
 
     release
@@ -607,7 +613,7 @@ async fn should_release(
             // Get the last commit of the PR, i.e. the last commit that was pushed before the PR was merged
             match pr_commits.last() {
                 Some(commit) if commit.sha != last_commit => {
-                    // I need to checkout the last commit of the PR
+                    // I need to checkout the last commit of the PR if it exists
                     Ok(ShouldRelease::YesWithCommit(commit.sha.clone()))
                 }
                 _ => {
