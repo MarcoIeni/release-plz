@@ -109,20 +109,18 @@ fn write_actions_yaml(github_token: &str) -> anyhow::Result<()> {
 
 fn action_yaml(branch: &str, github_token: &str) -> String {
     let checkout_token_line = if github_token == GITHUB_TOKEN {
-        format!(
-            "
-          github_token: ${{{{ secrets.{github_token} }}}}"
-        )
-    } else {
         "".to_string()
+    } else {
+        format!("
+          github_token: ${{{{ secrets.{github_token} }}}}")
     };
     let with_github_token = if github_token == GITHUB_TOKEN {
+        "".to_string()
+    } else {
         format!(
             "
         with:{checkout_token_line}"
         )
-    } else {
-        "".to_string()
     };
 
     format!(
@@ -222,8 +220,6 @@ mod tests {
                 steps:
                   - name: Checkout repository
                     uses: actions/checkout@v4
-                    with:
-                      github_token: ${{ secrets.GITHUB_TOKEN }}
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
@@ -245,7 +241,6 @@ mod tests {
                     uses: actions/checkout@v4
                     with:
                       fetch-depth: 0
-                      github_token: ${{ secrets.GITHUB_TOKEN }}
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
@@ -280,6 +275,8 @@ mod tests {
                 steps:
                   - name: Checkout repository
                     uses: actions/checkout@v4
+                    with:
+                      github_token: ${{ secrets.RELEASE_PLZ_TOKEN }}
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
@@ -301,6 +298,7 @@ mod tests {
                     uses: actions/checkout@v4
                     with:
                       fetch-depth: 0
+                      github_token: ${{ secrets.RELEASE_PLZ_TOKEN }}
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
