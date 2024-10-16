@@ -28,10 +28,9 @@ async fn release_plz_should_set_custom_pr_details() {
     assert_eq!(opened_prs.len(), 1);
     assert_eq!(opened_prs[0].title, expected_title);
     assert_eq!(
-        opened_prs[0].body.as_ref().map(|s| s.trim().to_string()),
-        Some(
-            format!(
-                r#"
+        opened_prs[0].body.as_ref().unwrap().trim(),
+        format!(
+            r#"
     === [0.1.0](https://localhost/{}/{}/releases/tag/v0.1.0) - 2024-10-16
     Package: {} 0.1.0 -> 0.1.0
     Changes:
@@ -39,15 +38,13 @@ async fn release_plz_should_set_custom_pr_details() {
 
 - add config file
 - cargo init
-- Initial commit    
+- Initial commit
     "#,
-                context.gitea.user.username(),
-                context.gitea.repo,
-                context.gitea.repo
-            )
-            .trim()
-            .to_string()
+            context.gitea.user.username(),
+            context.gitea.repo,
+            context.gitea.repo
         )
+        .trim()
     );
 
     context.merge_release_pr().await;
