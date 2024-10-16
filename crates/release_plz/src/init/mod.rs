@@ -278,7 +278,7 @@ mod tests {
                   - name: Checkout repository
                     uses: actions/checkout@v4
                     with:
-                      github_token: ${{ secrets.RELEASE_PLZ_TOKEN }}
+                      token: ${{ secrets.RELEASE_PLZ_TOKEN }}
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
@@ -300,7 +300,7 @@ mod tests {
                     uses: actions/checkout@v4
                     with:
                       fetch-depth: 0
-                      github_token: ${{ secrets.RELEASE_PLZ_TOKEN }}
+                      token: ${{ secrets.RELEASE_PLZ_TOKEN }}
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
