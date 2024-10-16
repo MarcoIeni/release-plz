@@ -108,11 +108,16 @@ fn write_actions_yaml(github_token: &str) -> anyhow::Result<()> {
 }
 
 fn action_yaml(branch: &str, github_token: &str) -> String {
+    let checkout_token_line = if github_token == GITHUB_TOKEN {
+        format!("github_token: ${{{{ secrets.{github_token} }}}}")
+    } else {
+        "".to_string()
+    };
     let with_github_token = if github_token == GITHUB_TOKEN {
         format!(
             "
         with:
-          github_token: ${{{{ secrets.{github_token} }}}}"
+          {checkout_token_line}"
         )
     } else {
         "".to_string()
@@ -215,6 +220,8 @@ mod tests {
                 steps:
                   - name: Checkout repository
                     uses: actions/checkout@v4
+                    with:
+                      github_token: ${{ secrets.GITHUB_TOKEN }}
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
@@ -277,7 +284,7 @@ mod tests {
                     with:
                       command: release
                     env:
-                      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                      GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
                       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
               release-plz-pr:
@@ -298,7 +305,7 @@ mod tests {
                     with:
                       command: release-pr
                     env:
-                      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                      GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
                       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         "#]]
         .assert_eq(&action_yaml("main", CUSTOM_GITHUB_TOKEN));
