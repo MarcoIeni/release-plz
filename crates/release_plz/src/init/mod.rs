@@ -118,14 +118,6 @@ fn action_yaml(branch: &str, github_token: &str) -> String {
           token: {github_token_secret}"
         )
     };
-    let with_github_token = if is_default_token {
-        "".to_string()
-    } else {
-        format!(
-            "
-        with:{checkout_token_line}"
-        )
-    };
 
     format!(
         "name: Release-plz
@@ -145,7 +137,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4{with_github_token}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0{checkout_token_line}
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
@@ -280,6 +274,7 @@ mod tests {
                   - name: Checkout repository
                     uses: actions/checkout@v4
                     with:
+                      fetch-depth: 0
                       token: ${{ secrets.RELEASE_PLZ_TOKEN }}
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
