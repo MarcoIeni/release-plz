@@ -11,7 +11,7 @@ use crates_index::{GitIndex, SparseIndex};
 use git_cmd::Repo;
 use secrecy::{ExposeSecret, SecretString};
 use serde::Serialize;
-use tracing::{info, instrument, warn};
+use tracing::{debug, info, instrument, warn};
 use url::Url;
 
 use crate::{
@@ -483,16 +483,40 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<Option<Release>> 
     )?;
     let repo = Repo::new(&input.metadata.workspace_root)?;
     let git_client = get_git_client(input)?;
-    if !should_release(input, &repo, &git_client).await? {
+    let should_release = should_release(input, &repo, &git_client).await?;
+    if should_release == ShouldRelease::No {
         return Ok(None);
     }
 
+    if let ShouldRelease::YesWithCommit(commit) = &should_release {
+        debug!("releasing commit {commit}");
+        repo.checkout(commit)?;
+    }
+
+    // Don't return the error immediately because we want to go back to the previous commit if needed
+    let release = release_packages(input, &project, &repo, &git_client).await;
+
+    if let ShouldRelease::YesWithCommit(_) = should_release {
+        // Go back to the previous commit so that the user finds
+        // the repository in the same commit they launched release-plz.
+        repo.checkout("-")?;
+    }
+
+    release
+}
+
+async fn release_packages(
+    input: &ReleaseRequest,
+    project: &Project,
+    repo: &Repo,
+    git_client: &GitClient,
+) -> anyhow::Result<Option<Release>> {
     let packages = project.publishable_packages();
     let release_order = release_order(&packages).context("cannot determine release order")?;
     let mut package_releases: Vec<PackageRelease> = vec![];
     for package in release_order {
         if let Some(pkg_release) =
-            release_package_if_needed(input, &project, package, &repo, &git_client).await?
+            release_package_if_needed(input, project, package, repo, git_client).await?
         {
             package_releases.push(pkg_release);
         }
@@ -559,23 +583,48 @@ async fn release_package_if_needed(
     Ok(package_release)
 }
 
+#[derive(Debug, PartialEq, Eq)]
+enum ShouldRelease {
+    Yes,
+    YesWithCommit(String),
+    No,
+}
+
 async fn should_release(
     input: &ReleaseRequest,
     repo: &Repo,
     git_client: &GitClient,
-) -> anyhow::Result<bool> {
-    if input.release_always {
-        return Ok(true);
-    }
+) -> anyhow::Result<ShouldRelease> {
     let last_commit = repo.current_commit_hash()?;
     let prs = git_client.associated_prs(&last_commit).await?;
-    let is_current_commit_from_release_pr = prs
+    let associated_release_pr = prs
         .iter()
-        .any(|pr| pr.branch().starts_with(&input.branch_prefix));
-    if !is_current_commit_from_release_pr {
-        info!("skipping release: current commit is not from a release PR");
+        .find(|pr| pr.branch().starts_with(&input.branch_prefix));
+
+    match associated_release_pr {
+        Some(pr) => {
+            let pr_commits = git_client.pr_commits(pr.number).await?;
+            // Get the last commit of the PR, i.e. the last commit that was pushed before the PR was merged
+            match pr_commits.last() {
+                Some(commit) if commit.sha != last_commit => {
+                    // I need to checkout the last commit of the PR
+                    Ok(ShouldRelease::YesWithCommit(commit.sha.clone()))
+                }
+                _ => {
+                    // I'm already at the right commit
+                    Ok(ShouldRelease::Yes)
+                }
+            }
+        }
+        None => {
+            if input.release_always {
+                Ok(ShouldRelease::Yes)
+            } else {
+                info!("skipping release: current commit is not from a release PR");
+                Ok(ShouldRelease::No)
+            }
+        }
     }
-    Ok(is_current_commit_from_release_pr)
 }
 
 /// Get the indexes where the package should be published.

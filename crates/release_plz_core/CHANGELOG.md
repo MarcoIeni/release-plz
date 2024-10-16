@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.1...release_plz_core-v0.30.2) - 2024-10-15
+
+### Fixed
+
+- checkout on release commit ([#1761](https://github.com/MarcoIeni/release-plz/pull/1761))
+
+## [0.30.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.0...release_plz_core-v0.30.1) - 2024-10-13
+
+### Added
+
+- add `pr_name` config field ([#1765](https://github.com/MarcoIeni/release-plz/pull/1765))
+- add `remote.pr_number` to `remote` context of commits in changelog ([#1768](https://github.com/MarcoIeni/release-plz/pull/1768))
+
 ## [0.30.0](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.29.0...release_plz_core-v0.30.0) - 2024-10-08
 
 ### Added

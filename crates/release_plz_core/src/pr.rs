@@ -1,4 +1,7 @@
-use crate::PackagesUpdate;
+use crate::{
+    tera::{render_template, PACKAGE_VAR, VERSION_VAR},
+    PackagesUpdate,
+};
 use chrono::SecondsFormat;
 
 pub const DEFAULT_BRANCH_PREFIX: &str = "release-plz-";
@@ -20,11 +23,16 @@ impl Pr {
         packages_to_update: &PackagesUpdate,
         project_contains_multiple_pub_packages: bool,
         branch_prefix: &str,
+        title_template: Option<String>,
     ) -> Self {
         Self {
             branch: release_branch(branch_prefix),
             base_branch: default_branch.to_string(),
-            title: pr_title(packages_to_update, project_contains_multiple_pub_packages),
+            title: pr_title(
+                packages_to_update,
+                project_contains_multiple_pub_packages,
+                title_template,
+            ),
             body: pr_body(packages_to_update, project_contains_multiple_pub_packages),
             draft: false,
             labels: vec![],
@@ -54,6 +62,7 @@ fn release_branch(prefix: &str) -> String {
 fn pr_title(
     packages_to_update: &PackagesUpdate,
     project_contains_multiple_pub_packages: bool,
+    title_template: Option<String>,
 ) -> String {
     let updates = packages_to_update.updates();
     let first_version = &updates[0].1.version;
@@ -64,7 +73,20 @@ fn pr_title(
             .all(|(_, update)| &update.version == first_version)
     };
 
-    if updates.len() == 1 && project_contains_multiple_pub_packages {
+    if let Some(title_template) = title_template {
+        let mut context = tera::Context::new();
+
+        if updates.len() == 1 {
+            let (package, _) = &updates[0];
+            context.insert(PACKAGE_VAR, &package.name);
+        }
+
+        if are_all_versions_equal() {
+            context.insert(VERSION_VAR, first_version.to_string().as_str());
+        }
+
+        render_template(&title_template, &context, "pr_name")
+    } else if updates.len() == 1 && project_contains_multiple_pub_packages {
         let (package, _) = &updates[0];
         // The project is a workspace with multiple public packages and we are only updating one of them.
         // Specify which package is being updated in the PR title.
