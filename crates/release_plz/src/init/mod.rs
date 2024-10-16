@@ -6,7 +6,7 @@ use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 
 const CARGO_REGISTRY_TOKEN: &str = "CARGO_REGISTRY_TOKEN";
-const GITHUB_TOKEN : &str = "GITHUB_TOKEN";
+const GITHUB_TOKEN: &str = "GITHUB_TOKEN";
 
 pub fn init() -> anyhow::Result<()> {
     ensure_gh_is_installed()?;
@@ -107,9 +107,16 @@ fn write_actions_yaml(github_token: &str) -> anyhow::Result<()> {
 }
 
 fn action_yaml(branch: &str, github_token: &str) -> String {
-  let with_github_token =
-  if github_token == "GITHUB_TOKEN" {
-  }
+    let with_github_token = if github_token == GITHUB_TOKEN {
+        format!(
+            "
+        with:
+          github_token: ${{{{ secrets.{github_token} }}}}"
+        )
+    } else {
+        "".to_string()
+    };
+
     format!(
         "name: Release-plz
 
@@ -128,7 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4{with_github_token}
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
