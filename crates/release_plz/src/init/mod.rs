@@ -108,7 +108,8 @@ fn write_actions_yaml(github_token: &str) -> anyhow::Result<()> {
 }
 
 fn action_yaml(branch: &str, github_token: &str) -> String {
-    let checkout_token_line = if github_token == GITHUB_TOKEN {
+    let is_default_token = github_token == GITHUB_TOKEN;
+    let checkout_token_line = if is_default_token {
         "".to_string()
     } else {
         format!(
@@ -116,7 +117,7 @@ fn action_yaml(branch: &str, github_token: &str) -> String {
           token: ${{{{ secrets.{github_token} }}}}"
         )
     };
-    let with_github_token = if github_token == GITHUB_TOKEN {
+    let with_github_token = if is_default_token {
         "".to_string()
     } else {
         format!(
