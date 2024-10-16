@@ -356,7 +356,8 @@ pr_name = "release: {{ package }} {{ version }}"
 release-plz creates.
 
 By default it contains the summary of package updates, the changelog for each package, a section
-for breaking changes, and a footer with credits for release-plz.
+for breaking changes, and a footer with credits for release-plz. The text is trimmed to a length
+of 65536, because that's the limit imposed by Github.
 
 Here is an example of how you can customize the PR body template:
 
