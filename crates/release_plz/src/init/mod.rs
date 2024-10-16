@@ -7,6 +7,7 @@ use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 
 const CARGO_REGISTRY_TOKEN: &str = "CARGO_REGISTRY_TOKEN";
 const GITHUB_TOKEN: &str = "GITHUB_TOKEN";
+const CUSTOM_GITHUB_TOKEN: &str = "RELEASE_PLZ_TOKEN";
 
 pub fn init() -> anyhow::Result<()> {
     ensure_gh_is_installed()?;
@@ -59,7 +60,7 @@ fn store_github_token() -> anyhow::Result<&'static str> {
 💡 Create a GitHub PAT following these instructions: https://release-plz.ieni.dev/docs/github/token#use-a-personal-access-token");
 
         // GitHub custom token
-        let release_plz_token: &str = "RELEASE_PLZ_TOKEN";
+        let release_plz_token: &str = CUSTOM_GITHUB_TOKEN;
         gh::store_secret(release_plz_token)?;
         release_plz_token
     } else {
@@ -245,6 +246,61 @@ mod tests {
                       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         "#]]
-        .assert_eq(&action_yaml("main", "GITHUB_TOKEN"));
+        .assert_eq(&action_yaml("main", GITHUB_TOKEN));
+    }
+
+    #[test]
+    fn actions_yaml_string_with_custom_token_is_correct() {
+        expect_test::expect![[r#"
+            name: Release-plz
+
+            permissions:
+              pull-requests: write
+              contents: write
+
+            on:
+              push:
+                branches:
+                  - main
+
+            jobs:
+              release-plz-release:
+                name: Release-plz release
+                runs-on: ubuntu-latest
+                steps:
+                  - name: Checkout repository
+                    uses: actions/checkout@v4
+                  - name: Install Rust toolchain
+                    uses: dtolnay/rust-toolchain@stable
+                  - name: Run release-plz
+                    uses: MarcoIeni/release-plz-action@v0.5
+                    with:
+                      command: release
+                    env:
+                      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+              release-plz-pr:
+                name: Release-plz PR
+                runs-on: ubuntu-latest
+                concurrency:
+                  group: release-plz-${{ github.ref }}
+                  cancel-in-progress: false
+                steps:
+                  - name: Checkout repository
+                    uses: actions/checkout@v4
+                    with:
+                      fetch-depth: 0
+                  - name: Install Rust toolchain
+                    uses: dtolnay/rust-toolchain@stable
+                  - name: Run release-plz
+                    uses: MarcoIeni/release-plz-action@v0.5
+                    with:
+                      command: release-pr
+                    env:
+                      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        "#]]
+        .assert_eq(&action_yaml("main", CUSTOM_GITHUB_TOKEN));
     }
 }
