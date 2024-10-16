@@ -107,11 +107,11 @@ fn write_actions_yaml(github_token: &str) -> anyhow::Result<()> {
 }
 
 fn action_yaml(branch: &str, github_token: &str) -> String {
-  let with_github_token = 
+  let with_github_token =
   if github_token == "GITHUB_TOKEN" {
   }
     format!(
-        "name: Release Plz
+        "name: Release-plz
 
 permissions:
   pull-requests: write
@@ -189,7 +189,7 @@ mod tests {
     #[test]
     fn actions_yaml_string_is_correct() {
         expect_test::expect![[r#"
-            name: Release Plz
+            name: Release-plz
 
             permissions:
               pull-requests: write
