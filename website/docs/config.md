@@ -74,6 +74,7 @@ the following sections:
   - [`pr_branch_prefix`](#the-pr_branch_prefix-field) — Release PR branch prefix.
   - [`pr_draft`](#the-pr_draft-field) — Open the release Pull Request as a draft.
   - [`pr_name`](#the-pr_name-field) — Customize the name of the release Pull Request.
+  - [`pr_body`](#the-pr_body-field) — Customize the body of the release Pull Request.
   - [`pr_labels`](#the-pr_labels-field) — Add labels to the release Pull Request.
   - [`publish`](#the-publish-field) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
@@ -348,6 +349,37 @@ Here's an example of how you can customize the PR name template:
 [workspace]
 pr_name = "release: {{ package }} {{ version }}"
 ```
+
+#### The `pr_body` field
+
+[Tera template](https://keats.github.io/tera/docs/#templates) of pull request's body that
+release-plz creates.
+
+By default it contains the summary of package updates, the changelog for each package, a section
+for breaking changes, and a footer with credits for release-plz.
+
+Here is an example of how you can customize the PR body template:
+
+```toml
+[workspace]
+pr_body = """
+{% for release in releases %}
+=== {{release.title}}
+Package: {{release.package}} {{release.previous_version}} -> {{release.next_version}}
+Changes:
+{{release.changelog}}
+{% endfor -%}
+"""
+```
+
+Where:
+
+- `{{ releases }}` - is an array with the update information of each package.
+- `{{ release.title }}` - is the changelog title containing a link to the release tag.
+- `{{ release.package }}` - is the name of the package being updated.
+- `{{ release.changelog }}` - is the generated changelog in Markdown format.
+- `{{ release.previous_version }}` - is the previous version of the package.
+- `{{ release.next_version }}` - is the version being released of the package.
 
 #### The `pr_branch_prefix` field
 

@@ -10,6 +10,14 @@ async fn release_plz_should_set_custom_pr_details() {
     let config = r#"
     [workspace]
     pr_name = "release: {{ package }} {{ version }}"
+    pr_body = """
+    {% for release in releases %}
+    === {{release.title}}
+    Package: {{release.package}} {{release.previous_version}} -> {{release.next_version}}
+    Changes:
+    {{release.changelog}}
+    {% endfor -%}
+    """
     "#;
 
     context.write_release_plz_toml(config);
@@ -19,6 +27,28 @@ async fn release_plz_should_set_custom_pr_details() {
     let opened_prs = context.opened_release_prs().await;
     assert_eq!(opened_prs.len(), 1);
     assert_eq!(opened_prs[0].title, expected_title);
+    assert_eq!(
+        opened_prs[0].body.as_ref().map(|s| s.trim().to_string()),
+        Some(
+            format!(
+                r#"
+    === [0.1.0](https://localhost/{}/{}/releases/tag/v0.1.0) - 2024-10-16
+    Package: {} 0.1.0 -> 0.1.0
+    Changes:
+    ### Other
+
+- add config file
+- cargo init
+- Initial commit    
+    "#,
+                context.gitea.user.username(),
+                context.gitea.repo,
+                context.gitea.repo
+            )
+            .trim()
+            .to_string()
+        )
+    );
 
     context.merge_release_pr().await;
     // The commit contains the PR id number
