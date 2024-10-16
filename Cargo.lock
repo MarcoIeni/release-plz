@@ -170,9 +170,9 @@ dependencies = [
 
 [[package]]
 name = "async-compression"
-version = "0.4.15"
+version = "0.4.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e26a9844c659a2a293d239c7910b752f8487fe122c6c8bd1659bf85a6507c302"
+checksum = "103db485efc3e41214fe4fda9f3dbeae2eb9082f48fd236e6095627a9422066e"
 dependencies = [
  "flate2",
  "futures-core",
@@ -1458,7 +1458,7 @@ dependencies = [
 
 [[package]]
 name = "git_cmd"
-version = "0.6.13"
+version = "0.6.14"
 dependencies = [
  "anyhow",
  "camino",
@@ -4056,7 +4056,7 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "release-plz"
-version = "0.3.101"
+version = "0.3.102"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -4096,7 +4096,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.30.2"
+version = "0.30.3"
 dependencies = [
  "anyhow",
  "base64 0.22.1",

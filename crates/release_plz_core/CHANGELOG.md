@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.2...release_plz_core-v0.30.3) - 2024-10-16
+
+### Fixed
+
+- fix release for squash commits ([#1775](https://github.com/MarcoIeni/release-plz/pull/1775))
+
 ## [0.30.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.1...release_plz_core-v0.30.2) - 2024-10-15
 
 ### Fixed
