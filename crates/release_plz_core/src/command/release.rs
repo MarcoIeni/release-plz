@@ -490,7 +490,7 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<Option<Release>> 
 
     let mut checkout_done = false;
     if let ShouldRelease::YesWithCommit(commit) = &should_release {
-        // The commit might not exist if the PR was squashed.
+        // The commit does not exist if the PR was squashed.
         if let Ok(()) = repo.checkout(commit) {
             debug!("releasing commit {commit}");
             checkout_done = true;
