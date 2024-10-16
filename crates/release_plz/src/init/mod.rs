@@ -108,13 +108,14 @@ fn write_actions_yaml(github_token: &str) -> anyhow::Result<()> {
 }
 
 fn action_yaml(branch: &str, github_token: &str) -> String {
+    let github_token_secret = format!("${{{{ secrets.{github_token} }}}}");
     let is_default_token = github_token == GITHUB_TOKEN;
     let checkout_token_line = if is_default_token {
         "".to_string()
     } else {
         format!(
             "
-          token: ${{{{ secrets.{github_token} }}}}"
+          token: {github_token_secret}"
         )
     };
     let with_github_token = if is_default_token {
@@ -152,7 +153,7 @@ jobs:
         with:
           command: release
         env:
-          GITHUB_TOKEN: ${{{{ secrets.{github_token} }}}}
+          GITHUB_TOKEN: {github_token_secret}
           CARGO_REGISTRY_TOKEN: ${{{{ secrets.{CARGO_REGISTRY_TOKEN} }}}}
 
   release-plz-pr:
@@ -173,7 +174,7 @@ jobs:
         with:
           command: release-pr
         env:
-          GITHUB_TOKEN: ${{{{ secrets.{github_token} }}}}
+          GITHUB_TOKEN: {github_token_secret}
           CARGO_REGISTRY_TOKEN: ${{{{ secrets.{CARGO_REGISTRY_TOKEN} }}}}
 "
     )
