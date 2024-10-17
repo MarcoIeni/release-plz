@@ -365,10 +365,14 @@ Here is an example of how you can customize the PR body template:
 [workspace]
 pr_body = """
 {% for release in releases %}
-=== {{release.title}}
+{% if release.title %}
+### {{release.title}}
+{% endif %}
 Package: {{release.package}} {{release.previous_version}} -> {{release.next_version}}
+{% if release.changelog %}
 Changes:
 {{release.changelog}}
+{% endif %}
 {% endfor -%}
 """
 ```
@@ -376,11 +380,16 @@ Changes:
 Where:
 
 - `{{ releases }}` - is an array with the update information of each package.
-- `{{ release.title }}` - is the changelog title containing a link to the release tag.
+- `{{ release.title }}` - is the changelog title containing a link to the release tag diff.
 - `{{ release.package }}` - is the name of the package being updated.
-- `{{ release.changelog }}` - is the generated changelog in Markdown format.
+- `{{ release.changelog }}` - is the generated changelog.
 - `{{ release.previous_version }}` - is the previous version of the package.
-- `{{ release.next_version }}` - is the version being released of the package.
+- `{{ release.next_version }}` - is the version of the package being released.
+
+:::warning
+`{{ release.title }}` and `{{ release.changelog }}` may be unset, please use `{% if <variable> %}`
+structures to check for their existence.
+:::
 
 #### The `pr_branch_prefix` field
 
