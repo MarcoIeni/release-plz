@@ -51,8 +51,8 @@ impl PackagesUpdate {
 #[derive(Serialize, Deserialize)]
 pub struct ReleaseInfo {
     package: String,
-    title: String,
-    changelog: String,
+    title: Option<String>,
+    changelog: Option<String>,
     previous_version: String,
     next_version: String,
 }
@@ -139,10 +139,9 @@ impl PackagesUpdate {
             .iter()
             .map(|(package, update)| {
                 let changelog = update.last_changes().unwrap_or(None);
-                let (changelog_title, changelog_notes) = changelog
-                    .map_or(("".to_string(), "".to_string()), |c| {
-                        (c.title().to_string(), c.notes().to_string())
-                    });
+                let (changelog_title, changelog_notes) = changelog.map_or((None, None), |c| {
+                    (Some(c.title().to_string()), Some(c.notes().to_string()))
+                });
 
                 ReleaseInfo {
                     package: package.name.clone(),
