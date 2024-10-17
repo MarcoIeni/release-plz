@@ -53,7 +53,6 @@ async fn release_plz_should_set_custom_pr_details() {
             context.gitea.repo
         )
         .trim()
-        .to_string()
     );
 
     context.merge_release_pr().await;
