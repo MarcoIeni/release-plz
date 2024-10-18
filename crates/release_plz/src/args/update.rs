@@ -101,7 +101,7 @@ pub struct Update {
     config: Option<PathBuf>,
     /// Git token used to create the pull request.
     #[arg(long, value_parser = NonEmptyStringValueParser::new(), visible_alias = "github-token", env, hide_env_values=true)]
-    git_token: Option<String>,
+    pub git_token: Option<String>,
     /// Kind of git host where your project is hosted.
     #[arg(long, value_enum, default_value_t = GitBackendKind::Github)]
     backend: GitBackendKind,
