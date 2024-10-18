@@ -386,9 +386,9 @@ to check for their existence.
 :::
 
 - `{{ releases }}` - is an array with the update information of each package.
-- `{{ release.title }}` (optional) - is the changelog title containing a link to the release tag diff.
+- `{{ release.title }}` - is the changelog title containing a link to the release tag diff. *(Optional)*.
 - `{{ release.package }}` - is the name of the package being updated.
-- `{{ release.changelog }}` (optional) - is the generated changelog.
+- `{{ release.changelog }}` - is the generated changelog. *(Optional)*.
 - `{{ release.previous_version }}` - is the previous version of the package.
 - `{{ release.next_version }}` - is the version of the package being released.
 
