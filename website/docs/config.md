@@ -385,12 +385,15 @@ not be parsed or it's not available. Please use `{% if <variable> %}` structures
 to check for their existence.
 :::
 
-- `{{ releases }}` - is an array with the update information of each package.
-- `{{ release.title }}` - is the changelog title containing a link to the release tag diff. *(Optional)*.
-- `{{ release.package }}` - is the name of the package being updated.
-- `{{ release.changelog }}` - is the generated changelog. *(Optional)*.
-- `{{ release.previous_version }}` - is the previous version of the package.
-- `{{ release.next_version }}` - is the version of the package being released.
+- `{{ releases }}` - an array with the update information of each package.
+- `{{ release.title }}` - the changelog title containing a link to the release tag diff.
+  *(Optional)*.
+- `{{ release.package }}` - the name of the package being updated.
+- `{{ release.changelog }}` - the generated changelog. *(Optional)*.
+- `{{ release.previous_version }}` - the previous version of the package.
+- `{{ release.next_version }}` - the version of the package being released.
+- `{{ release.breaking_changes }}` - the summary of the breaking changes of the package being
+  released. *(Optional)*.
 
 #### The `pr_branch_prefix` field
 
