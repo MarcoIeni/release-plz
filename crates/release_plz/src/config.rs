@@ -128,6 +128,9 @@ pub struct Workspace {
     /// # PR Name
     /// Tera template of the pull request's name created by release-plz.
     pub pr_name: Option<String>,
+    /// # PR Body
+    /// Tera template of the pull request's body created by release-plz.
+    pub pr_body: Option<String>,
     /// # PR Draft
     /// If `true`, the created release PR will be marked as a draft.
     #[serde(default)]
@@ -462,6 +465,7 @@ mod tests {
                     ..Default::default()
                 },
                 pr_name: None,
+                pr_body: None,
                 pr_draft: false,
                 pr_labels: vec![],
                 pr_branch_prefix: Some("f-".to_string()),
@@ -571,6 +575,7 @@ mod tests {
                 allow_dirty: None,
                 repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 pr_name: None,
+                pr_body: None,
                 pr_draft: false,
                 pr_labels: vec!["label1".to_string()],
                 pr_branch_prefix: Some("f-".to_string()),

@@ -4,6 +4,7 @@ pub const PACKAGE_VAR: &str = "package";
 pub const VERSION_VAR: &str = "version";
 pub const CHANGELOG_VAR: &str = "changelog";
 pub const REMOTE_VAR: &str = "remote";
+pub const RELEASES_VAR: &str = "releases";
 
 pub fn tera_var(var_name: &str) -> String {
     format!("{{{{ {var_name} }}}}")

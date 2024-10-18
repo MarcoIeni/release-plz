@@ -1,5 +1,5 @@
 use crate::{
-    tera::{render_template, PACKAGE_VAR, VERSION_VAR},
+    tera::{render_template, PACKAGE_VAR, RELEASES_VAR, VERSION_VAR},
     PackagesUpdate,
 };
 use chrono::SecondsFormat;
@@ -24,6 +24,7 @@ impl Pr {
         project_contains_multiple_pub_packages: bool,
         branch_prefix: &str,
         title_template: Option<String>,
+        body_template: Option<String>,
     ) -> Self {
         Self {
             branch: release_branch(branch_prefix),
@@ -33,7 +34,11 @@ impl Pr {
                 project_contains_multiple_pub_packages,
                 title_template,
             ),
-            body: pr_body(packages_to_update, project_contains_multiple_pub_packages),
+            body: pr_body(
+                packages_to_update,
+                project_contains_multiple_pub_packages,
+                body_template,
+            ),
             draft: false,
             labels: vec![],
         }
@@ -103,13 +108,33 @@ fn pr_title(
     }
 }
 
+/// The Github API allows a max of 65536 characters in the body field when trying to create a new PR
+const MAX_BODY_LEN: usize = 65536;
+
 fn pr_body(
     packages_to_update: &PackagesUpdate,
     project_contains_multiple_pub_packages: bool,
+    body_template: Option<String>,
 ) -> String {
-    /// The Github API allows a max of 65536 characters in the body field when trying to create a new PR
-    const MAX_BODY_LEN: usize = 65536;
+    if let Some(body_template) = body_template {
+        pr_body_custom(packages_to_update, body_template.as_str())
+    } else {
+        pr_body_default(packages_to_update, project_contains_multiple_pub_packages)
+    }
+}
 
+fn pr_body_custom(packages_to_update: &PackagesUpdate, body_template: &str) -> String {
+    let releases = packages_to_update.releases();
+    let mut context = tera::Context::new();
+    context.insert(RELEASES_VAR, &releases);
+
+    trim_pr_body(render_template(body_template, &context, "pr_body"))
+}
+
+fn pr_body_default(
+    packages_to_update: &PackagesUpdate,
+    project_contains_multiple_pub_packages: bool,
+) -> String {
     let header = "## 🤖 New release";
 
     let summary = packages_to_update.summary();
@@ -130,17 +155,20 @@ fn pr_body(
             "PR body is longer than {MAX_BODY_LEN} characters. Omitting full changelog."
         );
         formatted = format!("{header}{summary}\n{footer}");
-
-        // Make extra sure the body is short enough.
-        // If it's not, give up trying to fail gracefully by truncating it to the nearest valid UTF-8 boundary.
-        // A grapheme cluster may be cut in half in the process.
-        if formatted.chars().count() > MAX_BODY_LEN {
-            tracing::warn!(
-                "PR body is still longer than {MAX_BODY_LEN} characters. Truncating as is."
-            );
-            formatted = formatted.chars().take(MAX_BODY_LEN).collect();
-        }
     }
 
-    formatted
+    trim_pr_body(formatted)
+}
+
+fn trim_pr_body(body: String) -> String {
+    // Make extra sure the body is short enough.
+    // If it's not, give up trying to fail gracefully by truncating it to the nearest valid UTF-8 boundary.
+    // A grapheme cluster may be cut in half in the process.
+
+    if body.chars().count() > MAX_BODY_LEN {
+        tracing::warn!("PR body is still longer than {MAX_BODY_LEN} characters. Truncating as is.");
+        body.chars().take(MAX_BODY_LEN).collect()
+    } else {
+        body
+    }
 }

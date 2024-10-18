@@ -19,6 +19,8 @@ use crate::{
 pub struct ReleasePrRequest {
     /// Tera template for the release pull request name.
     pr_name_template: Option<String>,
+    /// Tera template for the release pull request body.
+    pr_body_template: Option<String>,
     /// If `true`, the created release PR will be marked as a draft.
     draft: bool,
     /// Labels to add to the release PR.
@@ -32,6 +34,7 @@ impl ReleasePrRequest {
     pub fn new(update_request: UpdateRequest) -> Self {
         Self {
             pr_name_template: None,
+            pr_body_template: None,
             draft: false,
             labels: vec![],
             branch_prefix: DEFAULT_BRANCH_PREFIX.to_string(),
@@ -41,6 +44,11 @@ impl ReleasePrRequest {
 
     pub fn with_pr_name_template(mut self, pr_name_template: Option<String>) -> Self {
         self.pr_name_template = pr_name_template;
+        self
+    }
+
+    pub fn with_pr_body_template(mut self, pr_body_template: Option<String>) -> Self {
+        self.pr_body_template = pr_body_template;
         self
     }
 
@@ -120,6 +128,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
                 ReleasePrOptions {
                     draft: input.draft,
                     pr_name: input.pr_name_template.clone(),
+                    pr_body: input.pr_body_template.clone(),
                     pr_labels: input.labels.clone(),
                     pr_branch_prefix: input.branch_prefix.clone(),
                 },
@@ -135,6 +144,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
 struct ReleasePrOptions {
     draft: bool,
     pr_name: Option<String>,
+    pr_body: Option<String>,
     pr_labels: Vec<String>,
     pr_branch_prefix: String,
 }
@@ -179,6 +189,7 @@ async fn open_or_update_release_pr(
             project_contains_multiple_pub_packages,
             &release_pr_options.pr_branch_prefix,
             release_pr_options.pr_name,
+            release_pr_options.pr_body,
         )
         .mark_as_draft(release_pr_options.draft)
         .with_labels(release_pr_options.pr_labels)
