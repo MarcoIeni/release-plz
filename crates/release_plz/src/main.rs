@@ -37,6 +37,10 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             println!("{}", updates.0.summary());
         }
         Command::ReleasePr(cmd_args) => {
+            anyhow::ensure!(
+                cmd_args.update.git_token.is_some(),
+                "please provide the git token with the --git-token cli argument."
+            );
             let cargo_metadata = cmd_args.update.cargo_metadata()?;
             let config = cmd_args.update.config()?;
             let update_request = cmd_args.update.update_request(&config, cargo_metadata)?;
