@@ -159,6 +159,31 @@ impl Project {
     pub fn cargo_lock_path(&self) -> Utf8PathBuf {
         self.root.join("Cargo.lock")
     }
+
+    pub fn check_mandatory_fields(&self) -> anyhow::Result<()> {
+        let mut missing_fields = Vec::new();
+
+        for package in &self.packages {
+            if package.is_publishable() {
+                if package.license.is_none() {
+                    missing_fields.push(format!("License for package '{}'", package.name));
+                }
+                if package.description.is_none() {
+                    missing_fields.push(format!("Description for package '{}'", package.name));
+                }
+            }
+        }
+
+        if missing_fields.is_empty() {
+            Ok(())
+        } else {
+            let error_message = format!(
+                "The following mandatory fields are missing in Cargo.toml:\n{}",
+                missing_fields.join("\n")
+            );
+            Err(anyhow::anyhow!(error_message))
+        }
+    }
 }
 
 fn check_overrides_typos(
