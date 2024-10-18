@@ -55,6 +55,8 @@ pub struct ReleaseInfo {
     changelog: Option<String>,
     previous_version: String,
     next_version: String,
+    /// Summary of breaking changes of the release
+    breaking_changes: Option<String>,
 }
 
 impl PackagesUpdate {
@@ -119,7 +121,7 @@ impl PackagesUpdate {
             .collect()
     }
 
-    fn breaking_changes(&self) -> String {
+    pub fn breaking_changes(&self) -> String {
         self.updates
             .iter()
             .map(|(package, update)| match &update.semver_check {
@@ -143,12 +145,18 @@ impl PackagesUpdate {
                     (Some(c.title().to_string()), Some(c.notes().to_string()))
                 });
 
+                let breaking_changes = match &update.semver_check {
+                    SemverCheck::Incompatible(incompatibilities) => Some(incompatibilities.to_string()),
+                    SemverCheck::Compatible | SemverCheck::Skipped => None,
+                };
+
                 ReleaseInfo {
                     package: package.name.clone(),
                     title: changelog_title,
                     changelog: changelog_notes,
                     next_version: update.version.to_string(),
                     previous_version: package.version.to_string(),
+                    breaking_changes,
                 }
             })
             .collect()
