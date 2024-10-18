@@ -119,7 +119,7 @@ fn pr_body(
     if let Some(body_template) = body_template {
         pr_body_custom(packages_to_update, body_template.as_str())
     } else {
-        pr_body_defaul(packages_to_update, project_contains_multiple_pub_packages)
+        pr_body_default(packages_to_update, project_contains_multiple_pub_packages)
     }
 }
 
@@ -131,7 +131,7 @@ fn pr_body_custom(packages_to_update: &PackagesUpdate, body_template: &str) -> S
     trim_pr_body(render_template(body_template, &context, "pr_body"))
 }
 
-fn pr_body_defaul(
+fn pr_body_default(
     packages_to_update: &PackagesUpdate,
     project_contains_multiple_pub_packages: bool,
 ) -> String {

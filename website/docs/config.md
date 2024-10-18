@@ -380,14 +380,15 @@ Changes:
 Where:
 
 :::warning
-`{{ release.title }}` and `{{ release.changelog }}` may be unset, please use `{% if <variable> %}`
-structures to check for their existence.
+`{{ release.title }}` and `{{ release.changelog }}` may be unset if the changelog could
+not be parsed or it's not available. Please use `{% if <variable> %}` structures 
+to check for their existence.
 :::
 
 - `{{ releases }}` - is an array with the update information of each package.
-- `{{ release.title }}` - is the changelog title containing a link to the release tag diff.
+- `{{ release.title }}` (optional) - is the changelog title containing a link to the release tag diff.
 - `{{ release.package }}` - is the name of the package being updated.
-- `{{ release.changelog }}` - is the generated changelog.
+- `{{ release.changelog }}` (optional) - is the generated changelog.
 - `{{ release.previous_version }}` - is the previous version of the package.
 - `{{ release.next_version }}` - is the version of the package being released.
 

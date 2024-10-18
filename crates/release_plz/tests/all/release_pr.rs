@@ -9,19 +9,19 @@ async fn release_plz_should_set_custom_pr_details() {
     let context = TestContext::new().await;
 
     let config = r#"
-    [workspace]
-    pr_name = "release: {{ package }} {{ version }}"
-    pr_body = """
-    {% for release in releases %}
-    {% if release.title %}
-    ### {{release.title}}
-    {% endif %}
-    Package: {{release.package}} {{release.previous_version}} -> {{release.next_version}}
-    {% if release.changelog %}
-    Changes:
-    {{release.changelog}}
-    {% endif %}
-    {% endfor -%}
+[workspace]
+pr_name = "release: {{ package }} {{ version }}"
+pr_body = """
+{% for release in releases %}
+{% if release.title %}
+### {{release.title}}
+{% endif %}
+Package: {{release.package}} {{release.previous_version}} -> {{release.next_version}}
+{% if release.changelog %}
+Changes:
+{{release.changelog}}
+{% endif %}
+{% endfor -%}
     """
     "#;
 
@@ -37,12 +37,12 @@ async fn release_plz_should_set_custom_pr_details() {
         opened_prs[0].body.as_ref().unwrap().trim(),
         format!(
             r#"
-    ### [0.1.0](https://localhost/{}/{}/releases/tag/v0.1.0) - {}
-    
-    Package: {} 0.1.0 -> 0.1.0
-    
-    Changes:
-    ### Other
+### [0.1.0](https://localhost/{}/{}/releases/tag/v0.1.0) - {}
+
+Package: {} 0.1.0 -> 0.1.0
+
+Changes:
+### Other
 
 - add config file
 - cargo init
