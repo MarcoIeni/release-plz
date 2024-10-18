@@ -381,7 +381,7 @@ Where:
 
 :::warning
 `{{ release.title }}` and `{{ release.changelog }}` may be unset if the changelog could
-not be parsed or it's not available. Please use `{% if <variable> %}` structures 
+not be parsed or it's not available. Please use `{% if <variable> %}` structures
 to check for their existence.
 :::
 
