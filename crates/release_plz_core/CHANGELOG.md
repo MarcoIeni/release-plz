@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.3...release_plz_core-v0.30.4) - 2024-10-18
+
+### Added
+
+- add breaking_changes field to pr_body context ([#1787](https://github.com/MarcoIeni/release-plz/pull/1787))
+- add pr_body field ([#1778](https://github.com/MarcoIeni/release-plz/pull/1778))
+
 ## [0.30.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.2...release_plz_core-v0.30.3) - 2024-10-16
 
 ### Fixed
