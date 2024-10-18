@@ -22,7 +22,7 @@ Changes:
 {{release.changelog}}
 {% endif %}
 {% endfor -%}
-    """
+"""
     "#;
 
     context.write_release_plz_toml(config);
