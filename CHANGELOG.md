@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.103](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.102...release-plz-v0.3.103) - 2024-10-18
+
+### Added
+
+- add pr_body field ([#1778](https://github.com/MarcoIeni/release-plz/pull/1778))
+- add breaking_changes field to pr_body context ([#1787](https://github.com/MarcoIeni/release-plz/pull/1787))
+
+### Other
+
+- improve release-pr error message if token missing ([#1784](https://github.com/MarcoIeni/release-plz/pull/1784))
+
 ## [0.3.102](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.101...release-plz-v0.3.102) - 2024-10-16
 
 ### Fixed
