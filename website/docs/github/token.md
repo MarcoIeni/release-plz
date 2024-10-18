@@ -46,8 +46,8 @@ If release-plz uses the default GitHub token, CI checks on the release PR
 
 ### Actions after release
 
-You can further trigger workflows after `release-plz release` runs,
-in the following ways:
+After `release-plz release` released the packages (typically after running on the `main` branch),
+you can further trigger workflows, in the following ways:
 
 - When a GitHub release is published:
 
