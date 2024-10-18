@@ -146,7 +146,9 @@ impl PackagesUpdate {
                 });
 
                 let breaking_changes = match &update.semver_check {
-                    SemverCheck::Incompatible(incompatibilities) => Some(incompatibilities.to_string()),
+                    SemverCheck::Incompatible(incompatibilities) => {
+                        Some(incompatibilities.to_string())
+                    }
                     SemverCheck::Compatible | SemverCheck::Skipped => None,
                 };
 
