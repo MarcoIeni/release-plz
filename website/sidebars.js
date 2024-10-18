@@ -38,6 +38,7 @@ const sidebars = {
       link: { type: "doc", id: "github/index" },
       items: [
         "github/quickstart",
+        "github/input",
         "github/output",
         "github/token",
         "github/update",
