@@ -75,4 +75,4 @@ We use Gitea as a Git server for our integration tests.
 - Start the Gitea server with `cd tests && docker compose up`.
 - See their OpenAPI documentation at `http://localhost:3000/api/swagger`.
 
-If you don't want to run tests that need docker, you can run `cargo test --no-default-features`.
+If you do not want to run tests that need docker, you can run `cargo test --no-default-features`.
