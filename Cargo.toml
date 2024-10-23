@@ -24,7 +24,7 @@ dunce = "1.0.5"
 duration-str = { version = "0.11.2", default-features = false }
 expect-test = "1.5.0"
 fake = "2.9.2"
-fs-err = "2.11.0"
+fs-err = "3.0.0"
 git-cliff-core = { version = "2.6.1", default-features = false }
 git-url-parse = "0.4.4"
 http = "1.1.0"
