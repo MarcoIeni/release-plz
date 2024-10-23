@@ -30,7 +30,7 @@ pub struct CliArgs {
     #[command(subcommand)]
     pub command: Command,
     /// Print source location and additional information in logs.
-    /// To change the log level, use the `RUST_FLAG` environment variable.
+    /// To change the log level, use the `RUST_LOG` environment variable.
     #[arg(short, long, global = true)]
     pub verbose: bool,
 }
