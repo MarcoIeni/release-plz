@@ -536,4 +536,14 @@ D  crates/git_cmd/CHANGELOG.md
         repo.tag("v1.0.0", "test").unwrap();
         assert!(!repo.tag_exists("v2.0.0").unwrap());
     }
+
+    #[test]
+    fn is_branch_of_commit_detected_correctly() {
+        test_logs::init();
+        let repository_dir = tempdir().unwrap();
+        let repo = Repo::init(&repository_dir);
+        let commit_hash = repo.current_commit_hash().unwrap();
+        let branches = repo.get_branches_of_commit(&commit_hash).unwrap();
+        assert_eq!(branches, vec![repo.original_branch()]);
+    }
 }
