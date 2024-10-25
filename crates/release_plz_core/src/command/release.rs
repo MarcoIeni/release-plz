@@ -613,8 +613,13 @@ async fn should_release(
             // Get the last commit of the PR, i.e. the last commit that was pushed before the PR was merged
             match pr_commits.last() {
                 Some(commit) if commit.sha != last_commit => {
-                    // I need to checkout the last commit of the PR if it exists
-                    Ok(ShouldRelease::YesWithCommit(commit.sha.clone()))
+                    if is_pr_commit_in_original_branch(repo, commit) {
+                        // I need to checkout the last commit of the PR if it exists
+                        Ok(ShouldRelease::YesWithCommit(commit.sha.clone()))
+                    } else {
+                        // The commit is not in the original branch, probably the PR was squashed
+                        Ok(ShouldRelease::Yes)
+                    }
                 }
                 _ => {
                     // I'm already at the right commit
@@ -630,6 +635,15 @@ async fn should_release(
                 Ok(ShouldRelease::No)
             }
         }
+    }
+}
+
+fn is_pr_commit_in_original_branch(repo: &Repo, commit: &crate::git::backend::PrCommit) -> bool {
+    let branches_of_commit = repo.get_branches_of_commit(&commit.sha);
+    if let Ok(branches) = branches_of_commit {
+        branches.contains(&repo.original_branch().to_string())
+    } else {
+        false
     }
 }
 
