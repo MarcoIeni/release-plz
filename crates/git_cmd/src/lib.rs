@@ -342,6 +342,16 @@ impl Repo {
             .context("cannot determine if git tag exists")?;
         Ok(output.lines().count() >= 1)
     }
+
+    pub fn get_branches_of_commit(&self, commit_hash: &str) -> anyhow::Result<Vec<String>> {
+        let output = self.git(&["branch", "--contains", commit_hash])?;
+        let branches = output
+            .lines()
+            .filter_map(|l| l.split_whitespace().last())
+            .map(|s| s.to_string())
+            .collect();
+        Ok(branches)
+    }
 }
 
 pub fn is_file_ignored(repo_path: &Utf8Path, file: &Utf8Path) -> bool {
