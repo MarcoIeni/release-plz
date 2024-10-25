@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- release squashed release PRs from main branch ([#1801](https://github.com/MarcoIeni/release-plz/pull/1801))
+- add `get_branches_of_commit` function ([#1801](https://github.com/MarcoIeni/release-plz/pull/1801))
 
 ## [0.6.14](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.13...git_cmd-v0.6.14) - 2024-10-16
 
