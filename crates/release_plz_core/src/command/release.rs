@@ -639,15 +639,12 @@ async fn should_release(
 }
 
 fn is_pr_commit_in_original_branch(repo: &Repo, commit: &crate::git::backend::PrCommit) -> bool {
-    let is_pr_commit_in_original_branch = {
-        let branches_of_commit = repo.get_branches_of_commit(&commit.sha);
-        if let Ok(branches) = branches_of_commit {
-            branches.contains(&repo.original_branch().to_string())
-        } else {
-            false
-        }
-    };
-    is_pr_commit_in_original_branch
+    let branches_of_commit = repo.get_branches_of_commit(&commit.sha);
+    if let Ok(branches) = branches_of_commit {
+        branches.contains(&repo.original_branch().to_string())
+    } else {
+        false
+    }
 }
 
 /// Get the indexes where the package should be published.
