@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.104](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.103...release-plz-v0.3.104) - 2024-10-25
+
+### Fixed
+
+- typo in CLI log level help ([#1796](https://github.com/MarcoIeni/release-plz/pull/1796))
+- release squashed release PRs from main branch ([#1801](https://github.com/MarcoIeni/release-plz/pull/1801))
+
 ## [0.3.103](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.102...release-plz-v0.3.103) - 2024-10-18
 
 ### Added
