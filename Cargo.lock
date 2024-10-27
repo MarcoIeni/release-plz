@@ -3182,9 +3182,9 @@ dependencies = [
 
 [[package]]
 name = "libm"
-version = "0.2.8"
+version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
+checksum = "3bda4c6077b0b08da2c48b172195795498381a7c8988c9e6212a6c55c5b9bd70"
 
 [[package]]
 name = "libnghttp2-sys"
@@ -3660,9 +3660,9 @@ dependencies = [
 
 [[package]]
 name = "parse-changelog"
-version = "0.6.9"
+version = "0.6.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "925e8279ba3a3932660e4f98b9249ccca29a1e38a24408183a8d4b58dfa298ed"
+checksum = "532e249be6db1bd99543ded61e79a22a4b76690795372e416fe946570e7da1e5"
 dependencies = [
  "indexmap",
  "memchr",
@@ -4064,7 +4064,7 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "release-plz"
-version = "0.3.104"
+version = "0.3.105"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -4104,7 +4104,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.30.5"
+version = "0.30.6"
 dependencies = [
  "anyhow",
  "base64 0.22.1",

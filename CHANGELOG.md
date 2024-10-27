@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.105](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.104...release-plz-v0.3.105) - 2024-10-27
+
+### Fixed
+
+- revert Cargo.lock changes after running `cargo package` ([#1803](https://github.com/MarcoIeni/release-plz/pull/1803))
+
 ## [0.3.104](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.103...release-plz-v0.3.104) - 2024-10-25
 
 ### Fixed
