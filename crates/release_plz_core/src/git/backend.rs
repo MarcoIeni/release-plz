@@ -69,18 +69,17 @@ pub struct Author {
     pub login: String,
 }
 
+// https://docs.gitlab.com/ee/api/merge_requests.html#get-single-merge-request-commits
 #[derive(Deserialize, Clone, Debug)]
 pub struct GitLabMrCommit {
-    pub author: Option<GitLabAuthor>,
-    pub sha: String,
+    pub id: String,
 }
 
 impl From<GitLabMrCommit> for PrCommit {
     fn from(value: GitLabMrCommit) -> Self {
-        let author = value.author.map(|a| Author { login: a.username });
         PrCommit {
-            author,
-            sha: value.sha,
+            author: None,
+            sha: value.id,
         }
     }
 }
