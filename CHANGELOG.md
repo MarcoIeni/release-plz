@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.106](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.105...release-plz-v0.3.106) - 2024-10-30
+
+### Fixed
+
+- Correctly deserialize GitLab MR commits ([#1808](https://github.com/MarcoIeni/release-plz/pull/1808))
+
+### Other
+
+- update Cargo.toml dependencies
+
 ## [0.3.105](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.104...release-plz-v0.3.105) - 2024-10-27
 
 ### Fixed

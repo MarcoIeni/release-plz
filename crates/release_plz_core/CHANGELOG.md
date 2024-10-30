@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.7](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.6...release_plz_core-v0.30.7) - 2024-10-30
+
+### Fixed
+
+- Correctly deserialize GitLab MR commits ([#1808](https://github.com/MarcoIeni/release-plz/pull/1808))
+
 ## [0.30.6](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.5...release_plz_core-v0.30.6) - 2024-10-27
 
 ### Fixed
