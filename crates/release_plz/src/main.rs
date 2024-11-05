@@ -108,7 +108,7 @@ fn get_release_pr_reqs(
                 let branch_prefix = release_pr_request.branch_prefix().to_owned();
 
                 let release_pr_request = release_pr_request
-                    .with_branch_prefix(Some(format!("{branch_prefix}-{}", package.name)));
+                    .with_branch_prefix(Some(format!("{branch_prefix}{}-", package.name)));
 
                 Ok(release_pr_request)
             })
