@@ -321,7 +321,7 @@ impl UpdateRequest {
     }
 
     pub fn single_package(&self) -> Option<&str> {
-        self.single_package.as_ref().map(|p| p.as_str())
+        self.single_package.as_deref()
     }
 
     pub fn with_single_package(self, package: String) -> Self {
