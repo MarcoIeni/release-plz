@@ -125,6 +125,10 @@ pub struct Workspace {
     /// - If `true`, update all the dependencies in the Cargo.lock file by running `cargo update`.
     /// - If `false` or [`Option::None`], only update the workspace packages by running `cargo update --workspace`.
     pub dependencies_update: Option<bool>,
+    /// # One PR per Package
+    /// - If `true`, create a separate PR for every package.
+    /// - If `false` or [`Option::None`], a single PR releasing all packages at once.
+    pub one_pr_per_package: Option<bool>,
     /// # PR Name
     /// Tera template of the pull request's name created by release-plz.
     pub pr_name: Option<String>,
@@ -456,6 +460,7 @@ mod tests {
                 changelog_config: Some("../git-cliff.toml".into()),
                 allow_dirty: Some(false),
                 repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
+                one_pr_per_package: None,
                 packages_defaults: PackageConfig {
                     semver_check: None,
                     changelog_update: None,
@@ -574,6 +579,7 @@ mod tests {
                 changelog_config: Some("../git-cliff.toml".into()),
                 allow_dirty: None,
                 repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
+                one_pr_per_package: None,
                 pr_name: None,
                 pr_body: None,
                 pr_draft: false,

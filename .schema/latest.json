@@ -50,6 +50,7 @@
         "git_release_type": null,
         "git_tag_enable": null,
         "git_tag_name": null,
+        "one_pr_per_package": null,
         "pr_body": null,
         "pr_branch_prefix": null,
         "pr_draft": false,
@@ -603,6 +604,14 @@
           "description": "Tera template of the git tag name created by release-plz.",
           "type": [
             "string",
+            "null"
+          ]
+        },
+        "one_pr_per_package": {
+          "title": "One PR per Package",
+          "description": "- If `true`, create a separate PR for every package. - If `false` or [`Option::None`], a single PR releasing all packages at once.",
+          "type": [
+            "boolean",
             "null"
           ]
         },
