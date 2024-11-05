@@ -47,7 +47,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let requests = get_release_pr_reqs(&config, update_request)?;
 
             let mut prs = vec![];
-            for request in requests.iter() {
+            for request in &requests {
                 let release_pr = release_plz_core::release_pr(request).await?;
 
                 if let Some(pr) = release_pr {
