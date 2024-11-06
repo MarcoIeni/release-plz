@@ -106,7 +106,7 @@ Changes:
         .trim()
     );
 
-    context.merge_release_pr().await;
+    context.merge_release_prs().await;
     // The commit contains the PR id number
     let expected_commit = format!("{expected_title} (#1)");
     assert_eq!(
@@ -140,7 +140,7 @@ async fn release_plz_detects_edited_readme_cargo_toml_field() {
     let context = TestContext::new().await;
 
     context.run_release_pr().success();
-    context.merge_release_pr().await;
+    context.merge_release_prs().await;
 
     let expected_tag = "v0.1.0";
 
@@ -152,7 +152,7 @@ async fn release_plz_detects_edited_readme_cargo_toml_field() {
     move_readme(&context, "move readme");
 
     context.run_release_pr().success();
-    context.merge_release_pr().await;
+    context.merge_release_prs().await;
 
     let expected_tag = "v0.1.1";
 
@@ -180,7 +180,7 @@ async fn release_plz_honors_features_always_increment_minor_flag() {
     context.write_release_plz_toml(config);
 
     context.run_release_pr().success();
-    context.merge_release_pr().await;
+    context.merge_release_prs().await;
 
     let expected_tag = "v0.1.0";
 
@@ -192,7 +192,7 @@ async fn release_plz_honors_features_always_increment_minor_flag() {
     move_readme(&context, "feat: move readme");
 
     context.run_release_pr().success();
-    context.merge_release_pr().await;
+    context.merge_release_prs().await;
 
     let expected_tag = "v0.2.0";
 

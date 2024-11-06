@@ -81,10 +81,14 @@ impl TestContext {
         context
     }
 
-    pub async fn merge_release_pr(&self) {
+    pub async fn merge_release_prs(&self) {
         let opened_prs = self.opened_release_prs().await;
         assert_eq!(opened_prs.len(), 1);
-        self.gitea.merge_pr_retrying(opened_prs[0].number).await;
+        self.merge_release_pr(&opened_prs[0]).await;
+    }
+
+    pub async fn merge_release_pr(&self, pr: &GitPr) {
+        self.gitea.merge_pr_retrying(pr.number).await;
         self.repo.git(&["pull"]).unwrap();
     }
 
