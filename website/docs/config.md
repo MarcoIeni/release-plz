@@ -108,7 +108,7 @@ the following sections:
   - [`publish_no_verify`](#the-publish_no_verify-field-package-section) — Don't verify package build.
   - [`publish_features`](#the-publish_features-field-package-section) — List of
     features to pass to `cargo publish`.
-  - [`publish_all_features`](#the-publish_all_features-field) — Pass `--all-features` to `cargo publish`.
+  - [`publish_all_features`](#the-publish_all_features-field-package-section) — Pass `--all-features` to `cargo publish`.
   - [`release`](#the-release-field-package-section) - Enable the processing of this package.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
   - [`version_group`](#the-version_group-field) — Group of packages with the same version.
@@ -713,6 +713,10 @@ Overrides the [`workspace.publish_no_verify`](#the-publish_no_verify-field) fiel
 #### The `publish_features` field (`package` section)
 
 Overrides the [`workspace.publish_features`](#the-publish_features-field) field.
+
+#### The `publish_all_features` field (`package` section)
+
+Overrides the [`workspace.publish_all_features`](#the-publish_all_features-field) field.
 
 #### The `release` field (`package` section)
 
