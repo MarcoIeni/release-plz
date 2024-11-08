@@ -57,6 +57,8 @@ If you want to run other checks before releasing (e.g. `cargo test`), you have t
        steps:
          - name: Checkout repository
            uses: actions/checkout@v4
+           with:
+             fetch-depth: 0
          - name: Install Rust toolchain
            uses: dtolnay/rust-toolchain@stable
    # highlight-next-line

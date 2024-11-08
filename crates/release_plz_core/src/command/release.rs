@@ -11,7 +11,7 @@ use crates_index::{GitIndex, SparseIndex};
 use git_cmd::Repo;
 use secrecy::{ExposeSecret, SecretString};
 use serde::Serialize;
-use tracing::{info, instrument, warn};
+use tracing::{debug, info, instrument, warn};
 use url::Url;
 
 use crate::{
@@ -180,6 +180,11 @@ impl ReleaseRequest {
         config.features.clone()
     }
 
+    pub fn all_features(&self, package: &str) -> bool {
+        let config = self.get_package_config(package);
+        config.all_features
+    }
+
     /// Find the token to use for the given `registry` ([`Option::None`] means crates.io).
     fn find_registry_token(&self, registry: Option<&str>) -> anyhow::Result<Option<SecretString>> {
         let is_registry_same_as_request = self.registry.as_deref() == registry;
@@ -243,6 +248,9 @@ pub struct ReleaseConfig {
     /// Features to be enabled when packaging the crate.
     /// If non-empty, pass the `--features` flag to `cargo publish`.
     features: Vec<String>,
+    /// Enable all features when packaging the crate.
+    /// If true, pass the `--all-features` flag to `cargo publish`.
+    all_features: bool,
     /// High-level toggle to process this package or ignore it
     release: bool,
     changelog_path: Option<Utf8PathBuf>,
@@ -282,6 +290,11 @@ impl ReleaseConfig {
         self
     }
 
+    pub fn with_all_features(mut self, all_features: bool) -> Self {
+        self.all_features = all_features;
+        self
+    }
+
     pub fn with_release(mut self, release: bool) -> Self {
         self.release = release;
         self
@@ -315,6 +328,7 @@ impl Default for ReleaseConfig {
             no_verify: false,
             allow_dirty: false,
             features: vec![],
+            all_features: false,
             release: true,
             changelog_path: None,
             changelog_update: true,
@@ -483,16 +497,46 @@ pub async fn release(input: &ReleaseRequest) -> anyhow::Result<Option<Release>> 
     )?;
     let repo = Repo::new(&input.metadata.workspace_root)?;
     let git_client = get_git_client(input)?;
-    if !should_release(input, &repo, &git_client).await? {
+    let should_release = should_release(input, &repo, &git_client).await?;
+    if should_release == ShouldRelease::No {
         return Ok(None);
     }
 
+    let mut checkout_done = false;
+    if let ShouldRelease::YesWithCommit(commit) = &should_release {
+        // The commit does not exist if the PR was squashed.
+        if let Ok(()) = repo.checkout(commit) {
+            debug!("releasing commit {commit}");
+            checkout_done = true;
+        }
+    }
+
+    // Don't return the error immediately because we want to go back to the previous commit if needed
+    let release = release_packages(input, &project, &repo, &git_client).await;
+
+    if let ShouldRelease::YesWithCommit(_) = should_release {
+        // Go back to the previous commit so that the user finds
+        // the repository in the same commit they launched release-plz.
+        if checkout_done {
+            repo.checkout("-")?;
+        }
+    }
+
+    release
+}
+
+async fn release_packages(
+    input: &ReleaseRequest,
+    project: &Project,
+    repo: &Repo,
+    git_client: &GitClient,
+) -> anyhow::Result<Option<Release>> {
     let packages = project.publishable_packages();
     let release_order = release_order(&packages).context("cannot determine release order")?;
     let mut package_releases: Vec<PackageRelease> = vec![];
     for package in release_order {
         if let Some(pkg_release) =
-            release_package_if_needed(input, &project, package, &repo, &git_client).await?
+            release_package_if_needed(input, project, package, repo, git_client).await?
         {
             package_releases.push(pkg_release);
         }
@@ -559,23 +603,62 @@ async fn release_package_if_needed(
     Ok(package_release)
 }
 
+#[derive(Debug, PartialEq, Eq)]
+enum ShouldRelease {
+    Yes,
+    YesWithCommit(String),
+    No,
+}
+
 async fn should_release(
     input: &ReleaseRequest,
     repo: &Repo,
     git_client: &GitClient,
-) -> anyhow::Result<bool> {
-    if input.release_always {
-        return Ok(true);
-    }
+) -> anyhow::Result<ShouldRelease> {
     let last_commit = repo.current_commit_hash()?;
     let prs = git_client.associated_prs(&last_commit).await?;
-    let is_current_commit_from_release_pr = prs
+    let associated_release_pr = prs
         .iter()
-        .any(|pr| pr.branch().starts_with(&input.branch_prefix));
-    if !is_current_commit_from_release_pr {
-        info!("skipping release: current commit is not from a release PR");
+        .find(|pr| pr.branch().starts_with(&input.branch_prefix));
+
+    match associated_release_pr {
+        Some(pr) => {
+            let pr_commits = git_client.pr_commits(pr.number).await?;
+            // Get the last commit of the PR, i.e. the last commit that was pushed before the PR was merged
+            match pr_commits.last() {
+                Some(commit) if commit.sha != last_commit => {
+                    if is_pr_commit_in_original_branch(repo, commit) {
+                        // I need to checkout the last commit of the PR if it exists
+                        Ok(ShouldRelease::YesWithCommit(commit.sha.clone()))
+                    } else {
+                        // The commit is not in the original branch, probably the PR was squashed
+                        Ok(ShouldRelease::Yes)
+                    }
+                }
+                _ => {
+                    // I'm already at the right commit
+                    Ok(ShouldRelease::Yes)
+                }
+            }
+        }
+        None => {
+            if input.release_always {
+                Ok(ShouldRelease::Yes)
+            } else {
+                info!("skipping release: current commit is not from a release PR");
+                Ok(ShouldRelease::No)
+            }
+        }
     }
-    Ok(is_current_commit_from_release_pr)
+}
+
+fn is_pr_commit_in_original_branch(repo: &Repo, commit: &crate::git::backend::PrCommit) -> bool {
+    let branches_of_commit = repo.get_branches_of_commit(&commit.sha);
+    if let Ok(branches) = branches_of_commit {
+        branches.contains(&repo.original_branch().to_string())
+    } else {
+        false
+    }
 }
 
 /// Get the indexes where the package should be published.
@@ -807,6 +890,9 @@ fn run_cargo_publish(
     if !features.is_empty() {
         args.push("--features");
         args.push(&features);
+    }
+    if input.all_features(&package.name) {
+        args.push("--all-features");
     }
     run_cargo(workspace_root, &args)
 }

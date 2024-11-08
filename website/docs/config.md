@@ -42,6 +42,7 @@ name = "package_b"
 semver_check = true # enable semver_check for `package_b`
 publish_no_verify = true # add `--no-verify` to `cargo publish` for `package_b`
 publish_features = ["a", "b"] # add `--features=a,b` to `cargo publish` for `package_b`
+publish_all_features = true # add `--all-features` to `cargo publish` for `package_b`
 
 [[package]]
 name = "package_c"
@@ -74,11 +75,13 @@ the following sections:
   - [`pr_branch_prefix`](#the-pr_branch_prefix-field) — Release PR branch prefix.
   - [`pr_draft`](#the-pr_draft-field) — Open the release Pull Request as a draft.
   - [`pr_name`](#the-pr_name-field) — Customize the name of the release Pull Request.
+  - [`pr_body`](#the-pr_body-field) — Customize the body of the release Pull Request.
   - [`pr_labels`](#the-pr_labels-field) — Add labels to the release Pull Request.
   - [`publish`](#the-publish-field) — Publish to cargo registry.
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
   - [`publish_features`](#the-publish_features-field) — List of features to pass to `cargo publish`.
+  - [`publish_all_features`](#the-publish_all_features-field) — Pass `--all-features` to `cargo publish`.
   - [`publish_timeout`](#the-publish_timeout-field) — `cargo publish` timeout.
   - [`release`](#the-release-field) - Enable the processing of the packages.
   - [`release_always`](#the-release_always-field) - Release always or when you merge the release PR only.
@@ -105,6 +108,8 @@ the following sections:
   - [`publish_no_verify`](#the-publish_no_verify-field-package-section) — Don't verify package build.
   - [`publish_features`](#the-publish_features-field-package-section) — List of
     features to pass to `cargo publish`.
+  - [`publish_all_features`](#the-publish_all_features-field-package-section)
+    — Pass `--all-features` to `cargo publish`.
   - [`release`](#the-release-field-package-section) - Enable the processing of this package.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
   - [`version_group`](#the-version_group-field) — Group of packages with the same version.
@@ -349,6 +354,51 @@ Here's an example of how you can customize the PR name template:
 pr_name = "release: {{ package }} {{ version }}"
 ```
 
+#### The `pr_body` field
+
+[Tera template](https://keats.github.io/tera/docs/#templates) of pull request's body that
+release-plz creates.
+
+By default it contains the summary of package updates, the changelog for each package, a section
+for breaking changes, and a footer with credits for release-plz. The text is trimmed to a length
+of 65536, because that's the limit imposed by Github.
+
+Here is an example of how you can customize the PR body template:
+
+```toml
+[workspace]
+pr_body = """
+{% for release in releases %}
+{% if release.title %}
+### {{release.title}}
+{% endif %}
+Package: {{release.package}} {{release.previous_version}} -> {{release.next_version}}
+{% if release.changelog %}
+Changes:
+{{release.changelog}}
+{% endif %}
+{% endfor -%}
+"""
+```
+
+Where:
+
+:::warning
+`{{ release.title }}` and `{{ release.changelog }}` may be unset if the changelog could
+not be parsed or it's not available. Please use `{% if <variable> %}` structures
+to check for their existence.
+:::
+
+- `{{ releases }}` - an array with the update information of each package.
+- `{{ release.title }}` - the changelog title containing a link to the release tag diff.
+  *(Optional)*.
+- `{{ release.package }}` - the name of the package being updated.
+- `{{ release.changelog }}` - the generated changelog. *(Optional)*.
+- `{{ release.previous_version }}` - the previous version of the package.
+- `{{ release.next_version }}` - the version of the package being released.
+- `{{ release.breaking_changes }}` - the summary of the breaking changes of the package being
+  released. *(Optional)*.
+
 #### The `pr_branch_prefix` field
 
 Prefix for the release PR branch. By default, it's set to: `release-plz-`
@@ -410,6 +460,13 @@ Pass a list of features to use for verification by `cargo publish`.
   `cargo publish`.
 - If not set or if it is empty, no list of features will be passed to `cargo publish`.
 
+#### The `publish_all_features` field
+
+Whether to pass the `--all-features` to `cargo publish` when verifying.
+
+- If `true`, `release-plz` adds the `--all-features` flag to `cargo publish`.
+- If `false`, `release-plz` doesn't add the `--all-features` flag to `cargo publish`.
+
 #### The `publish_timeout` field
 
 The timeout used when:
@@ -462,7 +519,7 @@ release = false
 
 #### The `release_always` field
 
-- If true, release-plz release will try to release your packages every time you run it
+- If true, `release-plz release` will try to release your packages every time you run it
   (e.g. on every commit in the main branch). *(Default)*.
 
   :::warning
@@ -657,6 +714,10 @@ Overrides the [`workspace.publish_no_verify`](#the-publish_no_verify-field) fiel
 #### The `publish_features` field (`package` section)
 
 Overrides the [`workspace.publish_features`](#the-publish_features-field) field.
+
+#### The `publish_all_features` field (`package` section)
+
+Overrides the [`workspace.publish_all_features`](#the-publish_all_features-field) field.
 
 #### The `release` field (`package` section)
 

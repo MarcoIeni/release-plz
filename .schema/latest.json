@@ -50,11 +50,13 @@
         "git_release_type": null,
         "git_tag_enable": null,
         "git_tag_name": null,
+        "pr_body": null,
         "pr_branch_prefix": null,
         "pr_draft": false,
         "pr_labels": [],
         "pr_name": null,
         "publish": null,
+        "publish_all_features": null,
         "publish_allow_dirty": null,
         "publish_features": null,
         "publish_no_verify": null,
@@ -370,6 +372,14 @@
             "null"
           ]
         },
+        "publish_all_features": {
+          "title": "Publish All Features",
+          "description": "If `true`, add the `--all-features` flag to the `cargo publish` command.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
         "publish_allow_dirty": {
           "title": "Publish Allow Dirty",
           "description": "If `true`, add the `--allow-dirty` flag to the `cargo publish` command.",
@@ -605,6 +615,14 @@
             "null"
           ]
         },
+        "pr_body": {
+          "title": "PR Body",
+          "description": "Tera template of the pull request's body created by release-plz.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "pr_branch_prefix": {
           "title": "PR Branch Prefix",
           "description": "Prefix for the PR Branch",
@@ -639,6 +657,14 @@
         "publish": {
           "title": "Publish",
           "description": "If `false`, don't run `cargo publish`.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "publish_all_features": {
+          "title": "Publish All Features",
+          "description": "If `true`, add the `--all-features` flag to the `cargo publish` command.",
           "type": [
             "boolean",
             "null"

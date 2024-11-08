@@ -128,6 +128,9 @@ pub struct Workspace {
     /// # PR Name
     /// Tera template of the pull request's name created by release-plz.
     pub pr_name: Option<String>,
+    /// # PR Body
+    /// Tera template of the pull request's body created by release-plz.
+    pub pr_body: Option<String>,
     /// # PR Draft
     /// If `true`, the created release PR will be marked as a draft.
     #[serde(default)]
@@ -232,6 +235,9 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
         if let Some(features) = value.publish_features {
             cfg = cfg.with_features(features);
         }
+        if let Some(all_features) = value.publish_all_features {
+            cfg = cfg.with_all_features(all_features);
+        }
         if let Some(allow_dirty) = value.publish_allow_dirty {
             cfg = cfg.with_allow_dirty(allow_dirty);
         }
@@ -316,6 +322,9 @@ pub struct PackageConfig {
     /// # Publish Features
     /// If `["a", "b", "c"]`, add the `--features=a,b,c` flag to the `cargo publish` command.
     pub publish_features: Option<Vec<String>>,
+    /// # Publish All Features
+    /// If `true`, add the `--all-features` flag to the `cargo publish` command.
+    pub publish_all_features: Option<bool>,
     /// # Semver Check
     /// Controls when to run cargo-semver-checks.
     /// If unspecified, run cargo-semver-checks if the package is a library.
@@ -369,6 +378,7 @@ impl PackageConfig {
             publish_allow_dirty: self.publish_allow_dirty.or(default.publish_allow_dirty),
             publish_no_verify: self.publish_no_verify.or(default.publish_no_verify),
             publish_features: self.publish_features.or(default.publish_features),
+            publish_all_features: self.publish_all_features.or(default.publish_all_features),
             git_tag_enable: self.git_tag_enable.or(default.git_tag_enable),
             git_tag_name: self.git_tag_name.or(default.git_tag_name),
             release: self.release.or(default.release),
@@ -462,6 +472,7 @@ mod tests {
                     ..Default::default()
                 },
                 pr_name: None,
+                pr_body: None,
                 pr_draft: false,
                 pr_labels: vec![],
                 pr_branch_prefix: Some("f-".to_string()),
@@ -571,6 +582,7 @@ mod tests {
                 allow_dirty: None,
                 repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
                 pr_name: None,
+                pr_body: None,
                 pr_draft: false,
                 pr_labels: vec!["label1".to_string()],
                 pr_branch_prefix: Some("f-".to_string()),

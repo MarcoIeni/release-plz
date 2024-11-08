@@ -37,6 +37,10 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             println!("{}", updates.0.summary());
         }
         Command::ReleasePr(cmd_args) => {
+            anyhow::ensure!(
+                cmd_args.update.git_token.is_some(),
+                "please provide the git token with the --git-token cli argument."
+            );
             let cargo_metadata = cmd_args.update.cargo_metadata()?;
             let config = cmd_args.update.config()?;
             let update_request = cmd_args.update.update_request(&config, cargo_metadata)?;
@@ -84,13 +88,15 @@ fn get_release_pr_req(
 ) -> anyhow::Result<ReleasePrRequest> {
     let pr_branch_prefix = config.workspace.pr_branch_prefix.clone();
     let pr_name = config.workspace.pr_name.clone();
+    let pr_body = config.workspace.pr_body.clone();
     let pr_labels = config.workspace.pr_labels.clone();
     let pr_draft = config.workspace.pr_draft;
     let request = ReleasePrRequest::new(update_request)
         .mark_as_draft(pr_draft)
         .with_labels(pr_labels)
         .with_branch_prefix(pr_branch_prefix)
-        .with_pr_name_template(pr_name);
+        .with_pr_name_template(pr_name)
+        .with_pr_body_template(pr_body);
     Ok(request)
 }
 

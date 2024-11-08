@@ -1,4 +1,5 @@
 use cargo_utils::LocalManifest;
+use chrono::Local;
 
 use crate::helpers::test_context::TestContext;
 
@@ -8,8 +9,20 @@ async fn release_plz_should_set_custom_pr_details() {
     let context = TestContext::new().await;
 
     let config = r#"
-    [workspace]
-    pr_name = "release: {{ package }} {{ version }}"
+[workspace]
+pr_name = "release: {{ package }} {{ version }}"
+pr_body = """
+{% for release in releases %}
+{% if release.title %}
+### {{release.title}}
+{% endif %}
+Package: {{release.package}} {{release.previous_version}} -> {{release.next_version}}
+{% if release.changelog %}
+Changes:
+{{release.changelog}}
+{% endif %}
+{% endfor -%}
+"""
     "#;
 
     context.write_release_plz_toml(config);
@@ -17,8 +30,30 @@ async fn release_plz_should_set_custom_pr_details() {
 
     let expected_title = format!("release: {} 0.1.0", context.gitea.repo);
     let opened_prs = context.opened_release_prs().await;
+    let now = Local::now();
     assert_eq!(opened_prs.len(), 1);
     assert_eq!(opened_prs[0].title, expected_title);
+    assert_eq!(
+        opened_prs[0].body.as_ref().unwrap().trim(),
+        format!(
+            r#"
+### [0.1.0](https://localhost/{}/{}/releases/tag/v0.1.0) - {}
+
+Package: {} 0.1.0 -> 0.1.0
+
+Changes:
+### Other
+
+- add config file
+- cargo init
+- Initial commit"#,
+            context.gitea.user.username(),
+            context.gitea.repo,
+            now.format("%Y-%m-%d"),
+            context.gitea.repo
+        )
+        .trim()
+    );
 
     context.merge_release_pr().await;
     // The commit contains the PR id number

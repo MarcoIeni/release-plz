@@ -6,6 +6,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.107](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.106...release-plz-v0.3.107) - 2024-11-08
+
+### Added
+
+- add `publish_all_features` config option to workspace/package config ([#1818](https://github.com/MarcoIeni/release-plz/pull/1818))
+
+## [0.3.106](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.105...release-plz-v0.3.106) - 2024-10-30
+
+### Fixed
+
+- Correctly deserialize GitLab MR commits ([#1808](https://github.com/MarcoIeni/release-plz/pull/1808))
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.3.105](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.104...release-plz-v0.3.105) - 2024-10-27
+
+### Fixed
+
+- revert Cargo.lock changes after running `cargo package` ([#1803](https://github.com/MarcoIeni/release-plz/pull/1803))
+
+## [0.3.104](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.103...release-plz-v0.3.104) - 2024-10-25
+
+### Fixed
+
+- typo in CLI log level help ([#1796](https://github.com/MarcoIeni/release-plz/pull/1796))
+- release squashed release PRs from main branch ([#1801](https://github.com/MarcoIeni/release-plz/pull/1801))
+
+## [0.3.103](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.102...release-plz-v0.3.103) - 2024-10-18
+
+### Added
+
+- add pr_body field ([#1778](https://github.com/MarcoIeni/release-plz/pull/1778))
+- add breaking_changes field to pr_body context ([#1787](https://github.com/MarcoIeni/release-plz/pull/1787))
+
+### Other
+
+- improve release-pr error message if token missing ([#1784](https://github.com/MarcoIeni/release-plz/pull/1784))
+
+## [0.3.102](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.101...release-plz-v0.3.102) - 2024-10-16
+
+### Fixed
+
+- *(action)* clone entire history for release ([#1777](https://github.com/MarcoIeni/release-plz/pull/1777))
+- fix release for squash commits ([#1775](https://github.com/MarcoIeni/release-plz/pull/1775))
+
+## [0.3.101](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.100...release-plz-v0.3.101) - 2024-10-16
+
+### Fixed
+
+- fix github token for the init command ([#1764](https://github.com/MarcoIeni/release-plz/pull/1764))
+
+## [0.3.100](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.99...release-plz-v0.3.100) - 2024-10-15
+
+### Fixed
+
+- checkout on release commit ([#1761](https://github.com/MarcoIeni/release-plz/pull/1761))
+
 ## [0.3.99](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.98...release-plz-v0.3.99) - 2024-10-13
 
 ### Added

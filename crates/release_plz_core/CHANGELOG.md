@@ -6,6 +6,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.8](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.7...release_plz_core-v0.30.8) - 2024-11-08
+
+### Added
+
+- add `publish_all_features` config option to workspace/package config ([#1818](https://github.com/MarcoIeni/release-plz/pull/1818))
+
+## [0.30.7](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.6...release_plz_core-v0.30.7) - 2024-10-30
+
+### Fixed
+
+- Correctly deserialize GitLab MR commits ([#1808](https://github.com/MarcoIeni/release-plz/pull/1808))
+
+## [0.30.6](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.5...release_plz_core-v0.30.6) - 2024-10-27
+
+### Fixed
+
+- revert Cargo.lock changes after running `cargo package` ([#1803](https://github.com/MarcoIeni/release-plz/pull/1803))
+
+## [0.30.5](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.4...release_plz_core-v0.30.5) - 2024-10-25
+
+### Fixed
+
+- release squashed release PRs from main branch ([#1801](https://github.com/MarcoIeni/release-plz/pull/1801))
+
+## [0.30.4](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.3...release_plz_core-v0.30.4) - 2024-10-18
+
+### Added
+
+- add breaking_changes field to pr_body context ([#1787](https://github.com/MarcoIeni/release-plz/pull/1787))
+- add pr_body field ([#1778](https://github.com/MarcoIeni/release-plz/pull/1778))
+
+## [0.30.3](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.2...release_plz_core-v0.30.3) - 2024-10-16
+
+### Fixed
+
+- fix release for squash commits ([#1775](https://github.com/MarcoIeni/release-plz/pull/1775))
+
+## [0.30.2](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.1...release_plz_core-v0.30.2) - 2024-10-15
+
+### Fixed
+
+- checkout on release commit ([#1761](https://github.com/MarcoIeni/release-plz/pull/1761))
+
 ## [0.30.1](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.0...release_plz_core-v0.30.1) - 2024-10-13
 
 ### Added

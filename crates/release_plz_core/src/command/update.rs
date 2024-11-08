@@ -7,6 +7,7 @@ use cargo_metadata::{semver::Version, Package};
 use cargo_utils::LocalManifest;
 use cargo_utils::{upgrade_requirement, CARGO_TOML};
 use git_cmd::Repo;
+use serde::{Deserialize, Serialize};
 use std::iter;
 use tracing::{info, warn};
 
@@ -45,6 +46,17 @@ impl PackagesUpdate {
     pub fn workspace_version(&self) -> Option<&Version> {
         self.workspace_version.as_ref()
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ReleaseInfo {
+    package: String,
+    title: Option<String>,
+    changelog: Option<String>,
+    previous_version: String,
+    next_version: String,
+    /// Summary of breaking changes of the release
+    breaking_changes: Option<String>,
 }
 
 impl PackagesUpdate {
@@ -109,7 +121,7 @@ impl PackagesUpdate {
             .collect()
     }
 
-    fn breaking_changes(&self) -> String {
+    pub fn breaking_changes(&self) -> String {
         self.updates
             .iter()
             .map(|(package, update)| match &update.semver_check {
@@ -120,6 +132,34 @@ impl PackagesUpdate {
                     )
                 }
                 SemverCheck::Compatible | SemverCheck::Skipped => "".to_string(),
+            })
+            .collect()
+    }
+
+    pub fn releases(&self) -> Vec<ReleaseInfo> {
+        self.updates
+            .iter()
+            .map(|(package, update)| {
+                let changelog = update.last_changes().unwrap_or(None);
+                let (changelog_title, changelog_notes) = changelog.map_or((None, None), |c| {
+                    (Some(c.title().to_string()), Some(c.notes().to_string()))
+                });
+
+                let breaking_changes = match &update.semver_check {
+                    SemverCheck::Incompatible(incompatibilities) => {
+                        Some(incompatibilities.to_string())
+                    }
+                    SemverCheck::Compatible | SemverCheck::Skipped => None,
+                };
+
+                ReleaseInfo {
+                    package: package.name.clone(),
+                    title: changelog_title,
+                    changelog: changelog_notes,
+                    next_version: update.version.to_string(),
+                    previous_version: package.version.to_string(),
+                    breaking_changes,
+                }
             })
             .collect()
     }
