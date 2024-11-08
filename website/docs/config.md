@@ -42,6 +42,7 @@ name = "package_b"
 semver_check = true # enable semver_check for `package_b`
 publish_no_verify = true # add `--no-verify` to `cargo publish` for `package_b`
 publish_features = ["a", "b"] # add `--features=a,b` to `cargo publish` for `package_b`
+publish_all_features = true # add `--all-features` to `cargo publish` for `package_b`
 
 [[package]]
 name = "package_c"
@@ -80,6 +81,7 @@ the following sections:
   - [`publish_allow_dirty`](#the-publish_allow_dirty-field) — Package dirty directories.
   - [`publish_no_verify`](#the-publish_no_verify-field) — Don't verify package build.
   - [`publish_features`](#the-publish_features-field) — List of features to pass to `cargo publish`.
+  - [`publish_all_features`](#the-publish_all_features-field) — Pass `--all-features` to `cargo publish`.
   - [`publish_timeout`](#the-publish_timeout-field) — `cargo publish` timeout.
   - [`release`](#the-release-field) - Enable the processing of the packages.
   - [`release_always`](#the-release_always-field) - Release always or when you merge the release PR only.
@@ -106,6 +108,8 @@ the following sections:
   - [`publish_no_verify`](#the-publish_no_verify-field-package-section) — Don't verify package build.
   - [`publish_features`](#the-publish_features-field-package-section) — List of
     features to pass to `cargo publish`.
+  - [`publish_all_features`](#the-publish_all_features-field-package-section)
+    — Pass `--all-features` to `cargo publish`.
   - [`release`](#the-release-field-package-section) - Enable the processing of this package.
   - [`semver_check`](#the-semver_check-field-package-section) — Run [cargo-semver-checks].
   - [`version_group`](#the-version_group-field) — Group of packages with the same version.
@@ -456,6 +460,13 @@ Pass a list of features to use for verification by `cargo publish`.
   `cargo publish`.
 - If not set or if it is empty, no list of features will be passed to `cargo publish`.
 
+#### The `publish_all_features` field
+
+Whether to pass the `--all-features` to `cargo publish` when verifying.
+
+- If `true`, `release-plz` adds the `--all-features` flag to `cargo publish`.
+- If `false`, `release-plz` doesn't add the `--all-features` flag to `cargo publish`.
+
 #### The `publish_timeout` field
 
 The timeout used when:
@@ -703,6 +714,10 @@ Overrides the [`workspace.publish_no_verify`](#the-publish_no_verify-field) fiel
 #### The `publish_features` field (`package` section)
 
 Overrides the [`workspace.publish_features`](#the-publish_features-field) field.
+
+#### The `publish_all_features` field (`package` section)
+
+Overrides the [`workspace.publish_all_features`](#the-publish_all_features-field) field.
 
 #### The `release` field (`package` section)
 

@@ -180,6 +180,11 @@ impl ReleaseRequest {
         config.features.clone()
     }
 
+    pub fn all_features(&self, package: &str) -> bool {
+        let config = self.get_package_config(package);
+        config.all_features
+    }
+
     /// Find the token to use for the given `registry` ([`Option::None`] means crates.io).
     fn find_registry_token(&self, registry: Option<&str>) -> anyhow::Result<Option<SecretString>> {
         let is_registry_same_as_request = self.registry.as_deref() == registry;
@@ -243,6 +248,9 @@ pub struct ReleaseConfig {
     /// Features to be enabled when packaging the crate.
     /// If non-empty, pass the `--features` flag to `cargo publish`.
     features: Vec<String>,
+    /// Enable all features when packaging the crate.
+    /// If true, pass the `--all-features` flag to `cargo publish`.
+    all_features: bool,
     /// High-level toggle to process this package or ignore it
     release: bool,
     changelog_path: Option<Utf8PathBuf>,
@@ -282,6 +290,11 @@ impl ReleaseConfig {
         self
     }
 
+    pub fn with_all_features(mut self, all_features: bool) -> Self {
+        self.all_features = all_features;
+        self
+    }
+
     pub fn with_release(mut self, release: bool) -> Self {
         self.release = release;
         self
@@ -315,6 +328,7 @@ impl Default for ReleaseConfig {
             no_verify: false,
             allow_dirty: false,
             features: vec![],
+            all_features: false,
             release: true,
             changelog_path: None,
             changelog_update: true,
@@ -876,6 +890,9 @@ fn run_cargo_publish(
     if !features.is_empty() {
         args.push("--features");
         args.push(&features);
+    }
+    if input.all_features(&package.name) {
+        args.push("--all-features");
     }
     run_cargo(workspace_root, &args)
 }

@@ -56,6 +56,7 @@
         "pr_labels": [],
         "pr_name": null,
         "publish": null,
+        "publish_all_features": null,
         "publish_allow_dirty": null,
         "publish_features": null,
         "publish_no_verify": null,
@@ -371,6 +372,14 @@
             "null"
           ]
         },
+        "publish_all_features": {
+          "title": "Publish All Features",
+          "description": "If `true`, add the `--all-features` flag to the `cargo publish` command.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
         "publish_allow_dirty": {
           "title": "Publish Allow Dirty",
           "description": "If `true`, add the `--allow-dirty` flag to the `cargo publish` command.",
@@ -648,6 +657,14 @@
         "publish": {
           "title": "Publish",
           "description": "If `false`, don't run `cargo publish`.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "publish_all_features": {
+          "title": "Publish All Features",
+          "description": "If `true`, add the `--all-features` flag to the `cargo publish` command.",
           "type": [
             "boolean",
             "null"
