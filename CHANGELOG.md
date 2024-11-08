@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.107](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.106...release-plz-v0.3.107) - 2024-11-08
+
+### Added
+
+- add `publish_all_features` config option to workspace/package config ([#1818](https://github.com/MarcoIeni/release-plz/pull/1818))
+
 ## [0.3.106](https://github.com/MarcoIeni/release-plz/compare/release-plz-v0.3.105...release-plz-v0.3.106) - 2024-10-30
 
 ### Fixed
