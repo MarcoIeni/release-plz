@@ -532,7 +532,7 @@ release = false
   In this case, every package is published as soon as you commit it.
   Also, if you merge your PRs with the
   [squash](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges#squash-and-merge-your-commits)
-  strategy, there could be a race condition if you merge another PR before `release-plz release`
+  strategy, there could be a race condition if you merge a PR before `release-plz release`
   finished on the main branch. For more info about this issue, see
   [what commit is released](./usage/release.md#what-commit-is-released).
   :::
