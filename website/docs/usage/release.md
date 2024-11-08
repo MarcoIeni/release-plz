@@ -155,7 +155,7 @@ the release PR is merged immediately after other PRs that aren't meant to be rel
 :::tip
 If you are using the squash and merge strategy,
 have a look at the [release_always](../config.md#the-release_always-field)
-of the configuration
+field of the configuration
 :::
 
 Here's an example of race condition that could happen if release-plz
