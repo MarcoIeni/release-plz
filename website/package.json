@@ -18,8 +18,8 @@
         "fetch-assets": "npx tsx ./src/fetch-assets"
     },
     "dependencies": {
-        "@docusaurus/core": "3.6.0",
-        "@docusaurus/preset-classic": "3.6.0",
+        "@docusaurus/core": "3.6.1",
+        "@docusaurus/preset-classic": "3.6.1",
         "@easyops-cn/docusaurus-search-local": "^0.45.0",
         "@mdx-js/react": "^3.0.1",
         "clsx": "^2.1.1",
@@ -29,7 +29,7 @@
         "react-dom": "^18.3.1"
     },
     "devDependencies": {
-        "@docusaurus/module-type-aliases": "3.6.0",
+        "@docusaurus/module-type-aliases": "3.6.1",
         "markdownlint-cli": "^0.42.0",
         "tsx": "4.19.2",
         "sharp": "0.33.5"
