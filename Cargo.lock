@@ -4214,7 +4214,6 @@ version = "0.3.107"
 dependencies = [
  "anyhow",
  "assert_cmd",
- "async-trait",
  "base64 0.22.1",
  "cargo_metadata",
  "cargo_utils",
