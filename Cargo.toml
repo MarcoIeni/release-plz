@@ -9,7 +9,6 @@ edition = "2021"
 [workspace.dependencies]
 anyhow = "1.0.86"
 assert_cmd = "2.0.16"
-async-trait = "0.1.81"
 base64 = "0.22.1"
 camino = "1.1.9"
 cargo_metadata = "0.18.1"
