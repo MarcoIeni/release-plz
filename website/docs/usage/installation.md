@@ -12,7 +12,7 @@ The latest release is on [GitHub](https://github.com/MarcoIeni/release-plz/relea
 
 * Install the rust toolchain in order to have cargo installed by following
   [this](https://www.rust-lang.org/tools/install) guide.
-* Run `cargo install --lockd release-plz`.
+* Run `cargo install --locked release-plz`.
 
 ## Docker
 
