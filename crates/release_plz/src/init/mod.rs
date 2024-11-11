@@ -11,7 +11,7 @@ const CARGO_REGISTRY_TOKEN: &str = "CARGO_REGISTRY_TOKEN";
 const GITHUB_TOKEN: &str = "GITHUB_TOKEN";
 const CUSTOM_GITHUB_TOKEN: &str = "RELEASE_PLZ_TOKEN";
 
-pub fn init(manifest_path: &Utf8Path) -> anyhow::Result<()> {
+pub fn init(manifest_path: &Utf8Path, toml_check: bool) -> anyhow::Result<()> {
     ensure_gh_is_installed()?;
 
     // Create a Project instance to check mandatory fields
@@ -24,8 +24,9 @@ pub fn init(manifest_path: &Utf8Path) -> anyhow::Result<()> {
         &NoopReleaseMetadataBuilder,
     )?;
 
-    // Check mandatory fields before proceeding
-    project.check_mandatory_fields()?;
+    if toml_check {
+        project.check_mandatory_fields()?;
+    }
 
     // get the repo url early to verify that the github repository is configured correctly
     let repo_url = gh::repo_url()?;

@@ -160,15 +160,16 @@ impl Project {
         self.root.join("Cargo.lock")
     }
 
+    // Check mandatory fields for crates.io
     pub fn check_mandatory_fields(&self) -> anyhow::Result<()> {
         let mut missing_fields = Vec::new();
 
         for package in &self.publishable_packages() {
             if package.license.is_none() {
-                missing_fields.push(format!("License for package `{}`", package.name));
+                missing_fields.push(format!("- `license` for package `{}`", package.name));
             }
             if package.description.is_none() {
-                missing_fields.push(format!("Description for package `{}`", package.name));
+                missing_fields.push(format!("- `description` for package `{}`", package.name));
             }
         }
 
@@ -176,7 +177,11 @@ impl Project {
             Ok(())
         } else {
             let error_message = format!(
-                "The following mandatory fields are missing in Cargo.toml:\n{}",
+                "The following mandatory fields for crates.io are missing in Cargo.toml:
+                {}
+                See https://doc.rust-lang.org/cargo/reference/manifest.html
+
+                ℹ️ To disable this check, set the `--no-toml-check` flag.",
                 missing_fields.join("\n")
             );
             anyhow::bail!(error_message);

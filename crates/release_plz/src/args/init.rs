@@ -11,6 +11,8 @@ pub struct Init {
     /// Both Cargo workspaces and single packages are supported.
     #[arg(long, value_parser = PathBufValueParser::new())]
     manifest_path: Option<PathBuf>,
+    /// If set, don't check if the toml files contain `description` and `license` fields, which are mandatory for crates.io.
+    pub no_toml_check: bool,
 }
 
 impl ManifestCommand for Init {
