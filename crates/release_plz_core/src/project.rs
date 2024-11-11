@@ -163,14 +163,12 @@ impl Project {
     pub fn check_mandatory_fields(&self) -> anyhow::Result<()> {
         let mut missing_fields = Vec::new();
 
-        for package in &self.packages {
-            if package.is_publishable() {
-                if package.license.is_none() {
-                    missing_fields.push(format!("License for package '{}'", package.name));
-                }
-                if package.description.is_none() {
-                    missing_fields.push(format!("Description for package '{}'", package.name));
-                }
+        for package in &self.publishable_packages() {
+            if package.license.is_none() {
+                missing_fields.push(format!("License for package `{}`", package.name));
+            }
+            if package.description.is_none() {
+                missing_fields.push(format!("Description for package `{}`", package.name));
             }
         }
 
@@ -181,7 +179,7 @@ impl Project {
                 "The following mandatory fields are missing in Cargo.toml:\n{}",
                 missing_fields.join("\n")
             );
-            Err(anyhow::anyhow!(error_message))
+            anyhow::bail!(error_message);
         }
     }
 }
