@@ -181,7 +181,7 @@ impl Project {
 {}
 See https://doc.rust-lang.org/cargo/reference/manifest.html
 
-ℹ️ To disable this check, set the `--no-toml-check` flag.",
+Note: to disable this check, set the `--no-toml-check` flag.",
                 missing_fields.join("\n")
             );
             anyhow::bail!(error_message);
