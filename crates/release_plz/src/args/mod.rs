@@ -1,12 +1,12 @@
 pub(crate) mod config_command;
 mod generate_completions;
+mod init;
 pub(crate) mod manifest_command;
 mod release;
 mod release_pr;
 pub(crate) mod repo_command;
 mod set_version;
 mod update;
-mod init;
 
 use std::path::Path;
 
