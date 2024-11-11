@@ -214,7 +214,10 @@ struct NoopReleaseMetadataBuilder;
 
 impl ReleaseMetadataBuilder for NoopReleaseMetadataBuilder {
     fn get_release_metadata(&self, _package_name: &str) -> Option<ReleaseMetadata> {
-        None
+        Some(ReleaseMetadata {
+            release_name_template: None,
+            tag_name_template: None,
+        })
     }
 }
 
