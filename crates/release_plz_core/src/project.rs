@@ -178,10 +178,10 @@ impl Project {
         } else {
             let error_message = format!(
                 "The following mandatory fields for crates.io are missing in Cargo.toml:
-                {}
-                See https://doc.rust-lang.org/cargo/reference/manifest.html
+{}
+See https://doc.rust-lang.org/cargo/reference/manifest.html
 
-                ℹ️ To disable this check, set the `--no-toml-check` flag.",
+ℹ️ To disable this check, set the `--no-toml-check` flag.",
                 missing_fields.join("\n")
             );
             anyhow::bail!(error_message);
