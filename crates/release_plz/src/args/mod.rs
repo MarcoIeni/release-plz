@@ -6,6 +6,7 @@ mod release_pr;
 pub(crate) mod repo_command;
 mod set_version;
 mod update;
+mod init;
 
 use std::path::Path;
 
@@ -13,6 +14,7 @@ use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
 use cargo_utils::CARGO_TOML;
 use clap::ValueEnum;
+use init::Init;
 use release_plz_core::fs_utils::current_directory;
 use set_version::SetVersion;
 use tracing::info;
@@ -57,7 +59,7 @@ pub enum Command {
     /// to .schema/latest.json
     GenerateSchema,
     /// Initialize release-plz for the current GitHub repository, by storing the necessary tokens in the GitHub repository secrets and generating the release-plz.yml GitHub Actions workflow file.
-    Init,
+    Init(Init),
     /// Edit the version of a package in Cargo.toml and changelog.
     /// Specify a version with the syntax `<package_name>@<version>`.
     /// E.g. `release-plz set-version rand@1.2.3`

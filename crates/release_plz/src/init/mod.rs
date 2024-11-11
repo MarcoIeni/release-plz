@@ -11,13 +11,13 @@ const CARGO_REGISTRY_TOKEN: &str = "CARGO_REGISTRY_TOKEN";
 const GITHUB_TOKEN: &str = "GITHUB_TOKEN";
 const CUSTOM_GITHUB_TOKEN: &str = "RELEASE_PLZ_TOKEN";
 
-pub fn init() -> anyhow::Result<()> {
+pub fn init(manifest_path: &Utf8Path) -> anyhow::Result<()> {
     ensure_gh_is_installed()?;
 
     // Create a Project instance to check mandatory fields
-    let metadata = cargo_utils::get_manifest_metadata("Cargo.toml".into())?;
+    let metadata = cargo_utils::get_manifest_metadata(manifest_path)?;
     let project = Project::new(
-        Utf8Path::new("Cargo.toml"),
+        manifest_path,
         None,
         &HashSet::new(),
         &metadata,
