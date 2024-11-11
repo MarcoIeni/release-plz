@@ -72,7 +72,7 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
         Command::GenerateCompletions(cmd_args) => cmd_args.print(),
         Command::CheckUpdates => update_checker::check_update().await?,
         Command::GenerateSchema => generate_schema::generate_schema_to_disk()?,
-        Command::Init => init::init()?,
+        Command::Init(cmd_args) => init::init(&cmd_args.manifest_path(), !cmd_args.no_toml_check)?,
         Command::SetVersion(cmd_args) => {
             let config = cmd_args.config()?;
             let request = cmd_args.set_version_request(&config)?;

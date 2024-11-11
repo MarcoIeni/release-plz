@@ -4,13 +4,30 @@ use std::io::Write;
 
 use anyhow::Context;
 use cargo_metadata::camino::{Utf8Path, Utf8PathBuf};
+use release_plz_core::{Project, ReleaseMetadata, ReleaseMetadataBuilder};
+use std::collections::HashSet;
 
 const CARGO_REGISTRY_TOKEN: &str = "CARGO_REGISTRY_TOKEN";
 const GITHUB_TOKEN: &str = "GITHUB_TOKEN";
 const CUSTOM_GITHUB_TOKEN: &str = "RELEASE_PLZ_TOKEN";
 
-pub fn init() -> anyhow::Result<()> {
+pub fn init(manifest_path: &Utf8Path, toml_check: bool) -> anyhow::Result<()> {
     ensure_gh_is_installed()?;
+
+    // Create a Project instance to check mandatory fields
+    let metadata = cargo_utils::get_manifest_metadata(manifest_path)?;
+    let project = Project::new(
+        manifest_path,
+        None,
+        &HashSet::new(),
+        &metadata,
+        &NoopReleaseMetadataBuilder,
+    )?;
+
+    if toml_check {
+        project.check_mandatory_fields()?;
+    }
+
     // get the repo url early to verify that the github repository is configured correctly
     let repo_url = gh::repo_url()?;
 
@@ -191,6 +208,18 @@ fn actions_secret_url(repo_url: &str) -> String {
 
 fn repo_settings_url(repo_url: &str) -> String {
     format!("{repo_url}/settings")
+}
+
+struct NoopReleaseMetadataBuilder;
+
+impl ReleaseMetadataBuilder for NoopReleaseMetadataBuilder {
+    fn get_release_metadata(&self, _package_name: &str) -> Option<ReleaseMetadata> {
+        // This needs to be `Some`, otherwise release-plz doesn't find any public packages.
+        Some(ReleaseMetadata {
+            release_name_template: None,
+            tag_name_template: None,
+        })
+    }
 }
 
 #[cfg(test)]

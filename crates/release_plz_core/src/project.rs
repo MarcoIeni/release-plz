@@ -159,6 +159,34 @@ impl Project {
     pub fn cargo_lock_path(&self) -> Utf8PathBuf {
         self.root.join("Cargo.lock")
     }
+
+    // Check mandatory fields for crates.io
+    pub fn check_mandatory_fields(&self) -> anyhow::Result<()> {
+        let mut missing_fields = Vec::new();
+
+        for package in &self.publishable_packages() {
+            if package.license.is_none() {
+                missing_fields.push(format!("- `license` for package `{}`", package.name));
+            }
+            if package.description.is_none() {
+                missing_fields.push(format!("- `description` for package `{}`", package.name));
+            }
+        }
+
+        if missing_fields.is_empty() {
+            Ok(())
+        } else {
+            let error_message = format!(
+                "The following mandatory fields for crates.io are missing in Cargo.toml:
+{}
+See https://doc.rust-lang.org/cargo/reference/manifest.html
+
+Note: to disable this check, set the `--no-toml-check` flag.",
+                missing_fields.join("\n")
+            );
+            anyhow::bail!(error_message);
+        }
+    }
 }
 
 fn check_overrides_typos(
