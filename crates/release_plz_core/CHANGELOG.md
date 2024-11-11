@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.9](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.8...release_plz_core-v0.30.9) - 2024-11-11
+
+### Added
+
+- add check for mandatory fields in all packages ([#1769](https://github.com/MarcoIeni/release-plz/pull/1769))
+
 ## [0.30.8](https://github.com/MarcoIeni/release-plz/compare/release_plz_core-v0.30.7...release_plz_core-v0.30.8) - 2024-11-08
 
 ### Added
