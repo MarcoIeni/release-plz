@@ -13,7 +13,7 @@ const CUSTOM_GITHUB_TOKEN: &str = "RELEASE_PLZ_TOKEN";
 
 pub fn init() -> anyhow::Result<()> {
     ensure_gh_is_installed()?;
-    
+
     // Create a Project instance to check mandatory fields
     let metadata = cargo_utils::get_manifest_metadata("Cargo.toml".into())?;
     let project = Project::new(
