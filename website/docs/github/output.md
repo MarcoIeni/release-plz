@@ -161,7 +161,7 @@ jobs:
         id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
         uses: MarcoIeni/release-plz-action@v0.5
         with:
-          command: release-pr
+          command: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

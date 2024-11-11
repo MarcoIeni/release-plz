@@ -6,6 +6,12 @@ with the `release-plz.toml` file.
 This configuration file is optional — release-plz is designed to work out of the box,
 with decent defaults.
 
+:::tip
+If you are just trying out release-plz, you can skip this section and come back to it later.
+If you are using release-plz to release important projects, make sure to check the
+[`release_always`](#the-release_always-field) field.
+:::
+
 Put your `release-plz.toml` (or `.release-plz.toml`) file in the same directory of your root `Cargo.toml`.
 
 ## Example
@@ -524,6 +530,11 @@ release = false
 
   :::warning
   In this case, every package is published as soon as you commit it.
+  Also, if you merge your PRs with the
+  [squash](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges#squash-and-merge-your-commits)
+  strategy, there could be a race condition if you merge a PR before `release-plz release`
+  finished on the main branch. For more info about this issue, see
+  [what commit is released](./usage/release.md#what-commit-is-released).
   :::
 
 - If false, `release-plz release` will try to release your packages only when you merge the
