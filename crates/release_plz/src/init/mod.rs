@@ -214,6 +214,7 @@ struct NoopReleaseMetadataBuilder;
 
 impl ReleaseMetadataBuilder for NoopReleaseMetadataBuilder {
     fn get_release_metadata(&self, _package_name: &str) -> Option<ReleaseMetadata> {
+        // This needs to be `Some`, otherwise release-plz doesn't find any public packages.
         Some(ReleaseMetadata {
             release_name_template: None,
             tag_name_template: None,
