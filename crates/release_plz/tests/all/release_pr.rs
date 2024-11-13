@@ -157,6 +157,7 @@ async fn release_plz_honors_features_always_increment_minor_flag() {
 }
 
 #[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
 async fn changelog_is_not_updated_if_version_already_exists_in_changelog() {
     let context = TestContext::new().await;
     context.run_release_pr().success();
