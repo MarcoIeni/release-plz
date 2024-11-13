@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- add check for mandatory fields in all packages ([#1769](https://github.com/MarcoIeni/release-plz/pull/1769))
+- *(init)*: add check for mandatory fields in Cargo.toml ([#1769](https://github.com/MarcoIeni/release-plz/pull/1769))
 
 ### Other
 
