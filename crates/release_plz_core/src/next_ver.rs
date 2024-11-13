@@ -1245,7 +1245,8 @@ fn get_changelog(
                     // If the next version is the same as the last version of the changelog,
                     // don't update the changelog (returning the old one).
                     // This can happen when no version of the package was published,
-                    // but the Changelog is already filled (e.g. because a release PR was merged).
+                    // but the changelog already contains the changes of the initial version
+                    // of the package (e.g. because a release PR was merged).
                     return Ok(old_changelog.to_string());
                 }
             }
