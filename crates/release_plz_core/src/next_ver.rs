@@ -1229,16 +1229,26 @@ fn get_changelog(
             };
             changelog_builder = changelog_builder.with_remote(remote);
         }
-        let is_unpublished_package = next_version == &package.version;
-        if !is_unpublished_package {
-            let last_version = old_changelog
-                .and_then(|old_changelog| {
-                    changelog_parser::last_version_from_str(old_changelog)
-                        .ok()
-                        .flatten()
-                })
-                .unwrap_or(package.version.to_string());
+        let is_package_published = next_version != &package.version;
+
+        let last_version = old_changelog.and_then(|old_changelog| {
+            changelog_parser::last_version_from_str(old_changelog)
+                .ok()
+                .flatten()
+        });
+        if is_package_published {
+            let last_version = last_version.unwrap_or(package.version.to_string());
             changelog_builder = changelog_builder.with_previous_version(last_version);
+        } else if let Some(last_version) = last_version {
+            if let Some(old_changelog) = old_changelog {
+                if last_version == next_version.to_string() {
+                    // If the next version is the same as the last version of the changelog,
+                    // don't update the changelog (returning the old one).
+                    // This can happen when no version of the package was published,
+                    // but the Changelog is already filled (e.g. because a release PR was merged).
+                    return Ok(old_changelog.to_string());
+                }
+            }
         }
     }
     let new_changelog = changelog_builder.build();
