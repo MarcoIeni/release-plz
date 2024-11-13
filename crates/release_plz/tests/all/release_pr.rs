@@ -156,6 +156,19 @@ async fn release_plz_honors_features_always_increment_minor_flag() {
     .assert_eq(&gitea_release.body);
 }
 
+#[tokio::test]
+async fn changelog_is_not_updated_if_version_already_exists_in_changelog() {
+    let context = TestContext::new().await;
+    context.run_release_pr().success();
+    context.merge_release_pr().await;
+    // do a random commit
+    move_readme(&context, "feat: move readme");
+    context.run_release_pr().success();
+
+    let opened_prs = context.opened_release_prs().await;
+    assert_eq!(opened_prs.len(), 0);
+}
+
 fn move_readme(context: &TestContext, message: &str) {
     let readme = "README.md";
     let new_readme = format!("NEW_{readme}");
