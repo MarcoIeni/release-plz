@@ -160,11 +160,18 @@ async fn release_plz_honors_features_always_increment_minor_flag() {
 async fn changelog_is_not_updated_if_version_already_exists_in_changelog() {
     let context = TestContext::new().await;
     context.run_release_pr().success();
+    // Merge release PR to update changelog of v0.1.0 of crate
     context.merge_release_pr().await;
+
     // do a random commit
     move_readme(&context, "feat: move readme");
+
+    // Run again release-plz to create a new release PR.
+    // Since we haven't published the crate, release-plz doesn't change the version.
+    // Release-plz releazes that the version already exists in the changelog and doesn't update it.
     context.run_release_pr().success();
 
+    // Since the changelog is not updated, the PR is not created because there are no changes to do.
     let opened_prs = context.opened_release_prs().await;
     assert_eq!(opened_prs.len(), 0);
 }
