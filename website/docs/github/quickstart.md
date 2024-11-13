@@ -162,6 +162,7 @@ jobs:
   # and you want to update `Cargo.toml` versions and changelogs by yourself,
   # remove this job.
   release-plz-pr:
+    needs: [ release-plz-release ]
     name: Release-plz PR
     runs-on: ubuntu-latest
     # The concurrency block is explained below (after the code block).
