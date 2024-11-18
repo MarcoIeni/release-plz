@@ -7,7 +7,7 @@ pub fn init(verbose: bool) {
         let env_filter = tracing_subscriber::EnvFilter::try_from_default_env()
             .unwrap_or_else(|_| EnvFilter::new("info"));
         let mut event_fmt = tracing_subscriber::fmt::format().compact();
-        
+
         if verbose {
             event_fmt = event_fmt.with_target(true).with_source_location(true);
         }
