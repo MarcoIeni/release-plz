@@ -312,7 +312,7 @@ impl GitClient {
                 if let Some(status) = e.status() {
                     if status == reqwest::StatusCode::FORBIDDEN {
                         return anyhow::anyhow!(e).context(
-                            "Make sure your token has sufficient permissions. Learn more at https://release-plz.ieni.dev/docs/usage/release or https://release-plz.ieni.dev/docs/github/token",
+                            "Make sure your token has sufficient permissions. Learn more at https://release-plz.dev/docs/usage/release or https://release-plz.dev/docs/github/token",
                         );
                     }
                 }
@@ -343,7 +343,7 @@ impl GitClient {
                 if let Some(status) = e.status() {
                     if status == reqwest::StatusCode::FORBIDDEN {
                         return anyhow::anyhow!(e).context(
-                            "Make sure your token has sufficient permissions. Learn more at https://release-plz.ieni.dev/docs/usage/release#gitlab",
+                            "Make sure your token has sufficient permissions. Learn more at https://release-plz.dev/docs/usage/release#gitlab",
                         );
                     }
                 }

@@ -7,8 +7,8 @@ If you find Release-plz valuable to you, consider supporting it.
 Here’s how you can help:
 
 - **Spread the Word**: Share your experience with Release-plz on
-  [Twitter](https://twitter.com/intent/tweet?text=Release-plz%20is%20awesome%21%20Check%20it%20out%20at%20release-plz.ieni.dev),
-  [LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=release-plz.ieni.dev),
+  [Twitter](https://twitter.com/intent/tweet?text=Release-plz%20is%20awesome%21%20Check%20it%20out%20at%20release-plz.dev),
+  [LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=release-plz.dev),
   and other platforms using the `#ReleasePlz` hashtag. 📣
 - **Star**: Give Release-plz a star on [GitHub](https://github.com/MarcoIeni/release-plz). ⭐
 - **Become a Sponsor**: Your financial support helps to dedicate more time to improve
