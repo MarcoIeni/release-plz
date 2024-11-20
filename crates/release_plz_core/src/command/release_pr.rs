@@ -62,6 +62,10 @@ impl ReleasePrRequest {
         self
     }
 
+    pub fn branch_prefix(&self) -> &str {
+        self.branch_prefix.as_str()
+    }
+
     pub fn with_branch_prefix(mut self, pr_branch_prefix: Option<String>) -> Self {
         if let Some(branch_prefix) = pr_branch_prefix {
             self.branch_prefix = branch_prefix;

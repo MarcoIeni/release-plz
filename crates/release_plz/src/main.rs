@@ -44,13 +44,18 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
             let cargo_metadata = cmd_args.update.cargo_metadata()?;
             let config = cmd_args.update.config()?;
             let update_request = cmd_args.update.update_request(&config, cargo_metadata)?;
-            let request = get_release_pr_req(&config, update_request)?;
-            let release_pr = release_plz_core::release_pr(&request).await?;
+            let requests = get_release_pr_reqs(&config, update_request)?;
+
+            let mut prs = vec![];
+            for request in &requests {
+                let release_pr = release_plz_core::release_pr(request).await?;
+
+                if let Some(pr) = release_pr {
+                    prs.push(pr);
+                }
+            }
+
             if let Some(output_type) = cmd_args.output {
-                let prs = match release_pr {
-                    Some(pr) => vec![pr],
-                    None => vec![],
-                };
                 let prs_json = serde_json::json!({
                     "prs": prs
                 });
@@ -82,7 +87,39 @@ async fn run(args: CliArgs) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn get_release_pr_req(
+fn get_release_pr_reqs(
+    config: &Config,
+    update_request: UpdateRequest,
+) -> anyhow::Result<Vec<ReleasePrRequest>> {
+    if config.workspace.one_pr_per_package.unwrap_or(false)
+        && update_request.single_package().is_none()
+    {
+        let packages = update_request.cargo_metadata().workspace_packages();
+
+        packages
+            .into_iter()
+            .map(|package| {
+                let update_request = update_request
+                    .clone()
+                    .with_single_package(package.name.clone());
+
+                let release_pr_request = get_single_release_pr_req(config, update_request)?;
+
+                let branch_prefix = release_pr_request.branch_prefix().to_owned();
+
+                let release_pr_request = release_pr_request
+                    .with_branch_prefix(Some(format!("{branch_prefix}{}-", package.name)));
+
+                Ok(release_pr_request)
+            })
+            .collect()
+    } else {
+        let req = get_single_release_pr_req(config, update_request)?;
+        Ok(vec![req])
+    }
+}
+
+fn get_single_release_pr_req(
     config: &Config,
     update_request: UpdateRequest,
 ) -> anyhow::Result<ReleasePrRequest> {

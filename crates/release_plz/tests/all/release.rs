@@ -2,6 +2,52 @@ use release_plz_core::fs_utils::Utf8TempDir;
 
 use crate::helpers::test_context::TestContext;
 
+#[derive(serde::Deserialize)]
+struct RunReleaseOutput {
+    releases: Vec<Release>,
+}
+
+#[derive(serde::Deserialize)]
+struct Release {
+    package_name: String,
+}
+
+#[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_plz_separate_pr_per_package_is_updated_after_a_release() {
+    let context = TestContext::new_workspace(&["crates/one", "crates/two"]).await;
+
+    let config = r#"
+[workspace]
+one_pr_per_package = true
+    "#;
+
+    context.write_release_plz_toml(config);
+    context.run_release_pr().success();
+
+    let pr = context
+        .opened_release_prs()
+        .await
+        .iter()
+        .find(|pr| pr.title == "chore(one): release v0.1.0")
+        .cloned()
+        .expect("a PR is opened for crate 'one'");
+
+    context.merge_release_pr(&pr).await;
+
+    let outcome = context.run_release();
+    let releases_output: RunReleaseOutput = serde_json::from_slice(&outcome.get_output().stdout)
+        .expect("outcome is valid description of releases");
+
+    assert_eq!(
+        1,
+        releases_output.releases.len(),
+        "only a single release is created"
+    );
+
+    assert_eq!(releases_output.releases[0].package_name, "one");
+}
+
 #[tokio::test]
 #[cfg_attr(not(feature = "docker-tests"), ignore)]
 async fn release_info_contains_prs_in_changelog() {
@@ -154,7 +200,7 @@ async fn release_plz_releases_after_release_pr_merged() {
     context.write_release_plz_toml(config);
 
     context.run_release_pr().success();
-    context.merge_release_pr().await;
+    context.merge_release_prs().await;
 
     let crate_name = &context.gitea.repo;
 

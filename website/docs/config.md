@@ -78,6 +78,7 @@ the following sections:
   - [`git_release_latest`](#the-git_release_latest-field) — Publish git release as latest.
   - [`git_tag_enable`](#the-git_tag_enable-field) — Enable git tag.
   - [`git_tag_name`](#the-git_tag_name-field) — Customize git tag pattern.
+  - [`one_pr_per_package`](#the-one_pr_per_package-field) — Create a separate PR per package.
   - [`pr_branch_prefix`](#the-pr_branch_prefix-field) — Release PR branch prefix.
   - [`pr_draft`](#the-pr_draft-field) — Open the release Pull Request as a draft.
   - [`pr_name`](#the-pr_name-field) — Customize the name of the release Pull Request.
@@ -326,6 +327,11 @@ Where:
 
 - `{{ package }}` is the name of the package.
 - `{{ version }}` is the new version of the package.
+
+#### The `one_pr_per_package` field
+
+- If `true`, release-plz creates a separate branch and PR for every package version.
+- If `false`, release-plz creates s single branch and PR combining all package releases. *(Default)*.
 
 #### The `pr_name` field
 

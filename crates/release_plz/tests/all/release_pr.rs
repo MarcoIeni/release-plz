@@ -5,6 +5,57 @@ use crate::helpers::test_context::TestContext;
 
 #[tokio::test]
 #[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_plz_creates_separate_pr_per_package() {
+    let context = TestContext::new_workspace(&["crates/one", "crates/two"]).await;
+
+    let config = r#"
+[workspace]
+one_pr_per_package = true
+    "#;
+
+    context.write_release_plz_toml(config);
+    context.run_release_pr().success();
+
+    let opened_prs = context.opened_release_prs().await;
+    assert_eq!(2, opened_prs.len());
+
+    let titles = opened_prs
+        .iter()
+        .map(|pr| pr.title.as_str())
+        .collect::<Vec<_>>();
+
+    assert!(titles.contains(&"chore(one): release v0.1.0"));
+    assert!(titles.contains(&"chore(two): release v0.1.0"));
+}
+
+#[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_plz_separate_pr_per_package_uses_pr_title_option() {
+    let context = TestContext::new_workspace(&["crates/one", "crates/two"]).await;
+
+    let config = r#"
+[workspace]
+one_pr_per_package = true
+pr_name = "release: {{ package }} {{ version }}"
+    "#;
+
+    context.write_release_plz_toml(config);
+    context.run_release_pr().success();
+
+    let opened_prs = context.opened_release_prs().await;
+    assert_eq!(2, opened_prs.len());
+
+    let titles = opened_prs
+        .iter()
+        .map(|pr| pr.title.as_str())
+        .collect::<Vec<_>>();
+
+    assert!(titles.contains(&"release: one 0.1.0"));
+    assert!(titles.contains(&"release: two 0.1.0"));
+}
+
+#[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
 async fn release_plz_should_set_custom_pr_details() {
     let context = TestContext::new().await;
 
@@ -55,7 +106,7 @@ Changes:
         .trim()
     );
 
-    context.merge_release_pr().await;
+    context.merge_release_prs().await;
     // The commit contains the PR id number
     let expected_commit = format!("{expected_title} (#1)");
     assert_eq!(
@@ -89,7 +140,7 @@ async fn release_plz_detects_edited_readme_cargo_toml_field() {
     let context = TestContext::new().await;
 
     context.run_release_pr().success();
-    context.merge_release_pr().await;
+    context.merge_release_prs().await;
 
     let expected_tag = "v0.1.0";
 
@@ -101,7 +152,7 @@ async fn release_plz_detects_edited_readme_cargo_toml_field() {
     move_readme(&context, "move readme");
 
     context.run_release_pr().success();
-    context.merge_release_pr().await;
+    context.merge_release_prs().await;
 
     let expected_tag = "v0.1.1";
 
@@ -129,7 +180,7 @@ async fn release_plz_honors_features_always_increment_minor_flag() {
     context.write_release_plz_toml(config);
 
     context.run_release_pr().success();
-    context.merge_release_pr().await;
+    context.merge_release_prs().await;
 
     let expected_tag = "v0.1.0";
 
@@ -141,7 +192,7 @@ async fn release_plz_honors_features_always_increment_minor_flag() {
     move_readme(&context, "feat: move readme");
 
     context.run_release_pr().success();
-    context.merge_release_pr().await;
+    context.merge_release_prs().await;
 
     let expected_tag = "v0.2.0";
 
