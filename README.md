@@ -1,4 +1,4 @@
-[![release-plz-logo](website/static/img/release-plz-social-card.png)](https://release-plz.ieni.dev)
+[![release-plz-logo](website/static/img/release-plz-social-card.png)](https://release-plz.dev)
 
 [![Crates.io](https://img.shields.io/crates/v/release-plz.svg)](https://crates.io/crates/release-plz)
 [![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
@@ -32,14 +32,14 @@ release-plz:
 
 ## 📚 Docs
 
-Learn how to use release-plz in the [docs](https://release-plz.ieni.dev/).
+Learn how to use release-plz in the [docs](https://release-plz.dev/).
 
 ## 🤖 Running release-plz
 
 There are two ways to run release-plz:
 
-- [GitHub Action](https://release-plz.ieni.dev/docs/github): Run Release-plz from CI. The action both updates and releases your packages.
-- [CLI](https://release-plz.ieni.dev/docs/usage): Run release-plz from your terminal or other CI systems (Gitea supported).
+- [GitHub Action](https://release-plz.dev/docs/github): Run Release-plz from CI. The action both updates and releases your packages.
+- [CLI](https://release-plz.dev/docs/usage): Run release-plz from your terminal or other CI systems (Gitea supported).
 
 ## 💖 Users
 

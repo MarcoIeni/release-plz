@@ -12,7 +12,7 @@ use url::Url;
 use crate::changelog_config::ChangelogCfg;
 
 /// You can find the documentation of the configuration file
-/// [here](https://release-plz.ieni.dev/docs/config).
+/// [here](https://release-plz.dev/docs/config).
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
