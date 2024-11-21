@@ -146,7 +146,7 @@ such as `git tag`.
 
 Generate a GitHub token with a GitHub App.
 This is the approach used by the
-[release-plz](https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/release-plz.yml)
+[release-plz](https://github.com/release-plz/release-plz/blob/main/.github/workflows/release-plz.yml)
 repo itself. With this approach, the GitHub App will be the author of the release pull request,
 e.g. `release-plz[bot]`.
 

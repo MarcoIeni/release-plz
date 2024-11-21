@@ -6,7 +6,7 @@ Make sure you have `git` installed when running `release-plz`.
 
 ## Download prebuilt binary
 
-The latest release is on [GitHub](https://github.com/MarcoIeni/release-plz/releases/latest).
+The latest release is on [GitHub](https://github.com/release-plz/release-plz/releases/latest).
 
 ## Cargo
 

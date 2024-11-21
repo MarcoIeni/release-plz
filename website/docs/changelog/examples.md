@@ -9,7 +9,7 @@ In the following there are some examples of changelog configurations that you ca
 use to take inspiration from. ✨
 
 If you want to contribute your cool template,
-[open a PR](https://github.com/MarcoIeni/release-plz/blob/main/CONTRIBUTING.md)! 🙏
+[open a PR](https://github.com/release-plz/release-plz/blob/main/CONTRIBUTING.md)! 🙏
 
 :::info
 All examples based on the following [Git

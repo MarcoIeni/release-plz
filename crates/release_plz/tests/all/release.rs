@@ -16,11 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.6.5](https://github.com/MarcoIeni/release-plz/compare/git_cmd-v0.6.4...git_cmd-v0.6.5) - 2024-05-05
+## [0.6.5](https://github.com/release-plz/release-plz/compare/git_cmd-v0.6.4...git_cmd-v0.6.5) - 2024-05-05
 
 ### Other
-- add clippy lints ([#1439](https://github.com/MarcoIeni/release-plz/pull/1439))
-- improve uncommitted changes error message ([#1434](https://github.com/MarcoIeni/release-plz/pull/1434))
+- add clippy lints ([#1439](https://github.com/release-plz/release-plz/pull/1439))
+- improve uncommitted changes error message ([#1434](https://github.com/release-plz/release-plz/pull/1434))
 "#;
     context.write_changelog(changelog);
 
@@ -35,11 +35,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
                 "version": "0.1.0",
                 "prs": [
                     {
-                        "html_url":"https://github.com/MarcoIeni/release-plz/pull/1439",
+                        "html_url":"https://github.com/release-plz/release-plz/pull/1439",
                         "number":1439
                     },
                     {
-                        "html_url":"https://github.com/MarcoIeni/release-plz/pull/1434",
+                        "html_url":"https://github.com/release-plz/release-plz/pull/1434",
                         "number":1434
                     }
                 ],
@@ -169,7 +169,7 @@ async fn release_plz_releases_after_release_pr_merged() {
         Welcome to this new release! Changes:
 
         ### Other
-        
+
         - add config file
         - cargo init
         - Initial commit"#]]

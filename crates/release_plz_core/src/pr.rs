@@ -146,7 +146,7 @@ fn pr_body_default(
     };
 
     let footer =
-        "---\nThis PR was generated with [release-plz](https://github.com/MarcoIeni/release-plz/).";
+        "---\nThis PR was generated with [release-plz](https://github.com/release-plz/release-plz/).";
     let mut formatted = format!("{header}{summary}\n{changes}\n{footer}");
 
     // Make sure we don't go over the Github API's limit for PR body size

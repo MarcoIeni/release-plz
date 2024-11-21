@@ -396,7 +396,7 @@ async fn github_force_push(
     //   directly if we want a "Verified" commit.
     // - If we revert the last commit of the release PR branch, GitHub will close the release PR
     //   because the branch is the same as the default branch. So we can't revert the latest release-plz commit and push the new one.
-    // To learn more, see https://github.com/MarcoIeni/release-plz/issues/1487
+    // To learn more, see https://github.com/release-plz/release-plz/issues/1487
     github_create_release_branch(client, repository, &tmp_release_branch.name, &pr.title).await?;
 
     repository.fetch(&tmp_release_branch.name)?;

@@ -2,7 +2,7 @@
 
 ## Release-plz GitHub action started misbehaving
 
-> Did your release-plz GitHub action started misbehaving after a [Release-plz](https://github.com/MarcoIeni/release-plz/releases)
+> Did your release-plz GitHub action started misbehaving after a [Release-plz](https://github.com/release-plz/release-plz/releases)
 or [GitHub action](https://github.com/release-plz/action/releases) release?
 
 If yes, try to:
@@ -17,13 +17,13 @@ If yes, try to:
   E.g. `version: "0.3.70"`.
   The default is the latest version of release-plz.
   Determine the right version to pin by looking at the previous release-plz
-  [releases](https://github.com/MarcoIeni/release-plz/releases)
+  [releases](https://github.com/release-plz/release-plz/releases)
 
-Please open an [issue](https://github.com/MarcoIeni/release-plz/issues), too.
+Please open an [issue](https://github.com/release-plz/release-plz/issues), too.
 
 ## `release-plz release` hangs
 
-Something similar happened in [#1015](https://github.com/MarcoIeni/release-plz/issues/1015).
+Something similar happened in [#1015](https://github.com/release-plz/release-plz/issues/1015).
 Try to set a low [`publish_timeout`](./config.md#the-publish_timeout-field)
 in your `release-plz.toml` file to check if release-plz
 is having issues to:
