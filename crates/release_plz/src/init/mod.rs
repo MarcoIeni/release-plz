@@ -160,7 +160,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5
         with:
           command: release
         env:
@@ -181,7 +181,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5
         with:
           command: release-pr
         env:
@@ -252,7 +252,7 @@ mod tests {
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
-                    uses: MarcoIeni/release-plz-action@v0.5
+                    uses: release-plz/action@v0.5
                     with:
                       command: release
                     env:
@@ -273,7 +273,7 @@ mod tests {
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
-                    uses: MarcoIeni/release-plz-action@v0.5
+                    uses: release-plz/action@v0.5
                     with:
                       command: release-pr
                     env:
@@ -310,7 +310,7 @@ mod tests {
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
-                    uses: MarcoIeni/release-plz-action@v0.5
+                    uses: release-plz/action@v0.5
                     with:
                       command: release
                     env:
@@ -332,7 +332,7 @@ mod tests {
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
-                    uses: MarcoIeni/release-plz-action@v0.5
+                    uses: release-plz/action@v0.5
                     with:
                       command: release-pr
                     env:
