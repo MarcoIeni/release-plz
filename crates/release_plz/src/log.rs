@@ -8,7 +8,7 @@ pub fn init(verbose: bool) {
         let env_filter = tracing_subscriber::EnvFilter::try_from_default_env()
             .unwrap_or_else(|_| EnvFilter::new("info"));
         let event_fmt = tracing_subscriber::fmt::format()
-            .compact()
+            .pretty()
             .with_source_location(env_verbose)
             .with_target(env_verbose);
         let layer_filter = filter::filter_fn(move |metadata| {
