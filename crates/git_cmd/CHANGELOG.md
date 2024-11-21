@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.16](https://github.com/release-plz/release-plz/compare/git_cmd-v0.6.15...git_cmd-v0.6.16) - 2024-11-21
+
+### Other
+
+- move `MarcoIeni/release-plz` to `release-plz/release-plz` ([#1850](https://github.com/release-plz/release-plz/pull/1850))
+
 ## [0.6.15](https://github.com/release-plz/release-plz/compare/git_cmd-v0.6.14...git_cmd-v0.6.15) - 2024-10-25
 
 ### Fixed
