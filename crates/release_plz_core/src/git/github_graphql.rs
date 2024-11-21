@@ -128,7 +128,7 @@ impl GithubCommit {
         let mut additions = vec![];
         for path in &self.additions {
             let realpath = self.repo_dir.join(path);
-            // In https://github.com/MarcoIeni/release-plz/issues/1360#issuecomment-2095871195
+            // In https://github.com/release-plz/release-plz/issues/1360#issuecomment-2095871195
             // there was a case where an addition was a directory.
             // In that case, the directory was a git submodule.
             if realpath.is_dir() {
