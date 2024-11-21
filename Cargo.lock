@@ -1412,9 +1412,9 @@ checksum = "07e28edb80900c19c28f1072f2e8aeca7fa06b23cd4169cefe1af5aa3260783f"
 
 [[package]]
 name = "git-cliff-core"
-version = "2.6.1"
+version = "2.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d39cee786ceeaf20564d25899b831edaed11d2af4d4091d14c1366818ebfbec"
+checksum = "9060293a51758e517a3850d99af29309a5cade52e4c052bbaa2d755a9d26c1ab"
 dependencies = [
  "bincode",
  "cacache",
@@ -1434,7 +1434,8 @@ dependencies = [
  "serde_json",
  "serde_regex",
  "tera",
- "thiserror 1.0.69",
+ "thiserror 2.0.3",
+ "time",
  "toml",
  "url",
  "urlencoding",
