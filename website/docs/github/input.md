@@ -26,7 +26,7 @@ For example:
 steps:
   - ...
   - name: Run release-plz
-    uses: MarcoIeni/release-plz-action@v0.5
+    uses: release-plz/action@v0.5
 # highlight-start
     # Input variables
     with:
