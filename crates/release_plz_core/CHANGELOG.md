@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.10](https://github.com/release-plz/release-plz/compare/release_plz_core-v0.30.9...release_plz_core-v0.30.10) - 2024-11-21
+
+### Fixed
+
+- don't update changelog if version is already present ([#1834](https://github.com/release-plz/release-plz/pull/1834))
+
+### Other
+
+- move `MarcoIeni/release-plz` to `release-plz/release-plz` ([#1850](https://github.com/release-plz/release-plz/pull/1850))
+- migrate website to release-plz.dev ([#1842](https://github.com/release-plz/release-plz/pull/1842))
+
 ## [0.30.9](https://github.com/release-plz/release-plz/compare/release_plz_core-v0.30.8...release_plz_core-v0.30.9) - 2024-11-11
 
 ### Added
