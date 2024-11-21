@@ -45,7 +45,8 @@ There are two ways to run release-plz:
 
 Here you can find the public repositories using the release-plz GitHub action in CI:
 
-- [GitHub search](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action%40)
+- GitHub search [1](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action%40)
+  and [2](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+release-plz%2Faction%40)
 - [Dependency graph](https://github.com/release-plz/action/network/dependents)
 
 ## 📽️ RustLab 23 talk
