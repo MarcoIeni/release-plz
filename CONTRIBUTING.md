@@ -8,7 +8,7 @@ wish to make by creating a new issue before making the change.
 ## Reporting issues
 
 Before reporting an issue on the
-[issue tracker](https://github.com/MarcoIeni/release-plz/issues),
+[issue tracker](https://github.com/release-plz/release-plz/issues),
 please check that it has not already been reported by searching for some related
 keywords.
 
@@ -23,7 +23,7 @@ Try to do one pull request per change.
 This is no different than other Rust projects.
 
 ```shell
-git clone https://github.com/MarcoIeni/release-plz
+git clone https://github.com/release-plz/release-plz
 cd release-plz
 cargo test
 ```

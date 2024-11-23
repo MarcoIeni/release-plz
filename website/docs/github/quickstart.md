@@ -76,7 +76,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5
         with:
           command: release
         env:
@@ -98,7 +98,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5
         with:
           command: release-pr
         env:
@@ -149,7 +149,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5
         with:
           # Run `release-plz release` command.
           command: release
@@ -178,7 +178,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5
         with:
           # Run `release-plz release-pr` command.
           command: release-pr

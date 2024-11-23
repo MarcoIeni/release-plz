@@ -34,14 +34,14 @@ mod tests {
     fn parse_pr_correctly() {
         let changelog_entry = r#"
 ### Added
-- use cargo registry environment variable to authenticate in private sparse registry ([#1435](https://github.com/MarcoIeni/release-plz/pull/1435))
+- use cargo registry environment variable to authenticate in private sparse registry ([#1435](https://github.com/release-plz/release-plz/pull/1435))
 
 ### Other
-- add `needless_pass_by_value` lint ([#1441](https://github.com/MarcoIeni/release-plz/pull/1441))
-- add `uninlined_format_args` ([#1440](https://github.com/MarcoIeni/release-plz/pull/1440))
-- add clippy lints ([#1439](https://github.com/MarcoIeni/release-plz/pull/1439))
-- add `if_not_else` clippy lint ([#1438](https://github.com/MarcoIeni/release-plz/pull/1438))
-- update dependencies ([#1437](https://github.com/MarcoIeni/release-plz/pull/1437))
+- add `needless_pass_by_value` lint ([#1441](https://github.com/release-plz/release-plz/pull/1441))
+- add `uninlined_format_args` ([#1440](https://github.com/release-plz/release-plz/pull/1440))
+- add clippy lints ([#1439](https://github.com/release-plz/release-plz/pull/1439))
+- add `if_not_else` clippy lint ([#1438](https://github.com/release-plz/release-plz/pull/1438))
+- update dependencies ([#1437](https://github.com/release-plz/release-plz/pull/1437))
 "#;
         let prs = prs_from_text(changelog_entry);
         assert_eq!(
@@ -49,32 +49,32 @@ mod tests {
             vec![
                 Pr {
                     number: 1435,
-                    html_url: Url::parse("https://github.com/MarcoIeni/release-plz/pull/1435")
+                    html_url: Url::parse("https://github.com/release-plz/release-plz/pull/1435")
                         .unwrap()
                 },
                 Pr {
                     number: 1441,
-                    html_url: Url::parse("https://github.com/MarcoIeni/release-plz/pull/1441")
+                    html_url: Url::parse("https://github.com/release-plz/release-plz/pull/1441")
                         .unwrap()
                 },
                 Pr {
                     number: 1440,
-                    html_url: Url::parse("https://github.com/MarcoIeni/release-plz/pull/1440")
+                    html_url: Url::parse("https://github.com/release-plz/release-plz/pull/1440")
                         .unwrap()
                 },
                 Pr {
                     number: 1439,
-                    html_url: Url::parse("https://github.com/MarcoIeni/release-plz/pull/1439")
+                    html_url: Url::parse("https://github.com/release-plz/release-plz/pull/1439")
                         .unwrap()
                 },
                 Pr {
                     number: 1438,
-                    html_url: Url::parse("https://github.com/MarcoIeni/release-plz/pull/1438")
+                    html_url: Url::parse("https://github.com/release-plz/release-plz/pull/1438")
                         .unwrap()
                 },
                 Pr {
                     number: 1437,
-                    html_url: Url::parse("https://github.com/MarcoIeni/release-plz/pull/1437")
+                    html_url: Url::parse("https://github.com/release-plz/release-plz/pull/1437")
                         .unwrap()
                 },
             ]

@@ -1,7 +1,7 @@
 [![release-plz-logo](website/static/img/release-plz-social-card.png)](https://release-plz.dev)
 
 [![Crates.io](https://img.shields.io/crates/v/release-plz.svg)](https://crates.io/crates/release-plz)
-[![CI](https://github.com/MarcoIeni/release-plz/workflows/CI/badge.svg)](https://github.com/MarcoIeni/release-plz/actions)
+[![CI](https://github.com/release-plz/release-plz/workflows/CI/badge.svg)](https://github.com/release-plz/release-plz/actions)
 [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/marcoieni/release-plz)
 
 Release-plz helps you release your Rust packages by automating:
@@ -45,14 +45,15 @@ There are two ways to run release-plz:
 
 Here you can find the public repositories using the release-plz GitHub action in CI:
 
-- [GitHub search](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action%40)
-- [Dependency graph](https://github.com/MarcoIeni/release-plz-action/network/dependents)
+- GitHub search [1](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+MarcoIeni%2Frelease-plz-action%40)
+  and [2](https://github.com/search?type=code&q=path%3A*.yml+OR+path%3A*.yaml+release-plz%2Faction%40)
+- [Dependency graph](https://github.com/release-plz/action/network/dependents)
 
 ## 📽️ RustLab 23 talk
 
 In RustLab 23, I showed how release-plz simplifies releasing Rust packages, why I created it, and what lessons I learned:
 
-[![RustLab 23 talk](https://github.com/MarcoIeni/release-plz/assets/11428655/30e94b65-9077-454d-8ced-6f77d0344f0c)](https://www.youtube.com/watch?v=kXPBVGDkQSs)
+[![RustLab 23 talk](https://github.com/release-plz/release-plz/assets/11428655/30e94b65-9077-454d-8ced-6f77d0344f0c)](https://www.youtube.com/watch?v=kXPBVGDkQSs)
 
 ## 🌓 Similar projects
 
