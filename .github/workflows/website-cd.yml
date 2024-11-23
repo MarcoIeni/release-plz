@@ -1,5 +1,8 @@
 name: Website CD # Continuous Deployment
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch: # Allow manual triggers
   push:
@@ -27,9 +30,18 @@ jobs:
         run: npm run build
         working-directory: ./website
 
-      - name: Deploy
+      - name: Deploy to release-plz.dev
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy ./website/build --project-name=release-plz --branch=main
+
+      # Deploy to release-plz.ieni.dev (legacy).
+      # I couldn't find a way to redirect.
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Build output to publish to the `gh-pages` branch:
+          publish_dir: ./website/build
