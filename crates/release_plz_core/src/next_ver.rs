@@ -19,6 +19,7 @@ use crate::{
 };
 use crate::{GitBackend, GitClient};
 use anyhow::Context;
+use cargo_metadata::TargetKind;
 use cargo_metadata::{
     camino::{Utf8Path, Utf8PathBuf},
     semver::Version,
@@ -1365,14 +1366,17 @@ impl Publishable for Package {
 }
 
 fn is_example_package(package: &Package) -> bool {
-    package.targets.iter().all(|t| t.kind == ["example"])
+    package
+        .targets
+        .iter()
+        .all(|t| t.kind == [TargetKind::Example])
 }
 
 fn is_library(package: &Package) -> bool {
     package
         .targets
         .iter()
-        .any(|t| t.kind.contains(&"lib".to_string()))
+        .any(|t| t.kind.contains(&TargetKind::Lib))
 }
 
 pub fn copy_to_temp_dir(target: &Utf8Path) -> anyhow::Result<Utf8TempDir> {
