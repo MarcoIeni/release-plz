@@ -64,7 +64,7 @@ If you want to run other checks before releasing (e.g. `cargo test`), you have t
    # highlight-next-line
          - run: cargo test # <-- put any check you like here
          - name: Run release-plz
-           uses: MarcoIeni/release-plz-action@v0.5
+           uses: release-plz/action@v0.5
            with:
              command: release
            env:
@@ -110,7 +110,7 @@ jobs:
             echo "No open release PR"
           fi
       - name: Run release-plz PR
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5
         with:
           command: release-pr
         env:

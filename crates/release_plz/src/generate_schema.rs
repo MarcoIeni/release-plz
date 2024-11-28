@@ -18,7 +18,7 @@ pub fn generate_schema_to_disk() -> anyhow::Result<()> {
 
 fn generate_schema_json() -> anyhow::Result<String> {
     const SCHEMA_TOKEN: &str = r##"schema#","##;
-    const ID: &str = r##""$id": "https://github.com/MarcoIeni/release-plz/"##;
+    const ID: &str = r##""$id": "https://github.com/release-plz/release-plz/"##;
 
     let schema = schema_for!(config::Config);
     let mut json =

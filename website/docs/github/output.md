@@ -48,7 +48,7 @@ jobs:
       - name: Run release-plz
 # highlight-next-line
         id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5
         with:
           command: release
         env:
@@ -105,7 +105,7 @@ jobs:
       - name: Run release-plz
 # highlight-next-line
         id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5
         with:
           command: release-pr
         env:
@@ -159,7 +159,7 @@ jobs:
       - name: Run release-plz
 # highlight-next-line
         id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5
         with:
           command: release
         env:
@@ -223,7 +223,7 @@ jobs:
       - name: Run release-plz
 # highlight-next-line
         id: release-plz # <--- ID used to refer to the outputs. Don't forget it.
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5
         with:
           command: release-pr
         env:
