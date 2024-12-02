@@ -71,3 +71,16 @@ jobs:
           tar: all
           zip: windows
           token: ${{ secrets.GITHUB_TOKEN }}
+      # We use typefully to cross-post the release announcement
+      # to release-plz social media accounts.
+      # This job prepares the announcement draft. Marco needs to login to
+      # typefully to do manual edits (if required) and send the announcement.
+      - name: Draft announcement
+        run: >-
+          curl -X POST "https://api.typefully.com/v1/drafts/"
+          -H "Content-Type: application/json"
+          -H "X-API-KEY: ${{ secrets.TYPEFULLY_API_KEY }}"
+          -d '{
+            "content": "🤖 New release: ${{ github.event.release.name }}\n\n${{ github.event.release.body }}",
+            "threadify": true
+          }'
