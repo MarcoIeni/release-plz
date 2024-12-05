@@ -223,6 +223,9 @@ impl From<PackageConfig> for release_plz_core::ReleaseConfig {
             )
             .with_release(release);
 
+        if let Some(git_only) = value.git_only {
+            cfg = cfg.with_git_only(git_only);
+        }
         if let Some(changelog_update) = value.changelog_update {
             cfg = cfg.with_changelog_update(changelog_update);
         }
