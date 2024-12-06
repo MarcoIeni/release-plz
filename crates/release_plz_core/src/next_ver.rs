@@ -1,5 +1,4 @@
 use crate::diff::Commit;
-use crate::get_cargo_package_files;
 use crate::{
     changelog_filler::{fill_commit, get_required_info},
     changelog_parser::{self, ChangelogRelease},
@@ -17,6 +16,7 @@ use crate::{
     version::NextVersionFromDiff,
     ChangelogBuilder, PackagesToUpdate, PackagesUpdate, Project, Remote, CHANGELOG_FILENAME,
 };
+use crate::{get_cargo_package_files, ReleaseMetadata, ReleaseMetadataBuilder};
 use crate::{GitBackend, GitClient};
 use anyhow::Context;
 use cargo_metadata::TargetKind;
@@ -45,18 +45,6 @@ use tracing::{debug, info, instrument, warn};
 // It should be at least 7 characters long to avoid a panic in git-cliff
 // (Git-cliff assumes it's a valid commit ID).
 pub(crate) const NO_COMMIT_ID: &str = "0000000";
-
-#[derive(Debug)]
-pub struct ReleaseMetadata {
-    /// Template for the git tag created by release-plz.
-    pub tag_name_template: Option<String>,
-    /// Template for the git release name created by release-plz.
-    pub release_name_template: Option<String>,
-}
-
-pub trait ReleaseMetadataBuilder {
-    fn get_release_metadata(&self, package_name: &str) -> Option<ReleaseMetadata>;
-}
 
 #[derive(Debug, Clone)]
 pub struct UpdateRequest {
@@ -399,6 +387,7 @@ impl ReleaseMetadataBuilder for UpdateRequest {
         config.generic.release.then(|| ReleaseMetadata {
             tag_name_template: config.generic.tag_name_template.clone(),
             release_name_template: None,
+            git_only: config.git_only(),
         })
     }
 }

@@ -11,12 +11,26 @@ use tracing::debug;
 use crate::{
     copy_to_temp_dir, fs_utils::strip_prefix, manifest_dir, new_manifest_dir_path,
     root_repo_path_from_manifest_dir, tmp_repo::TempRepo, workspace_packages, Publishable as _,
-    ReleaseMetadata, ReleaseMetadataBuilder,
 };
 use crate::{
     tera::{tera_context, tera_var, PACKAGE_VAR, VERSION_VAR},
     PackagePath as _,
 };
+
+/// Metadata for a release-able package.
+#[derive(Debug)]
+pub struct ReleaseMetadata {
+    /// Template for the git tag created by release-plz.
+    pub tag_name_template: Option<String>,
+    /// Template for the git release name created by release-plz.
+    pub release_name_template: Option<String>,
+    /// Whether to use git tags instead of the Cargo registry to determine package versions.
+    pub git_only: bool,
+}
+
+pub trait ReleaseMetadataBuilder {
+    fn get_release_metadata(&self, package_name: &str) -> Option<ReleaseMetadata>;
+}
 
 #[derive(Debug)]
 pub struct Project {
@@ -97,7 +111,13 @@ impl Project {
     pub fn publishable_packages(&self) -> Vec<&Package> {
         self.packages
             .iter()
-            .filter(|p| p.is_publishable())
+            .filter(|p| {
+                p.is_publishable()
+                    || self
+                        .release_metadata
+                        .get(&p.name)
+                        .map_or(false, |m| m.git_only)
+            })
             .collect()
     }
 
@@ -322,6 +342,7 @@ mod tests {
             self.release.then(|| ReleaseMetadata {
                 tag_name_template: self.tag_name.clone(),
                 release_name_template: self.release_name.clone(),
+                git_only: false,
             })
         }
     }

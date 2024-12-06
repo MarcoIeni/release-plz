@@ -204,6 +204,7 @@ impl ReleaseMetadataBuilder for ReleaseRequest {
         config.release.then(|| ReleaseMetadata {
             tag_name_template: config.git_tag.name_template.clone(),
             release_name_template: config.git_release.name_template.clone(),
+            git_only: config.git_only,
         })
     }
 }
