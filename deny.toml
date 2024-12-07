@@ -70,7 +70,9 @@ feature-depth = 1
 # A list of advisory IDs to ignore. Note that ignored advisories will still
 # output a note when they are encountered.
 ignore = [
-    "RUSTSEC-2024-0384"
+    "RUSTSEC-2024-0384",
+    "RUSTSEC-2024-0357",
+    "RUSTSEC-2023-0072",
 ]
 # If this is true, then cargo deny will use the git executable to fetch advisory database.
 # If this is false, then it uses a built-in git library.
@@ -90,8 +92,8 @@ allow = [
     "ISC",
     "Apache-2.0",
     "BSD-3-Clause",
+    "BSD-2-Clause",
     "CC0-1.0",
-    "Unicode-DFS-2016",
     "Unicode-3.0",
     "MPL-2.0",
     "Zlib",
