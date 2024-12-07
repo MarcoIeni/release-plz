@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.12](https://github.com/release-plz/release-plz/compare/release_plz_core-v0.30.11...release_plz_core-v0.30.12) - 2024-12-07
+
+### Added
+
+- warn if cargo-semver-checks is not installed ([#1891](https://github.com/release-plz/release-plz/pull/1891))
+- Enable `pr_labels` for GitLab backend ([#1879](https://github.com/release-plz/release-plz/pull/1879))
+- add raw_message to commit context ([#1867](https://github.com/release-plz/release-plz/pull/1867))
+
+### Fixed
+
+- locate Cargo.lock correctly when project isn't in root directory ([#1894](https://github.com/release-plz/release-plz/pull/1894))
+
+### Other
+
+- update Cargo.lock dependencies ([#1893](https://github.com/release-plz/release-plz/pull/1893))
+- *(deps)* update rust crate cargo_metadata to 0.19.0 ([#1847](https://github.com/release-plz/release-plz/pull/1847))
+
 ## [0.30.11](https://github.com/release-plz/release-plz/compare/release_plz_core-v0.30.10...release_plz_core-v0.30.11) - 2024-11-21
 
 ### Added

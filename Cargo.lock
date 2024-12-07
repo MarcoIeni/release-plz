@@ -588,7 +588,7 @@ dependencies = [
 
 [[package]]
 name = "cargo_utils"
-version = "0.1.60"
+version = "0.1.61"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -1469,7 +1469,7 @@ dependencies = [
  "lazy-regex",
  "lazy_static",
  "log",
- "next_version 0.2.20 (registry+https://github.com/rust-lang/crates.io-index)",
+ "next_version 0.2.20",
  "regex",
  "rust-embed",
  "secrecy 0.8.0",
@@ -1537,7 +1537,7 @@ dependencies = [
 
 [[package]]
 name = "git_cmd"
-version = "0.6.16"
+version = "0.6.17"
 dependencies = [
  "anyhow",
  "camino",
@@ -3856,6 +3856,8 @@ dependencies = [
 [[package]]
 name = "next_version"
 version = "0.2.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ab8c501e9a8cdb6914dc41a6d9b3b85f625ff82be06b012f868a783309819a8"
 dependencies = [
  "conventional_commit_parser",
  "regex",
@@ -3864,9 +3866,7 @@ dependencies = [
 
 [[package]]
 name = "next_version"
-version = "0.2.20"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ab8c501e9a8cdb6914dc41a6d9b3b85f625ff82be06b012f868a783309819a8"
+version = "0.2.21"
 dependencies = [
  "conventional_commit_parser",
  "regex",
@@ -4535,7 +4535,7 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "release-plz"
-version = "0.3.110"
+version = "0.3.111"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -4574,7 +4574,7 @@ dependencies = [
 
 [[package]]
 name = "release_plz_core"
-version = "0.30.11"
+version = "0.30.12"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -4596,7 +4596,7 @@ dependencies = [
  "ignore",
  "itertools",
  "lazy_static",
- "next_version 0.2.20",
+ "next_version 0.2.21",
  "parse-changelog",
  "rand",
  "rayon",
@@ -5459,7 +5459,7 @@ checksum = "3369f5ac52d5eb6ab48c6b4ffdc8efbcad6b89c765749064ba298f2c68a16a76"
 
 [[package]]
 name = "test_logs"
-version = "0.1.29"
+version = "0.1.30"
 dependencies = [
  "once_cell",
  "tracing",
