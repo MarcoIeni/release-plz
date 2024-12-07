@@ -19,6 +19,7 @@ use crate::{
 };
 use crate::{GitBackend, GitClient};
 use anyhow::Context;
+use cargo_metadata::TargetKind;
 use cargo_metadata::{
     camino::{Utf8Path, Utf8PathBuf},
     semver::Version,
@@ -1328,8 +1329,14 @@ fn pathbufs_to_check(package_path: &Utf8Path, package: &Package) -> Vec<Utf8Path
 /// Check if release-plz should check the semver compatibility of the package.
 /// - `run_semver_check` is true if the user wants to run the semver check.
 fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
-    let is_cargo_semver_checks_installed = semver_check::is_cargo_semver_checks_installed;
-    run_semver_check && is_library(package) && is_cargo_semver_checks_installed()
+    if run_semver_check && is_library(package) {
+        let is_cargo_semver_checks_installed = semver_check::is_cargo_semver_checks_installed();
+        if !is_cargo_semver_checks_installed {
+            warn!("cargo-semver-checks not installed, skipping semver check. For more information, see https://release-plz.dev/docs/semver-check");
+        }
+        return is_cargo_semver_checks_installed;
+    }
+    false
 }
 
 pub fn workspace_packages(metadata: &Metadata) -> anyhow::Result<Vec<Package>> {
@@ -1365,14 +1372,17 @@ impl Publishable for Package {
 }
 
 fn is_example_package(package: &Package) -> bool {
-    package.targets.iter().all(|t| t.kind == ["example"])
+    package
+        .targets
+        .iter()
+        .all(|t| t.kind == [TargetKind::Example])
 }
 
 fn is_library(package: &Package) -> bool {
     package
         .targets
         .iter()
-        .any(|t| t.kind.contains(&"lib".to_string()))
+        .any(|t| t.kind.contains(&TargetKind::Lib))
 }
 
 pub fn copy_to_temp_dir(target: &Utf8Path) -> anyhow::Result<Utf8TempDir> {
