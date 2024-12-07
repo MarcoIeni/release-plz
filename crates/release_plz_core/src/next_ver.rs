@@ -1332,7 +1332,7 @@ fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
     if run_semver_check && is_library(package) {
         let is_cargo_semver_checks_installed = semver_check::is_cargo_semver_checks_installed();
         if !is_cargo_semver_checks_installed {
-            warn!("cargo-semver-checks not installed, skipping semver checks");
+            warn!("cargo-semver-checks not installed, skipping semver check. For more information, see https://release-plz.dev/docs/semver-check");
         }
         return is_cargo_semver_checks_installed;
     }
