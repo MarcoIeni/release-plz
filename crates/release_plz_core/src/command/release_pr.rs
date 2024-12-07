@@ -11,8 +11,8 @@ use crate::git::backend::{contributors_from_commits, BackendType, GitClient, Git
 use crate::git::github_graphql;
 use crate::pr::{Pr, DEFAULT_BRANCH_PREFIX, OLD_BRANCH_PREFIX};
 use crate::{
-    copy_to_temp_dir, new_manifest_dir_path, new_project_root, publishable_packages_from_manifest,
-    root_repo_path_from_manifest_dir, update, PackagesUpdate, UpdateRequest,
+    copy_to_temp_dir, new_manifest_dir_path, new_project_root, root_repo_path_from_manifest_dir,
+    update, PackagesUpdate, Publishable, ReleaseMetadataBuilder, UpdateRequest,
 };
 
 #[derive(Debug)]
@@ -125,6 +125,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
                 &packages_to_update,
                 &git_client,
                 &repo,
+                &new_update_request,
                 ReleasePrOptions {
                     draft: input.draft,
                     pr_name: input.pr_name_template.clone(),
@@ -154,6 +155,7 @@ async fn open_or_update_release_pr(
     packages_to_update: &PackagesUpdate,
     git_client: &GitClient,
     repo: &Repo,
+    release_metadata_builder: &impl ReleaseMetadataBuilder,
     release_pr_options: ReleasePrOptions,
 ) -> anyhow::Result<ReleasePr> {
     let mut opened_release_prs = git_client
@@ -181,8 +183,20 @@ async fn open_or_update_release_pr(
     }
 
     let new_pr = {
-        let project_contains_multiple_pub_packages =
-            publishable_packages_from_manifest(local_manifest)?.len() > 1;
+        let metadata = cargo_utils::get_manifest_metadata(local_manifest)?;
+        let publishable_packages: Vec<_> =
+            cargo_utils::workspace_members(&metadata).map(|members| {
+                members
+                    .filter(|p| {
+                        p.is_publishable()
+                            || release_metadata_builder
+                                .get_release_metadata(&p.name)
+                                .map_or(false, |m| m.git_only)
+                    })
+                    .collect()
+            })?;
+        let project_contains_multiple_pub_packages = publishable_packages.len() > 1;
+
         Pr::new(
             repo.original_branch(),
             packages_to_update,
