@@ -6,12 +6,11 @@ use chrono::SecondsFormat;
 
 pub const DEFAULT_BRANCH_PREFIX: &str = "release-plz-";
 pub const OLD_BRANCH_PREFIX: &str = "release-plz/";
-pub const DEFAULT_PR_BODY_TEMPLATE: &str = r#"## 🤖 New release{{ summary }}
-
+pub const DEFAULT_PR_BODY_TEMPLATE: &str = r#"## 🤖 New release
+{{ summary }}
 <details><summary><i><b>Changelog</b></i></summary><p>
 
 {{ changes }}
-
 </p></details>
 
 ---
