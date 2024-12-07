@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.17](https://github.com/release-plz/release-plz/compare/git_cmd-v0.6.16...git_cmd-v0.6.17) - 2024-12-07
+
+### Other
+
+- update Cargo.toml dependencies
+
 ## [0.6.16](https://github.com/release-plz/release-plz/compare/git_cmd-v0.6.15...git_cmd-v0.6.16) - 2024-11-21
 
 ### Other
