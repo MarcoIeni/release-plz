@@ -218,6 +218,7 @@ impl ReleaseMetadataBuilder for NoopReleaseMetadataBuilder {
         Some(ReleaseMetadata {
             release_name_template: None,
             tag_name_template: None,
+            git_only: false,
         })
     }
 }
