@@ -204,6 +204,7 @@ impl ReleaseMetadataBuilder for ReleaseRequest {
         config.release.then(|| ReleaseMetadata {
             tag_name_template: config.git_tag.name_template.clone(),
             release_name_template: config.git_release.name_template.clone(),
+            git_only: config.git_only,
         })
     }
 }
@@ -239,6 +240,9 @@ pub struct ReleaseConfig {
     publish: PublishConfig,
     git_release: GitReleaseConfig,
     git_tag: GitTagConfig,
+    /// Whether to use git tags instead of the Cargo registry to determine package versions.
+    /// Default: `false`.
+    git_only: bool,
     /// Don't verify the contents by building them.
     /// If true, `release-plz` adds the `--no-verify` flag to `cargo publish`.
     no_verify: bool,
@@ -272,6 +276,11 @@ impl ReleaseConfig {
 
     pub fn with_git_tag(mut self, git_tag: GitTagConfig) -> Self {
         self.git_tag = git_tag;
+        self
+    }
+
+    pub fn with_git_only(mut self, git_only: bool) -> Self {
+        self.git_only = git_only;
         self
     }
 
@@ -325,6 +334,7 @@ impl Default for ReleaseConfig {
             publish: PublishConfig::default(),
             git_release: GitReleaseConfig::default(),
             git_tag: GitTagConfig::default(),
+            git_only: false,
             no_verify: false,
             allow_dirty: false,
             features: vec![],
@@ -578,9 +588,11 @@ async fn release_package_if_needed(
     };
     for CargoRegistry { name, mut index } in registry_indexes {
         let token = input.find_registry_token(name.as_deref())?;
-        if is_published(&mut index, package, input.publish_timeout, &token)
-            .await
-            .context("can't determine if package is published")?
+        // In git-only mode, the git tag check above suffices
+        if !input.get_package_config(&package.name).git_only
+            && is_published(&mut index, package, input.publish_timeout, &token)
+                .await
+                .context("can't determine if package is published")?
         {
             info!("{} {}: already published", package.name, package.version);
             continue;
