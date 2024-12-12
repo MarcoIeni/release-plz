@@ -511,6 +511,7 @@ impl Updater<'_> {
         for (p, diff) in packages_diffs {
             if let Some(ref release_commits_regex) = self.req.release_commits {
                 if !diff.any_commit_matches(release_commits_regex) {
+                    info!("{}: no commit matches the `release_commits` regex", p.name);
                     continue;
                 };
             }
@@ -966,6 +967,9 @@ impl Updater<'_> {
                 {
                     debug!("next version calculated starting from commits after `{current_commit_hash}`");
                     if diff.commits.is_empty() {
+                        // Even if the packages are equal, the Cargo.lock or Cargo.toml of the
+                        // workspace might have changed.
+                        // If the dependencies changed, we add a commit to the diff.
                         self.add_dependencies_update_if_any(
                             diff,
                             &registry_package.package,
@@ -976,14 +980,14 @@ impl Updater<'_> {
                     // The local package is identical to the registry one, which means that
                     // the package was published at this commit, so we will not count this commit
                     // as part of the release.
-                    // We can process the next create.
+                    // We can process the next package.
                     break;
                 } else if registry_package.package.version != package.version {
                     info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
                     diff.set_version_unpublished();
                     break;
                 } else if are_changed_files_in_pkg()? {
-                    debug!("packages are different");
+                    debug!("packages contain different files");
                     // At this point of the git history, the two packages are different,
                     // which means that this commit is not present in the published package.
                     diff.commits.push(Commit::new(
@@ -1035,6 +1039,7 @@ impl Updater<'_> {
         Ok(are_packages_equal)
     }
 
+    /// If the dependencies changed, add a commit to the diff.
     fn add_dependencies_update_if_any(
         &self,
         diff: &mut Diff,
