@@ -19,6 +19,7 @@ use crate::{
 };
 use crate::{GitBackend, GitClient};
 use anyhow::Context;
+use cargo::util::VersionExt;
 use cargo_metadata::TargetKind;
 use cargo_metadata::{
     camino::{Utf8Path, Utf8PathBuf},
@@ -747,7 +748,11 @@ impl Updater<'_> {
             );
             vec![Commit::new(NO_COMMIT_ID.to_string(), change)]
         };
-        let next_version = { p.version.increment_patch() };
+        let next_version = if p.version.is_prerelease() {
+            p.version.increment_prerelease()
+        } else {
+            p.version.increment_patch()
+        };
         info!(
             "{}: dependencies changed. Next version is {next_version}",
             p.name
