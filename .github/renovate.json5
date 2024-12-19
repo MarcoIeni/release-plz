@@ -1,7 +1,7 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["config:recommended", ":maintainLockFilesWeekly"],
-  automerge: true,
+  extends: ["config:best-practices", ":maintainLockFilesWeekly"],
+  // automerge: true,
   packageRules: [
     {
       matchCategories: ["rust"],
