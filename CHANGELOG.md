@@ -15,7 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Other
 
-- update Cargo.lock dependencies
 - log when a release is skipped because of release_commits regex (#1904)
 
 ## [0.3.111](https://github.com/release-plz/release-plz/compare/release-plz-v0.3.110...release-plz-v0.3.111) - 2024-12-07
