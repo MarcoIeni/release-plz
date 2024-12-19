@@ -15,7 +15,7 @@ pub async fn check_update() -> anyhow::Result<()> {
         println!("Your release-plz version ({CURRENT_VERSION}) is up to date");
     } else {
         println!(
-            "Your release-plz version is {CURRENT_VERSION}. A newer version ({latest_version}) is available at https://github.com/MarcoIeni/release-plz"
+            "Your release-plz version is {CURRENT_VERSION}. A newer version ({latest_version}) is available at https://github.com/release-plz/release-plz"
         );
     }
     Ok(())
@@ -27,7 +27,7 @@ async fn get_latest_version() -> anyhow::Result<String> {
         .build()
         .context("can't build GitHub client")?;
     let client_response = client
-        .get("https://api.github.com/repos/MarcoIeni/release-plz/releases/latest")
+        .get("https://api.github.com/repos/release-plz/release-plz/releases/latest")
         .send()
         .await
         .context("error while sending request")?;

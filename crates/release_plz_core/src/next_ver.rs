@@ -19,6 +19,8 @@ use crate::{
 };
 use crate::{GitBackend, GitClient};
 use anyhow::Context;
+use cargo::util::VersionExt;
+use cargo_metadata::TargetKind;
 use cargo_metadata::{
     camino::{Utf8Path, Utf8PathBuf},
     semver::Version,
@@ -510,6 +512,7 @@ impl Updater<'_> {
         for (p, diff) in packages_diffs {
             if let Some(ref release_commits_regex) = self.req.release_commits {
                 if !diff.any_commit_matches(release_commits_regex) {
+                    info!("{}: no commit matches the `release_commits` regex", p.name);
                     continue;
                 };
             }
@@ -745,7 +748,11 @@ impl Updater<'_> {
             );
             vec![Commit::new(NO_COMMIT_ID.to_string(), change)]
         };
-        let next_version = { p.version.increment_patch() };
+        let next_version = if p.version.is_prerelease() {
+            p.version.increment_prerelease()
+        } else {
+            p.version.increment_patch()
+        };
         info!(
             "{}: dependencies changed. Next version is {next_version}",
             p.name
@@ -965,6 +972,9 @@ impl Updater<'_> {
                 {
                     debug!("next version calculated starting from commits after `{current_commit_hash}`");
                     if diff.commits.is_empty() {
+                        // Even if the packages are equal, the Cargo.lock or Cargo.toml of the
+                        // workspace might have changed.
+                        // If the dependencies changed, we add a commit to the diff.
                         self.add_dependencies_update_if_any(
                             diff,
                             &registry_package.package,
@@ -975,14 +985,14 @@ impl Updater<'_> {
                     // The local package is identical to the registry one, which means that
                     // the package was published at this commit, so we will not count this commit
                     // as part of the release.
-                    // We can process the next create.
+                    // We can process the next package.
                     break;
                 } else if registry_package.package.version != package.version {
                     info!("{}: the local package has already a different version with respect to the registry package, so release-plz will not update it", package.name);
                     diff.set_version_unpublished();
                     break;
                 } else if are_changed_files_in_pkg()? {
-                    debug!("packages are different");
+                    debug!("packages contain different files");
                     // At this point of the git history, the two packages are different,
                     // which means that this commit is not present in the published package.
                     diff.commits.push(Commit::new(
@@ -1034,6 +1044,7 @@ impl Updater<'_> {
         Ok(are_packages_equal)
     }
 
+    /// If the dependencies changed, add a commit to the diff.
     fn add_dependencies_update_if_any(
         &self,
         diff: &mut Diff,
@@ -1328,8 +1339,14 @@ fn pathbufs_to_check(package_path: &Utf8Path, package: &Package) -> Vec<Utf8Path
 /// Check if release-plz should check the semver compatibility of the package.
 /// - `run_semver_check` is true if the user wants to run the semver check.
 fn should_check_semver(package: &Package, run_semver_check: bool) -> bool {
-    let is_cargo_semver_checks_installed = semver_check::is_cargo_semver_checks_installed;
-    run_semver_check && is_library(package) && is_cargo_semver_checks_installed()
+    if run_semver_check && is_library(package) {
+        let is_cargo_semver_checks_installed = semver_check::is_cargo_semver_checks_installed();
+        if !is_cargo_semver_checks_installed {
+            warn!("cargo-semver-checks not installed, skipping semver check. For more information, see https://release-plz.dev/docs/semver-check");
+        }
+        return is_cargo_semver_checks_installed;
+    }
+    false
 }
 
 pub fn workspace_packages(metadata: &Metadata) -> anyhow::Result<Vec<Package>> {
@@ -1365,14 +1382,17 @@ impl Publishable for Package {
 }
 
 fn is_example_package(package: &Package) -> bool {
-    package.targets.iter().all(|t| t.kind == ["example"])
+    package
+        .targets
+        .iter()
+        .all(|t| t.kind == [TargetKind::Example])
 }
 
 fn is_library(package: &Package) -> bool {
     package
         .targets
         .iter()
-        .any(|t| t.kind.contains(&"lib".to_string()))
+        .any(|t| t.kind.contains(&TargetKind::Lib))
 }
 
 pub fn copy_to_temp_dir(target: &Utf8Path) -> anyhow::Result<Utf8TempDir> {

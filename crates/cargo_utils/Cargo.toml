@@ -1,9 +1,9 @@
 [package]
 name = "cargo_utils"
-version = "0.1.59"
+version = "0.1.61"
 edition.workspace = true
 description = "Utilities around cargo and Rust workspaces"
-repository = "https://github.com/MarcoIeni/release-plz/tree/main/crates/cargo_utils"
+repository = "https://github.com/release-plz/release-plz/tree/main/crates/cargo_utils"
 license.workspace = true
 keywords = ["cargo", "utilities", "utils", "workspace"]
 categories = ["development-tools"]

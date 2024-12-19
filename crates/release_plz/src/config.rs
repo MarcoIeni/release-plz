@@ -12,7 +12,7 @@ use url::Url;
 use crate::changelog_config::ChangelogCfg;
 
 /// You can find the documentation of the configuration file
-/// [here](https://release-plz.ieni.dev/docs/config).
+/// [here](https://release-plz.dev/docs/config).
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Debug, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
@@ -441,7 +441,7 @@ mod tests {
         dependencies_update = false
         allow_dirty = false
         changelog_config = "../git-cliff.toml"
-        repo_url = "https://github.com/MarcoIeni/release-plz"
+        repo_url = "https://github.com/release-plz/release-plz"
         git_release_enable = true
         git_release_type = "prod"
         git_release_draft = false
@@ -462,7 +462,11 @@ mod tests {
                 dependencies_update: Some(false),
                 changelog_config: Some("../git-cliff.toml".into()),
                 allow_dirty: Some(false),
-                repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
+                repo_url: Some(
+                    "https://github.com/release-plz/release-plz"
+                        .parse()
+                        .unwrap(),
+                ),
                 packages_defaults: PackageConfig {
                     semver_check: None,
                     changelog_update: None,
@@ -580,7 +584,11 @@ mod tests {
                 dependencies_update: None,
                 changelog_config: Some("../git-cliff.toml".into()),
                 allow_dirty: None,
-                repo_url: Some("https://github.com/MarcoIeni/release-plz".parse().unwrap()),
+                repo_url: Some(
+                    "https://github.com/release-plz/release-plz"
+                        .parse()
+                        .unwrap(),
+                ),
                 pr_name: None,
                 pr_body: None,
                 pr_draft: false,
@@ -632,7 +640,7 @@ mod tests {
             pr_labels = ["label1"]
             pr_branch_prefix = "f-"
             publish_timeout = "10m"
-            repo_url = "https://github.com/MarcoIeni/release-plz"
+            repo_url = "https://github.com/release-plz/release-plz"
             release_commits = "^feat:"
 
             [changelog]

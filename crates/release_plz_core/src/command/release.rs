@@ -848,7 +848,7 @@ fn verify_ci_cargo_registry_token() -> anyhow::Result<()> {
     let is_environment_github_actions = std::env::var("GITHUB_ACTIONS").is_ok();
     anyhow::ensure!(
         !(is_environment_github_actions && is_token_empty),
-        "CARGO_REGISTRY_TOKEN environment variable is set to empty string. Please set your token in GitHub actions secrets. Docs: https://marcoieni.github.io/release-plz/github/index.html"
+        "CARGO_REGISTRY_TOKEN environment variable is set to empty string. Please set your token in GitHub actions secrets. Docs: https://release-plz.dev/docs/github/quickstart#2-set-the-cargo_registry_token-secret"
     );
     Ok(())
 }
@@ -864,7 +864,7 @@ fn run_cargo_publish(
     args.push("--manifest-path");
     args.push(package.manifest_path.as_ref());
     // We specify the package name to allow publishing root packages.
-    // See https://github.com/MarcoIeni/release-plz/issues/1545
+    // See https://github.com/release-plz/release-plz/issues/1545
     args.push("--package");
     args.push(&package.name);
     if let Some(registry) = &input.registry {

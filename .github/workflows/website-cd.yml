@@ -11,28 +11,34 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to GitHub Pages
+    name: Deploy website
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           cache: npm
           cache-dependency-path: "website/package-lock.json"
 
       - name: Install dependencies
         run: npm ci
         working-directory: ./website
-      - name: Markdown lint
-        run: npm run mdlint
-        working-directory: ./website
+
       - name: Build website
         run: npm run build
         working-directory: ./website
 
-      # Popular action to deploy to GitHub Pages:
-      # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
+      - name: Deploy to release-plz.dev
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ./website/build --project-name=release-plz --branch=main
+
+      # Deploy to release-plz.ieni.dev (legacy).
+      # I couldn't find a way to redirect.
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:

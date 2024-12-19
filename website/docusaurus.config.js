@@ -16,14 +16,14 @@ const config = {
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
-  url: "https://release-plz.ieni.dev",
+  url: "https://release-plz.dev",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: "MarcoIeni", // Usually your GitHub org/user name.
+  organizationName: "release-plz", // Usually your GitHub org/user name.
   projectName: "release-plz", // Usually your repo name.
   trailingSlash: false,
 
@@ -63,7 +63,7 @@ const config = {
           sidebarPath: require.resolve("./sidebars.js"),
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/MarcoIeni/release-plz/tree/main/website/",
+          editUrl: "https://github.com/release-plz/release-plz/tree/main/website/",
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
@@ -78,7 +78,7 @@ const config = {
       image: "img/release-plz-social-card.png",
       announcementBar: {
         id: "announcementBar-1", // Increment on change
-        content: `⭐️ If you like Release-plz, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/MarcoIeni/release-plz">GitHub</a> and follow the author on <a target="_blank" rel="noopener noreferrer" href="https://twitter.com/MarcoIeni">Twitter ${TwitterSvg}</a>`,
+        content: `⭐️ If you like Release-plz, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/release-plz/release-plz">GitHub</a> and follow the author on <a target="_blank" rel="noopener noreferrer" href="https://twitter.com/MarcoIeni">Twitter ${TwitterSvg}</a>`,
       },
       navbar: {
         title: "Release-plz",
@@ -106,7 +106,7 @@ const config = {
             position: "right",
           },
           {
-            href: "https://github.com/MarcoIeni/release-plz",
+            href: "https://github.com/release-plz/release-plz",
             "aria-label": "GitHub",
             className: "header-github-link",
             position: "right",

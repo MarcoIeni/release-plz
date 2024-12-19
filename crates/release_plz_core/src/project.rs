@@ -24,7 +24,7 @@ pub struct Project {
     packages: Vec<Package>,
     /// Metadata for each release enabled package.
     release_metadata: HashMap<String, ReleaseMetadata>,
-    /// Project root directory
+    /// Project root directory, i.e. where `.git` is located.
     root: Utf8PathBuf,
     /// Directory containing the project manifest
     manifest_dir: Utf8PathBuf,
@@ -157,12 +157,13 @@ impl Project {
     }
 
     pub fn cargo_lock_path(&self) -> Utf8PathBuf {
-        self.root.join("Cargo.lock")
+        self.manifest_dir.join("Cargo.lock")
     }
 
     // Check mandatory fields for crates.io
     pub fn check_mandatory_fields(&self) -> anyhow::Result<()> {
         let mut missing_fields = Vec::new();
+        let mut missing_version_errors = Vec::new();
 
         for package in &self.publishable_packages() {
             if package.license.is_none() {
@@ -171,22 +172,62 @@ impl Project {
             if package.description.is_none() {
                 missing_fields.push(format!("- `description` for package `{}`", package.name));
             }
-        }
 
-        if missing_fields.is_empty() {
-            Ok(())
-        } else {
-            let error_message = format!(
+            let missing_version_names = check_local_dependencies(package);
+            if !missing_version_names.is_empty() {
+                missing_version_errors.push(create_missing_version_error_message(
+                    &package.name,
+                    missing_version_names,
+                ));
+            }
+        }
+        let has_missing_fields = !missing_fields.is_empty();
+        let has_missing_version = !missing_version_errors.is_empty();
+        if !has_missing_fields && !has_missing_version {
+            return Ok(());
+        }
+        let mut error_message = String::new();
+        if has_missing_fields {
+            error_message.push_str(&format!(
                 "The following mandatory fields for crates.io are missing in Cargo.toml:
 {}
-See https://doc.rust-lang.org/cargo/reference/manifest.html
-
-Note: to disable this check, set the `--no-toml-check` flag.",
+See https://doc.rust-lang.org/cargo/reference/manifest.html\n",
                 missing_fields.join("\n")
-            );
-            anyhow::bail!(error_message);
+            ));
+        }
+        if has_missing_version {
+            error_message.push_str(&format!(
+                "The following packages have local dependencies missing a version specifier:
+{}",
+                missing_version_errors.join("\n")
+            ));
+        }
+        error_message.push_str("\nNote: to disable this check, set the `--no-toml-check` flag.");
+        anyhow::bail!(error_message);
+    }
+}
+
+fn check_local_dependencies(package: &Package) -> Vec<String> {
+    //Check if version is specified for local dependencies (has a path entry)
+    let mut local_dependencies_missing_version = vec![];
+    for dependency in &package.dependencies {
+        if dependency.path.is_some() && dependency.req.comparators.is_empty() {
+            local_dependencies_missing_version.push(dependency.name.clone());
         }
     }
+    local_dependencies_missing_version
+}
+
+fn create_missing_version_error_message(package_name: &str, dependencies: Vec<String>) -> String {
+    let mut error_message = String::new();
+    error_message.push_str(&format!("- package `{package_name}`:\n"));
+    for dependency in dependencies {
+        error_message.push_str(&format!(
+            "\t• local dependency `{dependency}` is missing a `version` entry\n"
+        ));
+    }
+
+    error_message
 }
 
 fn check_overrides_typos(

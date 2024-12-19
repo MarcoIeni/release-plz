@@ -126,7 +126,7 @@ steps:
   - name: Install Rust toolchain
     uses: dtolnay/rust-toolchain@stable
   - name: Run release-plz
-    uses: MarcoIeni/release-plz-action@v0.5
+    uses: release-plz/action@v0.5
     env:
       # highlight-next-line
       GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }} # <-- PAT secret name
@@ -146,7 +146,7 @@ such as `git tag`.
 
 Generate a GitHub token with a GitHub App.
 This is the approach used by the
-[release-plz](https://github.com/MarcoIeni/release-plz/blob/main/.github/workflows/release-plz.yml)
+[release-plz](https://github.com/release-plz/release-plz/blob/main/.github/workflows/release-plz.yml)
 repo itself. With this approach, the GitHub App will be the author of the release pull request,
 e.g. `release-plz[bot]`.
 
@@ -200,7 +200,7 @@ Here's how to use a GitHub App to generate a GitHub token:
      - name: Install Rust toolchain
        uses: dtolnay/rust-toolchain@stable
      - name: Run release-plz
-       uses: MarcoIeni/release-plz-action@main
+       uses: release-plz/action@main
        env:
    # highlight-next-line
          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}

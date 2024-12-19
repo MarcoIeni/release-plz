@@ -104,7 +104,7 @@ impl RepoUrl {
 mod tests {
     use super::RepoUrl;
 
-    const GITHUB_REPO_URL: &str = "https://github.com/MarcoIeni/release-plz";
+    const GITHUB_REPO_URL: &str = "https://github.com/release-plz/release-plz";
 
     #[test]
     fn gh_release_link_works_for_first_release() {

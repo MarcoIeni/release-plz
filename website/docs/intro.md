@@ -16,7 +16,7 @@ For every package you want to release, you need to:
 - Publish the package in the cargo registry (for example, [crates.io](https://crates.io)).
 - Create and push a git tag.
 
-Meet [release-plz](https://github.com/MarcoIeni/release-plz), a Rust open-source
+Meet [release-plz](https://github.com/release-plz/release-plz), a Rust open-source
 project that automates these tasks, allowing developers to release Rust packages
 without the command line.
 

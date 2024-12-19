@@ -4,6 +4,7 @@ use crate::{GitHub, GitReleaseInfo};
 use crate::pr::Pr;
 use anyhow::Context;
 use http::StatusCode;
+use itertools::Itertools;
 use reqwest::header::HeaderMap;
 use reqwest::{Response, Url};
 use reqwest_middleware::ClientBuilder;
@@ -312,7 +313,7 @@ impl GitClient {
                 if let Some(status) = e.status() {
                     if status == reqwest::StatusCode::FORBIDDEN {
                         return anyhow::anyhow!(e).context(
-                            "Make sure your token has sufficient permissions. Learn more at https://release-plz.ieni.dev/docs/usage/release or https://release-plz.ieni.dev/docs/github/token",
+                            "Make sure your token has sufficient permissions. Learn more at https://release-plz.dev/docs/usage/release or https://release-plz.dev/docs/github/token",
                         );
                     }
                 }
@@ -343,7 +344,7 @@ impl GitClient {
                 if let Some(status) = e.status() {
                     if status == reqwest::StatusCode::FORBIDDEN {
                         return anyhow::anyhow!(e).context(
-                            "Make sure your token has sufficient permissions. Learn more at https://release-plz.ieni.dev/docs/usage/release#gitlab",
+                            "Make sure your token has sufficient permissions. Learn more at https://release-plz.dev/docs/usage/release#gitlab",
                         );
                     }
                 }
@@ -550,20 +551,38 @@ impl GitClient {
         if pr.labels.is_empty() {
             return Ok(());
         }
-        if self.backend != BackendType::Github {
-            warn!("PR labels are only supported on Github");
-            return Ok(());
+        match self.backend {
+            BackendType::Github => {
+                self.client
+                    .post(format!("{}/{}/labels", self.issues_url(), pr_number))
+                    .json(&json!({
+                        "labels": pr.labels
+                    }))
+                    .send()
+                    .await?
+                    .successful_status()
+                    .await?;
+
+                Ok(())
+            }
+            BackendType::Gitlab => {
+                self.client
+                    .put(format!("{}/{}", self.pulls_url(), pr_number))
+                    .json(&json!({
+                        "add_labels": pr.labels.iter().join(",")
+                    }))
+                    .send()
+                    .await?
+                    .successful_status()
+                    .await?;
+
+                Ok(())
+            }
+            BackendType::Gitea => {
+                warn!("PR labels are only supported on Github and Gitlab");
+                Ok(())
+            }
         }
-        self.client
-            .post(format!("{}/{}/labels", self.issues_url(), pr_number))
-            .json(&json!({
-                "labels": pr.labels
-            }))
-            .send()
-            .await?
-            .successful_status()
-            .await?;
-        Ok(())
     }
 
     pub async fn pr_commits(&self, pr_number: u64) -> anyhow::Result<Vec<PrCommit>> {

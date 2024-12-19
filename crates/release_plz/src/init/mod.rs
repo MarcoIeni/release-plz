@@ -74,7 +74,7 @@ fn store_github_token() -> anyhow::Result<&'static str> {
     let github_token = if should_create_token {
         println!("
 👉 Paste your GitHub PAT.
-💡 Create a GitHub PAT following these instructions: https://release-plz.ieni.dev/docs/github/token#use-a-personal-access-token");
+💡 Create a GitHub PAT following these instructions: https://release-plz.dev/docs/github/token#use-a-personal-access-token");
 
         // GitHub custom token
         let release_plz_token: &str = CUSTOM_GITHUB_TOKEN;
@@ -160,7 +160,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5
         with:
           command: release
         env:
@@ -181,7 +181,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5
         with:
           command: release-pr
         env:
@@ -252,7 +252,7 @@ mod tests {
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
-                    uses: MarcoIeni/release-plz-action@v0.5
+                    uses: release-plz/action@v0.5
                     with:
                       command: release
                     env:
@@ -273,7 +273,7 @@ mod tests {
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
-                    uses: MarcoIeni/release-plz-action@v0.5
+                    uses: release-plz/action@v0.5
                     with:
                       command: release-pr
                     env:
@@ -310,7 +310,7 @@ mod tests {
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
-                    uses: MarcoIeni/release-plz-action@v0.5
+                    uses: release-plz/action@v0.5
                     with:
                       command: release
                     env:
@@ -332,7 +332,7 @@ mod tests {
                   - name: Install Rust toolchain
                     uses: dtolnay/rust-toolchain@stable
                   - name: Run release-plz
-                    uses: MarcoIeni/release-plz-action@v0.5
+                    uses: release-plz/action@v0.5
                     with:
                       command: release-pr
                     env:
