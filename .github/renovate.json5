@@ -1,11 +1,18 @@
 {
-  $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["config:best-practices", ":maintainLockFilesWeekly"],
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:best-practices',
+    ':maintainLockFilesWeekly',
+  ],
   // automerge: true,
   packageRules: [
     {
-      matchCategories: ["rust"],
-      updateTypes: ["patch"],
+      matchCategories: [
+        'rust',
+      ],
+      matchUpdateTypes: [
+        'patch',
+      ],
       // Disable patch updates for single dependencies because patches
       // are updated periodically with lockfile maintainance.
       enabled: false,
