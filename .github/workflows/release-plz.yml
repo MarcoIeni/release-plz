@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.generate-token.outputs.token }}
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: actions-rust-lang/setup-rust-toolchain@11df97af8e8102fd60b60a77dfbf58d40cd843b8
       - name: Run release-plz
         uses: release-plz/action@main
         with:
@@ -58,7 +58,7 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.generate-token.outputs.token }}
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: actions-rust-lang/setup-rust-toolchain@11df97af8e8102fd60b60a77dfbf58d40cd843b8
       - name: Run release-plz
         uses: release-plz/action@main
         with:
