@@ -17,5 +17,5 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-      - uses: EmbarkStudios/cargo-deny-action@v2
+        uses: actions/checkout@v4.2.2
+      - uses: EmbarkStudios/cargo-deny-action@v2.0.4
