@@ -53,20 +53,20 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@97db979bf844c838b06022f305ca480d01b4d5fe
-      - uses: taiki-e/setup-cross-toolchain-action@v1.24.0
+      - uses: taiki-e/setup-cross-toolchain-action@92417c3484017b78b44195de2e0026e080f1e001 # v1.24.0
         with:
           target: ${{ matrix.target }}
         if: startsWith(matrix.os, 'ubuntu') && !contains(matrix.target, '-musl')
-      - uses: taiki-e/install-action@v2.46.17
+      - uses: taiki-e/install-action@03381f5ca4d069c7f756fec5d189e036987f842e # v2.46.17
         with:
           tool: cross
         if: contains(matrix.target, '-musl')
       - run: echo "RUSTFLAGS=${RUSTFLAGS} -C target-feature=+crt-static" >> "${GITHUB_ENV}"
         if: endsWith(matrix.target, 'windows-msvc')
-      - uses: taiki-e/upload-rust-binary-action@v1.24.0
+      - uses: taiki-e/upload-rust-binary-action@e7953b6078194a4ae5f5619632e3715db6275561 # v1.24.0
         with:
           bin: release-plz
           target: ${{ matrix.target }}
