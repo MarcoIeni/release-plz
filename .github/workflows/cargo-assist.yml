@@ -20,6 +20,6 @@ jobs:
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@97db979bf844c838b06022f305ca480d01b4d5fe
       - name: Cargo assist
-        uses: MarcoIeni/cargo-assist@main
+        uses: MarcoIeni/cargo-assist@v0.1.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
