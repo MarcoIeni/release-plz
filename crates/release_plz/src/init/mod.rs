@@ -139,10 +139,6 @@ fn action_yaml(branch: &str, github_token: &str) -> String {
     format!(
         "name: Release-plz
 
-permissions:
-  pull-requests: write
-  contents: write
-
 on:
   push:
     branches:
@@ -152,6 +148,8 @@ jobs:
   release-plz-release:
     name: Release-plz release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -170,6 +168,9 @@ jobs:
   release-plz-pr:
     name: Release-plz PR
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
     concurrency:
       group: release-plz-${{{{ github.ref }}}}
       cancel-in-progress: false
@@ -231,10 +232,6 @@ mod tests {
         expect_test::expect![[r#"
             name: Release-plz
 
-            permissions:
-              pull-requests: write
-              contents: write
-
             on:
               push:
                 branches:
@@ -244,6 +241,8 @@ mod tests {
               release-plz-release:
                 name: Release-plz release
                 runs-on: ubuntu-latest
+                permissions:
+                  contents: write
                 steps:
                   - name: Checkout repository
                     uses: actions/checkout@v4
@@ -262,6 +261,9 @@ mod tests {
               release-plz-pr:
                 name: Release-plz PR
                 runs-on: ubuntu-latest
+                permissions:
+                  pull-requests: write
+                  contents: write
                 concurrency:
                   group: release-plz-${{ github.ref }}
                   cancel-in-progress: false
@@ -288,10 +290,6 @@ mod tests {
         expect_test::expect![[r#"
             name: Release-plz
 
-            permissions:
-              pull-requests: write
-              contents: write
-
             on:
               push:
                 branches:
@@ -301,6 +299,8 @@ mod tests {
               release-plz-release:
                 name: Release-plz release
                 runs-on: ubuntu-latest
+                permissions:
+                  contents: write
                 steps:
                   - name: Checkout repository
                     uses: actions/checkout@v4
@@ -320,6 +320,9 @@ mod tests {
               release-plz-pr:
                 name: Release-plz PR
                 runs-on: ubuntu-latest
+                permissions:
+                  pull-requests: write
+                  contents: write
                 concurrency:
                   group: release-plz-${{ github.ref }}
                   cancel-in-progress: false
