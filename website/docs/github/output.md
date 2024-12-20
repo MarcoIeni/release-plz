@@ -38,6 +38,8 @@ jobs:
   release-plz-release:
     name: Release-plz release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -92,6 +94,9 @@ jobs:
   release-plz-pr:
     name: Release-plz PR
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     concurrency:
       group: release-plz-${{ github.ref }}
       cancel-in-progress: false
@@ -146,6 +151,9 @@ configuration field.
 jobs:
   release-plz-pr:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
     concurrency:
       group: release-plz-${{ github.ref }}
       cancel-in-progress: false
@@ -210,6 +218,9 @@ You can commit files to the release PR opened by release-plz.
 jobs:
   release-plz-pr:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
     concurrency:
       group: release-plz-${{ github.ref }}
       cancel-in-progress: false

@@ -1,9 +1,5 @@
 name: Release-plz
 
-permissions:
-  pull-requests: write
-  contents: write
-
 on:
   push:
     branches:
@@ -13,6 +9,8 @@ jobs:
   release-plz-release:
     name: Release-plz release
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
       # Generating a GitHub token, so that PRs and tags created by
       # the release-plz-action can trigger actions workflows.
@@ -27,6 +25,9 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ steps.generate-token.outputs.token }}
+          # Allow the release-plz action to push git tags.
+          # `true` is the default value.
+          persist-credentials: true
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@97db979bf844c838b06022f305ca480d01b4d5fe
       - name: Run release-plz
@@ -40,6 +41,9 @@ jobs:
   release-plz-pr:
     name: Release-plz PR
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
     concurrency:
       group: release-plz-${{ github.ref }}
       cancel-in-progress: false
@@ -57,6 +61,9 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ steps.generate-token.outputs.token }}
+          # Allow the release-plz action to git push to the PR branch.
+          # `true` is the default value.
+          persist-credentials: true
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@97db979bf844c838b06022f305ca480d01b4d5fe
       - name: Run release-plz
