@@ -61,3 +61,14 @@ struct Commit {
 struct EditPullRequest {
     state: &'static str,
 }
+
+#[derive(Deserialize)]
+pub struct LabelResponseStruct {
+    pub id: u64,
+    pub name: String,
+    pub color: String,
+    pub description: Option<String>,
+    pub exclusive: bool,
+    pub is_archived: bool,
+    pub url: String,
+}
