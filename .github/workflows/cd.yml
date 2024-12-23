@@ -60,7 +60,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
         if: startsWith(matrix.os, 'ubuntu') && !contains(matrix.target, '-musl')
-      - uses: taiki-e/install-action@03381f5ca4d069c7f756fec5d189e036987f842e # v2.46.17
+      - uses: taiki-e/install-action@8484225d9734e230a8bf38421a4ffec1cc249372 # v2.46.20
         with:
           tool: cross
         if: contains(matrix.target, '-musl')
