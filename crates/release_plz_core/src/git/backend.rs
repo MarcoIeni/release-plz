@@ -13,6 +13,7 @@ use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::{debug, info, instrument, warn};
+use crate::git::gitea_client::LabelResponseStruct;
 
 #[derive(Debug, Clone)]
 pub enum GitBackend {
@@ -549,6 +550,7 @@ impl GitClient {
     #[instrument(skip(self, pr))]
     async fn add_labels(&self, pr: &Pr, pr_number: u64) -> anyhow::Result<()> {
         if pr.labels.is_empty() {
+            warn!("No labels provided for PR #{}", pr_number);
             return Ok(());
         }
         match self.backend {
@@ -579,7 +581,73 @@ impl GitClient {
                 Ok(())
             }
             BackendType::Gitea => {
-                warn!("PR labels are only supported on Github and Gitlab");
+                let existing_labels: Vec<LabelResponseStruct> = self.client
+                     .get(format!("{}/labels", self.repo_url()))
+                     .send()
+                     .await?
+                     .successful_status()
+                     .await?
+                     .json()
+                     .await?;
+
+                let label_names: Vec<String> = existing_labels.iter().map(|l| l.name.clone()).collect();
+                let label_ids: Vec<String> = existing_labels.iter().map(|l| l.id.clone().to_string()).collect();
+                // compare my labels with existing ones
+                let mut found_labels = Vec::new();
+                let mut not_found_labels =  Vec::new();
+                let mut created_labels = Vec::new();
+
+                for label in pr.labels {
+                    if !label_names.contains(&label) && !label_ids.contains(&label) {
+                        not_found_labels.push(label);
+                        continue;
+                    }
+                    if label_names.contains(&label) {
+                        if let Some(value) = existing_labels.iter().find(|l| l.name == label.clone()) {
+                            found_labels.push(value.id.clone().to_string());
+                        }
+                        continue;
+                    }
+                    found_labels.push(label);
+                }
+
+                for label in &not_found_labels {
+                    let value: LabelResponseStruct  = self.client
+                        .post(format!("{}/labels", self.repo_url()))
+                        .json(&json!({
+                            "name": label,
+                            "color": "000000" // Default color, adjust as needed
+                        }))
+                        .send()
+                        .await?
+                        .successful_status()
+                        .await?
+                        .json()?;
+                    created_labels.push(label.clone());
+                    found_labels.push(value.id.clone().to_string());
+                }
+
+                not_found_labels.retain(|label| !created_labels.contains(label));
+                if !not_found_labels.is_empty() {
+                    anyhow::bail!(
+                        "Some of the provided labels do not exist in the repository failed to be created.\n\
+                         Provided invalid labels: {}\n\
+                         Available repository labels: {}",
+                        not_found_labels.join(", "),
+                        label_names.join(", ")
+                    );
+                }
+
+                self.client
+                    .post(format!("{}/{}/labels", self.issues_url(), pr_number))
+                    .json(&json!({
+                        "labels": found_labels
+                    }))
+                    .send()
+                    .await?
+                    .successful_status()
+                    .await?;
+
                 Ok(())
             }
         }
