@@ -141,7 +141,7 @@ impl GiteaContext {
 }
 
 #[derive(Debug, serde::Deserialize)]
-pub struct GiteaRelase {
+pub struct GiteaRelease {
     pub name: String,
     pub body: String,
 }
