@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::git::{gitea_client::Gitea, gitlab_client::GitLab};
 use crate::{GitHub, GitReleaseInfo};
 
@@ -13,7 +14,7 @@ use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::{debug, info, instrument, warn};
-use crate::git::gitea_client::LabelResponseStruct;
+use crate::git::gitea_client::GiteaLabelResponseStruct;
 
 #[derive(Debug, Clone)]
 pub enum GitBackend {
@@ -548,7 +549,7 @@ impl GitClient {
     }
 
     #[instrument(skip(self, pr))]
-    async fn add_labels(&self, pr: &Pr, pr_number: u64) -> anyhow::Result<()> {
+    pub async fn add_labels(&self, pr: &Pr, pr_number: u64) -> anyhow::Result<()> {
         if pr.labels.is_empty() {
             warn!("No labels provided for PR #{}", pr_number);
             return Ok(());
@@ -581,7 +582,8 @@ impl GitClient {
                 Ok(())
             }
             BackendType::Gitea => {
-                let existing_labels: Vec<LabelResponseStruct> = self.client
+                // uses label_id's not label_names hence need to fetch labels
+                let existing_labels: Vec<GiteaLabelResponseStruct> = self.client
                      .get(format!("{}/labels", self.repo_url()))
                      .send()
                      .await?
@@ -590,63 +592,65 @@ impl GitClient {
                      .json()
                      .await?;
 
-                let label_names: Vec<String> = existing_labels.iter().map(|l| l.name.clone()).collect();
-                let label_ids: Vec<String> = existing_labels.iter().map(|l| l.id.clone().to_string()).collect();
-                // compare my labels with existing ones
-                let mut found_labels = Vec::new();
-                let mut not_found_labels =  Vec::new();
-                let mut created_labels = Vec::new();
+                // for faster retrieving used a hash
+                let label_map: HashMap<String, u64> = existing_labels
+                    .iter()
+                    .map(|l| (l.name.clone(), l.id.clone()))
+                    .collect();
 
+                let mut labels_to_create: Vec<String> = Vec::new();
+                let mut label_ids: Vec<u64> = Vec::new();
+
+                // categorize the labels
                 for label in pr.labels {
-                    if !label_names.contains(&label) && !label_ids.contains(&label) {
-                        not_found_labels.push(label);
-                        continue;
+                    match label_map.get(&label) {
+                        Some(id) => label_ids.push(id.to_owned()),
+                        None => labels_to_create.push(label),
                     }
-                    if label_names.contains(&label) {
-                        if let Some(value) = existing_labels.iter().find(|l| l.name == label.clone()) {
-                            found_labels.push(value.id.clone().to_string());
-                        }
-                        continue;
-                    }
-                    found_labels.push(label);
                 }
 
-                for label in &not_found_labels {
-                    let value: LabelResponseStruct  = self.client
+                // create missing labels
+                for label in labels_to_create {
+                    let res = self.client
                         .post(format!("{}/labels", self.repo_url()))
                         .json(&json!({
                             "name": label,
-                            "color": "000000" // Default color, adjust as needed
+                            "color": "#FFFFFF"
                         }))
                         .send()
                         .await?
                         .successful_status()
+                        .await?;
+
+                    match res.status() {
+                        StatusCode::OK => {
+                            let new_label: GiteaLabelResponseStruct = res.json().await?;
+                            label_ids.push(new_label.id);
+                        },
+                        StatusCode::NOT_FOUND => {
+                            anyhow::bail!("Failed to create label '{}'. \n
+                            Please check if the repository URL '{}'
+                            is correct and the user has the necessary permissions..", label, self.repo_url());
+                        },
+                        StatusCode::UNPROCESSABLE_ENTITY => {
+                            warn!("Label '{}' creation failed", label)
+                        },
+                        _ => warn!("Label '{}' creation failed", label),
+                    }
+                }
+
+                // add all labels to PR
+                if !label_ids.is_empty() {
+                    self.client
+                        .post(format!("{}/{}/labels", self.issues_url(), pr_number))
+                        .json(&json!({ "labels": label_ids }))
+                        .send()
                         .await?
-                        .json()?;
-                    created_labels.push(label.clone());
-                    found_labels.push(value.id.clone().to_string());
+                        .successful_status()
+                        .await?;
+                } else  {
+                    warn!("The provided labels: {} were not added to PR #{}", pr.labels, pr_number);
                 }
-
-                not_found_labels.retain(|label| !created_labels.contains(label));
-                if !not_found_labels.is_empty() {
-                    anyhow::bail!(
-                        "Some of the provided labels do not exist in the repository failed to be created.\n\
-                         Provided invalid labels: {}\n\
-                         Available repository labels: {}",
-                        not_found_labels.join(", "),
-                        label_names.join(", ")
-                    );
-                }
-
-                self.client
-                    .post(format!("{}/{}/labels", self.issues_url(), pr_number))
-                    .json(&json!({
-                        "labels": found_labels
-                    }))
-                    .send()
-                    .await?
-                    .successful_status()
-                    .await?;
 
                 Ok(())
             }
