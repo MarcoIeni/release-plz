@@ -63,7 +63,7 @@ struct EditPullRequest {
 }
 
 #[derive(Deserialize)]
-pub struct LabelResponseStruct {
+pub struct GiteaLabelResponseStruct {
     pub id: u64,
     pub name: String,
     pub color: String,
