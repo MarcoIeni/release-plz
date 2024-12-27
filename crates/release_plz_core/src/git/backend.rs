@@ -212,7 +212,7 @@ pub struct GitLabMrEdit {
     state_event: Option<String>,
 }
 
-#[derive(Serialize, Default, Debug, Clone)]
+#[derive(Serialize, Default)]
 pub struct PrEdit {
     #[serde(skip_serializing_if = "Option::is_none")]
     title: Option<String>,
