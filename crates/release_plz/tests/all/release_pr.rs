@@ -1,6 +1,6 @@
 use cargo_utils::LocalManifest;
 use chrono::Local;
-
+use std::string::String;
 use crate::helpers::test_context::TestContext;
 
 #[tokio::test]
@@ -215,6 +215,58 @@ async fn changelog_is_not_updated_if_version_already_exists_in_changelog() {
     // Since the changelog is not updated, the PR is not created because there are no changes to do.
     let opened_prs = context.opened_release_prs().await;
     assert_eq!(opened_prs.len(), 0);
+}
+
+#[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_plz_add_labels_to_release_pull_request() {
+    let test_context = TestContext::new().await;
+
+    // Initial PR setup with two labels
+    let initial_config: &str = r#"
+    [workspace]
+    pr_labels = ["bug", "enhancement"]
+    "#;
+    let initial_labels: [&str; 2] = ["bug", "enhancement"];
+
+    test_context.write_release_plz_toml(initial_config);
+    test_context.run_release_pr().success();
+
+    let initial_prs = test_context.opened_release_prs().await;
+    assert_eq!(initial_prs.len(), 1, "Expected one PR to be created");
+
+    let initial_pr = &initial_prs[0];
+    assert_eq!(initial_pr.labels.as_ref().unwrap().len(), 2, "Expected 2 labels");
+
+    let initial_label_names: Vec<String> = initial_pr.labels.as_ref().unwrap()
+        .iter()
+        .map(|l| l.name.clone())
+        .collect();
+    assert_eq!(initial_label_names, initial_labels, "Labels don't match expected values");
+
+    // Update PR with additional label
+    let updated_config: &str = r#"
+    [workspace]
+    pr_name = "add labels to release label update"
+    pr_labels = ["needs-testing"]
+    "#;
+    let expected_labels: [&str; 3] = ["bug", "enhancement", "needs-testing"];
+
+    test_context.write_release_plz_toml(updated_config);
+    test_context.run_release_pr().success();
+
+    let updated_prs = test_context.opened_release_prs().await;
+    assert_eq!(updated_prs.len(), 1, "Expected one PR after update");
+
+    let updated_pr = &updated_prs[0];
+    assert_eq!(updated_pr.title, "add labels to release label update");
+    assert_eq!(updated_pr.labels.as_ref().unwrap().len(), 3, "Expected 3 labels after update");
+
+    let updated_label_names: Vec<String> = updated_pr.labels.as_ref().unwrap()
+        .iter()
+        .map(|l| l.name.clone())
+        .collect();
+    assert_eq!(updated_label_names, expected_labels, "Updated labels don't match expected values");
 }
 
 fn move_readme(context: &TestContext, message: &str) {
