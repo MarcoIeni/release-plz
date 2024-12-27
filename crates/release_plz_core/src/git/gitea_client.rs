@@ -61,9 +61,3 @@ struct Commit {
 struct EditPullRequest {
     state: &'static str,
 }
-
-#[derive(Deserialize, Debug)]
-pub struct GiteaLabelResponseStruct {
-    pub id: u64,
-    pub name: String,
-}

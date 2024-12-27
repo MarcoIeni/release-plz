@@ -2,7 +2,6 @@ use crate::git::{gitea_client::Gitea, gitlab_client::GitLab};
 use crate::{GitHub, GitReleaseInfo};
 use std::collections::HashMap;
 
-use crate::git::gitea_client::GiteaLabelResponseStruct;
 use crate::pr::Pr;
 use anyhow::Context;
 use http::StatusCode;
@@ -107,7 +106,7 @@ pub struct GitPr {
     pub head: Commit,
     pub title: String,
     pub body: Option<String>,
-    pub labels: Option<Vec<Label>>,
+    pub labels: Vec<Label>,
 }
 
 /// Pull request.
@@ -120,7 +119,7 @@ impl GitPr {
 #[derive(Clone, Debug, Deserialize)]
 pub struct Label {
     pub name: String,
-    // id: u64,
+    id: u64,
 }
 impl From<GitLabMr> for GitPr {
     fn from(value: GitLabMr) -> Self {
@@ -130,7 +129,6 @@ impl From<GitLabMr> for GitPr {
             Some(value.description)
         };
 
-        let labels: Option<Vec<Label>> = value.labels;
         GitPr {
             number: value.iid,
             html_url: value.web_url,
@@ -143,7 +141,7 @@ impl From<GitLabMr> for GitPr {
             user: Author {
                 login: value.author.username,
             },
-            labels,
+            labels: value.labels,
         }
     }
 }
@@ -158,7 +156,7 @@ pub struct GitLabMr {
     pub source_branch: String,
     pub title: String,
     pub description: String,
-    pub labels: Option<Vec<Label>>,
+    pub labels: Vec<Label>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -172,7 +170,6 @@ impl From<GitPr> for GitLabMr {
         if let Some(body) = value.body {
             desc = body;
         }
-        let labels: Option<Vec<Label>> = value.labels;
         GitLabMr {
             author: GitLabAuthor {
                 username: value.user.login,
@@ -183,7 +180,7 @@ impl From<GitPr> for GitLabMr {
             source_branch: value.head.ref_field,
             title: value.title,
             description: desc,
-            labels,
+            labels: value.labels,
         }
     }
 }
@@ -608,15 +605,8 @@ impl GitClient {
             }
             BackendType::Gitea => {
                 // uses label_id's not label_names hence need to fetch labels
-                let existing_labels: Vec<GiteaLabelResponseStruct> = self
-                    .client
-                    .get(format!("{}/labels", self.repo_url()))
-                    .send()
-                    .await?
-                    .successful_status()
-                    .await?
-                    .json()
-                    .await?;
+                let current_pr_info = self.get_pr_info(pr_number).await.context("failed to get pr info")?;
+                let existing_labels = current_pr_info.labels;
 
                 // for faster retrieving used a hash
                 let label_map: HashMap<String, u64> = existing_labels
@@ -652,7 +642,7 @@ impl GitClient {
 
                     match res.status() {
                         StatusCode::CREATED => {
-                            let new_label: GiteaLabelResponseStruct = res.json().await?;
+                            let new_label: Label = res.json().await?;
                             label_ids.push(new_label.id);
                         }
                         StatusCode::NOT_FOUND => {

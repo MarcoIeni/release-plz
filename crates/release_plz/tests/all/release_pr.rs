@@ -237,15 +237,13 @@ async fn release_plz_add_labels_to_release_pull_request() {
 
     let initial_pr = &initial_prs[0];
     assert_eq!(
-        initial_pr.labels.as_ref().unwrap().len(),
+        initial_pr.labels.len(),
         2,
         "Expected 2 labels"
     );
 
     let initial_label_names: Vec<String> = initial_pr
         .labels
-        .as_ref()
-        .unwrap()
         .iter()
         .map(|l| l.name.clone())
         .collect();
@@ -271,15 +269,13 @@ async fn release_plz_add_labels_to_release_pull_request() {
     let updated_pr = &updated_prs[0];
     assert_eq!(updated_pr.title, "add labels to release label update");
     assert_eq!(
-        updated_pr.labels.as_ref().unwrap().len(),
+        updated_pr.labels.len(),
         3,
         "Expected 3 labels after update"
     );
 
     let updated_label_names: Vec<String> = updated_pr
         .labels
-        .as_ref()
-        .unwrap()
         .iter()
         .map(|l| l.name.clone())
         .collect();
