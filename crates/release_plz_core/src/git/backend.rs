@@ -107,6 +107,7 @@ pub struct GitPr {
     pub head: Commit,
     pub title: String,
     pub body: Option<String>,
+    pub labels: Option<Vec<Label>>
 }
 
 /// Pull request.
@@ -116,6 +117,11 @@ impl GitPr {
     }
 }
 
+#[derive(Clone, Debug, Deserialize)]
+pub struct Label {
+    pub name: String,
+    id: u64,
+}
 impl From<GitLabMr> for GitPr {
     fn from(value: GitLabMr) -> Self {
         let body = if value.description.is_empty() {
@@ -123,6 +129,8 @@ impl From<GitLabMr> for GitPr {
         } else {
             Some(value.description)
         };
+
+        let labels: Option<Vec<Label>> = value.labels;
         GitPr {
             number: value.iid,
             html_url: value.web_url,
@@ -135,6 +143,7 @@ impl From<GitLabMr> for GitPr {
             user: Author {
                 login: value.author.username,
             },
+            labels
         }
     }
 }
@@ -149,6 +158,7 @@ pub struct GitLabMr {
     pub source_branch: String,
     pub title: String,
     pub description: String,
+    pub labels: Option<Vec<Label>>
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -158,10 +168,8 @@ pub struct GitLabAuthor {
 
 impl From<GitPr> for GitLabMr {
     fn from(value: GitPr) -> Self {
-        let description = match value.body {
-            Some(d) => d,
-            None => "".to_string(),
-        };
+        let description = value.body.unwrap_or_else(|| "".to_string());
+        let labels: Option<Vec<Label>> = value.labels;
         GitLabMr {
             author: GitLabAuthor {
                 username: value.user.login,
@@ -172,6 +180,7 @@ impl From<GitPr> for GitLabMr {
             source_branch: value.head.ref_field,
             title: value.title,
             description,
+            labels
         }
     }
 }
@@ -200,7 +209,7 @@ pub struct GitLabMrEdit {
     state_event: Option<String>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize, Default, Debug, Clone)]
 pub struct PrEdit {
     #[serde(skip_serializing_if = "Option::is_none")]
     title: Option<String>,
@@ -542,15 +551,19 @@ impl GitClient {
         };
 
         info!("opened pr: {}", git_pr.html_url);
-        self.add_labels(pr, git_pr.number)
-            .await
-            .context("Failed to add labels")?;
+        if !&pr.labels.is_empty() {
+            self.add_labels(&pr.labels, git_pr.number)
+                .await
+                .context("Failed to add labels")?;
+        } else {
+            warn!("No labels provided for PR #{}", git_pr.number);
+        }
         Ok(git_pr)
     }
 
-    #[instrument(skip(self, pr))]
-    pub async fn add_labels(&self, pr: &Pr, pr_number: u64) -> anyhow::Result<()> {
-        if pr.labels.is_empty() {
+    #[instrument(skip(self))]
+    pub async fn add_labels(&self, labels: &Vec<String>, pr_number: u64) -> anyhow::Result<()> {
+        if labels.is_empty() {
             warn!("No labels provided for PR #{}", pr_number);
             return Ok(());
         }
@@ -559,7 +572,7 @@ impl GitClient {
                 self.client
                     .post(format!("{}/{}/labels", self.issues_url(), pr_number))
                     .json(&json!({
-                        "labels": pr.labels
+                        "labels": labels
                     }))
                     .send()
                     .await?
@@ -572,7 +585,7 @@ impl GitClient {
                 self.client
                     .put(format!("{}/{}", self.pulls_url(), pr_number))
                     .json(&json!({
-                        "add_labels": pr.labels.iter().join(",")
+                        "add_labels": labels.iter().join(",")
                     }))
                     .send()
                     .await?
@@ -595,15 +608,15 @@ impl GitClient {
                 // for faster retrieving used a hash
                 let label_map: HashMap<String, u64> = existing_labels
                     .iter()
-                    .map(|l| (l.name.clone(), l.id.clone()))
+                    .map(|l| (l.name.clone(), l.id))
                     .collect();
 
-                let mut labels_to_create: Vec<String> = Vec::new();
+                let mut labels_to_create: Vec<&String> = Vec::new();
                 let mut label_ids: Vec<u64> = Vec::new();
 
                 // categorize the labels
-                for label in pr.labels {
-                    match label_map.get(&label) {
+                for label in labels {
+                    match label_map.get(label) {
                         Some(id) => label_ids.push(id.to_owned()),
                         None => labels_to_create.push(label),
                     }
@@ -623,7 +636,7 @@ impl GitClient {
                         .await?;
 
                     match res.status() {
-                        StatusCode::OK => {
+                        StatusCode::CREATED => {
                             let new_label: GiteaLabelResponseStruct = res.json().await?;
                             label_ids.push(new_label.id);
                         },
@@ -632,10 +645,11 @@ impl GitClient {
                             Please check if the repository URL '{}'
                             is correct and the user has the necessary permissions..", label, self.repo_url());
                         },
-                        StatusCode::UNPROCESSABLE_ENTITY => {
-                            warn!("Label '{}' creation failed", label)
+                        StatusCode::UNPROCESSABLE_ENTITY => anyhow::bail!("Label '{}' creation failed and existing are {:?}", label, label_map),
+                        _ => {
+                            anyhow::bail!("Label creation failed response is {} \n\
+                            With Status Code: {}", label, res.status());
                         },
-                        _ => warn!("Label '{}' creation failed", label),
                     }
                 }
 
@@ -649,7 +663,8 @@ impl GitClient {
                         .successful_status()
                         .await?;
                 } else  {
-                    warn!("The provided labels: {} were not added to PR #{}", pr.labels, pr_number);
+                    anyhow::bail!("The provided labels: {:?} \n
+                        were not added to PR #{}", labels, pr_number);
                 }
 
                 Ok(())
