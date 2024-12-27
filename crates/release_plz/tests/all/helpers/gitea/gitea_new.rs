@@ -43,7 +43,8 @@ pub async fn create_token(user: &GiteaUser, client: &reqwest::Client) -> String 
             "name": user.username(),
             // write:repository, write:user - edit repositories
             // write:package - publish packages (for cargo publish)
-            "scopes": ["read:repository", "write:repository", "write:user", "write:package"]
+            "scopes": ["read:repository", "write:repository", "write:user",
+                        "write:package", "read:issue", "write:issue"]
         }))
         .send()
         .await
