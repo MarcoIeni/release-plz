@@ -567,6 +567,15 @@ impl GitClient {
             warn!("No labels provided for PR #{}", pr_number);
             return Ok(());
         }
+
+        if let Some(label) = labels.iter().find(|l| l.len() > 50 || l.trim().len() <= 0) {
+            let error_msg = if label.trim().is_empty() {
+                "Empty labels are not allowed"
+            } else {
+                "Label exceeds maximum length of 50 characters"
+            };
+            anyhow::bail!("Failed to add labels: {} - '{}'", error_msg, label);
+        }
         match self.backend {
             BackendType::Github => {
                 self.client
@@ -624,10 +633,11 @@ impl GitClient {
 
                 // create missing labels
                 for label in labels_to_create {
+                    info!("Backend Gitea Creating label: {}", label);
                     let res = self.client
                         .post(format!("{}/labels", self.repo_url()))
                         .json(&json!({
-                            "name": label,
+                            "name": label.trim(),
                             "color": "#FFFFFF"
                         }))
                         .send()
