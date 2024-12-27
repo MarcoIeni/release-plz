@@ -1,7 +1,8 @@
-use std::collections::HashMap;
 use crate::git::{gitea_client::Gitea, gitlab_client::GitLab};
 use crate::{GitHub, GitReleaseInfo};
+use std::collections::HashMap;
 
+use crate::git::gitea_client::GiteaLabelResponseStruct;
 use crate::pr::Pr;
 use anyhow::Context;
 use http::StatusCode;
@@ -14,7 +15,6 @@ use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::{debug, info, instrument, warn};
-use crate::git::gitea_client::GiteaLabelResponseStruct;
 
 #[derive(Debug, Clone)]
 pub enum GitBackend {
@@ -107,7 +107,7 @@ pub struct GitPr {
     pub head: Commit,
     pub title: String,
     pub body: Option<String>,
-    pub labels: Option<Vec<Label>>
+    pub labels: Option<Vec<Label>>,
 }
 
 /// Pull request.
@@ -120,7 +120,7 @@ impl GitPr {
 #[derive(Clone, Debug, Deserialize)]
 pub struct Label {
     pub name: String,
-    id: u64,
+    // id: u64,
 }
 impl From<GitLabMr> for GitPr {
     fn from(value: GitLabMr) -> Self {
@@ -143,7 +143,7 @@ impl From<GitLabMr> for GitPr {
             user: Author {
                 login: value.author.username,
             },
-            labels
+            labels,
         }
     }
 }
@@ -158,7 +158,7 @@ pub struct GitLabMr {
     pub source_branch: String,
     pub title: String,
     pub description: String,
-    pub labels: Option<Vec<Label>>
+    pub labels: Option<Vec<Label>>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -168,7 +168,10 @@ pub struct GitLabAuthor {
 
 impl From<GitPr> for GitLabMr {
     fn from(value: GitPr) -> Self {
-        let description = value.body.unwrap_or_else(|| "".to_string());
+        let mut desc = "".to_string();
+        if let Some(body) = value.body {
+            desc = body;
+        }
         let labels: Option<Vec<Label>> = value.labels;
         GitLabMr {
             author: GitLabAuthor {
@@ -179,8 +182,8 @@ impl From<GitPr> for GitLabMr {
             sha: value.head.sha,
             source_branch: value.head.ref_field,
             title: value.title,
-            description,
-            labels
+            description: desc,
+            labels,
         }
     }
 }
@@ -551,12 +554,12 @@ impl GitClient {
         };
 
         info!("opened pr: {}", git_pr.html_url);
-        if !&pr.labels.is_empty() {
+        if pr.labels.is_empty() {
+            warn!("No labels provided for PR #{}", git_pr.number);
+        } else {
             self.add_labels(&pr.labels, git_pr.number)
                 .await
                 .context("Failed to add labels")?;
-        } else {
-            warn!("No labels provided for PR #{}", git_pr.number);
         }
         Ok(git_pr)
     }
@@ -568,7 +571,7 @@ impl GitClient {
             return Ok(());
         }
 
-        if let Some(label) = labels.iter().find(|l| l.len() > 50 || l.trim().len() <= 0) {
+        if let Some(label) = labels.iter().find(|l| l.len() > 50 || l.trim().is_empty()) {
             let error_msg = if label.trim().is_empty() {
                 "Empty labels are not allowed"
             } else {
@@ -605,14 +608,15 @@ impl GitClient {
             }
             BackendType::Gitea => {
                 // uses label_id's not label_names hence need to fetch labels
-                let existing_labels: Vec<GiteaLabelResponseStruct> = self.client
-                     .get(format!("{}/labels", self.repo_url()))
-                     .send()
-                     .await?
-                     .successful_status()
-                     .await?
-                     .json()
-                     .await?;
+                let existing_labels: Vec<GiteaLabelResponseStruct> = self
+                    .client
+                    .get(format!("{}/labels", self.repo_url()))
+                    .send()
+                    .await?
+                    .successful_status()
+                    .await?
+                    .json()
+                    .await?;
 
                 // for faster retrieving used a hash
                 let label_map: HashMap<String, u64> = existing_labels
@@ -634,7 +638,8 @@ impl GitClient {
                 // create missing labels
                 for label in labels_to_create {
                     info!("Backend Gitea Creating label: {}", label);
-                    let res = self.client
+                    let res = self
+                        .client
                         .post(format!("{}/labels", self.repo_url()))
                         .json(&json!({
                             "name": label.trim(),
@@ -649,22 +654,41 @@ impl GitClient {
                         StatusCode::CREATED => {
                             let new_label: GiteaLabelResponseStruct = res.json().await?;
                             label_ids.push(new_label.id);
-                        },
+                        }
                         StatusCode::NOT_FOUND => {
-                            anyhow::bail!("Failed to create label '{}'. \n
+                            anyhow::bail!(
+                                "Failed to create label '{}'. \n
                             Please check if the repository URL '{}'
-                            is correct and the user has the necessary permissions..", label, self.repo_url());
-                        },
-                        StatusCode::UNPROCESSABLE_ENTITY => anyhow::bail!("Label '{}' creation failed and existing are {:?}", label, label_map),
+                            is correct and the user has the necessary permissions..",
+                                label,
+                                self.repo_url()
+                            );
+                        }
+                        StatusCode::UNPROCESSABLE_ENTITY => anyhow::bail!(
+                            "Label '{}' creation failed and existing are {:?}",
+                            label,
+                            label_map
+                        ),
                         _ => {
-                            anyhow::bail!("Label creation failed response is {} \n\
-                            With Status Code: {}", label, res.status());
-                        },
+                            anyhow::bail!(
+                                "Label creation failed response is {} \n\
+                            With Status Code: {}",
+                                label,
+                                res.status()
+                            );
+                        }
                     }
                 }
 
                 // add all labels to PR
-                if !label_ids.is_empty() {
+                if label_ids.is_empty() {
+                    anyhow::bail!(
+                        "The provided labels: {:?} \n
+                        were not added to PR #{}",
+                        labels,
+                        pr_number
+                    );
+                } else {
                     self.client
                         .post(format!("{}/{}/labels", self.issues_url(), pr_number))
                         .json(&json!({ "labels": label_ids }))
@@ -672,9 +696,6 @@ impl GitClient {
                         .await?
                         .successful_status()
                         .await?;
-                } else  {
-                    anyhow::bail!("The provided labels: {:?} \n
-                        were not added to PR #{}", labels, pr_number);
                 }
 
                 Ok(())

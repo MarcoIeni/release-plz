@@ -1,7 +1,7 @@
+use crate::helpers::test_context::TestContext;
 use cargo_utils::LocalManifest;
 use chrono::Local;
 use std::string::String;
-use crate::helpers::test_context::TestContext;
 
 #[tokio::test]
 #[cfg_attr(not(feature = "docker-tests"), ignore)]
@@ -236,13 +236,23 @@ async fn release_plz_add_labels_to_release_pull_request() {
     assert_eq!(initial_prs.len(), 1, "Expected one PR to be created");
 
     let initial_pr = &initial_prs[0];
-    assert_eq!(initial_pr.labels.as_ref().unwrap().len(), 2, "Expected 2 labels");
+    assert_eq!(
+        initial_pr.labels.as_ref().unwrap().len(),
+        2,
+        "Expected 2 labels"
+    );
 
-    let initial_label_names: Vec<String> = initial_pr.labels.as_ref().unwrap()
+    let initial_label_names: Vec<String> = initial_pr
+        .labels
+        .as_ref()
+        .unwrap()
         .iter()
         .map(|l| l.name.clone())
         .collect();
-    assert_eq!(initial_label_names, initial_labels, "Labels don't match expected values");
+    assert_eq!(
+        initial_label_names, initial_labels,
+        "Labels don't match expected values"
+    );
 
     // Update PR with additional label
     let updated_config: &str = r#"
@@ -260,13 +270,23 @@ async fn release_plz_add_labels_to_release_pull_request() {
 
     let updated_pr = &updated_prs[0];
     assert_eq!(updated_pr.title, "add labels to release label update");
-    assert_eq!(updated_pr.labels.as_ref().unwrap().len(), 3, "Expected 3 labels after update");
+    assert_eq!(
+        updated_pr.labels.as_ref().unwrap().len(),
+        3,
+        "Expected 3 labels after update"
+    );
 
-    let updated_label_names: Vec<String> = updated_pr.labels.as_ref().unwrap()
+    let updated_label_names: Vec<String> = updated_pr
+        .labels
+        .as_ref()
+        .unwrap()
         .iter()
         .map(|l| l.name.clone())
         .collect();
-    assert_eq!(updated_label_names, expected_labels, "Updated labels don't match expected values");
+    assert_eq!(
+        updated_label_names, expected_labels,
+        "Updated labels don't match expected values"
+    );
 }
 
 #[tokio::test]
@@ -275,31 +295,37 @@ async fn release_plz_add_invalid_labels_to_release_pr() {
     let test_context = TestContext::new().await;
     let test_cases: &[(&str, &str)] = &[
         // (label config, expected error message)
-        (r#"
+        (
+            r#"
             [workspace]
             pr_labels = [" "]
-        "#, "Empty labels are not allowed"), // space label
-        (r#"
+        "#,
+            "Empty labels are not allowed",
+        ), // space label
+        (
+            r#"
             [workspace]
             pr_labels = ["this-is-a-very-long-label-that-exceeds-the-maximum-length-allowed-by-git-providers"]
-            "#, "Label exceeds maximum length of 50 characters"), // Too long
-        (r#"
+            "#,
+            "Label exceeds maximum length of 50 characters",
+        ), // Too long
+        (
+            r#"
             [workspace]
             pr_labels = [""]
-            "#, "Empty labels are not allowed"), // empty label
+            "#,
+            "Empty labels are not allowed",
+        ), // empty label
     ];
 
-    for test_case in test_cases{
+    for test_case in test_cases {
         let initial_config = test_case.0;
         test_context.write_release_plz_toml(initial_config);
         let error = test_context.run_release_pr().failure().to_string();
         assert!(
-            error.contains("Failed to add labels") &&
-                error.contains(test_case.1),
-            "Expected label creation failure got: {}",
-            error
+            error.contains("Failed to add labels") && error.contains(test_case.1),
+            "Expected label creation failure got: {error}"
         );
-
     }
 }
 
