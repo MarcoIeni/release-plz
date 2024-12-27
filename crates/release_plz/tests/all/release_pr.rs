@@ -269,6 +269,40 @@ async fn release_plz_add_labels_to_release_pull_request() {
     assert_eq!(updated_label_names, expected_labels, "Updated labels don't match expected values");
 }
 
+#[tokio::test]
+#[cfg_attr(not(feature = "docker-tests"), ignore)]
+async fn release_plz_add_invalid_labels_to_release_pr() {
+    let test_context = TestContext::new().await;
+    let test_cases: &[(&str, &str)] = &[
+        // (label config, expected error message)
+        (r#"
+            [workspace]
+            pr_labels = [" "]
+        "#, "Empty labels are not allowed"), // space label
+        (r#"
+            [workspace]
+            pr_labels = ["this-is-a-very-long-label-that-exceeds-the-maximum-length-allowed-by-git-providers"]
+            "#, "Label exceeds maximum length of 50 characters"), // Too long
+        (r#"
+            [workspace]
+            pr_labels = [""]
+            "#, "Empty labels are not allowed"), // empty label
+    ];
+
+    for test_case in test_cases{
+        let initial_config = test_case.0;
+        test_context.write_release_plz_toml(initial_config);
+        let error = test_context.run_release_pr().failure().to_string();
+        assert!(
+            error.contains("Failed to add labels") &&
+                error.contains(test_case.1),
+            "Expected label creation failure got: {}",
+            error
+        );
+
+    }
+}
+
 fn move_readme(context: &TestContext, message: &str) {
     let readme = "README.md";
     let new_readme = format!("NEW_{readme}");
