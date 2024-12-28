@@ -238,7 +238,8 @@ async fn release_plz_add_labels_to_release_pull_request() {
     assert_eq!(initial_pr.labels.len(), 2, "Expected 2 labels");
 
     assert_eq!(
-        initial_pr.label_names(), initial_labels,
+        initial_pr.label_names(),
+        initial_labels,
         "Labels don't match expected values"
     );
 
@@ -260,10 +261,9 @@ async fn release_plz_add_labels_to_release_pull_request() {
     assert_eq!(updated_pr.title, "add labels to release label update");
     assert_eq!(updated_pr.labels.len(), 3, "Expected 3 labels after update");
 
-    let updated_label_names: Vec<String> =
-        updated_pr.labels.iter().map(|l| l.name.clone()).collect();
     assert_eq!(
-        updated_label_names, expected_labels,
+        updated_pr.label_names(),
+        expected_labels,
         "Updated labels don't match expected values"
     );
 }
