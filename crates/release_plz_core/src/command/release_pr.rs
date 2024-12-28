@@ -4,7 +4,7 @@ use git_cmd::Repo;
 
 use anyhow::Context;
 use serde::Serialize;
-use tracing::{debug, info, instrument, warn};
+use tracing::{debug, info, instrument};
 use url::Url;
 
 use crate::git::backend::{contributors_from_commits, BackendType, GitClient, GitPr, PrEdit};
@@ -313,9 +313,7 @@ async fn update_pr(
     if pr_edit.contains_edit() {
         git_client.edit_pr(opened_pr.number, pr_edit).await?;
         // add labels via pr update
-        if new_pr.labels.is_empty() {
-            warn!("No labels provided for PR #{}", opened_pr.number);
-        } else {
+        if !new_pr.labels.is_empty() {
             git_client
                 .add_labels(&new_pr.labels, opened_pr.number)
                 .await?;
