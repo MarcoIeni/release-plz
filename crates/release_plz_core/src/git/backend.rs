@@ -114,6 +114,10 @@ impl GitPr {
     pub fn branch(&self) -> &str {
         self.head.ref_field.as_str()
     }
+
+    pub fn label_names(&self) -> Vec<&str> {
+        self.labels.iter().map(|l| l.name.as_str()).collect()
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]

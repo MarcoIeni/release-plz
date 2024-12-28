@@ -312,12 +312,11 @@ async fn update_pr(
     };
     if pr_edit.contains_edit() {
         git_client.edit_pr(opened_pr.number, pr_edit).await?;
-        // add labels via pr update
-        if !new_pr.labels.is_empty() {
-            git_client
-                .add_labels(&new_pr.labels, opened_pr.number)
-                .await?;
-        }
+    }
+    if !new_pr.labels.is_empty() && opened_pr.label_names() != new_pr.labels {
+        git_client
+            .add_labels(&new_pr.labels, opened_pr.number)
+            .await?;
     }
     info!("updated pr {}", opened_pr.html_url);
     Ok(())
