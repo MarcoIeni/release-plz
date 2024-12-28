@@ -570,14 +570,8 @@ impl GitClient {
             return Ok(());
         }
 
-        if let Some(label) = labels.iter().find(|l| l.len() > 50 || l.trim().is_empty()) {
-            let error_msg = if label.trim().is_empty() {
-                "Empty labels are not allowed"
-            } else {
-                "Label exceeds maximum length of 50 characters"
-            };
-            anyhow::bail!("Failed to add labels: {} - '{}'", error_msg, label);
-        }
+        validate_labels(labels)?;
+
         match self.backend {
             BackendType::Github => {
                 self.client
@@ -837,6 +831,19 @@ impl GitClient {
         };
         format!("{}/{commits_api_path}{commit}", self.repo_url())
     }
+}
+
+fn validate_labels(labels: &Vec<String>) -> anyhow::Result<()> {
+    for l in labels {
+        if l.len() > 50 {
+            anyhow::bail!("Failed to add label `{l}`. It exceeds maximum length of 50 characters.");
+        }
+
+        if l.trim().is_empty() {
+            anyhow::bail!("Failed to add label. Empty labels are not allowed.");
+        }
+    }
+    Ok(())
 }
 
 /// Representation of a single commit.
