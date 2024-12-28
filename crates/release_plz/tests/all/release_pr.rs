@@ -1,7 +1,6 @@
 use crate::helpers::test_context::TestContext;
 use cargo_utils::LocalManifest;
 use chrono::Local;
-use std::string::String;
 
 #[tokio::test]
 #[cfg_attr(not(feature = "docker-tests"), ignore)]
