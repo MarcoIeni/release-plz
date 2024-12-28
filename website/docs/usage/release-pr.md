@@ -45,6 +45,7 @@ Gitea with the `--backend` option:
 `release-plz release-pr --git-token <gitea application token> --backend gitea`
 
 The token needs to have the following permissions:
+
 - `read:repository`, `write:repository`: to create the release PR.
 - `read:issue`, `write:issue`: to add labels to the release PR.
 

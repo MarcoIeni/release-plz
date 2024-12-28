@@ -61,6 +61,7 @@ Then you can run `release-plz release` in Gitea CI with the following arguments:
 `release-plz release --backend gitea --git-token <gitea_token>`
 
 The token needs to have the following permissions:
+
 - `read:repository`, `write:repository`: to create git tags and releases.
 
 TODO: document how to create a token on Gitea.
