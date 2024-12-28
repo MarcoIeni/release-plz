@@ -222,11 +222,11 @@ async fn release_plz_add_labels_to_release_pull_request() {
     let test_context = TestContext::new().await;
 
     // Initial PR setup with two labels
-    let initial_config: &str = r#"
+    let initial_config = r#"
     [workspace]
     pr_labels = ["bug", "enhancement"]
     "#;
-    let initial_labels: [&str; 2] = ["bug", "enhancement"];
+    let initial_labels = ["bug", "enhancement"];
 
     test_context.write_release_plz_toml(initial_config);
     test_context.run_release_pr().success();
@@ -237,20 +237,18 @@ async fn release_plz_add_labels_to_release_pull_request() {
     let initial_pr = &initial_prs[0];
     assert_eq!(initial_pr.labels.len(), 2, "Expected 2 labels");
 
-    let initial_label_names: Vec<String> =
-        initial_pr.labels.iter().map(|l| l.name.clone()).collect();
     assert_eq!(
-        initial_label_names, initial_labels,
+        initial_pr.label_names(), initial_labels,
         "Labels don't match expected values"
     );
 
     // Update PR with additional label
-    let updated_config: &str = r#"
+    let updated_config = r#"
     [workspace]
     pr_name = "add labels to release label update"
     pr_labels = ["needs-testing"]
     "#;
-    let expected_labels: [&str; 3] = ["bug", "enhancement", "needs-testing"];
+    let expected_labels = ["bug", "enhancement", "needs-testing"];
 
     test_context.write_release_plz_toml(updated_config);
     test_context.run_release_pr().success();
