@@ -125,6 +125,7 @@ pub struct Label {
     pub name: String,
     id: u64,
 }
+
 impl From<GitLabMr> for GitPr {
     fn from(value: GitLabMr) -> Self {
         let body = if value.description.is_empty() {
@@ -170,10 +171,7 @@ pub struct GitLabAuthor {
 
 impl From<GitPr> for GitLabMr {
     fn from(value: GitPr) -> Self {
-        let mut desc = "".to_string();
-        if let Some(body) = value.body {
-            desc = body;
-        }
+        let desc = value.body.unwrap_or_default();
         GitLabMr {
             author: GitLabAuthor {
                 username: value.user.login,
