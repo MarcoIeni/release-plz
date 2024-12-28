@@ -605,7 +605,10 @@ impl GitClient {
             }
             BackendType::Gitea => {
                 // uses label_id's not label_names hence need to fetch labels
-                let current_pr_info = self.get_pr_info(pr_number).await.context("failed to get pr info")?;
+                let current_pr_info = self
+                    .get_pr_info(pr_number)
+                    .await
+                    .context("failed to get pr info")?;
                 let existing_labels = current_pr_info.labels;
 
                 // for faster retrieving used a hash
