@@ -9,6 +9,16 @@
   packageRules: [
     {
       matchCategories: [
+        'github-actions',
+      ],
+      schedule: [
+        {
+          interval: 'weekly',
+        },
+      ],
+    },
+    {
+      matchCategories: [
         'rust',
       ],
       matchUpdateTypes: [
