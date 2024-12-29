@@ -286,7 +286,7 @@ async fn release_plz_add_invalid_labels_to_release_pr() {
             [workspace]
             pr_labels = ["this-is-a-very-long-label-that-exceeds-the-maximum-length-allowed-by-git-providers"]
             "#,
-            "Label exceeds maximum length of 50 characters",
+            "it exceeds maximum length of 50 characters",
         ), // Too long
         (
             r#"
@@ -302,7 +302,7 @@ async fn release_plz_add_invalid_labels_to_release_pr() {
         test_context.write_release_plz_toml(initial_config);
         let error = test_context.run_release_pr().failure().to_string();
         assert!(
-            error.contains("Failed to add labels") && error.contains(test_case.1),
+            error.contains("Failed to add label") && error.contains(test_case.1),
             "Expected label creation failure got: {error}"
         );
     }

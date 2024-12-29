@@ -836,7 +836,7 @@ impl GitClient {
 fn validate_labels(labels: &Vec<String>) -> anyhow::Result<()> {
     for l in labels {
         if l.len() > 50 {
-            anyhow::bail!("Failed to add label `{l}`. It exceeds maximum length of 50 characters.");
+            anyhow::bail!("Failed to add label `{l}`: it exceeds maximum length of 50 characters.");
         }
 
         if l.trim().is_empty() {
