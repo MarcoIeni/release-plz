@@ -29,6 +29,15 @@
       // are updated periodically with lockfile maintainance.
       enabled: false,
     },
+    {
+      matchFileNames: ['tests/docker-compose.yml'],
+      groupName: 'Docker Compose',
+      schedule: [
+        {
+          interval: 'weekly',
+        },
+      ],
+    }
   ],
   // Receive any update that fixes security vulnerabilities.
   // We need this because we disabled "patch" updates for Rust.
