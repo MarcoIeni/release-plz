@@ -16,6 +16,7 @@
           interval: 'weekly',
         },
       ],
+      groupName: 'Github Actions updates',
     },
     {
       matchCategories: [
