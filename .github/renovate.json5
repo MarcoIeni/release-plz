@@ -11,7 +11,7 @@
       matchCategories: [
         'github-actions',
       ],
-      // At 06:00 on Monday.
+      // At 06:XX on Monday.
       schedule: '* 6 * * 1',
       groupName: 'Github Actions updates',
     },
@@ -29,7 +29,7 @@
     {
       matchFileNames: ['tests/docker-compose.yml'],
       groupName: 'Docker Compose',
-      // At 07:00 on Monday.
+      // At 07:XX on Monday.
       schedule: '* 7 * * 1',
     },
   ],
