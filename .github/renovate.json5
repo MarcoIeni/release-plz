@@ -11,11 +11,8 @@
       matchCategories: [
         'github-actions',
       ],
-      schedule: [
-        {
-          interval: 'weekly',
-        },
-      ],
+      // At 06:00 on Monday.
+      schedule: '0 6 * * 1',
       groupName: 'Github Actions updates',
     },
     {
@@ -32,11 +29,8 @@
     {
       matchFileNames: ['tests/docker-compose.yml'],
       groupName: 'Docker Compose',
-      schedule: [
-        {
-          interval: 'weekly',
-        },
-      ],
+      // At 07:00 on Monday.
+      schedule: '0 7 * * 1',
     },
   ],
   // Receive any update that fixes security vulnerabilities.
