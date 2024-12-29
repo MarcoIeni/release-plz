@@ -37,7 +37,7 @@
           interval: 'weekly',
         },
       ],
-    }
+    },
   ],
   // Receive any update that fixes security vulnerabilities.
   // We need this because we disabled "patch" updates for Rust.
