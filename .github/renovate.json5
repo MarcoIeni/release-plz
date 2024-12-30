@@ -5,7 +5,7 @@
     'helpers:pinGitHubActionDigests',
     ':maintainLockFilesWeekly',
   ],
-  // automerge: true,
+  automerge: true,
   packageRules: [
     {
       matchCategories: [
