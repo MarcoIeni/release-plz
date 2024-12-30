@@ -123,7 +123,7 @@ impl GitPr {
 #[derive(Clone, Debug, Deserialize)]
 pub struct Label {
     pub name: String,
-    id: u64,
+    id: Option<u64>,
 }
 
 impl From<GitLabMr> for GitPr {
@@ -133,6 +133,12 @@ impl From<GitLabMr> for GitPr {
         } else {
             Some(value.description)
         };
+
+        let labels = value
+            .labels
+            .into_iter()
+            .map(|l| Label { name: l, id: None })
+            .collect();
 
         GitPr {
             number: value.iid,
@@ -146,7 +152,7 @@ impl From<GitLabMr> for GitPr {
             user: Author {
                 login: value.author.username,
             },
-            labels: value.labels,
+            labels,
         }
     }
 }
@@ -161,7 +167,7 @@ pub struct GitLabMr {
     pub source_branch: String,
     pub title: String,
     pub description: String,
-    pub labels: Vec<Label>,
+    pub labels: Vec<String>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -172,6 +178,8 @@ pub struct GitLabAuthor {
 impl From<GitPr> for GitLabMr {
     fn from(value: GitPr) -> Self {
         let desc = value.body.unwrap_or_default();
+        let labels: Vec<String> = value.labels.into_iter().map(|l| l.name).collect();
+
         GitLabMr {
             author: GitLabAuthor {
                 username: value.user.login,
@@ -182,7 +190,7 @@ impl From<GitPr> for GitLabMr {
             source_branch: value.head.ref_field,
             title: value.title,
             description: desc,
-            labels: value.labels,
+            labels,
         }
     }
 }
@@ -553,9 +561,7 @@ impl GitClient {
         };
 
         info!("opened pr: {}", git_pr.html_url);
-        if pr.labels.is_empty() {
-            warn!("No labels provided for PR #{}", git_pr.number);
-        } else {
+        if !pr.labels.is_empty() {
             self.add_labels(&pr.labels, git_pr.number)
                 .await
                 .context("Failed to add labels")?;
@@ -608,7 +614,7 @@ impl GitClient {
                 let existing_labels = current_pr_info.labels;
 
                 // for faster retrieving used a hash
-                let label_map: HashMap<String, u64> = existing_labels
+                let label_map: HashMap<String, Option<u64>> = existing_labels
                     .iter()
                     .map(|l| (l.name.clone(), l.id))
                     .collect();
@@ -619,7 +625,7 @@ impl GitClient {
                 // categorize the labels
                 for label in labels {
                     match label_map.get(label) {
-                        Some(id) => label_ids.push(id.to_owned()),
+                        Some(id) => label_ids.push(id.context("failed to extract id")?.to_owned()),
                         None => labels_to_create.push(label),
                     }
                 }
@@ -642,7 +648,7 @@ impl GitClient {
                     match res.status() {
                         StatusCode::CREATED => {
                             let new_label: Label = res.json().await?;
-                            label_ids.push(new_label.id);
+                            label_ids.push(new_label.id.context("failed to extract id")?);
                         }
                         StatusCode::NOT_FOUND => {
                             anyhow::bail!(
