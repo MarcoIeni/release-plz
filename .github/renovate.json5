@@ -9,6 +9,14 @@
   packageRules: [
     {
       matchCategories: [
+        'github-actions',
+      ],
+      // At 06:XX on Monday.
+      schedule: '* 6 * * 1',
+      groupName: 'Github Actions updates',
+    },
+    {
+      matchCategories: [
         'rust',
       ],
       matchUpdateTypes: [
@@ -17,6 +25,12 @@
       // Disable patch updates for single dependencies because patches
       // are updated periodically with lockfile maintainance.
       enabled: false,
+    },
+    {
+      matchFileNames: ['tests/docker-compose.yml'],
+      groupName: 'Docker Compose',
+      // At 07:XX on Monday.
+      schedule: '* 7 * * 1',
     },
   ],
   // Receive any update that fixes security vulnerabilities.

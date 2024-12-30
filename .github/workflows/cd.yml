@@ -56,11 +56,11 @@ jobs:
           persist-credentials: false
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@97db979bf844c838b06022f305ca480d01b4d5fe
-      - uses: taiki-e/setup-cross-toolchain-action@92417c3484017b78b44195de2e0026e080f1e001 # v1.24.0
+      - uses: taiki-e/setup-cross-toolchain-action@bdeb9ca6f0f909ea36bb94e1e3ec916b2ceb35fc # v1.26.0
         with:
           target: ${{ matrix.target }}
         if: startsWith(matrix.os, 'ubuntu') && !contains(matrix.target, '-musl')
-      - uses: taiki-e/install-action@03381f5ca4d069c7f756fec5d189e036987f842e # v2.46.17
+      - uses: taiki-e/install-action@acd25891978b4cdaebd139d3efef606d26513b14 # v2.47.0
         with:
           tool: cross
         if: contains(matrix.target, '-musl')
