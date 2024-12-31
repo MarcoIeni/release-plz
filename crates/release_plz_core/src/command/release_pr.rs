@@ -7,7 +7,9 @@ use serde::Serialize;
 use tracing::{debug, info, instrument};
 use url::Url;
 
-use crate::git::backend::{contributors_from_commits, BackendType, GitClient, GitPr, PrEdit};
+use crate::git::backend::{
+    contributors_from_commits, validate_labels, BackendType, GitClient, GitPr, PrEdit,
+};
 use crate::git::github_graphql;
 use crate::pr::{Pr, DEFAULT_BRANCH_PREFIX, OLD_BRANCH_PREFIX};
 use crate::{
@@ -120,6 +122,9 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
         let repo = Repo::new(tmp_project_root)?;
         let there_are_commits_to_push = repo.is_clean().is_err();
         if there_are_commits_to_push {
+            if !input.labels.is_empty() {
+                validate_labels(&input.labels.clone())?
+            }
             let pr = open_or_update_release_pr(
                 &local_manifest,
                 &packages_to_update,
