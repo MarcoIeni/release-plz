@@ -102,6 +102,7 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
         tmp_project_root_parent.path(),
     )?;
 
+    validate_labels(&input.labels)?;
     let tmp_project_root =
         new_project_root(&original_project_root, tmp_project_root_parent.path())?;
 
@@ -122,9 +123,6 @@ pub async fn release_pr(input: &ReleasePrRequest) -> anyhow::Result<Option<Relea
         let repo = Repo::new(tmp_project_root)?;
         let there_are_commits_to_push = repo.is_clean().is_err();
         if there_are_commits_to_push {
-            if !input.labels.is_empty() {
-                validate_labels(&input.labels.clone())?;
-            }
             let pr = open_or_update_release_pr(
                 &local_manifest,
                 &packages_to_update,
