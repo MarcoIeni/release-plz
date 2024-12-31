@@ -606,74 +606,12 @@ impl GitClient {
                 Ok(())
             }
             BackendType::Gitea => {
-                // uses label_id's not label_names hence need to fetch labels
-                let current_pr_info = self
-                    .get_pr_info(pr_number)
-                    .await
-                    .context("failed to get pr info")?;
-                let existing_labels = current_pr_info.labels;
+                let (labels_to_create, mut label_ids) = self
+                    .get_pr_info_and_categorize_labels(pr_number, labels.to_owned())
+                    .await?;
 
-                // for faster retrieving used a hash
-                let label_map: HashMap<String, Option<u64>> = existing_labels
-                    .iter()
-                    .map(|l| (l.name.clone(), l.id))
-                    .collect();
-
-                let mut labels_to_create: Vec<&String> = Vec::new();
-                let mut label_ids: Vec<u64> = Vec::new();
-
-                // categorize the labels
-                for label in labels {
-                    match label_map.get(label) {
-                        Some(id) => label_ids.push(id.context("failed to extract id")?.to_owned()),
-                        None => labels_to_create.push(label),
-                    }
-                }
-
-                // create missing labels
-                for label in labels_to_create {
-                    info!("Backend Gitea Creating label: {}", label);
-                    let res = self
-                        .client
-                        .post(format!("{}/labels", self.repo_url()))
-                        .json(&json!({
-                            "name": label.trim(),
-                            "color": "#FFFFFF"
-                        }))
-                        .send()
-                        .await?
-                        .successful_status()
-                        .await?;
-
-                    match res.status() {
-                        StatusCode::CREATED => {
-                            let new_label: Label = res.json().await?;
-                            label_ids.push(new_label.id.context("failed to extract id")?);
-                        }
-                        StatusCode::NOT_FOUND => {
-                            anyhow::bail!(
-                                "Failed to create label '{}'. \n
-                            Please check if the repository URL '{}'
-                            is correct and the user has the necessary permissions..",
-                                label,
-                                self.repo_url()
-                            );
-                        }
-                        StatusCode::UNPROCESSABLE_ENTITY => anyhow::bail!(
-                            "Label '{}' creation failed and existing are {:?}",
-                            label,
-                            label_map
-                        ),
-                        _ => {
-                            anyhow::bail!(
-                                "Label creation failed response is {} \n\
-                            With Status Code: {}",
-                                label,
-                                res.status()
-                            );
-                        }
-                    }
-                }
+                let new_label_ids = self.create_labels(&labels_to_create).await?;
+                label_ids.extend(new_label_ids);
 
                 // add all labels to PR
                 if label_ids.is_empty() {
@@ -696,6 +634,85 @@ impl GitClient {
                 Ok(())
             }
         }
+    }
+
+    async fn get_pr_info_and_categorize_labels(
+        &self,
+        pr_number: u64,
+        labels: Vec<String>,
+    ) -> anyhow::Result<(Vec<String>, Vec<u64>)> {
+        let current_pr_info = self
+            .get_pr_info(pr_number)
+            .await
+            .context("failed to get pr info")?;
+        let existing_labels = current_pr_info.labels;
+
+        let label_map: HashMap<String, Option<u64>> = existing_labels
+            .iter()
+            .map(|l| (l.name.clone(), l.id))
+            .collect();
+
+        let mut labels_to_create = Vec::new();
+        let mut label_ids = Vec::new();
+
+        for label in labels {
+            match label_map.get(&label) {
+                Some(id) => label_ids.push(id.context("failed to extract id")?.to_owned()),
+                None => labels_to_create.push(label),
+            }
+        }
+
+        Ok((labels_to_create, label_ids))
+    }
+
+    async fn create_labels(&self, labels_to_create: &Vec<String>) -> anyhow::Result<Vec<u64>> {
+        let mut label_ids = Vec::new();
+
+        for label in labels_to_create {
+            info!("Backend Gitea Creating label: {}", label);
+            let res = self
+                .client
+                .post(format!("{}/labels", self.repo_url()))
+                .json(&json!({
+                    "name": label.trim(),
+                    "color": "#FFFFFF"
+                }))
+                .send()
+                .await?
+                .successful_status()
+                .await?;
+
+            match res.status() {
+                StatusCode::CREATED => {
+                    let new_label: Label = res.json().await?;
+                    label_ids.push(new_label.id.context("failed to extract id")?);
+                }
+                StatusCode::NOT_FOUND => {
+                    anyhow::bail!(
+                        "Failed to create label '{}'. \n\
+                    Please check if the repository URL '{}' \
+                    is correct and the user has the necessary permissions.",
+                        label,
+                        self.repo_url()
+                    );
+                }
+                StatusCode::UNPROCESSABLE_ENTITY => anyhow::bail!(
+                    "Label '{}' creation failed. Existing labels are {:?}",
+                    label,
+                    labels_to_create
+                ),
+                _ => {
+                    anyhow::bail!(
+                        "Label creation failed response is {} \n\
+                    With Status Code: {}",
+                        label,
+                        res.status()
+                    );
+                }
+            }
+        }
+
+        Ok(label_ids)
     }
 
     pub async fn pr_commits(&self, pr_number: u64) -> anyhow::Result<Vec<PrCommit>> {
