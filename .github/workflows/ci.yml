@@ -24,7 +24,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Install cargo-semver-checks
-        uses: taiki-e/install-action@acd25891978b4cdaebd139d3efef606d26513b14 # v2.47.0
+        uses: taiki-e/install-action@77b010ce7843a10f653ccb6b0967bda4c3d81091 # v2.47.1
         with:
           tool: cargo-semver-checks@0.34
       - name: Start containers
@@ -57,7 +57,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Install cargo-semver-checks
-        uses: taiki-e/install-action@acd25891978b4cdaebd139d3efef606d26513b14 # v2.47.0
+        uses: taiki-e/install-action@77b010ce7843a10f653ccb6b0967bda4c3d81091 # v2.47.1
         with:
           tool: cargo-semver-checks@0.34
       - name: Install Rust toolchain
