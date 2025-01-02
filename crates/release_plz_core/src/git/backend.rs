@@ -13,7 +13,7 @@ use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tracing::{debug, info, instrument, warn};
+use tracing::{debug, info, instrument};
 
 #[derive(Debug, Clone)]
 pub enum GitBackend {
