@@ -676,7 +676,7 @@ impl GitClient {
         let mut label_ids = Vec::new();
 
         for label in labels_to_create {
-            info!("Backend Gitea Creating label: {}", label);
+            debug!("Backend Gitea creating label: {}", label);
             let res = self
                 .client
                 .post(format!("{}/labels", self.repo_url()))
@@ -692,7 +692,10 @@ impl GitClient {
             match res.status() {
                 StatusCode::CREATED => {
                     let new_label: Label = res.json().await?;
-                    label_ids.push(new_label.id.context("failed to extract id")?);
+                    let label_id = new_label
+                        .id
+                        .with_context(|| format!("failed to extract id from label {label}"))?;
+                    label_ids.push(label_id);
                 }
                 StatusCode::NOT_FOUND => {
                     anyhow::bail!(
