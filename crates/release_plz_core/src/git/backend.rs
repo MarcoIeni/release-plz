@@ -583,7 +583,7 @@ impl GitClient {
                     .get_pr_info_and_categorize_labels(pr_number, labels)
                     .await?;
 
-                let new_label_ids = self.create_labels(&labels_to_create).await?;
+                let new_label_ids = self.create_gitea_labels(&labels_to_create).await?;
                 label_ids.extend(new_label_ids);
 
                 anyhow::ensure!(
@@ -672,7 +672,7 @@ impl GitClient {
         Ok((labels_to_create, label_ids))
     }
 
-    async fn create_labels(&self, labels_to_create: &[String]) -> anyhow::Result<Vec<u64>> {
+    async fn create_gitea_labels(&self, labels_to_create: &[String]) -> anyhow::Result<Vec<u64>> {
         let mut label_ids = Vec::new();
 
         for label in labels_to_create {
