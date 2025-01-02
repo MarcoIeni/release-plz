@@ -699,23 +699,20 @@ impl GitClient {
                 }
                 StatusCode::NOT_FOUND => {
                     anyhow::bail!(
-                        "Failed to create label '{}'. \n\
+                        "Failed to create label '{label}'. \n\
                     Please check if the repository URL '{}' \
                     is correct and the user has the necessary permissions.",
-                        label,
                         self.repo_url()
                     );
                 }
                 StatusCode::UNPROCESSABLE_ENTITY => anyhow::bail!(
-                    "Label '{}' creation failed. Existing labels are {:?}",
-                    label,
+                    "Label '{label}' creation failed. Existing labels are {:?}",
                     labels_to_create
                 ),
                 _ => {
                     anyhow::bail!(
-                        "Label creation failed response is {} \n\
+                        "Label creation failed response is {label} \n\
                     With Status Code: {}",
-                        label,
                         res.status()
                     );
                 }
