@@ -563,18 +563,15 @@ impl GitClient {
         };
 
         info!("opened pr: {}", git_pr.html_url);
-        if !pr.labels.is_empty() {
-            self.add_labels(&pr.labels, git_pr.number)
-                .await
-                .context("Failed to add labels")?;
-        }
+        self.add_labels(&pr.labels, git_pr.number)
+            .await
+            .context("Failed to add labels")?;
         Ok(git_pr)
     }
 
     #[instrument(skip(self))]
     pub async fn add_labels(&self, labels: &Vec<String>, pr_number: u64) -> anyhow::Result<()> {
         if labels.is_empty() {
-            warn!("No labels provided for PR #{}", pr_number);
             return Ok(());
         }
 
