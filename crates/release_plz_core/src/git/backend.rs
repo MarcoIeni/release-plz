@@ -676,7 +676,7 @@ impl GitClient {
         let mut label_ids = Vec::new();
 
         for label in labels_to_create {
-            debug!("Backend Gitea creating label: {}", label);
+            debug!("Backend Gitea creating label: {label}");
             let res = self
                 .client
                 .post(format!("{}/labels", self.repo_url()))
