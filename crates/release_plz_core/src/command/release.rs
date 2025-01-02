@@ -531,7 +531,7 @@ async fn release_packages(
     repo: &Repo,
     git_client: &GitClient,
 ) -> anyhow::Result<Option<Release>> {
-    let packages = project.publishable_packages();
+    let packages = project.workspace_packages();
     let release_order = release_order(&packages).context("cannot determine release order")?;
     let mut package_releases: Vec<PackageRelease> = vec![];
     for package in release_order {
@@ -578,9 +578,12 @@ async fn release_package_if_needed(
     };
     for CargoRegistry { name, mut index } in registry_indexes {
         let token = input.find_registry_token(name.as_deref())?;
-        if is_published(&mut index, package, input.publish_timeout, &token)
-            .await
-            .context("can't determine if package is published")?
+        // Only check if this package has already been published to the registry if
+        // registry publishing is enabled for it
+        if input.is_publish_enabled(&release_info.package.name)
+            && is_published(&mut index, package, input.publish_timeout, &token)
+                .await
+                .context("can't determine if package is published")?
         {
             info!("{} {}: already published", package.name, package.version);
             continue;

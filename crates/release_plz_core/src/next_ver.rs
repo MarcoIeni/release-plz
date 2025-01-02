@@ -9,7 +9,7 @@ use crate::{
     is_readme_updated, local_readme_override, lock_compare,
     package_compare::are_packages_equal,
     package_path::{manifest_dir, PackagePath},
-    registry_packages::{self, PackagesCollection, RegistryPackage},
+    published_packages::{PackagesCollection, PublishedPackage},
     repo_url::RepoUrl,
     semver_check::{self, SemverCheck},
     tmp_repo::TempRepo,
@@ -380,6 +380,16 @@ impl UpdateRequest {
     pub fn repo_url(&self) -> Option<&RepoUrl> {
         self.repo_url.as_ref()
     }
+
+    pub(crate) fn create_project(&self) -> anyhow::Result<Project> {
+        Project::new(
+            &self.local_manifest,
+            self.single_package.as_deref(),
+            &self.packages_config.overrides.keys().cloned().collect(),
+            &self.metadata,
+            self,
+        )
+    }
 }
 
 impl ReleaseMetadataBuilder for UpdateRequest {
@@ -395,26 +405,11 @@ impl ReleaseMetadataBuilder for UpdateRequest {
 /// Determine next version of packages
 #[instrument(skip_all)]
 pub async fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpdate, TempRepo)> {
-    let overrides = input.packages_config.overrides.keys().cloned().collect();
-    let local_project = Project::new(
-        &input.local_manifest,
-        input.single_package.as_deref(),
-        &overrides,
-        &input.metadata,
-        input,
-    )?;
+    let local_project = input.create_project()?;
     let updater = Updater {
         project: &local_project,
         req: input,
     };
-    // Retrieve the latest published version of the packages.
-    // Release-plz will compare the registry packages with the local packages,
-    // to determine the new commits.
-    let registry_packages = registry_packages::get_registry_packages(
-        input.registry_manifest.as_deref(),
-        &local_project.publishable_packages(),
-        input.registry.as_deref(),
-    )?;
 
     let repository = local_project
         .get_repo()
@@ -422,6 +417,20 @@ pub async fn next_versions(input: &UpdateRequest) -> anyhow::Result<(PackagesUpd
     if !input.allow_dirty {
         repository.repo.is_clean()?;
     }
+
+    // Retrieve the latest published version of the packages.
+    // Release-plz will compare the registry packages with the local packages,
+    // to determine the new commits.
+    let publishable_packages = local_project.workspace_packages();
+
+    let registry_packages = PackagesCollection::fetch_latest(
+        &local_project,
+        &repository,
+        publishable_packages.into_iter(),
+        input.registry_manifest(),
+        input.registry.as_deref(),
+    )?;
+
     let packages_to_update = updater
         .packages_to_update(&registry_packages, &repository.repo, input.local_manifest())
         .await?;
@@ -628,7 +637,7 @@ impl Updater<'_> {
         // package at a time.
         let packages_diffs_res: anyhow::Result<Vec<(&Package, Diff)>> = self
             .project
-            .publishable_packages()
+            .workspace_packages()
             .iter()
             .map(|&p| {
                 let diff = self
@@ -886,7 +895,7 @@ impl Updater<'_> {
         repository
             .checkout_head()
             .context("can't checkout head to calculate diff")?;
-        let registry_package = registry_packages.get_registry_package(&package.name);
+        let registry_package = registry_packages.get_published_package(&package.name);
         let mut diff = Diff::new(registry_package.is_some());
         let pathbufs_to_check = pathbufs_to_check(&package_path, package);
         let paths_to_check: Vec<&Path> = pathbufs_to_check.iter().map(|p| p.as_ref()).collect();
@@ -932,7 +941,7 @@ impl Updater<'_> {
         &self,
         package_path: &Utf8Path,
         package: &Package,
-        registry_package: Option<&RegistryPackage>,
+        registry_package: Option<&PublishedPackage>,
         repository: &Repo,
         tag_commit: Option<&str>,
         diff: &mut Diff,
