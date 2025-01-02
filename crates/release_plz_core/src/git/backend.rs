@@ -123,6 +123,8 @@ impl GitPr {
 #[derive(Clone, Debug, Deserialize)]
 pub struct Label {
     pub name: String,
+    /// ID of the label.
+    /// Used by Gitea and GitHub. Not present in GitLab responses.
     id: Option<u64>,
 }
 
