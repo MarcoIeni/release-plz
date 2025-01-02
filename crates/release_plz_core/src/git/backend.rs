@@ -580,7 +580,7 @@ impl GitClient {
             BackendType::Gitlab => self.post_gitlab_labels(labels, pr_number).await,
             BackendType::Gitea => {
                 let (labels_to_create, mut label_ids) = self
-                    .get_pr_info_and_categorize_labels(pr_number, labels.to_owned())
+                    .get_pr_info_and_categorize_labels(pr_number, labels)
                     .await?;
 
                 let new_label_ids = self.create_labels(&labels_to_create).await?;
@@ -645,7 +645,7 @@ impl GitClient {
     async fn get_pr_info_and_categorize_labels(
         &self,
         pr_number: u64,
-        labels: Vec<String>,
+        labels: &[String],
     ) -> anyhow::Result<(Vec<String>, Vec<u64>)> {
         let current_pr_info = self
             .get_pr_info(pr_number)
@@ -662,10 +662,10 @@ impl GitClient {
         let mut label_ids = Vec::new();
 
         for label in labels {
-            match label_map.get(&label) {
+            match label_map.get(label) {
                 Some(id) => label_ids
                     .push(id.with_context(|| format!("failed to extract id from label {label}"))?),
-                None => labels_to_create.push(label),
+                None => labels_to_create.push(label.to_owned()),
             }
         }
 
