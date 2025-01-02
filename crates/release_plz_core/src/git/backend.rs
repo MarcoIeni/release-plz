@@ -663,7 +663,10 @@ impl GitClient {
 
         for label in labels {
             match label_map.get(&label) {
-                Some(id) => label_ids.push(id.context("failed to extract id")?.to_owned()),
+                Some(id) => label_ids.push(
+                    id.with_context(|| format!("failed to extract id from label {label}"))?
+                        .to_owned(),
+                ),
                 None => labels_to_create.push(label),
             }
         }
