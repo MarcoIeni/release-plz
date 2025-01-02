@@ -570,7 +570,7 @@ impl GitClient {
     }
 
     #[instrument(skip(self))]
-    pub async fn add_labels(&self, labels: &Vec<String>, pr_number: u64) -> anyhow::Result<()> {
+    pub async fn add_labels(&self, labels: &[String], pr_number: u64) -> anyhow::Result<()> {
         if labels.is_empty() {
             return Ok(());
         }
@@ -662,7 +662,7 @@ impl GitClient {
         Ok((labels_to_create, label_ids))
     }
 
-    async fn create_labels(&self, labels_to_create: &Vec<String>) -> anyhow::Result<Vec<u64>> {
+    async fn create_labels(&self, labels_to_create: &[String]) -> anyhow::Result<Vec<u64>> {
         let mut label_ids = Vec::new();
 
         for label in labels_to_create {
@@ -853,7 +853,7 @@ impl GitClient {
     }
 }
 
-pub fn validate_labels(labels: &Vec<String>) -> anyhow::Result<()> {
+pub fn validate_labels(labels: &[String]) -> anyhow::Result<()> {
     for l in labels {
         if l.len() > 50 {
             anyhow::bail!("Failed to add label `{l}`: it exceeds maximum length of 50 characters.");
