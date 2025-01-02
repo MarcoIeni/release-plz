@@ -576,32 +576,8 @@ impl GitClient {
         }
 
         match self.backend {
-            BackendType::Github => {
-                self.client
-                    .post(format!("{}/{}/labels", self.issues_url(), pr_number))
-                    .json(&json!({
-                        "labels": labels
-                    }))
-                    .send()
-                    .await?
-                    .successful_status()
-                    .await?;
-
-                Ok(())
-            }
-            BackendType::Gitlab => {
-                self.client
-                    .put(format!("{}/{}", self.pulls_url(), pr_number))
-                    .json(&json!({
-                        "add_labels": labels.iter().join(",")
-                    }))
-                    .send()
-                    .await?
-                    .successful_status()
-                    .await?;
-
-                Ok(())
-            }
+            BackendType::Github => self.post_github_labels(labels, pr_number).await,
+            BackendType::Gitlab => self.post_gitlab_labels(labels, pr_number).await,
             BackendType::Gitea => {
                 let (labels_to_create, mut label_ids) = self
                     .get_pr_info_and_categorize_labels(pr_number, labels.to_owned())
@@ -610,27 +586,60 @@ impl GitClient {
                 let new_label_ids = self.create_labels(&labels_to_create).await?;
                 label_ids.extend(new_label_ids);
 
-                // add all labels to PR
-                if label_ids.is_empty() {
-                    anyhow::bail!(
-                        "The provided labels: {:?} \n
-                        were not added to PR #{}",
-                        labels,
-                        pr_number
-                    );
-                } else {
-                    self.client
-                        .post(format!("{}/{}/labels", self.issues_url(), pr_number))
-                        .json(&json!({ "labels": label_ids }))
-                        .send()
-                        .await?
-                        .successful_status()
-                        .await?;
-                }
-
-                Ok(())
+                anyhow::ensure!(
+                    !label_ids.is_empty(),
+                    "The provided labels: {labels:?} \n
+                        were not added to PR #{pr_number}",
+                );
+                self.post_gitea_labels(&label_ids, pr_number).await
             }
         }
+    }
+
+    fn pr_labels_url(&self, pr_number: u64) -> String {
+        format!("{}/{}/labels", self.issues_url(), pr_number)
+    }
+
+    /// Add all labels to PR
+    async fn post_github_labels(&self, labels: &[String], pr_number: u64) -> anyhow::Result<()> {
+        self.client
+            .post(self.pr_labels_url(pr_number))
+            .json(&json!({
+                "labels": labels
+            }))
+            .send()
+            .await?
+            .successful_status()
+            .await?;
+
+        Ok(())
+    }
+
+    /// Add all labels to PR
+    async fn post_gitlab_labels(&self, labels: &[String], pr_number: u64) -> anyhow::Result<()> {
+        self.client
+            .put(format!("{}/{}", self.pulls_url(), pr_number))
+            .json(&json!({
+                "add_labels": labels.iter().join(",")
+            }))
+            .send()
+            .await?
+            .successful_status()
+            .await?;
+
+        Ok(())
+    }
+
+    /// Add all labels to PR
+    async fn post_gitea_labels(&self, label_ids: &[u64], pr_number: u64) -> anyhow::Result<()> {
+        self.client
+            .post(self.pr_labels_url(pr_number))
+            .json(&json!({ "labels": label_ids }))
+            .send()
+            .await?
+            .successful_status()
+            .await?;
+        Ok(())
     }
 
     async fn get_pr_info_and_categorize_labels(
