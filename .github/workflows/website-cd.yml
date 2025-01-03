@@ -1,8 +1,5 @@
 name: Website CD # Continuous Deployment
 
-permissions:
-  contents: write
-
 on:
   workflow_dispatch: # Allow manual triggers
   push:
@@ -12,15 +9,17 @@ on:
 jobs:
   deploy:
     name: Deploy website
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: "website/package-lock.json"
 
       - name: Install dependencies
         run: npm ci
@@ -31,7 +30,7 @@ jobs:
         working-directory: ./website
 
       - name: Deploy to release-plz.dev
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@6d58852c35a27e6034745c5d0bc373d739014f7f # v3.13.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -40,7 +39,7 @@ jobs:
       # Deploy to release-plz.ieni.dev (legacy).
       # I couldn't find a way to redirect.
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Build output to publish to the `gh-pages` branch:

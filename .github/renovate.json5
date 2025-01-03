@@ -1,14 +1,36 @@
 {
-  $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["config:recommended", ":maintainLockFilesWeekly"],
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    'helpers:pinGitHubActionDigests',
+    ':maintainLockFilesWeekly',
+  ],
   automerge: true,
   packageRules: [
     {
-      matchCategories: ["rust"],
-      updateTypes: ["patch"],
+      matchManagers: [
+        'github-actions',
+      ],
+      // At 06:XX on Monday.
+      schedule: '* 6 * * 1',
+      groupName: 'Github Actions updates',
+    },
+    {
+      matchCategories: [
+        'rust',
+      ],
+      matchUpdateTypes: [
+        'patch',
+      ],
       // Disable patch updates for single dependencies because patches
       // are updated periodically with lockfile maintainance.
       enabled: false,
+    },
+    {
+      matchFileNames: ['tests/docker-compose.yml'],
+      groupName: 'Docker Compose',
+      // At 07:XX on Monday.
+      schedule: '* 7 * * 1',
     },
   ],
   // Receive any update that fixes security vulnerabilities.

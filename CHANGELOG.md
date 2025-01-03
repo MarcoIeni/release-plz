@@ -6,6 +6,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.112](https://github.com/release-plz/release-plz/compare/release-plz-v0.3.111...release-plz-v0.3.112) - 2024-12-19
+
+### Fixed
+
+- increment pre-release version correctly when dependencies change (#1915)
+- Fixed wrong link on github token usage for release ci. (#1913)
+
+### Other
+
+- log when a release is skipped because of release_commits regex (#1904)
+
+## [0.3.111](https://github.com/release-plz/release-plz/compare/release-plz-v0.3.110...release-plz-v0.3.111) - 2024-12-07
+
+### Added
+
+- warn if cargo-semver-checks is not installed ([#1891](https://github.com/release-plz/release-plz/pull/1891))
+- Enable `pr_labels` for GitLab backend ([#1879](https://github.com/release-plz/release-plz/pull/1879))
+- add raw_message to commit context ([#1867](https://github.com/release-plz/release-plz/pull/1867))
+
+### Fixed
+
+- locate Cargo.lock correctly when project isn't in root directory ([#1894](https://github.com/release-plz/release-plz/pull/1894))
+
+### Other
+
+- Make logging less verbose ([#1840](https://github.com/release-plz/release-plz/pull/1840))
+- Fix elided lifetime issue ([#1875](https://github.com/release-plz/release-plz/pull/1875))
+- test default release pr configuration ([#1862](https://github.com/release-plz/release-plz/pull/1862))
+
 ## [0.3.110](https://github.com/release-plz/release-plz/compare/release-plz-v0.3.109...release-plz-v0.3.110) - 2024-11-21
 
 ### Added

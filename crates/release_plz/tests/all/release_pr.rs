@@ -125,7 +125,7 @@ async fn release_plz_should_fail_for_multi_package_pr() {
 
 #[tokio::test]
 #[ignore = "This test fails in CI, but works locally on MacOS. TODO: fix this."]
-#[cfg_attr(not(feature = "docker-tests"), ignore)]
+// #[cfg_attr(not(feature = "docker-tests"), ignore)]
 async fn release_plz_detects_edited_readme_cargo_toml_field() {
     let context = TestContext::new().await;
 
@@ -159,7 +159,7 @@ async fn release_plz_detects_edited_readme_cargo_toml_field() {
 
 #[tokio::test]
 #[ignore = "This test fails in CI, but works locally on MacOS. TODO: fix this."]
-#[cfg_attr(not(feature = "docker-tests"), ignore)]
+// #[cfg_attr(not(feature = "docker-tests"), ignore)]
 async fn release_plz_honors_features_always_increment_minor_flag() {
     let context = TestContext::new().await;
 

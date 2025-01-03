@@ -68,6 +68,8 @@ jobs:
   release-plz-release:
     name: Release-plz release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -87,6 +89,9 @@ jobs:
   release-plz-pr:
     name: Release-plz PR
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     concurrency:
       group: release-plz-${{ github.ref }}
       cancel-in-progress: false
@@ -116,12 +121,6 @@ to explain it in detail.
 # Name of the workflow: you can change it.
 name: Release-plz
 
-permissions:
-  # Used to create and update pull requests.
-  pull-requests: write
-  # Used to push to branches, push tags, and create releases.
-  contents: write
-
 # The action runs on every push to the main branch.
 on:
   push:
@@ -137,6 +136,9 @@ jobs:
   release-plz-release:
     name: Release-plz release
     runs-on: ubuntu-latest
+    # Used to push tags, and create releases.
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -164,6 +166,12 @@ jobs:
   release-plz-pr:
     name: Release-plz PR
     runs-on: ubuntu-latest
+    permissions:
+      # Used to create and update pull requests.
+      pull-requests: write
+      # Used to push to the pull request branch.
+      contents: write
+
     # The concurrency block is explained below (after the code block).
     concurrency:
       group: release-plz-${{ github.ref }}

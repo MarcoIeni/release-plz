@@ -24,7 +24,7 @@ pub struct Project {
     packages: Vec<Package>,
     /// Metadata for each release enabled package.
     release_metadata: HashMap<String, ReleaseMetadata>,
-    /// Project root directory
+    /// Project root directory, i.e. where `.git` is located.
     root: Utf8PathBuf,
     /// Directory containing the project manifest
     manifest_dir: Utf8PathBuf,
@@ -157,7 +157,7 @@ impl Project {
     }
 
     pub fn cargo_lock_path(&self) -> Utf8PathBuf {
-        self.root.join("Cargo.lock")
+        self.manifest_dir.join("Cargo.lock")
     }
 
     // Check mandatory fields for crates.io
