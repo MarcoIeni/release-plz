@@ -1,5 +1,6 @@
 use crate::git::{gitea_client::Gitea, gitlab_client::GitLab};
 use crate::{GitHub, GitReleaseInfo};
+use std::collections::HashMap;
 
 use crate::pr::Pr;
 use anyhow::Context;
@@ -12,7 +13,7 @@ use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tracing::{debug, info, instrument, warn};
+use tracing::{debug, info, instrument};
 
 #[derive(Debug, Clone)]
 pub enum GitBackend {
@@ -105,6 +106,7 @@ pub struct GitPr {
     pub head: Commit,
     pub title: String,
     pub body: Option<String>,
+    pub labels: Vec<Label>,
 }
 
 /// Pull request.
@@ -112,6 +114,18 @@ impl GitPr {
     pub fn branch(&self) -> &str {
         self.head.ref_field.as_str()
     }
+
+    pub fn label_names(&self) -> Vec<&str> {
+        self.labels.iter().map(|l| l.name.as_str()).collect()
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Label {
+    pub name: String,
+    /// ID of the label.
+    /// Used by Gitea and GitHub. Not present in GitLab responses.
+    id: Option<u64>,
 }
 
 impl From<GitLabMr> for GitPr {
@@ -121,6 +135,13 @@ impl From<GitLabMr> for GitPr {
         } else {
             Some(value.description)
         };
+
+        let labels = value
+            .labels
+            .into_iter()
+            .map(|l| Label { name: l, id: None })
+            .collect();
+
         GitPr {
             number: value.iid,
             html_url: value.web_url,
@@ -133,6 +154,7 @@ impl From<GitLabMr> for GitPr {
             user: Author {
                 login: value.author.username,
             },
+            labels,
         }
     }
 }
@@ -147,6 +169,7 @@ pub struct GitLabMr {
     pub source_branch: String,
     pub title: String,
     pub description: String,
+    pub labels: Vec<String>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -156,10 +179,9 @@ pub struct GitLabAuthor {
 
 impl From<GitPr> for GitLabMr {
     fn from(value: GitPr) -> Self {
-        let description = match value.body {
-            Some(d) => d,
-            None => "".to_string(),
-        };
+        let desc = value.body.unwrap_or_default();
+        let labels: Vec<String> = value.labels.into_iter().map(|l| l.name).collect();
+
         GitLabMr {
             author: GitLabAuthor {
                 username: value.user.login,
@@ -169,7 +191,8 @@ impl From<GitPr> for GitLabMr {
             sha: value.head.sha,
             source_branch: value.head.ref_field,
             title: value.title,
-            description,
+            description: desc,
+            labels,
         }
     }
 }
@@ -540,49 +563,163 @@ impl GitClient {
         };
 
         info!("opened pr: {}", git_pr.html_url);
-        self.add_labels(pr, git_pr.number)
+        self.add_labels(&pr.labels, git_pr.number)
             .await
             .context("Failed to add labels")?;
         Ok(git_pr)
     }
 
-    #[instrument(skip(self, pr))]
-    async fn add_labels(&self, pr: &Pr, pr_number: u64) -> anyhow::Result<()> {
-        if pr.labels.is_empty() {
+    #[instrument(skip(self))]
+    pub async fn add_labels(&self, labels: &[String], pr_number: u64) -> anyhow::Result<()> {
+        if labels.is_empty() {
             return Ok(());
         }
+
         match self.backend {
-            BackendType::Github => {
-                self.client
-                    .post(format!("{}/{}/labels", self.issues_url(), pr_number))
-                    .json(&json!({
-                        "labels": pr.labels
-                    }))
-                    .send()
-                    .await?
-                    .successful_status()
-                    .await?;
-
-                Ok(())
-            }
-            BackendType::Gitlab => {
-                self.client
-                    .put(format!("{}/{}", self.pulls_url(), pr_number))
-                    .json(&json!({
-                        "add_labels": pr.labels.iter().join(",")
-                    }))
-                    .send()
-                    .await?
-                    .successful_status()
-                    .await?;
-
-                Ok(())
-            }
+            BackendType::Github => self.post_github_labels(labels, pr_number).await,
+            BackendType::Gitlab => self.post_gitlab_labels(labels, pr_number).await,
             BackendType::Gitea => {
-                warn!("PR labels are only supported on Github and Gitlab");
-                Ok(())
+                let (labels_to_create, mut label_ids) = self
+                    .get_pr_info_and_categorize_labels(pr_number, labels)
+                    .await?;
+
+                let new_label_ids = self.create_gitea_labels(&labels_to_create).await?;
+                label_ids.extend(new_label_ids);
+
+                anyhow::ensure!(
+                    !label_ids.is_empty(),
+                    "The provided labels: {labels:?} \n
+                        were not added to PR #{pr_number}",
+                );
+                self.post_gitea_labels(&label_ids, pr_number).await
             }
         }
+    }
+
+    fn pr_labels_url(&self, pr_number: u64) -> String {
+        format!("{}/{}/labels", self.issues_url(), pr_number)
+    }
+
+    /// Add all labels to PR
+    async fn post_github_labels(&self, labels: &[String], pr_number: u64) -> anyhow::Result<()> {
+        self.client
+            .post(self.pr_labels_url(pr_number))
+            .json(&json!({
+                "labels": labels
+            }))
+            .send()
+            .await?
+            .successful_status()
+            .await?;
+
+        Ok(())
+    }
+
+    /// Add all labels to PR
+    async fn post_gitlab_labels(&self, labels: &[String], pr_number: u64) -> anyhow::Result<()> {
+        self.client
+            .put(format!("{}/{}", self.pulls_url(), pr_number))
+            .json(&json!({
+                "add_labels": labels.iter().join(",")
+            }))
+            .send()
+            .await?
+            .successful_status()
+            .await?;
+
+        Ok(())
+    }
+
+    /// Add all labels to PR
+    async fn post_gitea_labels(&self, label_ids: &[u64], pr_number: u64) -> anyhow::Result<()> {
+        self.client
+            .post(self.pr_labels_url(pr_number))
+            .json(&json!({ "labels": label_ids }))
+            .send()
+            .await?
+            .successful_status()
+            .await?;
+        Ok(())
+    }
+
+    async fn get_pr_info_and_categorize_labels(
+        &self,
+        pr_number: u64,
+        labels: &[String],
+    ) -> anyhow::Result<(Vec<String>, Vec<u64>)> {
+        let current_pr_info = self
+            .get_pr_info(pr_number)
+            .await
+            .context("failed to get pr info")?;
+        let existing_labels = current_pr_info.labels;
+
+        let label_map: HashMap<String, Option<u64>> = existing_labels
+            .iter()
+            .map(|l| (l.name.clone(), l.id))
+            .collect();
+
+        let mut labels_to_create = Vec::new();
+        let mut label_ids = Vec::new();
+
+        for label in labels {
+            match label_map.get(label) {
+                Some(id) => label_ids
+                    .push(id.with_context(|| format!("failed to extract id from label {label}"))?),
+                None => labels_to_create.push(label.to_owned()),
+            }
+        }
+
+        Ok((labels_to_create, label_ids))
+    }
+
+    async fn create_gitea_labels(&self, labels_to_create: &[String]) -> anyhow::Result<Vec<u64>> {
+        let mut label_ids = Vec::new();
+
+        for label in labels_to_create {
+            debug!("Backend Gitea creating label: {label}");
+            let res = self
+                .client
+                .post(format!("{}/labels", self.repo_url()))
+                .json(&json!({
+                    "name": label.trim(),
+                    "color": "#FFFFFF"
+                }))
+                .send()
+                .await?
+                .successful_status()
+                .await?;
+
+            match res.status() {
+                StatusCode::CREATED => {
+                    let new_label: Label = res.json().await?;
+                    let label_id = new_label
+                        .id
+                        .with_context(|| format!("failed to extract id from label {label}"))?;
+                    label_ids.push(label_id);
+                }
+                StatusCode::NOT_FOUND => {
+                    anyhow::bail!(
+                        "Failed to create label '{label}'. \n\
+                    Please check if the repository URL '{}' \
+                    is correct and the user has the necessary permissions.",
+                        self.repo_url()
+                    );
+                }
+                StatusCode::UNPROCESSABLE_ENTITY => anyhow::bail!(
+                    "Label '{label}' creation failed. Existing labels are {:?}",
+                    labels_to_create
+                ),
+                _ => {
+                    anyhow::bail!(
+                        "Label creation failed response is {label} \n\
+                    With Status Code: {}",
+                        res.status()
+                    );
+                }
+            }
+        }
+
+        Ok(label_ids)
     }
 
     pub async fn pr_commits(&self, pr_number: u64) -> anyhow::Result<Vec<PrCommit>> {
@@ -724,6 +861,19 @@ impl GitClient {
         };
         format!("{}/{commits_api_path}{commit}", self.repo_url())
     }
+}
+
+pub fn validate_labels(labels: &[String]) -> anyhow::Result<()> {
+    for l in labels {
+        if l.len() > 50 {
+            anyhow::bail!("Failed to add label `{l}`: it exceeds maximum length of 50 characters.");
+        }
+
+        if l.trim().is_empty() {
+            anyhow::bail!("Failed to add label. Empty labels are not allowed.");
+        }
+    }
+    Ok(())
 }
 
 /// Representation of a single commit.
