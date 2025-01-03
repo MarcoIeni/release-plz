@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.113](https://github.com/release-plz/release-plz/compare/release-plz-v0.3.112...release-plz-v0.3.113) - 2025-01-03
+
+### Other
+
+- move permissions to workflow jobs (#1930)
+- update release-plz CI to use actions-rust-lang/setup-rust-toolchain (#1837)
+- update Cargo.toml dependencies
+
 ## [0.3.112](https://github.com/release-plz/release-plz/compare/release-plz-v0.3.111...release-plz-v0.3.112) - 2024-12-19
 
 ### Fixed
